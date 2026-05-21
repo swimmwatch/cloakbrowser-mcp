@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="cloakbrowser-mcp">
+  <defs>
+    <linearGradient id="g" x1="18" y1="12" x2="78" y2="84" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#14b8a6" />
+      <stop offset="1" stop-color="#f97316" />
+    </linearGradient>
+  </defs>
+  <rect width="96" height="96" rx="20" fill="#0f172a" />
+  <path
+    d="M48 14c17 0 30 9 35 24-9 3-16 12-16 23 0 6 2 12 6 16-7 4-15 5-25 5-10 0-18-1-25-5 4-4 6-10 6-16 0-11-7-20-16-23 5-15 18-24 35-24Z"
+    fill="url(#g)"
+  />
+  <path
+    d="M30 47c5-6 11-9 18-9s13 3 18 9c-4 8-10 12-18 12s-14-4-18-12Z"
+    fill="#f8fafc"
+  />
+  <circle cx="48" cy="48" r="8" fill="#0f172a" />
+  <circle cx="51" cy="45" r="2" fill="#f8fafc" />
+</svg>

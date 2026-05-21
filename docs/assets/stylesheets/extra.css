@@ -1,0 +1,17 @@
+:root {
+  --md-primary-fg-color: #0f766e;
+  --md-accent-fg-color: #ea580c;
+}
+
+[data-md-color-scheme='slate'] {
+  --md-primary-fg-color: #14b8a6;
+  --md-accent-fg-color: #f59e0b;
+}
+
+.md-typeset .md-button {
+  border-radius: 0.25rem;
+}
+
+.md-typeset code {
+  border-radius: 0.2rem;
+}

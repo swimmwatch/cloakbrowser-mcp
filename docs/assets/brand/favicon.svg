@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="cloakbrowser-mcp">
+  <rect width="64" height="64" rx="14" fill="#0f172a" />
+  <path d="M32 9c12 0 21 6 25 17-6 2-11 9-11 17 0 4 1 8 4 11-5 3-11 4-18 4s-13-1-18-4c3-3 4-7 4-11 0-8-5-15-11-17 4-11 13-17 25-17Z" fill="#14b8a6" />
+  <path d="M21 31c4-4 7-6 11-6s7 2 11 6c-3 6-6 8-11 8s-8-2-11-8Z" fill="#f8fafc" />
+  <circle cx="32" cy="32" r="5" fill="#0f172a" />
+</svg>

@@ -1,0 +1,163 @@
+site_name: cloakbrowser-mcp
+site_description: Model Context Protocol server for CloakBrowser — stealth Chromium browser automation for AI agents.
+site_url: https://swimmwatch.github.io/cloakbrowser-mcp/
+site_author: swimmwatch
+repo_url: https://github.com/swimmwatch/cloakbrowser-mcp
+repo_name: swimmwatch/cloakbrowser-mcp
+edit_uri: edit/main/docs/
+copyright: Copyright &copy; 2026 swimmwatch
+
+hooks:
+  - docs/hooks/generate_config_docs.py
+
+theme:
+  name: material
+  language: en
+  logo: assets/brand/logo.svg
+  favicon: assets/brand/favicon.svg
+  font:
+    text: Inter
+    code: JetBrains Mono
+  icon:
+    repo: fontawesome/brands/github
+    tag:
+      user: material/account
+      docker: fontawesome/brands/docker
+      config: material/tune
+      tools: material/tools
+      security: material/shield-lock
+      project: material/source-branch
+      test: material/test-tube
+      api: material/api
+  features:
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.path
+    - navigation.footer
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.code.select
+    - content.action.edit
+    - content.action.view
+    - content.tabs.link
+    - content.tooltips
+  palette:
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      primary: teal
+      accent: deep orange
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      primary: teal
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+plugins:
+  - search:
+      lang: en
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+  - tags
+  - privacy:
+      enabled: !ENV [MKDOCS_PRIVACY, false]
+      links: true
+      assets: false
+  - social:
+      enabled: !ENV [MKDOCS_SOCIAL_CARDS, false]
+      cards_layout_options:
+        logo: docs/assets/brand/logo.svg
+        background_color: '#0f766e'
+        color: '#ffffff'
+
+nav:
+  - Overview: index.md
+  - User Guide:
+      - Getting Started: getting-started.md
+      - Docker: docker.md
+      - Configuration: configuration.md
+      - Tools: tools.md
+      - Security: security.md
+      - Tags: tags.md
+  - Project Internals:
+      - Contributor Guide: contributor-guide.md
+      - Library API: library-api.md
+      - Development: development.md
+      - Testing: testing.md
+      - Architecture: architecture.md
+      - Contributing: contributing.md
+      - Roadmap: roadmap.md
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.tabbed:
+      alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+extra:
+  homepage: https://github.com/swimmwatch/cloakbrowser-mcp
+  tags:
+    User Guide: user
+    Docker: docker
+    Configuration: config
+    Tools: tools
+    Security: security
+    Project Internals: project
+    Testing: test
+    API: api
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/swimmwatch/cloakbrowser-mcp
+      name: GitHub repository
+    - icon: fontawesome/brands/npm
+      link: https://www.npmjs.com/package/cloakbrowser-mcp
+      name: npm package
+    - icon: fontawesome/brands/docker
+      link: https://github.com/swimmwatch/cloakbrowser-mcp/pkgs/container/cloakbrowser-mcp
+      name: GHCR image
+
+extra_css:
+  - assets/stylesheets/extra.css

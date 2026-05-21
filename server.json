@@ -1,0 +1,97 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.swimmwatch/cloakbrowser-mcp",
+  "title": "CloakBrowser MCP",
+  "description": "Model Context Protocol server for CloakBrowser — stealth Chromium browser automation for AI agents.",
+  "version": "1.0.0",
+  "websiteUrl": "https://swimmwatch.github.io/cloakbrowser-mcp/",
+  "repository": {
+    "url": "https://github.com/swimmwatch/cloakbrowser-mcp",
+    "source": "github"
+  },
+  "icons": [
+    {
+      "src": "https://swimmwatch.github.io/cloakbrowser-mcp/assets/brand/logo.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": ["any"]
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "cloakbrowser-mcp",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "CLOAKBROWSER_MCP_OUTPUT_DIR",
+          "description": "Directory where screenshots, PDFs, traces, HAR files, and videos are written.",
+          "format": "filepath"
+        },
+        {
+          "name": "CLOAKBROWSER_MCP_LOG_LEVEL",
+          "description": "Logging verbosity: silent, error, warn, info, or debug.",
+          "format": "string",
+          "default": "info"
+        },
+        {
+          "name": "CLOAKBROWSER_MCP_ALLOWED_ORIGINS",
+          "description": "Comma-separated host suffix allowlist. Leave unset to allow all non-blocked origins.",
+          "format": "string"
+        },
+        {
+          "name": "CLOAKBROWSER_MCP_BLOCKED_ORIGINS",
+          "description": "Comma-separated host suffix denylist. Denies override allowed origins.",
+          "format": "string"
+        },
+        {
+          "name": "CLOAKBROWSER_MCP_HEADLESS",
+          "description": "Run the browser in headless mode.",
+          "format": "boolean",
+          "default": "true"
+        }
+      ]
+    },
+    {
+      "registryType": "oci",
+      "registryBaseUrl": "https://ghcr.io",
+      "identifier": "ghcr.io/swimmwatch/cloakbrowser-mcp:1.0.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "CLOAKBROWSER_MCP_OUTPUT_DIR",
+          "description": "Directory inside the container where artifacts are written. The image defaults this to /data.",
+          "format": "filepath",
+          "default": "/data"
+        },
+        {
+          "name": "CLOAKBROWSER_MCP_LOG_LEVEL",
+          "description": "Logging verbosity: silent, error, warn, info, or debug.",
+          "format": "string",
+          "default": "info"
+        },
+        {
+          "name": "CLOAKBROWSER_MCP_ALLOWED_ORIGINS",
+          "description": "Comma-separated host suffix allowlist. Leave unset to allow all non-blocked origins.",
+          "format": "string"
+        },
+        {
+          "name": "CLOAKBROWSER_MCP_BLOCKED_ORIGINS",
+          "description": "Comma-separated host suffix denylist. Denies override allowed origins.",
+          "format": "string"
+        },
+        {
+          "name": "CLOAKBROWSER_MCP_HEADLESS",
+          "description": "Run the browser in headless mode.",
+          "format": "boolean",
+          "default": "true"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+name: Docs Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --ignore-scripts
+
+      - name: Apply release version from tag
+        run: node scripts/apply-release-version.mjs "$GITHUB_REF_NAME"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: docs/requirements.txt
+
+      - run: pip install -r docs/requirements.txt
+
+      - run: mkdocs gh-deploy --force --clean
