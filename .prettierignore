@@ -3,4 +3,5 @@ coverage
 artifacts
 node_modules
 *.md
+*.png
 package-lock.json

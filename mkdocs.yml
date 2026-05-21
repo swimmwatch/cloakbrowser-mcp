@@ -6,6 +6,9 @@ repo_url: https://github.com/swimmwatch/cloakbrowser-mcp
 repo_name: swimmwatch/cloakbrowser-mcp
 edit_uri: edit/main/docs/
 copyright: Copyright &copy; 2026 swimmwatch
+docs_dir: docs
+site_dir: site
+strict: true
 
 hooks:
   - docs/hooks/generate_config_docs.py
@@ -13,6 +16,7 @@ hooks:
 theme:
   name: material
   language: en
+  custom_dir: overrides
   logo: assets/brand/logo.svg
   favicon: assets/brand/favicon.svg
   font:
@@ -21,6 +25,7 @@ theme:
   icon:
     repo: fontawesome/brands/github
     tag:
+      default: material/tag
       user: material/account
       docker: fontawesome/brands/docker
       config: material/tune
@@ -29,6 +34,8 @@ theme:
       project: material/source-branch
       test: material/test-tube
       api: material/api
+      release: material/tag-check
+      docs: material/file-document-multiple
   features:
     - navigation.instant
     - navigation.instant.prefetch
@@ -68,10 +75,19 @@ theme:
         name: Switch to light mode
 
 plugins:
+  - meta
   - search:
       lang: en
       separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
   - tags
+  - git-revision-date-localized:
+      enabled: !ENV [MKDOCS_GIT_DATES, true]
+      type: date
+      timezone: UTC
+      locale: en
+      enable_creation_date: true
+      fallback_to_build_date: true
+      strict: false
   - privacy:
       enabled: !ENV [MKDOCS_PRIVACY, false]
       links: true
@@ -82,6 +98,10 @@ plugins:
         logo: docs/assets/brand/logo.svg
         background_color: '#0f766e'
         color: '#ffffff'
+  - minify:
+      minify_html: !ENV [MKDOCS_MINIFY_HTML, true]
+      htmlmin_opts:
+        remove_comments: true
 
 nav:
   - Overview: index.md
@@ -139,6 +159,9 @@ markdown_extensions:
 
 extra:
   homepage: https://github.com/swimmwatch/cloakbrowser-mcp
+  generator: false
+  status:
+    new: Recently added
   tags:
     User Guide: user
     Docker: docker
@@ -148,6 +171,8 @@ extra:
     Project Internals: project
     Testing: test
     API: api
+    Release: release
+    Documentation: docs
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/swimmwatch/cloakbrowser-mcp

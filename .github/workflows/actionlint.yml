@@ -1,0 +1,28 @@
+name: Actionlint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/actionlint.yml
+      - .github/workflows/**
+  pull_request:
+    paths:
+      - .github/actionlint.yml
+      - .github/workflows/**
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run actionlint
+        run: docker run --rm -v "$PWD:/repo" --workdir /repo rhysd/actionlint:1.7.12 -color

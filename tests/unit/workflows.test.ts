@@ -7,6 +7,20 @@ function workflow(name: string): string {
 }
 
 describe('GitHub Actions workflows', () => {
+  it('runs actionlint for workflow changes with the repository config', () => {
+    const actionlint = workflow('actionlint.yml');
+    const actionlintConfig = readFileSync(path.join(process.cwd(), '.github', 'actionlint.yml'), 'utf8');
+
+    expect(actionlint).toContain('name: Actionlint');
+    expect(actionlint).toContain('.github/actionlint.yml');
+    expect(actionlint).toContain('.github/workflows/**');
+    expect(actionlint).toContain(
+      'docker run --rm -v "$PWD:/repo" --workdir /repo rhysd/actionlint:1.7.12 -color',
+    );
+    expect(actionlintConfig).toContain('.github/workflows/**/*.{yml,yaml}');
+    expect(actionlintConfig).toContain('SC2086');
+  });
+
   it('publishes npm releases through release-triggered trusted publishing', () => {
     const npmRelease = workflow('npm-release.yml');
 

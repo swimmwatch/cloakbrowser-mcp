@@ -24,6 +24,7 @@ junit.xml
 # Documentation output
 /.generated-docs/
 /.venv-docs/
+/.cache/
 /site/
 
 # Python cache files from MkDocs hooks

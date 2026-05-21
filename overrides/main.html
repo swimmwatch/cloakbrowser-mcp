@@ -1,0 +1,8 @@
+{% extends "base.html" %} {% block extrahead %} {{ super() }}
+<link rel="apple-touch-icon" sizes="180x180" href="{{ 'assets/brand/apple-touch-icon.png' | url }}" />
+<link rel="manifest" href="{{ 'site.webmanifest' | url }}" />
+<link rel="mask-icon" href="{{ 'assets/brand/mask-icon.svg' | url }}" color="#0f766e" />
+<meta name="theme-color" content="#0f766e" />
+<meta property="og:image" content="{{ 'assets/brand/social-card.png' | url }}" />
+<meta name="twitter:image" content="{{ 'assets/brand/social-card.png' | url }}" />
+{% endblock %}

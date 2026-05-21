@@ -50,6 +50,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "docs:install": "python3 -m venv .venv-docs && .venv-docs/bin/pip install -r docs/requirements.txt",
+    "docs:assets": "node scripts/generate-brand-assets.mjs",
     "docs:generate": "tsx scripts/generate-config-docs.ts",
     "docs:serve": ".venv-docs/bin/mkdocs serve",
     "docs:build": ".venv-docs/bin/mkdocs build --strict",

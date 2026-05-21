@@ -6,7 +6,8 @@ This page is for contributors working from a source checkout. If you only want t
 
 - Node.js **≥ 20**.
 - npm (the repository ships `package-lock.json`).
-- For docs work, Python ≥ 3.10. Use `npm run docs:install` to create a local `.venv-docs/` and install `mkdocs-material`.
+- For docs work, Python ≥ 3.10. Use `npm run docs:install` to create a local `.venv-docs/` and install MkDocs Material plus the docs build plugins.
+- For regenerated PNG favicons and social cards, install `rsvg-convert` (`librsvg2-bin` on Debian/Ubuntu) before running `npm run docs:assets`.
 
 ## Day-to-day commands
 
@@ -20,6 +21,8 @@ npm run lint:fix         # eslint . --fix
 npm run format           # prettier --write .
 npm run format:check     # prettier --check .
 npm run build            # tsc + tsc-alias → dist/
+npm run docs:assets      # regenerate favicon/social-card PNGs from SVG sources
+npm run docs:build       # generate docs snippets and run mkdocs build --strict
 npm run check            # typecheck + lint + format:check + test
 npm run check:ci         # same set as CI's quality job
 ```

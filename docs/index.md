@@ -1,3 +1,20 @@
+---
+description: Model Context Protocol server for CloakBrowser stealth Chromium automation.
+icon: material/home
+tags:
+  - User Guide
+---
+
+<p class="clb-hero-logo" align="center">
+  <img src="assets/brand/logo-wordmark.svg" alt="CloakBrowser MCP" width="620" />
+</p>
+
+<p class="clb-hero-actions" align="center">
+  <a class="md-button md-button--primary" href="getting-started/">Get started</a>
+  <a class="md-button" href="tools/">Tool reference</a>
+  <a class="md-button" href="docker/">Run with Docker</a>
+</p>
+
 # cloakbrowser-mcp
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server that exposes [CloakBrowser](https://github.com/CloakHQ/cloakbrowser) — a stealth Chromium automation library — as tools for AI agents.
@@ -7,10 +24,25 @@ A [Model Context Protocol](https://modelcontextprotocol.io) server that exposes 
 
 ## What it is
 
-- Node.js ≥ 20 ESM, TypeScript `strict`.
-- MCP stdio transport (`@modelcontextprotocol/sdk`).
-- Public surface: programmatic API in `src/index.ts` and the CLI `cloakbrowser-mcp` (`src/cli.ts`).
-- Backed by an abstract `BrowserAdapter`; ships with a real CloakBrowser adapter and an in-memory mock for tests.
+<div class="grid cards" markdown>
+
+-   :fontawesome-brands-node-js: **Node.js runtime**
+
+    Node.js ≥ 20, ESM, and TypeScript `strict`.
+
+-   :material-connection: **MCP stdio server**
+
+    Uses `@modelcontextprotocol/sdk` and exposes browser automation as MCP tools.
+
+-   :material-package-variant: **npm and Docker**
+
+    Run it from the published npm package or the GHCR Docker image.
+
+-   :material-test-tube: **Testable adapter layer**
+
+    Real CloakBrowser adapter plus an in-memory adapter for integration and contract tests.
+
+</div>
 
 ## What it intentionally does not do
 

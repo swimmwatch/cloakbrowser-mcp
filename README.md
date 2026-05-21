@@ -1,6 +1,11 @@
 # cloakbrowser-mcp
 
+<p align="center">
+  <img src="docs/assets/brand/logo-wordmark.svg" alt="CloakBrowser MCP" width="640" />
+</p>
+
 [![CI](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/ci.yml)
+[![Actionlint](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/actionlint.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/actionlint.yml)
 [![NPM Release](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/npm-release.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/npm-release.yml)
 [![Docker Release](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/docker-release.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/docker-release.yml)
 [![Docs Release](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/docs-release.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/docs-release.yml)

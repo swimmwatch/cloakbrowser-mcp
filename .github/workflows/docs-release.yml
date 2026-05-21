@@ -33,4 +33,11 @@ jobs:
 
       - run: pip install -r docs/requirements.txt
 
+      - name: Install docs asset tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends librsvg2-bin
+
+      - run: npm run docs:assets
+
       - run: mkdocs gh-deploy --force --clean
