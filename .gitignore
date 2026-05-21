@@ -1,0 +1,55 @@
+# Dependencies and package-manager caches
+/node_modules/
+/.npm/
+/.pnpm-store/
+
+# Build output
+/dist/
+*.tsbuildinfo
+
+# Test and coverage output
+/coverage/
+/.nyc_output/
+/.vitest/
+/test-results/
+/playwright-report/
+/blob-report/
+junit.xml
+
+# Runtime artifacts and browser caches
+/artifacts/
+/.cloakbrowser/
+/.cloakbrowser-mcp/
+
+# Documentation output
+/.generated-docs/
+/.venv-docs/
+/site/
+
+# Python cache files from MkDocs hooks
+__pycache__/
+*.py[cod]
+
+# Packed release artifacts
+*.tgz
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
