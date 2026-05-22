@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createServer } from 'node:http';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
@@ -55,6 +55,7 @@ try {
 
 async function startMcpContainer(mode, containerImage, useCloakWrapper) {
   const dataDir = mkdtempSync(path.join(tmpdir(), `pwmcp-${mode}-`));
+  chmodSync(dataDir, 0o777);
   writeFileSync(path.join(dataDir, 'upload.txt'), `upload from ${mode}\n`);
 
   const dockerArgs = ['run', '--rm', '-i', '--network', 'host', '-v', `${dataDir}:/data`];
@@ -216,7 +217,7 @@ function printSummary(baselineRun, cloakRun) {
     const cloakCall = cloakRun.calls[index];
     process.stdout.write(
       `${call.name.padEnd(width)}  ${call.ok ? 'ok' : 'fail'} ${String(call.ms).padStart(5)}ms  ${
-        cloakCall.ok ? 'ok' : 'fail'
+        cloakCalg.ok ? 'ok' : 'fail'
       } ${String(cloakCall.ms).padStart(5)}ms\n`,
     );
   }
