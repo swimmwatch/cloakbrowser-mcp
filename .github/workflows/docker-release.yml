@@ -9,7 +9,6 @@ env:
   NODE_IMAGE_TAG: 22-bookworm-slim
   DOCKER_REGISTRY: ghcr.io
   IMAGE_NAME: cloakbrowser-mcp
-  RELEASE_SMOKE_IMAGE: cloakbrowser-mcp:release-smoke
   IMAGE_TITLE: cloakbrowser-mcp
   IMAGE_DESCRIPTION: Playwright MCP bridge that runs upstream browser tools with CloakBrowser
   MCP_SERVER_NAME: io.github.swimmwatch/cloakbrowser-mcp
@@ -36,11 +35,15 @@ jobs:
 
       - run: npm ci --ignore-scripts
 
-      - name: Apply release version from tag
+      - id: release
+        name: Apply release version from tag
         run: node scripts/apply-release-version.mjs "$GITHUB_REF_NAME"
 
       - name: Run release checks
         run: npm run check:ci
+
+      - name: Export release image names
+        run: echo "RELEASE_SMOKE_IMAGE=${IMAGE_NAME}:${{ steps.release.outputs.docker_tag }}-smoke" >> "$GITHUB_ENV"
 
       - uses: docker/setup-buildx-action@v4
 
@@ -54,6 +57,9 @@ jobs:
           build-args: |
             NODE_IMAGE_TAG=${{ env.NODE_IMAGE_TAG }}
             PLAYWRIGHT_MCP_IMAGE=${{ env.PLAYWRIGHT_MCP_IMAGE }}
+            RELEASE_VERSION=${{ steps.release.outputs.version }}
+            RELEASE_VERSION_TAG=${{ steps.release.outputs.version_tag }}
+            VCS_REF=${{ github.sha }}
           cache-from: type=gha,scope=${{ env.DOCKER_CACHE_SCOPE }}
           cache-to: type=gha,mode=max,scope=${{ env.DOCKER_CACHE_SCOPE }},ignore-error=true
 
@@ -74,13 +80,17 @@ jobs:
         with:
           images: ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=${{ steps.release.outputs.docker_tag }}
+            type=raw,value=${{ steps.release.outputs.docker_version }}
+            type=raw,value=${{ steps.release.outputs.docker_major_minor }},enable=${{ !github.event.release.prerelease }}
             type=raw,value=latest,enable=${{ !github.event.release.prerelease }}
           labels: |
             org.opencontainers.image.title=${{ env.IMAGE_TITLE }}
             org.opencontainers.image.description=${{ env.IMAGE_DESCRIPTION }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ steps.release.outputs.version }}
+            org.opencontainers.image.ref.name=${{ steps.release.outputs.version_tag }}
+            org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=MIT
             io.modelcontextprotocol.server.name=${{ env.MCP_SERVER_NAME }}
 
@@ -95,6 +105,9 @@ jobs:
           build-args: |
             NODE_IMAGE_TAG=${{ env.NODE_IMAGE_TAG }}
             PLAYWRIGHT_MCP_IMAGE=${{ env.PLAYWRIGHT_MCP_IMAGE }}
+            RELEASE_VERSION=${{ steps.release.outputs.version }}
+            RELEASE_VERSION_TAG=${{ steps.release.outputs.version_tag }}
+            VCS_REF=${{ github.sha }}
           cache-from: type=gha,scope=${{ env.DOCKER_CACHE_SCOPE }}
           cache-to: type=gha,mode=max,scope=${{ env.DOCKER_CACHE_SCOPE }},ignore-error=true
           sbom: true

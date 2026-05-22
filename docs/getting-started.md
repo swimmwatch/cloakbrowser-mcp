@@ -35,6 +35,15 @@ docker run --rm -i \
 
 Docker is the most reproducible runtime because the image is based on the pinned official Playwright MCP image and includes a prepared CloakBrowser browser cache.
 
+Pin a release when reproducibility matters:
+
+```bash
+docker pull ghcr.io/swimmwatch/cloakbrowser-mcp:1.0.0
+docker run --rm -i \
+  -v "$PWD/artifacts:/data" \
+  ghcr.io/swimmwatch/cloakbrowser-mcp:1.0.0
+```
+
 ## MCP Client Config
 
 Most MCP clients use the same stdio shape: `command`, optional `args`, and optional `env`.

@@ -46,7 +46,8 @@ jobs:
           fi
           printf '//registry.npmjs.org/:_authToken=%s\n' "$NODE_AUTH_TOKEN" > ~/.npmrc
 
-      - name: Apply release version from tag
+      - id: release
+        name: Apply release version from tag
         run: npm run version:apply -- "$GITHUB_REF_NAME"
 
       - id: package
@@ -65,15 +66,25 @@ jobs:
             exit 1
           fi
 
+      - name: Verify package metadata matches release tag
+        run: |
+          if [ "${{ steps.package.outputs.version }}" != "${{ steps.release.outputs.version }}" ]; then
+            echo "::error title=Release version mismatch::package.json version ${{ steps.package.outputs.version }} does not match ${{ steps.release.outputs.version_tag }}"
+            exit 1
+          fi
+
       - run: npm run check:ci
 
       - id: pack
         name: Pack and verify npm tarball
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+          RELEASE_VERSION_TAG: ${{ steps.release.outputs.version_tag }}
         run: npm run package:verify
 
       - uses: actions/upload-artifact@v7
         with:
-          name: npm-package-${{ steps.pack.outputs.package_version }}
+          name: npm-package-${{ steps.release.outputs.version_tag }}
           path: ${{ steps.pack.outputs.package_file }}
           if-no-files-found: error
           retention-days: 14
@@ -88,4 +99,7 @@ jobs:
           fi
 
       - name: Publish to npm
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+          RELEASE_VERSION_TAG: ${{ steps.release.outputs.version_tag }}
         run: npm publish "${{ steps.pack.outputs.package_file }}" --access public --tag "${{ steps.npm-tag.outputs.tag }}" --provenance

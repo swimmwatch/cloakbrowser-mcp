@@ -23,7 +23,8 @@ jobs:
 
       - run: npm ci --ignore-scripts
 
-      - name: Apply release version from tag
+      - id: release
+        name: Apply release version from tag
         run: node scripts/apply-release-version.mjs "$GITHUB_REF_NAME"
 
       - uses: actions/setup-python@v6
@@ -43,4 +44,4 @@ jobs:
 
       - run: mkdocs build --strict
 
-      - run: mkdocs gh-deploy --force --clean
+      - run: mkdocs gh-deploy --force --clean --message "Deploy docs for ${{ steps.release.outputs.version_tag }}"

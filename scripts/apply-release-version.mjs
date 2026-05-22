@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 
@@ -18,11 +18,22 @@ if (!rawVersion) {
 
 const version = normalizeVersion(rawVersion);
 const versionTag = `v${version}`;
+const dockerTag = toDockerTag(versionTag);
+const dockerVersion = toDockerTag(version);
+const dockerMajorMinor = toDockerMajorMinor(version);
 
 updatePackageJson('package.json', version);
 updatePackageJson('package-lock.json', version);
-updateServerJson('server.json', version);
+updateServerJson('server.json', version, dockerVersion);
 updateVersionMarkers(['README.md', 'docs/index.md'], versionTag);
+updatePinnedInstallCommands('docs/getting-started.md', version, dockerVersion);
+writeGitHubOutputs({
+  docker_major_minor: dockerMajorMinor,
+  docker_tag: dockerTag,
+  docker_version: dockerVersion,
+  version,
+  version_tag: versionTag,
+});
 
 process.stderr.write(`applied release version ${versionTag}\n`);
 
@@ -45,7 +56,17 @@ function updatePackageJson(relativePath, nextVersion) {
   writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`);
 }
 
-function updateServerJson(relativePath, nextVersion) {
+function toDockerTag(value) {
+  return value.replace(/\+/g, '-');
+}
+
+function toDockerMajorMinor(value) {
+  const match = value.match(/^(\d+)\.(\d+)\./);
+  if (!match) throw new Error(`release version must include major and minor numbers, got "${value}"`);
+  return `${match[1]}.${match[2]}`;
+}
+
+function updateServerJson(relativePath, nextVersion, nextDockerVersion) {
   const filePath = path.join(root, relativePath);
   const data = JSON.parse(readFileSync(filePath, 'utf8'));
   data.version = nextVersion;
@@ -53,7 +74,7 @@ function updateServerJson(relativePath, nextVersion) {
   for (const pkg of data.packages ?? []) {
     if (typeof pkg.version === 'string') pkg.version = nextVersion;
     if (pkg.registryType === 'oci' && typeof pkg.identifier === 'string') {
-      pkg.identifier = pkg.identifier.replace(/:[^/:]+$/, `:${nextVersion}`);
+      pkg.identifier = pkg.identifier.replace(/:[^/:]+$/, `:${nextDockerVersion}`);
     }
   }
 
@@ -74,4 +95,29 @@ function updateVersionMarkers(relativePaths, nextVersionTag) {
     );
     writeFileSync(filePath, updated);
   }
+}
+
+function updatePinnedInstallCommands(relativePath, nextVersion, nextDockerVersion) {
+  const filePath = path.join(root, relativePath);
+  const original = readFileSync(filePath, 'utf8');
+  const updated = original
+    .replace(
+      /npx -y cloakbrowser-mcp@\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?/g,
+      `npx -y cloakbrowser-mcp@${nextVersion}`,
+    )
+    .replace(
+      /ghcr\.io\/swimmwatch\/cloakbrowser-mcp:\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:-[0-9A-Za-z.-]+)?/g,
+      `ghcr.io/swimmwatch/cloakbrowser-mcp:${nextDockerVersion}`,
+    );
+  writeFileSync(filePath, updated);
+}
+
+function writeGitHubOutputs(outputs) {
+  if (!process.env.GITHUB_OUTPUT) return;
+  appendFileSync(
+    process.env.GITHUB_OUTPUT,
+    `${Object.entries(outputs)
+      .map(([name, value]) => `${name}=${value}`)
+      .join('\n')}\n`,
+  );
 }

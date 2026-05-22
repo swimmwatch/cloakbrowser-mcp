@@ -21,6 +21,9 @@ RUN npm prune --omit=dev --ignore-scripts \
  && npm cache clean --force
 
 FROM ${PLAYWRIGHT_MCP_IMAGE} AS runtime
+ARG RELEASE_VERSION=0.0.0
+ARG RELEASE_VERSION_TAG=v0.0.0
+ARG VCS_REF=unknown
 USER root
 WORKDIR /opt/cloakbrowser-mcp
 
@@ -28,6 +31,9 @@ LABEL io.modelcontextprotocol.server.name="io.github.swimmwatch/cloakbrowser-mcp
 LABEL org.opencontainers.image.title="CloakBrowser MCP"
 LABEL org.opencontainers.image.description="Playwright MCP bridge that runs upstream browser tools with CloakBrowser."
 LABEL org.opencontainers.image.source="https://github.com/swimmwatch/cloakbrowser-mcp"
+LABEL org.opencontainers.image.version="${RELEASE_VERSION}"
+LABEL org.opencontainers.image.ref.name="${RELEASE_VERSION_TAG}"
+LABEL org.opencontainers.image.revision="${VCS_REF}"
 LABEL org.opencontainers.image.licenses="MIT"
 
 COPY --from=prod-deps --chown=node:node /src/node_modules ./node_modules
@@ -46,6 +52,9 @@ ENV PLAYWRIGHT_MCP_BROWSER_ENGINE=cloak
 ENV PLAYWRIGHT_MCP_HEADLESS=true
 ENV PLAYWRIGHT_MCP_OUTPUT_DIR=/data
 ENV PLAYWRIGHT_MCP_OUTPUT_MODE=stdout
+ENV MCP_SERVER_VERSION=${RELEASE_VERSION}
+ENV MCP_SERVER_VERSION_TAG=${RELEASE_VERSION_TAG}
+ENV MCP_SERVER_REVISION=${VCS_REF}
 ENV CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK=true
 ENV CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS=true
 ENV CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX=true

@@ -9,9 +9,10 @@ tags:
 Releases are driven by a published GitHub Release whose tag is a semver value
 prefixed with `v`, for example `v1.2.3`.
 
-The release workflows apply the tag version to `package.json`,
-`package-lock.json`, `server.json`, README markers, and documentation markers
-before packaging or building images.
+The release workflows resolve the tag once, then pass the derived `version`,
+`version_tag`, and Docker-safe image tag through npm packaging, Docker build
+arguments, image labels, server metadata, README markers, and documentation
+markers.
 
 ## GitHub Repository Settings
 
@@ -47,6 +48,10 @@ npm publish <tarball> --access public --tag <latest|next> --provenance
 The workflow keeps `id-token: write` so npm can attach provenance from GitHub
 Actions while authenticating with `NPM_TOKEN`.
 
+The package version is applied from the GitHub Release tag before `npm pack`
+and `npm publish`, and the workflow fails if `package.json` does not match the
+resolved release version.
+
 ## Docker Publishing
 
 Docker images are published to:
@@ -67,6 +72,10 @@ Before pushing the release image, the workflow:
 - compares the image against upstream Playwright MCP with the bridge parity
   script.
 
+The Docker build receives `RELEASE_VERSION`, `RELEASE_VERSION_TAG`, and
+`VCS_REF` build arguments. The final image stores the same values as OCI labels
+and runtime metadata environment variables.
+
 After the first publish, confirm the GHCR package is public and linked to this
 repository.
 
@@ -81,8 +90,8 @@ The workflow builds documentation in strict mode before deployment.
 
 | Release type | GitHub Release setting | npm dist-tag | Docker tags |
 | --- | --- | --- | --- |
-| Stable | Not prerelease | `latest` | `X.Y.Z`, `X.Y`, `latest` |
-| Prerelease | Prerelease | `next` | `X.Y.Z`, `X.Y` |
+| Stable | Not prerelease | `latest` | `vX.Y.Z`, `X.Y.Z`, `X.Y`, `latest` |
+| Prerelease | Prerelease | `next` | `vX.Y.Z-prerelease`, `X.Y.Z-prerelease` |
 
 ## Checklist
 
