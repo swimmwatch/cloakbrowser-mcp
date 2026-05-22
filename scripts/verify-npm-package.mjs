@@ -88,16 +88,10 @@ function verifyInstall(packageFile) {
       throw new Error(`CLI version mismatch: expected ${packageJson.version}, got ${cliVersion}`);
     }
 
-    const importCheck = [
-      "const mod = await import('cloakbrowser-mcp');",
-      "const required = ['createServer', 'ToolRegistry', 'CloakBrowserAdapter', 'PROJECT_METADATA'];",
-      'const missing = required.filter((name) => !(name in mod));',
-      "if (missing.length) throw new Error(`missing package exports: ${missing.join(', ')}`);",
-    ].join('\n');
-    execFileSync(process.execPath, ['--input-type=module', '--eval', importCheck], {
-      cwd: tempDir,
-      stdio: 'inherit',
-    });
+    const cliHelp = execFileSync(binPath, ['--help'], { cwd: tempDir, encoding: 'utf8' });
+    if (!cliHelp.includes('Playwright MCP bridge backed by CloakBrowser')) {
+      throw new Error('CLI help does not describe the bridge runtime');
+    }
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
   }

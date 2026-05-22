@@ -9,6 +9,7 @@ labels: bug
 - Node.js version:
 - OS:
 - cloakbrowser version (run `cloakbrowser_binary_info` tool):
+- @playwright/mcp version (run `cloakbrowser_bridge_info` tool):
 
 **What happened**
 
@@ -16,6 +17,6 @@ labels: bug
 
 **Reproduction steps**
 
-**Logs (stderr JSON lines)**
+**Logs from stderr**
 ```
 ```

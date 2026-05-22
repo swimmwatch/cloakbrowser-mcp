@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.swimmwatch/cloakbrowser-mcp",
   "title": "CloakBrowser MCP",
-  "description": "Model Context Protocol server for CloakBrowser — stealth Chromium browser automation for AI agents.",
+  "description": "Playwright MCP bridge that runs upstream browser tools with the CloakBrowser Chromium binary.",
   "version": "1.0.0",
   "websiteUrl": "https://swimmwatch.github.io/cloakbrowser-mcp/",
   "repository": {
@@ -27,31 +27,39 @@
       },
       "environmentVariables": [
         {
-          "name": "CLOAKBROWSER_MCP_OUTPUT_DIR",
-          "description": "Directory where screenshots, PDFs, traces, HAR files, and videos are written.",
-          "format": "filepath"
-        },
-        {
-          "name": "CLOAKBROWSER_MCP_LOG_LEVEL",
-          "description": "Logging verbosity: silent, error, warn, info, or debug.",
+          "name": "PLAYWRIGHT_MCP_BROWSER_ENGINE",
+          "description": "Bridge browser engine: cloak or playwright.",
           "format": "string",
-          "default": "info"
+          "default": "cloak"
         },
         {
-          "name": "CLOAKBROWSER_MCP_ALLOWED_ORIGINS",
-          "description": "Comma-separated host suffix allowlist. Leave unset to allow all non-blocked origins.",
-          "format": "string"
-        },
-        {
-          "name": "CLOAKBROWSER_MCP_BLOCKED_ORIGINS",
-          "description": "Comma-separated host suffix denylist. Denies override allowed origins.",
-          "format": "string"
-        },
-        {
-          "name": "CLOAKBROWSER_MCP_HEADLESS",
+          "name": "PLAYWRIGHT_MCP_HEADLESS",
           "description": "Run the browser in headless mode.",
           "format": "boolean",
           "default": "true"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_OUTPUT_DIR",
+          "description": "Directory where upstream Playwright MCP writes artifacts.",
+          "format": "filepath",
+          "default": ".playwright-mcp"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_OUTPUT_MODE",
+          "description": "Return snapshots, console logs, and network logs through stdout or files.",
+          "format": "string",
+          "default": "stdout"
+        },
+        {
+          "name": "CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK",
+          "description": "Patch upstream console message collection for CloakBrowser compatibility.",
+          "format": "boolean",
+          "default": "true"
+        },
+        {
+          "name": "CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS",
+          "description": "Comma-separated or JSON array of extra Chromium launch arguments.",
+          "format": "string"
         }
       ]
     },
@@ -64,32 +72,39 @@
       },
       "environmentVariables": [
         {
-          "name": "CLOAKBROWSER_MCP_OUTPUT_DIR",
-          "description": "Directory inside the container where artifacts are written. The image defaults this to /data.",
+          "name": "PLAYWRIGHT_MCP_BROWSER_ENGINE",
+          "description": "Bridge browser engine: cloak or playwright.",
+          "format": "string",
+          "default": "cloak"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_HEADLESS",
+          "description": "Run the browser in headless mode.",
+          "format": "boolean",
+          "default": "true"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_OUTPUT_DIR",
+          "description": "Directory inside the container where upstream Playwright MCP writes artifacts.",
           "format": "filepath",
           "default": "/data"
         },
         {
-          "name": "CLOAKBROWSER_MCP_LOG_LEVEL",
-          "description": "Logging verbosity: silent, error, warn, info, or debug.",
+          "name": "PLAYWRIGHT_MCP_OUTPUT_MODE",
+          "description": "Return snapshots, console logs, and network logs through stdout or files.",
           "format": "string",
-          "default": "info"
+          "default": "stdout"
         },
         {
-          "name": "CLOAKBROWSER_MCP_ALLOWED_ORIGINS",
-          "description": "Comma-separated host suffix allowlist. Leave unset to allow all non-blocked origins.",
-          "format": "string"
-        },
-        {
-          "name": "CLOAKBROWSER_MCP_BLOCKED_ORIGINS",
-          "description": "Comma-separated host suffix denylist. Denies override allowed origins.",
-          "format": "string"
-        },
-        {
-          "name": "CLOAKBROWSER_MCP_HEADLESS",
-          "description": "Run the browser in headless mode.",
+          "name": "CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK",
+          "description": "Patch upstream console message collection for CloakBrowser compatibility.",
           "format": "boolean",
           "default": "true"
+        },
+        {
+          "name": "CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS",
+          "description": "Comma-separated or JSON array of extra Chromium launch arguments.",
+          "format": "string"
         }
       ]
     }

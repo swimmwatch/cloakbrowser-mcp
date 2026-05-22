@@ -1,202 +1,68 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
-import { Command, InvalidArgumentError, Option } from 'commander';
-import { CloakMcpError, isCloakMcpError } from './errors/index.js';
-import type { CliArgs } from './config/load.js';
-import { loadConfig } from './config/load.js';
-import { capabilityFlagsSchema, type CapabilityKey } from './config/schema.js';
-import { createLogger } from './logging/logger.js';
-import { createServer } from './server.js';
+import process from 'node:process';
+import { PROJECT_METADATA } from './project/metadata.js';
+import { startBridge } from './server.js';
 
-// Read version from the package.json that ships with the build.
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as {
-  name: string;
   version: string;
-  description?: string;
 };
 
-const CAPABILITY_KEYS = Object.keys(capabilityFlagsSchema.shape) as CapabilityKey[];
+const help = `cloakbrowser-mcp ${pkg.version}
 
-function camelToKebab(s: string): string {
-  return s.replace(/[A-Z]/g, (c) => '-' + c.toLowerCase());
-}
+Playwright MCP bridge backed by CloakBrowser.
 
-function parsePositiveInt(name: string) {
-  return (raw: string): number => {
-    const n = Number.parseInt(raw, 10);
-    if (!Number.isFinite(n) || n <= 0) {
-      throw new InvalidArgumentError(`${name} must be a positive integer (got "${raw}")`);
-    }
-    return n;
-  };
-}
+Usage:
+  cloakbrowser-mcp
+  cloakbrowser-mcp --help
+  cloakbrowser-mcp --version
 
-function parseCsv(raw: string): string[] {
-  return raw
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
+Primary configuration is provided with PLAYWRIGHT_MCP_* environment variables.
+Cloak-specific toggles use CLOAK_PLAYWRIGHT_MCP_*.
 
-function buildProgram(): Command {
-  const program = new Command();
-  program
-    .name(pkg.name)
-    .description(pkg.description ?? 'MCP server for CloakBrowser')
-    .version(pkg.version, '-V, --version', 'print version and exit')
-    .helpOption('-h, --help', 'show help and exit')
-    .showHelpAfterError()
-    .configureHelp({ sortOptions: true })
-    .addHelpText(
-      'after',
-      [
-        '',
-        'Environment variables:',
-        '  CLOAKBROWSER_MCP_<OPTION>          same options in SCREAMING_SNAKE_CASE',
-        '  CLOAKBROWSER_MCP_CAP_<FLAG>        capability flags (true/false)',
-        '',
-        'Capability flags (all default off except allow-screenshots):',
-        ...CAPABILITY_KEYS.map((k) => `  --cap-${camelToKebab(k)} / --no-cap-${camelToKebab(k)}`),
-      ].join('\n'),
-    );
-
-  program
-    .option('--headless', 'run the browser in headless mode (default: true)')
-    .option('--no-headless', 'run the browser with a visible window')
-    .option('-o, --output-dir <path>', 'directory for screenshots and other artifacts')
-    .option(
-      '--default-timeout-ms <n>',
-      'default per-action timeout in milliseconds',
-      parsePositiveInt('--default-timeout-ms'),
-    )
-    .option(
-      '--navigation-timeout-ms <n>',
-      'navigation timeout in milliseconds',
-      parsePositiveInt('--navigation-timeout-ms'),
-    )
-    .option('--max-pages <n>', 'maximum concurrent pages', parsePositiveInt('--max-pages'))
-    .option('--max-contexts <n>', 'maximum browser contexts', parsePositiveInt('--max-contexts'))
-    .option(
-      '--allowed-origins <list>',
-      'comma-separated host suffixes the browser may navigate to ("*" allows all)',
-      parseCsv,
-    )
-    .option('--blocked-origins <list>', 'comma-separated host suffixes to deny', parseCsv)
-    .option('--user-data-dir <path>', 'persistent user data directory (Cloak support required)')
-    .option('--browser-executable-path <path>', 'override the bundled CloakBrowser executable')
-    .addOption(
-      new Option('-l, --log-level <level>', 'logging verbosity').choices([
-        'silent',
-        'error',
-        'warn',
-        'info',
-        'debug',
-      ]),
-    );
-
-  // Capability flags: one positive + one negative for each known key. Commander
-  // would auto-add `--no-cap-foo` for `--cap-foo`, but adding both explicitly
-  // makes them show up in `--help` and lets us document them individually.
-  for (const key of CAPABILITY_KEYS) {
-    const kebab = camelToKebab(key);
-    program
-      .option(`--cap-${kebab}`, `enable capability: ${key}`)
-      .option(`--no-cap-${kebab}`, `disable capability: ${key}`);
-  }
-
-  return program;
-}
-
-function commanderOptsToCliArgs(opts: Record<string, unknown>): CliArgs {
-  const args: CliArgs = {};
-  const caps: Record<string, boolean> = {};
-
-  const passthrough = [
-    'headless',
-    'outputDir',
-    'defaultTimeoutMs',
-    'navigationTimeoutMs',
-    'maxPages',
-    'maxContexts',
-    'allowedOrigins',
-    'blockedOrigins',
-    'userDataDir',
-    'browserExecutablePath',
-    'logLevel',
-  ] as const;
-
-  for (const k of passthrough) {
-    if (opts[k] !== undefined) (args as Record<string, unknown>)[k] = opts[k];
-  }
-
-  for (const key of CAPABILITY_KEYS) {
-    // Commander stores `--cap-allow-pdf` and its `--no-` variant under the same
-    // camelCased option key (capAllowPdf), as true/false.
-    const optKey = `cap${key.charAt(0).toUpperCase()}${key.slice(1)}`;
-    const v = opts[optKey];
-    if (typeof v === 'boolean') caps[key] = v;
-  }
-  if (Object.keys(caps).length > 0) args.capabilities = caps;
-  return args;
-}
+Common environment variables:
+  PLAYWRIGHT_MCP_BROWSER_ENGINE        cloak | playwright (default: cloak)
+  PLAYWRIGHT_MCP_HEADLESS              true | false (default: true)
+  PLAYWRIGHT_MCP_OUTPUT_DIR            artifact directory (default: .playwright-mcp)
+  PLAYWRIGHT_MCP_OUTPUT_MODE           stdout | file (default: stdout)
+  PLAYWRIGHT_MCP_VIEWPORT_SIZE         WIDTHxHEIGHT
+  PLAYWRIGHT_MCP_TIMEOUT_ACTION        action timeout ms (default: 5000)
+  PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION    navigation timeout ms (default: 60000)
+  CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK true | false (default: true)
+  CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS    true | false (default: true)
+  CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS      comma-separated or JSON array Chromium args
+`;
 
 async function main(): Promise<void> {
-  const program = buildProgram();
-
-  let parsed: Command;
-  try {
-    parsed = await program.parseAsync(process.argv);
-  } catch (e) {
-    // Commander already wrote a useful message; surface as a config error.
-    process.stderr.write(`config error: ${(e as Error).message}\n`);
-    process.exit(2);
+  const args = process.argv.slice(2);
+  if (args.includes('--help') || args.includes('-h')) {
+    process.stdout.write(help);
+    return;
+  }
+  if (args.includes('--version') || args.includes('-V')) {
+    process.stdout.write(`${pkg.version}\n`);
+    return;
   }
 
-  let config;
-  try {
-    const cliArgs = commanderOptsToCliArgs(parsed.opts());
-    config = loadConfig({ cliArgs });
-  } catch (e) {
-    const message = isCloakMcpError(e) ? e.message : (e as Error).message;
-    process.stderr.write(`config error: ${message}\n`);
-    process.exit(2);
-  }
-
-  const logger = createLogger(config.logLevel);
-  const { start, dispose } = createServer({ config, logger });
-
-  let shuttingDown = false;
-  const shutdown = async (signal: string, code: number) => {
-    if (shuttingDown) return;
-    shuttingDown = true;
-    logger.info('shutdown requested', { signal });
-    try {
-      await dispose();
-    } catch (e) {
-      logger.error('dispose failed', { error: (e as Error).message });
-    }
-    process.exit(code);
-  };
-  process.on('SIGINT', () => void shutdown('SIGINT', 130));
-  process.on('SIGTERM', () => void shutdown('SIGTERM', 143));
-  process.on('uncaughtException', (e) => {
-    logger.error('uncaughtException', { error: e.message, stack: e.stack });
-    void shutdown('uncaughtException', 1);
-  });
-  process.on('unhandledRejection', (reason) => {
-    logger.error('unhandledRejection', { reason: String(reason) });
+  const bridge = await startBridge({
+    serverInfo: {
+      name: PROJECT_METADATA.mcpName,
+      title: PROJECT_METADATA.title,
+      version: pkg.version,
+      description: PROJECT_METADATA.description,
+      websiteUrl: PROJECT_METADATA.websiteUrl,
+      icons: PROJECT_METADATA.icons,
+    },
   });
 
-  try {
-    await start();
-  } catch (e) {
-    logger.error('failed to start server', { error: (e as Error).message });
-    process.exit(1);
+  for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+    process.once(signal, () => {
+      void bridge.dispose().finally(() => process.exit(0));
+    });
   }
 }
 
-void main().catch((e: unknown) => {
-  const message = e instanceof CloakMcpError ? e.message : (e as Error).message;
-  process.stderr.write(`fatal: ${message}\n`);
+void main().catch((error: unknown) => {
+  process.stderr.write(`fatal: ${(error as Error).message}\n`);
   process.exit(1);
 });

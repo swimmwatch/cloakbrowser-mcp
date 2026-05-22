@@ -10,10 +10,11 @@ env:
   DOCKER_REGISTRY: ghcr.io
   IMAGE_NAME: cloakbrowser-mcp
   IMAGE_TITLE: cloakbrowser-mcp
-  IMAGE_DESCRIPTION: MCP server for CloakBrowser
+  IMAGE_DESCRIPTION: Playwright MCP bridge that runs upstream browser tools with CloakBrowser
   MCP_SERVER_NAME: io.github.swimmwatch/cloakbrowser-mcp
   DOCKER_PLATFORMS: linux/amd64
   DOCKER_CACHE_SCOPE: cloakbrowser-mcp-docker
+  PLAYWRIGHT_MCP_IMAGE: mcr.microsoft.com/playwright/mcp:v0.0.75
 
 permissions:
   contents: read
@@ -66,6 +67,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             NODE_IMAGE_TAG=${{ env.NODE_IMAGE_TAG }}
+            PLAYWRIGHT_MCP_IMAGE=${{ env.PLAYWRIGHT_MCP_IMAGE }}
           cache-from: type=gha,scope=${{ env.DOCKER_CACHE_SCOPE }}
           cache-to: type=gha,mode=max,scope=${{ env.DOCKER_CACHE_SCOPE }},ignore-error=true
           sbom: true

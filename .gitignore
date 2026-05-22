@@ -27,7 +27,7 @@ junit.xml
 /.cache/
 /site/
 
-# Python cache files from MkDocs hooks
+# Python cache files
 __pycache__/
 *.py[cod]
 

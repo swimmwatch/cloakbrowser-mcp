@@ -1,5 +1,5 @@
 ---
-description: Model Context Protocol server for CloakBrowser stealth Chromium automation.
+description: Playwright MCP bridge that runs upstream browser tools with CloakBrowser.
 icon: material/home
 tags:
   - User Guide
@@ -11,54 +11,48 @@ tags:
 
 <p class="clb-hero-actions" align="center">
   <a class="md-button md-button--primary" href="getting-started/">Get started</a>
-  <a class="md-button" href="tools/">Tool reference</a>
-  <a class="md-button" href="docker/">Run with Docker</a>
+  <a class="md-button" href="tools/">Tools</a>
+  <a class="md-button" href="docker/">Docker</a>
 </p>
 
 # cloakbrowser-mcp
 
-A [Model Context Protocol](https://modelcontextprotocol.io) server that exposes [CloakBrowser](https://github.com/CloakHQ/cloakbrowser) — a stealth Chromium automation library — as tools for AI agents.
+`cloakbrowser-mcp` is a stdio MCP server that runs upstream `@playwright/mcp` with the CloakBrowser Chromium binary.
 
-!!! info "License"
-    This project is licensed under the [MIT License](https://github.com/swimmwatch/cloakbrowser-mcp/blob/main/LICENSE).
+Current version: <!-- project-version -->v1.0.0<!-- /project-version -->.
 
-## What it is
+## What It Is
 
 <div class="grid cards" markdown>
 
--   :fontawesome-brands-node-js: **Node.js runtime**
+-   :material-connection: **Bridge runtime**
 
-    Node.js ≥ 20, ESM, and TypeScript `strict`.
+    Starts upstream Playwright MCP as a child process and forwards browser tool calls unchanged.
 
--   :material-connection: **MCP stdio server**
+-   :material-incognito: **CloakBrowser execution**
 
-    Uses `@modelcontextprotocol/sdk` and exposes browser automation as MCP tools.
+    Generates a Playwright MCP config with `launchOptions.executablePath` set to CloakBrowser.
 
--   :material-package-variant: **npm and Docker**
+-   :fontawesome-brands-node-js: **npm CLI**
 
-    Run it from the published npm package or the GHCR Docker image.
+    Published as a thin Node.js CLI package for stdio MCP clients.
 
--   :material-test-tube: **Testable adapter layer**
+-   :fontawesome-brands-docker: **Docker image**
 
-    Real CloakBrowser adapter plus an in-memory adapter for integration and contract tests.
+    Based on the official Playwright MCP image and preloads the CloakBrowser binary cache.
 
 </div>
 
-## What it intentionally does not do
+## Tool Surface
 
-- Playwright MCP parity includes unsafe code execution tools (`browser_evaluate`, `browser_run_code_unsafe`). Run the server only for MCP clients you trust with browser automation and server-side code execution.
-- No CAPTCHA solving, access-control bypass, or anti-bot evasion. CloakBrowser is a stealth-Chromium runtime; this project surfaces standard browser automation only.
+The upstream Playwright MCP tool contracts are authoritative. This project adds only two local introspection tools:
 
-## Where to go next
+- `cloakbrowser_binary_info`
+- `cloakbrowser_bridge_info`
 
-If you want to use the server:
+## Next Steps
 
-- [Getting started](getting-started.md) — run from npm or Docker and wire an MCP client.
-- [Docker](docker.md) — published image usage, artifact volume, and runtime defaults.
-- [Configuration](configuration.md) — every CLI flag, env var, and capability flag.
-- [Tools](tools.md) — per-tool reference.
-- [Security](security.md) — trust model, unsafe tools, and responsible use.
-
-If you want to work on the project:
-
-- [Contributor Guide](contributor-guide.md) — development, testing, architecture, contributing, and roadmap links in one place.
+- [Getting Started](getting-started.md) for npm, Docker, and MCP client configuration.
+- [Configuration](configuration.md) for supported environment variables.
+- [Tools](tools.md) for tool-surface expectations and upstream parity.
+- [Contributor Guide](contributor-guide.md) for development, testing, architecture, and release details.

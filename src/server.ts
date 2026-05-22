@@ -1,131 +1,105 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
-import type { Implementation } from '@modelcontextprotocol/sdk/types.js';
-import { z } from 'zod';
-import { ArtifactManager } from './artifacts/manager.js';
-import type { BrowserAdapter } from './browser/adapter.js';
-import { CloakBrowserAdapter } from './browser/cloakAdapter.js';
-import { SessionManager } from './browser/sessionManager.js';
-import { DEFAULT_CONFIG, type ResolvedConfig } from './config/schema.js';
-import { createLogger, type Logger } from './logging/logger.js';
+import {
+  CallToolRequestSchema,
+  type CallToolResult,
+  type Implementation,
+  type ListToolsResult,
+  ListToolsRequestSchema,
+} from '@modelcontextprotocol/sdk/types.js';
+import { prepareBridgeRuntime, type BridgeRuntime } from './bridge/config.js';
+import { resolvePlaywrightMcpCliPath } from './bridge/paths.js';
+import { callLocalTool, createLocalTools, isLocalTool } from './bridge/tools.js';
 import { MCP_SERVER_INSTRUCTIONS, PROJECT_METADATA } from './project/metadata.js';
-import { ToolRegistry } from './tools/registry.js';
-import { registerMvpTools } from './tools/index.js';
-import type { ToolContext } from './tools/types.js';
 
-export interface CreateServerOptions {
-  config?: ResolvedConfig;
-  /** Inject a custom adapter (mock for tests, custom backend, etc). */
-  adapter?: BrowserAdapter;
-  logger?: Logger;
+export interface StartBridgeOptions {
   serverInfo?: Partial<Implementation>;
-  instructions?: string;
 }
 
-export interface CreatedServer {
-  server: McpServer;
-  registry: ToolRegistry;
-  session: SessionManager;
-  context: ToolContext;
+export interface BridgeServerOptions extends StartBridgeOptions {
+  runtime?: BridgeRuntime;
+  upstreamClient?: Client;
+}
+
+export interface BridgeServer {
+  server: Server;
+  runtime: BridgeRuntime;
   start(transport?: Transport): Promise<void>;
   dispose(): Promise<void>;
 }
 
-/**
- * Build a configured MCP server with the MVP tool surface registered.
- * Does not start any transport — call `.start()` for stdio or wire a custom one.
- */
-export function createServer(opts: CreateServerOptions = {}): CreatedServer {
-  const config: ResolvedConfig = opts.config ?? DEFAULT_CONFIG;
-  const logger = opts.logger ?? createLogger(config.logLevel);
-  const adapter: BrowserAdapter = opts.adapter ?? new CloakBrowserAdapter(config);
-  const session = new SessionManager(adapter, config);
-  const artifacts = new ArtifactManager(config.outputDir);
+export async function startBridge(options: StartBridgeOptions = {}): Promise<BridgeServer> {
+  const bridge = await createBridgeServer(options);
+  await bridge.start();
+  return bridge;
+}
 
-  const ctx: ToolContext = { config, session, artifacts, logger };
-  const registry = new ToolRegistry(ctx);
-  registerMvpTools(registry);
+export async function createBridgeServer(options: BridgeServerOptions = {}): Promise<BridgeServer> {
+  const runtime = options.runtime ?? (await prepareBridgeRuntime());
+  const upstreamClient = options.upstreamClient ?? (await connectUpstream(runtime));
+  let upstreamToolCount = 0;
 
-  const serverInfo: Implementation = {
+  const server = new Server(createServerInfo(options.serverInfo), {
+    capabilities: { tools: {} },
+    instructions: MCP_SERVER_INSTRUCTIONS,
+  });
+
+  server.setRequestHandler(ListToolsRequestSchema, async (request) => {
+    const upstream = (await upstreamClient.listTools(request.params)) as ListToolsResult;
+    upstreamToolCount = Math.max(upstreamToolCount, upstream.tools.length);
+    if (request.params?.cursor) return upstream;
+    return {
+      ...upstream,
+      tools: [...upstream.tools, ...createLocalTools()],
+    };
+  });
+
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    if (isLocalTool(request.params.name)) {
+      return callLocalTool(request.params.name, runtime, upstreamToolCount);
+    }
+    return (await upstreamClient.callTool(request.params)) as CallToolResult;
+  });
+
+  return {
+    server,
+    runtime,
+    async start(transport) {
+      await server.connect(transport ?? new StdioServerTransport());
+    },
+    async dispose() {
+      await Promise.allSettled([upstreamClient.close(), server.close()]);
+      runtime.dispose();
+    },
+  };
+}
+
+async function connectUpstream(runtime: BridgeRuntime): Promise<Client> {
+  const transport = new StdioClientTransport({
+    command: process.execPath,
+    args: [resolvePlaywrightMcpCliPath(), '--config', runtime.configPath],
+    env: runtime.childEnv,
+    stderr: 'inherit',
+  });
+  const client = new Client({
+    name: `${PROJECT_METADATA.mcpName}-upstream-client`,
+    version: PROJECT_METADATA.version,
+  });
+  await client.connect(transport);
+  return client;
+}
+
+function createServerInfo(serverInfo?: Partial<Implementation>): Implementation {
+  return {
     name: PROJECT_METADATA.mcpName,
     title: PROJECT_METADATA.title,
     version: PROJECT_METADATA.version,
     description: PROJECT_METADATA.description,
     websiteUrl: PROJECT_METADATA.websiteUrl,
     icons: PROJECT_METADATA.icons,
-    ...opts.serverInfo,
+    ...serverInfo,
   };
-
-  const server = new McpServer(serverInfo, {
-    instructions: opts.instructions ?? MCP_SERVER_INSTRUCTIONS,
-  });
-
-  for (const entry of registry.list()) {
-    const shape =
-      entry.inputSchema instanceof z.ZodObject
-        ? (entry.inputSchema._def.shape() as Record<string, z.ZodTypeAny>)
-        : {};
-    server.registerTool(
-      entry.name,
-      {
-        description: entry.description,
-        inputSchema: shape,
-        annotations: {
-          title: entry.annotations?.title ?? toolTitle(entry.name),
-          ...(entry.annotations ?? {}),
-        },
-      },
-      async (input: unknown) => {
-        const result = await registry.call(entry.name, input);
-        const out: {
-          content: { type: 'text'; text: string }[];
-          isError?: boolean;
-          structuredContent?: Record<string, unknown>;
-        } = {
-          content: result.content,
-        };
-        if (result.isError) out.isError = true;
-        if (result.structuredContent) out.structuredContent = result.structuredContent;
-        return out;
-      },
-    );
-  }
-
-  logger.info('mcp server prepared', {
-    name: serverInfo.name,
-    version: serverInfo.version,
-    tools: registry.size(),
-  });
-
-  return {
-    server,
-    registry,
-    session,
-    context: ctx,
-    async start(transport) {
-      const t = transport ?? new StdioServerTransport();
-      await server.connect(t);
-      logger.info('mcp server connected', { transport: t.constructor.name });
-    },
-    async dispose() {
-      try {
-        await session.shutdown();
-      } catch (e) {
-        logger.warn('session shutdown error', { error: (e as Error).message });
-      }
-      try {
-        await server.close();
-      } catch (e) {
-        logger.warn('mcp server close error', { error: (e as Error).message });
-      }
-    },
-  };
-}
-
-function toolTitle(name: string): string {
-  return name
-    .split('_')
-    .map((part) => (part === 'mcp' ? 'MCP' : part.charAt(0).toUpperCase() + part.slice(1)))
-    .join(' ');
 }

@@ -1,7 +1,7 @@
 {
   "name": "cloakbrowser-mcp",
   "version": "1.0.0",
-  "description": "Model Context Protocol server for CloakBrowser — stealth Chromium browser automation for AI agents.",
+  "description": "Playwright MCP bridge that runs upstream browser tools with CloakBrowser.",
   "mcpName": "io.github.swimmwatch/cloakbrowser-mcp",
   "type": "module",
   "license": "MIT",
@@ -10,13 +10,7 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
     "./package.json": "./package.json"
   },
   "bin": {
@@ -33,16 +27,14 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist coverage",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
-    "test:contract": "vitest run tests/contract",
     "test:coverage": "vitest run --coverage",
-    "test:real": "CLOAKBROWSER_MCP_REAL_BROWSER=1 vitest run tests/real",
     "start": "node dist/cli.js",
     "dev": "tsx src/cli.ts",
     "lint": "eslint .",
@@ -51,30 +43,20 @@
     "format:check": "prettier --check .",
     "docs:install": "python3 -m venv .venv-docs && .venv-docs/bin/pip install -r docs/requirements.txt",
     "docs:assets": "node scripts/generate-brand-assets.mjs",
-    "docs:generate": "tsx scripts/generate-config-docs.ts",
     "docs:serve": ".venv-docs/bin/mkdocs serve",
     "docs:build": ".venv-docs/bin/mkdocs build --strict",
     "version:apply": "node scripts/apply-release-version.mjs",
     "package:verify": "npm run build && node scripts/verify-npm-package.mjs",
     "docker:build": "docker buildx build --load -t cloakbrowser-mcp:dev .",
     "docker:smoke": "docker run --rm cloakbrowser-mcp:dev --help",
+    "bridge:compare": "node scripts/compare-playwright-mcp-bridge.mjs cloakbrowser-mcp:dev",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run build && npm test",
     "check:ci": "npm run check && npm run test:coverage"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.0",
-    "cloakbrowser": "^0.3.30",
-    "commander": "^14.0.3",
-    "pino": "^10.3.1",
-    "zod": "^3.23.8"
-  },
-  "peerDependencies": {
-    "playwright-core": ">=1.53.0"
-  },
-  "peerDependenciesMeta": {
-    "playwright-core": {
-      "optional": true
-    }
+    "@playwright/mcp": "^0.0.75",
+    "cloakbrowser": "^0.3.30"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
@@ -82,9 +64,7 @@
     "@vitest/coverage-v8": "^2.1.9",
     "eslint": "^9.13.0",
     "eslint-config-prettier": "^9.1.0",
-    "playwright-core": "^1.53.0",
     "prettier": "^3.3.3",
-    "tsc-alias": "^1.8.17",
     "tsx": "^4.19.0",
     "typescript": "^5.5.4",
     "typescript-eslint": "^8.11.0",

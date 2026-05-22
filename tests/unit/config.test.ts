@@ -1,69 +1,109 @@
-import { describe, expect, it } from 'vitest';
-import { loadConfig, parseArgv, loadFromEnv } from '@/config/load.js';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { afterEach, describe, expect, it } from 'vitest';
+import { createLaunchArgs, prepareBridgeRuntime } from '../../src/bridge/config.js';
 
-describe('config loader', () => {
-  it('applies defaults with no input', () => {
-    const cfg = loadConfig({ argv: [], env: {} });
-    expect(cfg.headless).toBe(true);
-    expect(cfg.defaultTimeoutMs).toBe(5_000);
-    expect(cfg.maxPages).toBe(10);
-    expect(cfg.capabilities.allowScreenshots).toBe(true);
-    expect(cfg.capabilities.allowPdf).toBe(false);
-  });
+const tempRoots: string[] = [];
 
-  it('parses argv booleans, ints, and lists', () => {
-    const args = parseArgv([
-      '--no-headless',
-      '--default-timeout-ms',
-      '12000',
-      '--max-pages=3',
-      '--allowed-origins',
-      'example.com,foo.test',
-      '--cap-allow-pdf',
-      '--no-cap-allow-screenshots',
-    ]);
-    expect(args.headless).toBe(false);
-    expect(args.defaultTimeoutMs).toBe(12_000);
-    expect(args.maxPages).toBe(3);
-    expect(args.allowedOrigins).toEqual(['example.com', 'foo.test']);
-    expect(args.capabilities).toEqual({ allowPdf: true, allowScreenshots: false });
-  });
+afterEach(() => {
+  for (const root of tempRoots.splice(0)) rmSync(root, { recursive: true, force: true });
+});
 
-  it('reads env vars with prefix', () => {
-    const args = loadFromEnv({
-      CLOAKBROWSER_MCP_HEADLESS: 'false',
-      CLOAKBROWSER_MCP_MAX_PAGES: '7',
-      CLOAKBROWSER_MCP_ALLOWED_ORIGINS: 'a.com,b.com',
-      CLOAKBROWSER_MCP_CAP_ALLOW_PDF: 'true',
+function createTempRoot(): string {
+  const root = mkdtempSync(path.join(tmpdir(), 'cloakbrowser-mcp-test-'));
+  tempRoots.push(root);
+  return root;
+}
+
+describe('bridge config generation', () => {
+  it('creates a Cloak-backed Playwright MCP config and child env', async () => {
+    const root = createTempRoot();
+    const outputDir = path.join(root, 'artifacts');
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => '/tmp/cloakbrowser/chrome',
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: outputDir,
+        PLAYWRIGHT_MCP_HEADLESS: 'false',
+        PLAYWRIGHT_MCP_OUTPUT_MODE: 'file',
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS: 'false',
+        CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS: '--foo,--bar=baz',
+      },
     });
-    expect(args.headless).toBe(false);
-    expect(args.maxPages).toBe(7);
-    expect(args.allowedOrigins).toEqual(['a.com', 'b.com']);
-    expect(args.capabilities?.allowPdf).toBe(true);
-  });
 
-  it('cli overrides env (defaults < env < cli)', () => {
-    const cfg = loadConfig({
-      env: { CLOAKBROWSER_MCP_MAX_PAGES: '5' },
-      argv: ['--max-pages', '9'],
+    expect(runtime.browserEngine).toBe('cloak');
+    expect(runtime.cloakBinaryPath).toBe('/tmp/cloakbrowser/chrome');
+    expect(runtime.outputDir).toBe(outputDir);
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_EXECUTABLE_PATH).toBe('/tmp/cloakbrowser/chrome');
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_OUTPUT_MODE).toBe('file');
+    expect(runtime.config.browser?.launchOptions).toMatchObject({
+      executablePath: '/tmp/cloakbrowser/chrome',
+      headless: false,
+      args: ['--no-sandbox', '--foo', '--bar=baz'],
+      chromiumSandbox: false,
     });
-    expect(cfg.maxPages).toBe(9);
+
+    runtime.dispose();
   });
 
-  it('rejects invalid integers', () => {
-    expect(() => parseArgv(['--max-pages', 'abc'])).toThrow(/integer/);
-  });
-
-  it('requires allowPersistentProfiles when userDataDir is set', () => {
-    expect(() => loadConfig({ argv: ['--user-data-dir', '/tmp/profile'], env: {} })).toThrow(
-      /allowPersistentProfiles/,
-    );
-
-    const cfg = loadConfig({
-      argv: ['--user-data-dir', '/tmp/profile', '--cap-allow-persistent-profiles'],
-      env: {},
+  it('adds the console fallback preload when enabled', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => '/tmp/cloakbrowser/chrome',
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'true',
+      },
     });
-    expect(cfg.userDataDir).toBe('/tmp/profile');
-    expect(cfg.capabilities.allowPersistentProfiles).toBe(true);
+
+    expect(runtime.config.browser?.initScript?.[0]).toContain('console-fallback-init.js');
+    expect(runtime.childEnv.NODE_OPTIONS).toContain('--require=');
+
+    runtime.dispose();
+  });
+
+  it('does not apply Cloak-specific defaults in Playwright engine mode', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => '/tmp/cloakbrowser/chrome',
+      env: {
+        PLAYWRIGHT_MCP_BROWSER_ENGINE: 'playwright',
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+      },
+    });
+
+    expect(runtime.cloakBinaryPath).toBeUndefined();
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_EXECUTABLE_PATH).toBeUndefined();
+    expect(runtime.childEnv.NODE_OPTIONS).toBeUndefined();
+    expect(runtime.config.browser?.launchOptions?.args).toEqual([]);
+    expect(runtime.config.browser?.launchOptions?.chromiumSandbox).toBeUndefined();
+
+    runtime.dispose();
+  });
+
+  it('rejects unsupported bridge engines', async () => {
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: createTempRoot(),
+        ensureCloakBinary: async () => '/tmp/cloakbrowser/chrome',
+        env: {
+          PLAYWRIGHT_MCP_BROWSER_ENGINE: 'firefox',
+        },
+      }),
+    ).rejects.toThrow('PLAYWRIGHT_MCP_BROWSER_ENGINE');
+  });
+
+  it('builds deduplicated launch args', () => {
+    expect(
+      createLaunchArgs({
+        CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS: 'false',
+        CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX: 'true',
+        CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS: '--no-sandbox,--alpha',
+      }),
+    ).toEqual(['--no-sandbox', '--alpha']);
   });
 });

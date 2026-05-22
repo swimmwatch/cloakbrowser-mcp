@@ -1,5 +1,5 @@
 site_name: cloakbrowser-mcp
-site_description: Model Context Protocol server for CloakBrowser — stealth Chromium browser automation for AI agents.
+site_description: Playwright MCP bridge that runs upstream browser tools with CloakBrowser.
 site_url: https://swimmwatch.github.io/cloakbrowser-mcp/
 site_author: swimmwatch
 repo_url: https://github.com/swimmwatch/cloakbrowser-mcp
@@ -9,9 +9,6 @@ copyright: Copyright &copy; 2026 swimmwatch
 docs_dir: docs
 site_dir: site
 strict: true
-
-hooks:
-  - docs/hooks/generate_config_docs.py
 
 theme:
   name: material
@@ -114,7 +111,6 @@ nav:
       - Tags: tags.md
   - Project Internals:
       - Contributor Guide: contributor-guide.md
-      - Library API: library-api.md
       - Development: development.md
       - Testing: testing.md
       - Architecture: architecture.md

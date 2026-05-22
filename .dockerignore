@@ -1,10 +1,6 @@
-# Default-deny the build context. Dockerfile only needs package metadata,
-# TypeScript config, source files, and the container entrypoint.
 *
 
-# Runtime build inputs
 !Dockerfile
-!docker-entrypoint.sh
 !package.json
 !package-lock.json
 !tsconfig.json
@@ -12,8 +8,6 @@
 !src/
 !src/**
 
-# Keep heavyweight, generated, local, and secret-bearing files out even if a
-# future broad allow rule is added above.
 .git/
 .github/
 node_modules/

@@ -1,13 +1,13 @@
 ---
 name: Feature request
-about: Propose a new tool or capability
+about: Propose a bridge, Docker, docs, or packaging improvement
 labels: enhancement
 ---
 
 **Use case**
 
-**Proposed tool / config**
+**Proposed change**
 
-**Required CloakBrowser API (verified?)**
+**Upstream Playwright MCP behavior affected?**
 
-**Security or capability implications**
+**Security or compatibility implications**
