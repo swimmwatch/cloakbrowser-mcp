@@ -21,12 +21,15 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
           package-manager-cache: false
 
       - name: Install dependencies
@@ -36,14 +39,12 @@ jobs:
         run: npm audit signatures
 
       - name: Configure npm token authentication
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          if [ -n "${NODE_AUTH_TOKEN:-}" ]; then
-            printf '//registry.npmjs.org/:_authToken=%s\n' "$NODE_AUTH_TOKEN" > ~/.npmrc
-          else
-            echo "NPM_TOKEN is not configured; relying on npm Trusted Publishing for this workflow."
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::error title=Missing NPM_TOKEN::Configure an npm automation token as the NPM_TOKEN repository secret."
+            exit 1
           fi
+          printf '//registry.npmjs.org/:_authToken=%s\n' "$NODE_AUTH_TOKEN" > ~/.npmrc
 
       - name: Apply release version from tag
         run: npm run version:apply -- "$GITHUB_REF_NAME"
@@ -87,6 +88,4 @@ jobs:
           fi
 
       - name: Publish to npm
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish "${{ steps.pack.outputs.package_file }}" --access public --tag "${{ steps.npm-tag.outputs.tag }}" --provenance

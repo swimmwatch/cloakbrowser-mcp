@@ -27,22 +27,25 @@ Configure these settings before the first release.
 
 ## npm Publishing
 
-Preferred setup is npm Trusted Publishing:
+The npm release workflow uses a repository secret named `NPM_TOKEN`.
 
-| Field | Value |
-| --- | --- |
-| Package | `cloakbrowser-mcp` |
-| Publisher | GitHub Actions |
-| Repository owner | `swimmwatch` |
-| Repository | `cloakbrowser-mcp` |
-| Workflow | `.github/workflows/npm-release.yml` |
-| Environment | unset |
+Create an npm automation token with publish access to `cloakbrowser-mcp`, then
+add it to GitHub:
 
-The npm release workflow also supports the classic token path. Add a repository
-secret named `NPM_TOKEN` when Trusted Publishing is not configured.
+```text
+Settings -> Secrets and variables -> Actions -> Repository secrets -> NPM_TOKEN
+```
 
-The workflow publishes with provenance enabled. Trusted Publishing generates
-provenance automatically; token publishing uses `npm publish --provenance`.
+The workflow fails before packaging if `NPM_TOKEN` is missing.
+
+Publishing uses:
+
+```bash
+npm publish <tarball> --access public --tag <latest|next> --provenance
+```
+
+The workflow keeps `id-token: write` so npm can attach provenance from GitHub
+Actions while authenticating with `NPM_TOKEN`.
 
 ## Docker Publishing
 
@@ -88,6 +91,5 @@ Before publishing a release:
 - Merge only after `Actionlint` and `CI` are green.
 - Create a GitHub Release from a tag like `v1.2.3`.
 - Mark the release as prerelease when publishing a `next` npm version.
-- Confirm the npm package has Trusted Publishing configured or `NPM_TOKEN` is
-  present.
+- Confirm the `NPM_TOKEN` repository secret is present.
 - Confirm GHCR package visibility is public after the first Docker publish.

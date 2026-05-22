@@ -22,7 +22,7 @@ tags:
 
 ## Before First Stable Release
 
-- Configure npm Trusted Publishing or the `NPM_TOKEN` repository secret.
+- Configure the `NPM_TOKEN` repository secret.
 - Configure GitHub Pages to serve the `gh-pages` branch after the first docs publish.
 - Confirm the GHCR package is public after the first Docker publish.
 - Confirm MCP registry metadata after the first published package and image.
