@@ -114,6 +114,7 @@ nav:
       - Development: development.md
       - Testing: testing.md
       - Architecture: architecture.md
+      - Release: release.md
       - Contributing: contributing.md
       - Roadmap: roadmap.md
 

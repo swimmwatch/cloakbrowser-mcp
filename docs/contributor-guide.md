@@ -14,6 +14,7 @@ User documentation intentionally focuses on installing and using the MCP server.
 - [Development](development.md) for local setup and package structure.
 - [Testing](testing.md) for unit, integration, Docker, npm package, and parity checks.
 - [Architecture](architecture.md) for the bridge runtime design.
+- [Release](release.md) for repository settings and publish workflows.
 - [Contributing](contributing.md) for project workflow.
 - [Roadmap](roadmap.md) for remaining work and release goals.
 

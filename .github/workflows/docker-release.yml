@@ -9,6 +9,7 @@ env:
   NODE_IMAGE_TAG: 22-bookworm-slim
   DOCKER_REGISTRY: ghcr.io
   IMAGE_NAME: cloakbrowser-mcp
+  RELEASE_SMOKE_IMAGE: cloakbrowser-mcp:release-smoke
   IMAGE_TITLE: cloakbrowser-mcp
   IMAGE_DESCRIPTION: Playwright MCP bridge that runs upstream browser tools with CloakBrowser
   MCP_SERVER_NAME: io.github.swimmwatch/cloakbrowser-mcp
@@ -24,26 +25,52 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci --ignore-scripts
 
       - name: Apply release version from tag
         run: node scripts/apply-release-version.mjs "$GITHUB_REF_NAME"
 
-      - uses: docker/setup-buildx-action@v3
+      - name: Run release checks
+        run: npm run check:ci
 
-      - uses: docker/login-action@v3
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Build image for smoke test
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          pull: true
+          tags: ${{ env.RELEASE_SMOKE_IMAGE }}
+          build-args: |
+            NODE_IMAGE_TAG=${{ env.NODE_IMAGE_TAG }}
+            PLAYWRIGHT_MCP_IMAGE=${{ env.PLAYWRIGHT_MCP_IMAGE }}
+          cache-from: type=gha,scope=${{ env.DOCKER_CACHE_SCOPE }}
+          cache-to: type=gha,mode=max,scope=${{ env.DOCKER_CACHE_SCOPE }},ignore-error=true
+
+      - name: Smoke release image
+        run: docker run --rm "$RELEASE_SMOKE_IMAGE" --help
+
+      - name: Compare release image with upstream Playwright MCP
+        run: npm run bridge:compare -- "$RELEASE_SMOKE_IMAGE"
+
+      - uses: docker/login-action@v4
         with:
           registry: ${{ env.DOCKER_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
           tags: |

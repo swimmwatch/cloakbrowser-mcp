@@ -17,12 +17,14 @@ tags:
 - Bridge-focused unit and integration tests.
 - Docker smoke and upstream parity scripts.
 - User-first documentation layout.
+- Release workflows for npm, Docker, and documentation publishing.
+- Docker release preflight with smoke and upstream parity checks.
 
 ## Before First Stable Release
 
-- Run Docker parity on CI for the target release image.
-- Verify npm package install on a clean machine.
-- Publish docs from the release workflow.
+- Configure npm Trusted Publishing or the `NPM_TOKEN` repository secret.
+- Configure GitHub Pages to serve the `gh-pages` branch after the first docs publish.
+- Confirm the GHCR package is public after the first Docker publish.
 - Confirm MCP registry metadata after the first published package and image.
 
 ## Later

@@ -27,7 +27,6 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-          registry-url: https://registry.npmjs.org
           package-manager-cache: false
 
       - name: Install dependencies
@@ -35,6 +34,16 @@ jobs:
 
       - name: Verify dependency signatures
         run: npm audit signatures
+
+      - name: Configure npm token authentication
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -n "${NODE_AUTH_TOKEN:-}" ]; then
+            printf '//registry.npmjs.org/:_authToken=%s\n' "$NODE_AUTH_TOKEN" > ~/.npmrc
+          else
+            echo "NPM_TOKEN is not configured; relying on npm Trusted Publishing for this workflow."
+          fi
 
       - name: Apply release version from tag
         run: npm run version:apply -- "$GITHUB_REF_NAME"
@@ -61,7 +70,7 @@ jobs:
         name: Pack and verify npm tarball
         run: npm run package:verify
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: npm-package-${{ steps.pack.outputs.package_version }}
           path: ${{ steps.pack.outputs.package_file }}
@@ -78,4 +87,6 @@ jobs:
           fi
 
       - name: Publish to npm
-        run: npm publish "${{ steps.pack.outputs.package_file }}" --access public --tag "${{ steps.npm-tag.outputs.tag }}"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish "${{ steps.pack.outputs.package_file }}" --access public --tag "${{ steps.npm-tag.outputs.tag }}" --provenance
