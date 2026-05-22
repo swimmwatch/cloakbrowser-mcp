@@ -217,7 +217,7 @@ function printSummary(baselineRun, cloakRun) {
     const cloakCall = cloakRun.calls[index];
     process.stdout.write(
       `${call.name.padEnd(width)}  ${call.ok ? 'ok' : 'fail'} ${String(call.ms).padStart(5)}ms  ${
-        cloakCalg.ok ? 'ok' : 'fail'
+        cloakCall.ok ? 'ok' : 'fail'
       } ${String(cloakCall.ms).padStart(5)}ms\n`,
     );
   }
