@@ -8,6 +8,7 @@ import {
   type CallToolResult,
   type Implementation,
   type ListToolsResult,
+  type ListToolsRequest,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { prepareBridgeRuntime, type BridgeRuntime } from './bridge/config.js';
@@ -40,6 +41,8 @@ export async function startBridge(options: StartBridgeOptions = {}): Promise<Bri
 export async function createBridgeServer(options: BridgeServerOptions = {}): Promise<BridgeServer> {
   const runtime = options.runtime ?? (await prepareBridgeRuntime());
   const upstreamClient = options.upstreamClient ?? (await connectUpstream(runtime));
+  const localTools = createLocalTools();
+  const upstreamToolCache = new Map<string, Promise<ListToolsResult>>();
   let upstreamToolCount = 0;
 
   const server = new Server(createServerInfo(options.serverInfo), {
@@ -48,12 +51,12 @@ export async function createBridgeServer(options: BridgeServerOptions = {}): Pro
   });
 
   server.setRequestHandler(ListToolsRequestSchema, async (request) => {
-    const upstream = (await upstreamClient.listTools(request.params)) as ListToolsResult;
+    const upstream = await listUpstreamTools(upstreamClient, upstreamToolCache, request.params);
     upstreamToolCount = Math.max(upstreamToolCount, upstream.tools.length);
     if (request.params?.cursor) return upstream;
     return {
       ...upstream,
-      tools: [...upstream.tools, ...createLocalTools()],
+      tools: [...upstream.tools, ...localTools],
     };
   });
 
@@ -75,6 +78,26 @@ export async function createBridgeServer(options: BridgeServerOptions = {}): Pro
       runtime.dispose();
     },
   };
+}
+
+function listUpstreamTools(
+  upstreamClient: Client,
+  cache: Map<string, Promise<ListToolsResult>>,
+  params: ListToolsRequest['params'],
+): Promise<ListToolsResult> {
+  const cacheKey = params?.cursor ?? '';
+  const cached = cache.get(cacheKey);
+  if (cached) return cached;
+
+  const pending = upstreamClient.listTools(params).then(
+    (result) => result as ListToolsResult,
+    (error: unknown) => {
+      cache.delete(cacheKey);
+      throw error;
+    },
+  );
+  cache.set(cacheKey, pending);
+  return pending;
 }
 
 async function connectUpstream(runtime: BridgeRuntime): Promise<Client> {

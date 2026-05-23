@@ -9,6 +9,7 @@ import {
 } from '../project/metadata.js';
 
 export const localToolNames = ['cloakbrowser_binary_info', 'cloakbrowser_bridge_info'] as const;
+const localToolNameSet = new Set<string>(localToolNames);
 
 export type LocalToolName = (typeof localToolNames)[number];
 
@@ -18,35 +19,37 @@ const emptyInputSchema = {
   additionalProperties: false,
 } as const;
 
+const localTools: Tool[] = [
+  {
+    name: 'cloakbrowser_binary_info',
+    title: 'CloakBrowser binary info',
+    description: 'Return CloakBrowser package, cache, platform, and resolved browser binary information.',
+    inputSchema: emptyInputSchema,
+    annotations: {
+      readOnlyHint: true,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+  },
+  {
+    name: 'cloakbrowser_bridge_info',
+    title: 'CloakBrowser bridge info',
+    description: 'Return runtime metadata for the CloakBrowser bridge over upstream Playwright MCP.',
+    inputSchema: emptyInputSchema,
+    annotations: {
+      readOnlyHint: true,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+  },
+];
+
 export function createLocalTools(): Tool[] {
-  return [
-    {
-      name: 'cloakbrowser_binary_info',
-      title: 'CloakBrowser binary info',
-      description: 'Return CloakBrowser package, cache, platform, and resolved browser binary information.',
-      inputSchema: emptyInputSchema,
-      annotations: {
-        readOnlyHint: true,
-        idempotentHint: true,
-        openWorldHint: false,
-      },
-    },
-    {
-      name: 'cloakbrowser_bridge_info',
-      title: 'CloakBrowser bridge info',
-      description: 'Return runtime metadata for the CloakBrowser bridge over upstream Playwright MCP.',
-      inputSchema: emptyInputSchema,
-      annotations: {
-        readOnlyHint: true,
-        idempotentHint: true,
-        openWorldHint: false,
-      },
-    },
-  ];
+  return localTools;
 }
 
 export function isLocalTool(name: string): name is LocalToolName {
-  return (localToolNames as readonly string[]).includes(name);
+  return localToolNameSet.has(name);
 }
 
 export function callLocalTool(

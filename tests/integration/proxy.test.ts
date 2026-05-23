@@ -100,6 +100,51 @@ describe('bridge proxy', () => {
       arguments: { url: 'https://example.com' },
     });
   });
+
+  it('caches upstream tool lists', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => '/tmp/cloakbrowser/chrome',
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'out'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+    let listToolCalls = 0;
+    const upstreamClient = {
+      async listTools() {
+        listToolCalls += 1;
+        return {
+          tools: [
+            {
+              name: 'browser_snapshot',
+              title: 'Page snapshot',
+              description: 'Capture accessibility snapshot.',
+              inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+            },
+          ],
+        };
+      },
+      async callTool() {
+        return { content: [] };
+      },
+      async close() {},
+    } as unknown as Client;
+
+    const bridge = await createBridgeServer({ runtime, upstreamClient });
+    bridges.push(bridge);
+
+    const outerClient = new Client({ name: 'proxy-cache-test-client', version: '1.0.0' });
+    clients.push(outerClient);
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([bridge.start(serverTransport), outerClient.connect(clientTransport)]);
+
+    await outerClient.listTools();
+    await outerClient.listTools();
+
+    expect(listToolCalls).toBe(1);
+  });
 });
 
 function restoreEnv(name: string, value: string | undefined): void {
