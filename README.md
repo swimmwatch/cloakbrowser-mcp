@@ -26,6 +26,14 @@ The server is intentionally thin:
 
 Current version: <!-- project-version -->v1.0.0<!-- /project-version -->. License: [MIT](LICENSE).
 
+## Version compatibility
+
+| cloakbrowser-mcp | @playwright/mcp dependency | Playwright MCP Docker base | Notes |
+| --- | --- | --- | --- |
+| `1.0.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | Initial bridge release. Upstream Playwright MCP tool contracts are forwarded unchanged. |
+
+See [Version Compatibility](docs/version-compatibility.md) for the maintained compatibility table.
+
 ## Run from npm
 
 ```bash

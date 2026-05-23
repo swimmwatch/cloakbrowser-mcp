@@ -105,6 +105,7 @@ nav:
   - User Guide:
       - Getting Started: getting-started.md
       - Docker: docker.md
+      - Version Compatibility: version-compatibility.md
       - Configuration: configuration.md
       - Tools: tools.md
       - Security: security.md

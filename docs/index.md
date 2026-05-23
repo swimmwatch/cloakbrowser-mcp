@@ -21,6 +21,14 @@ tags:
 
 Current version: <!-- project-version -->v1.0.0<!-- /project-version -->.
 
+## Version Compatibility
+
+| cloakbrowser-mcp | @playwright/mcp dependency | Playwright MCP Docker base |
+| --- | --- | --- |
+| `1.0.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` |
+
+See [Version Compatibility](version-compatibility.md) for the maintained mapping between this project's SemVer releases and upstream Playwright MCP versions.
+
 ## What It Is
 
 <div class="grid cards" markdown>
