@@ -16,7 +16,6 @@ User documentation intentionally focuses on installing and using the MCP server.
 - [Architecture](architecture.md) for the bridge runtime design.
 - [Release](release.md) for repository settings and publish workflows.
 - [Contributing](contributing.md) for project workflow.
-- [Roadmap](roadmap.md) for remaining work and release goals.
 
 ## Required Local Check
 

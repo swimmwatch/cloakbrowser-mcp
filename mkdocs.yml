@@ -11,6 +11,7 @@ site_dir: site
 exclude_docs: |
   hooks/
   overrides/
+  requirements.txt
 strict: true
 theme:
   name: material
@@ -119,9 +120,7 @@ nav:
       - Testing: testing.md
       - Architecture: architecture.md
       - Release: release.md
-      - Search Engine Indexing: seo.md
       - Contributing: contributing.md
-      - Roadmap: roadmap.md
 
 markdown_extensions:
   - abbr
@@ -184,7 +183,6 @@ extra:
     API: api
     Release: release
     Documentation: docs
-    Search Engine Indexing: docs
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/swimmwatch/cloakbrowser-mcp

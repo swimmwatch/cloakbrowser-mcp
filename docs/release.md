@@ -145,12 +145,11 @@ be provided as repository variables or secrets:
 
 Optional IndexNow notifications require a repository secret named
 `INDEXNOW_KEY`. When it is set, the workflow publishes the required key file and
-submits the generated sitemap URLs after GitHub Pages deployment. See
-[Search Engine Indexing](seo.md) for setup details.
+submits the generated sitemap URLs after GitHub Pages deployment.
 
-Do not add paid SEO tools, advertising products, paid indexing services, or
-third-party analytics to the documentation release flow without a separate
-explicit decision.
+Do not add paid indexing services, advertising products, or third-party
+analytics to the documentation release flow without a separate explicit
+decision.
 
 ## Upstream Monitoring
 
