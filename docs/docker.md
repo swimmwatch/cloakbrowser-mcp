@@ -1,5 +1,5 @@
 ---
-description: Docker usage for CloakBrowser MCP.
+description: Run the CloakBrowser MCP Docker image for repeatable Playwright MCP browser automation with CloakBrowser.
 icon: fontawesome/brands/docker
 tags:
   - Docker

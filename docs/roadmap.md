@@ -1,5 +1,5 @@
 ---
-description: Roadmap for CloakBrowser MCP.
+description: Roadmap for CloakBrowser MCP bridge runtime, Playwright MCP parity, Docker, npm packaging, and documentation work.
 icon: material/map
 tags:
   - Project Internals

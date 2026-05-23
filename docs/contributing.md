@@ -1,3 +1,10 @@
+---
+description: Contribution checklist and pull request guidance for CloakBrowser MCP development.
+icon: material/source-pull
+tags:
+  - Project Internals
+---
+
 # Contributing
 
 Before opening a pull request, run the local checks and read the bridge architecture page.

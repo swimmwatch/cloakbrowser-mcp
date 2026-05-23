@@ -11,6 +11,8 @@ Use the published npm package or Docker image. Installing from source is only ne
 
 Choose npm when your MCP client already runs on your machine and Node.js is available. Choose Docker when you want a repeatable runtime with the upstream Playwright MCP base image and the CloakBrowser cache prepared inside the container.
 
+For a quick overview of common setup questions, see the [FAQ](faq.md).
+
 ## npm
 
 ```bash

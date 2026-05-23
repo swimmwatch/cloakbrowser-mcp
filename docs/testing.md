@@ -1,5 +1,5 @@
 ---
-description: Testing strategy for CloakBrowser MCP.
+description: Testing strategy for CloakBrowser MCP unit tests, fake upstream integration tests, Docker smoke tests, and Playwright MCP parity checks.
 icon: material/test-tube
 tags:
   - Testing

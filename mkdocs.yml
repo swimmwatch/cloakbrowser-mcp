@@ -1,5 +1,5 @@
-site_name: cloakbrowser-mcp
-site_description: Playwright MCP bridge that runs upstream browser tools with CloakBrowser.
+site_name: CloakBrowser MCP
+site_description: CloakBrowser MCP is a Playwright MCP bridge for Model Context Protocol browser automation with CloakBrowser, npm, and Docker.
 site_url: https://swimmwatch.github.io/cloakbrowser-mcp/
 site_author: swimmwatch
 repo_url: https://github.com/swimmwatch/cloakbrowser-mcp
@@ -8,12 +8,14 @@ edit_uri: edit/main/docs/
 copyright: Copyright &copy; 2026 swimmwatch
 docs_dir: docs
 site_dir: site
+exclude_docs: |
+  hooks/
+  overrides/
 strict: true
-
 theme:
   name: material
   language: en
-  custom_dir: overrides
+  custom_dir: docs/overrides
   logo: assets/brand/logo.svg
   favicon: assets/brand/favicon.svg
   font:
@@ -109,6 +111,7 @@ nav:
       - Configuration: configuration.md
       - Tools: tools.md
       - Security: security.md
+      - FAQ: faq.md
       - Tags: tags.md
   - Project Internals:
       - Contributor Guide: contributor-guide.md
@@ -116,6 +119,7 @@ nav:
       - Testing: testing.md
       - Architecture: architecture.md
       - Release: release.md
+      - Search Engine Indexing: seo.md
       - Contributing: contributing.md
       - Roadmap: roadmap.md
 
@@ -160,17 +164,27 @@ extra:
   generator: false
   status:
     new: Recently added
+  seo:
+    image: assets/brand/social-card.png
+    verification:
+      google: !ENV [GOOGLE_SITE_VERIFICATION, '']
+      bing: !ENV [BING_SITE_VERIFICATION, '']
+      yandex: !ENV [YANDEX_SITE_VERIFICATION, '']
+      baidu: !ENV [BAIDU_SITE_VERIFICATION, '']
+      naver: !ENV [NAVER_SITE_VERIFICATION, '']
   tags:
     User Guide: user
     Docker: docker
     Configuration: config
     Tools: tools
     Security: security
+    FAQ: docs
     Project Internals: project
     Testing: test
     API: api
     Release: release
     Documentation: docs
+    Search Engine Indexing: docs
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/swimmwatch/cloakbrowser-mcp

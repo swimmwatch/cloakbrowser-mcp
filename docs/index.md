@@ -1,5 +1,5 @@
 ---
-description: Playwright MCP bridge that runs upstream browser tools with CloakBrowser.
+description: CloakBrowser MCP is a Playwright MCP bridge for Model Context Protocol browser automation with CloakBrowser, npm, and Docker.
 icon: material/home
 tags:
   - User Guide
@@ -15,9 +15,9 @@ tags:
   <a class="md-button" href="docker/">Docker</a>
 </p>
 
-# cloakbrowser-mcp
+# CloakBrowser MCP Server
 
-`cloakbrowser-mcp` is a stdio MCP server that runs upstream `@playwright/mcp` with the CloakBrowser Chromium binary.
+`cloakbrowser-mcp` is a stdio Model Context Protocol browser automation server that runs upstream `@playwright/mcp` with the CloakBrowser Chromium binary. Use it when you want Playwright MCP-compatible browser tools, CloakBrowser execution, npm installation, or a Docker image for MCP clients.
 
 Current version: <!-- project-version -->v1.0.0<!-- /project-version -->.
 
@@ -63,4 +63,5 @@ The upstream Playwright MCP tool contracts are authoritative. This project adds 
 - [Getting Started](getting-started.md) for npm, Docker, and MCP client configuration.
 - [Configuration](configuration.md) for supported environment variables.
 - [Tools](tools.md) for tool-surface expectations and upstream parity.
+- [FAQ](faq.md) for common installation, Docker, parity, and security questions.
 - [Contributor Guide](contributor-guide.md) for development, testing, architecture, and release details.

@@ -1,5 +1,5 @@
 ---
-description: Security model for CloakBrowser MCP.
+description: Security model and browser automation risk guidance for CloakBrowser MCP, Docker isolation, artifacts, secrets, and network exposure.
 icon: material/shield-lock
 tags:
   - Security
