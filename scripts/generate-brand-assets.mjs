@@ -1,31 +1,22 @@
 #!/usr/bin/env node
-import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { brandRenders } from './lib/brand-assets.mjs';
+import { assertCommandAvailable, runCommand } from './lib/command.mjs';
+import { assertFileExists } from './lib/files.mjs';
 
 const root = process.cwd();
 const brandDir = path.join(root, 'docs', 'assets', 'brand');
 
-const renders = [
-  { source: 'logo.svg', output: 'favicon-32.png', width: 32, height: 32 },
-  { source: 'logo.svg', output: 'apple-touch-icon.png', width: 180, height: 180 },
-  { source: 'logo.svg', output: 'favicon-192.png', width: 192, height: 192 },
-  { source: 'logo.svg', output: 'favicon-512.png', width: 512, height: 512 },
-  { source: 'social-card.svg', output: 'social-card.png', width: 1200, height: 630 },
-];
+assertCommandAvailable('rsvg-convert', ['--version'], 'Install librsvg2-bin to generate docs brand assets.');
 
-assertRsvgConvert();
-
-for (const asset of renders) {
+for (const asset of brandRenders) {
   const source = path.join(brandDir, asset.source);
   const output = path.join(brandDir, asset.output);
 
-  if (!existsSync(source)) {
-    throw new Error(`missing brand source asset: ${source}`);
-  }
+  assertFileExists(source, 'brand source asset');
 
-  execFileSync(
+  runCommand(
     'rsvg-convert',
     [
       '--format',
@@ -41,12 +32,4 @@ for (const asset of renders) {
     ],
     { stdio: 'inherit' },
   );
-}
-
-function assertRsvgConvert() {
-  try {
-    execFileSync('rsvg-convert', ['--version'], { stdio: 'ignore' });
-  } catch {
-    throw new Error('rsvg-convert is required to generate docs brand assets. Install librsvg2-bin.');
-  }
 }

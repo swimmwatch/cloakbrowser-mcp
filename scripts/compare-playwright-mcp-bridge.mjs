@@ -7,35 +7,15 @@ import process from 'node:process';
 import { URL } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import {
+  assertEqual,
+  expectedDefaultTools,
+  localToolNames,
+  normalizeToolResponseText,
+} from './lib/playwright-mcp-parity.mjs';
 
 const image = process.argv[2] ?? 'cloakbrowser-mcp:dev';
 const baselineImage = process.env.PLAYWRIGHT_MCP_BASELINE_IMAGE ?? 'mcr.microsoft.com/playwright/mcp:v0.0.75';
-const localToolNames = ['cloakbrowser_binary_info', 'cloakbrowser_bridge_info'];
-const expectedDefaultTools = [
-  'browser_click',
-  'browser_close',
-  'browser_console_messages',
-  'browser_drag',
-  'browser_drop',
-  'browser_evaluate',
-  'browser_file_upload',
-  'browser_fill_form',
-  'browser_handle_dialog',
-  'browser_hover',
-  'browser_navigate',
-  'browser_navigate_back',
-  'browser_network_request',
-  'browser_network_requests',
-  'browser_press_key',
-  'browser_resize',
-  'browser_run_code_unsafe',
-  'browser_select_option',
-  'browser_snapshot',
-  'browser_tabs',
-  'browser_take_screenshot',
-  'browser_type',
-  'browser_wait_for',
-];
 
 const fixtureServer = await startFixtureServer();
 const baseline = await startMcpContainer('playwright', baselineImage, false);
@@ -128,11 +108,21 @@ async function runScenario(target, fixtureUrl) {
       const result = await target.client.callTool({ name, arguments: args });
       const text =
         result.content?.map((item) => (item.type === 'text' ? item.text : `[${item.type}]`)).join('\n') ?? '';
-      calls.push({ name, ok: !result.isError, ms: Date.now() - started, text: normalizeText(text) });
+      calls.push({
+        name,
+        ok: !result.isError,
+        ms: Date.now() - started,
+        text: normalizeToolResponseText(text),
+      });
       if (result.isError) throw new Error(`${name} returned an MCP error: ${text}`);
       return result;
     } catch (error) {
-      calls.push({ name, ok: false, ms: Date.now() - started, text: normalizeText(error.message) });
+      calls.push({
+        name,
+        ok: false,
+        ms: Date.now() - started,
+        text: normalizeToolResponseText(error.message),
+      });
       throw error;
     }
   };
@@ -299,20 +289,4 @@ function fixtureHtml() {
     </script>
   </body>
 </html>`;
-}
-
-function normalizeText(value) {
-  return value
-    .replaceAll(/\n### Events\n(?:- .*(?:\n|$))+/g, '')
-    .replaceAll(/\/data\/[^\s)"']+/g, '/data/<artifact>')
-    .replaceAll(/page-\d+\.(png|jpeg|pdf)/g, 'page-<timestamp>.$1')
-    .replaceAll(/\d{3,}ms/g, '<duration>ms');
-}
-
-function assertEqual(actual, expected, label) {
-  const actualText = JSON.stringify(actual);
-  const expectedText = JSON.stringify(expected);
-  if (actualText !== expectedText) {
-    throw new Error(`${label} mismatch\nactual:   ${actualText}\nexpected: ${expectedText}`);
-  }
 }

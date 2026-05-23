@@ -16,13 +16,14 @@ export default tseslint.config(
         // Auto-discover the closest tsconfig for each linted file. Avoids the
         // "file not in project" error for top-level config files.
         projectService: {
-          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 16,
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 32,
           allowDefaultProject: [
             'eslint.config.js',
             'vitest.config.ts',
             '*.cjs',
             '*.mjs',
             'scripts/*.mjs',
+            'scripts/lib/*.mjs',
             'tests/fixtures/*.mjs',
           ],
         },
@@ -80,16 +81,12 @@ export default tseslint.config(
     },
   },
   {
-    files: ['scripts/*.mjs'],
+    files: ['scripts/**/*.mjs'],
     languageOptions: {
       globals: {
-        console: 'readonly',
         fetch: 'readonly',
         process: 'readonly',
       },
-    },
-    rules: {
-      'no-console': 'off',
     },
   },
   prettier,

@@ -22,7 +22,7 @@ function readJson<T>(root: string, relativePath: string): T {
 }
 
 describe('release version script', () => {
-  it('applies GitHub release tags to package, server, docs, and workflow outputs', () => {
+  it('applies GitHub release tags to package, server metadata, docs, and workflow outputs', () => {
     const root = createTempRoot();
     mkdirSync(path.join(root, 'docs'), { recursive: true });
 
@@ -51,10 +51,6 @@ describe('release version script', () => {
         null,
         2,
       )}\n`,
-    );
-    writeFileSync(
-      path.join(root, 'README.md'),
-      'Current version: <!-- project-version -->v0.0.0<!-- /project-version -->.\n',
     );
     writeFileSync(
       path.join(root, 'docs/index.md'),
@@ -92,7 +88,7 @@ describe('release version script', () => {
     expect(serverJson.version).toBe('2.3.4-beta.1+build');
     expect(serverJson.packages[0]?.version).toBe('2.3.4-beta.1+build');
     expect(serverJson.packages[1]?.identifier).toBe('ghcr.io/swimmwatch/cloakbrowser-mcp:2.3.4-beta.1-build');
-    expect(readFileSync(path.join(root, 'README.md'), 'utf8')).toContain('v2.3.4-beta.1+build');
+    expect(readFileSync(path.join(root, 'docs/index.md'), 'utf8')).toContain('v2.3.4-beta.1+build');
     expect(readFileSync(path.join(root, 'docs/getting-started.md'), 'utf8')).toContain(
       'cloakbrowser-mcp@2.3.4-beta.1+build',
     );
