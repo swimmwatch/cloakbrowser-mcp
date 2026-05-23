@@ -19,12 +19,13 @@ tags:
 
 `cloakbrowser-mcp` is a stdio Model Context Protocol browser automation server that runs upstream `@playwright/mcp` with the CloakBrowser Chromium binary. Use it when you want Playwright MCP-compatible browser tools, CloakBrowser execution, npm installation, or a Docker image for MCP clients.
 
-Current version: <!-- project-version -->v1.0.1<!-- /project-version -->.
+Current version: <!-- project-version -->v1.0.2<!-- /project-version -->.
 
 ## Version Compatibility
 
 | cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base                 | CloakBrowser | Transport | Parity         |
 | ---------------- | --------------- | ------------------------------------------ | ------------ | --------- | -------------- |
+| `1.0.2`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio     | Compared in CI |
 | `1.0.1`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio     | Compared in CI |
 | `1.0.0`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio     | Compared in CI |
 

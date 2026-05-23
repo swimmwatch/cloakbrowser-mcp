@@ -23,7 +23,7 @@ npx -y cloakbrowser-mcp@latest
 Pin a release when reproducibility matters:
 
 ```bash
-npx -y cloakbrowser-mcp@1.0.1
+npx -y cloakbrowser-mcp@1.0.2
 ```
 
 The npm package requires Node.js 20 or newer. CloakBrowser downloads its Chromium binary on first use unless it is already cached.
@@ -42,10 +42,10 @@ Docker is the most reproducible runtime because the image is based on the pinned
 Pin a release when reproducibility matters:
 
 ```bash
-docker pull ghcr.io/swimmwatch/cloakbrowser-mcp:1.0.1
+docker pull ghcr.io/swimmwatch/cloakbrowser-mcp:1.0.2
 docker run --rm --init -i \
   -v "$PWD/artifacts:/data" \
-  ghcr.io/swimmwatch/cloakbrowser-mcp:1.0.1
+  ghcr.io/swimmwatch/cloakbrowser-mcp:1.0.2
 ```
 
 ## MCP Client Config

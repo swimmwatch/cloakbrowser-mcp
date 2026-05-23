@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-05-23
+
+### Changed
+
+- Migrated npm publishing from `NPM_TOKEN` authentication to npm Trusted Publishing with GitHub Actions OIDC.
+
 ## [1.0.1] - 2026-05-23
 
 ### Fixed
@@ -43,6 +49,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/swimmwatch/cloakbrowser-mcp/releases/tag/v1.0.0
