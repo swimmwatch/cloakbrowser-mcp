@@ -150,7 +150,7 @@ jobs:
           path: bridge-parity-report.json
           if-no-files-found: warn
       - name: Scan Docker image
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.CI_DOCKER_IMAGE }}
           version: v0.70.0
