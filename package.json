@@ -50,6 +50,7 @@
     "docker:build": "docker buildx build --load -t cloakbrowser-mcp:dev --build-arg RELEASE_VERSION=$npm_package_version --build-arg RELEASE_VERSION_TAG=v$npm_package_version .",
     "docker:smoke": "docker run --rm cloakbrowser-mcp:dev --help",
     "bridge:compare": "node scripts/compare-playwright-mcp-bridge.mjs",
+    "upstream:check": "node scripts/check-playwright-mcp-updates.mjs",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run build && npm test",
     "check:ci": "npm run check && npm run test:coverage"
   },

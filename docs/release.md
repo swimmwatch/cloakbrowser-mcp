@@ -86,6 +86,26 @@ should serve from that branch and the repository root.
 
 The workflow builds documentation in strict mode before deployment.
 
+## Upstream Monitoring
+
+The upstream monitor workflow runs daily and can also be started manually from
+GitHub Actions. It checks both upstream Playwright MCP distribution channels:
+
+- npm package: `@playwright/mcp`;
+- Docker image: `mcr.microsoft.com/playwright/mcp`.
+
+When a newer upstream version is detected, the workflow creates a GitHub issue
+assigned to `swimmwatch`. The issue includes the current and latest npm/Docker
+versions, a short release-notes summary from
+`microsoft/playwright-mcp`, and links to the full upstream changelog, npm
+package, and Docker tags.
+
+Run the same check locally with:
+
+```bash
+npm run upstream:check
+```
+
 ## Release Tags
 
 | Release type | GitHub Release setting | npm dist-tag | Docker tags |
