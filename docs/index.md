@@ -23,9 +23,9 @@ Current version: <!-- project-version -->v1.0.0<!-- /project-version -->.
 
 ## Version Compatibility
 
-| cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base | CloakBrowser | Transport | Parity |
-| --- | --- | --- | --- | --- | --- |
-| `1.0.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | stdio | Compared in CI |
+| cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base                 | CloakBrowser | Transport | Parity         |
+| ---------------- | --------------- | ------------------------------------------ | ------------ | --------- | -------------- |
+| `1.0.0`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio     | Compared in CI |
 
 See [Version Compatibility](version-compatibility.md) for the maintained mapping between this project's SemVer releases and upstream Playwright MCP versions.
 
@@ -33,21 +33,21 @@ See [Version Compatibility](version-compatibility.md) for the maintained mapping
 
 <div class="grid cards" markdown>
 
--   :material-connection: **Bridge runtime**
+- :material-connection: **Bridge runtime**
 
-    Starts upstream Playwright MCP as a child process and forwards browser tool calls unchanged.
+  Starts upstream Playwright MCP as a child process and forwards browser tool calls unchanged.
 
--   :material-incognito: **CloakBrowser execution**
+- :material-incognito: **CloakBrowser execution**
 
-    Generates a Playwright MCP config with `launchOptions.executablePath` set to CloakBrowser.
+  Generates a Playwright MCP config with `launchOptions.executablePath` set to CloakBrowser.
 
--   :fontawesome-brands-node-js: **npm CLI**
+- :fontawesome-brands-node-js: **npm CLI**
 
-    Published as a thin Node.js CLI package for stdio MCP clients.
+  Published as a thin Node.js CLI package for stdio MCP clients.
 
--   :fontawesome-brands-docker: **Docker image**
+- :fontawesome-brands-docker: **Docker image**
 
-    Based on the official Playwright MCP image and preloads the CloakBrowser binary cache.
+  Based on the official Playwright MCP image and preloads the CloakBrowser binary cache.
 
 </div>
 

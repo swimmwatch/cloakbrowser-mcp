@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import process from 'node:process';
+import { format } from 'prettier';
 import { appendGithubOutput } from './lib/github-output.mjs';
+import { readText, writeText } from './lib/files.mjs';
 import {
   normalizeReleaseVersion,
   toDockerMajorMinor,
@@ -26,12 +28,24 @@ const versionTag = `v${version}`;
 const dockerTag = toDockerTag(versionTag);
 const dockerVersion = toDockerTag(version);
 const dockerMajorMinor = toDockerMajorMinor(version);
+const releaseFiles = [
+  'package.json',
+  'package-lock.json',
+  'server.json',
+  'docs/index.md',
+  'docs/getting-started.md',
+];
 
 updatePackageJsonVersion('package.json', version);
 updatePackageJsonVersion('package-lock.json', version);
 updateServerJsonVersion('server.json', version, dockerVersion);
 updateVersionMarkers(['docs/index.md'], versionTag);
 updatePinnedInstallCommands('docs/getting-started.md', version, dockerVersion);
+
+for (const filePath of releaseFiles) {
+  writeText(filePath, await format(readText(filePath), { filepath: filePath }));
+}
+
 await appendGithubOutput({
   docker_major_minor: dockerMajorMinor,
   docker_tag: dockerTag,
