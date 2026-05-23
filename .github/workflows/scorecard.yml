@@ -11,16 +11,17 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  actions: read
-  contents: read
-  id-token: write
-  security-events: write
+permissions: read-all
 
 jobs:
   scorecard:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      security-events: write
     steps:
       - uses: actions/checkout@v6
         with:
