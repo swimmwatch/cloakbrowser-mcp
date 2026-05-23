@@ -95,6 +95,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends librsvg2-bin
       - run: npm run docs:assets
       - run: npm run docs:build
+      - run: npm run docs:seo:validate
 
   docker:
     runs-on: ubuntu-latest

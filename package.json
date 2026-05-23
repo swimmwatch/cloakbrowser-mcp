@@ -46,6 +46,7 @@
     "docs:assets": "node scripts/generate-brand-assets.mjs",
     "docs:serve": ".venv-docs/bin/mkdocs serve",
     "docs:build": ".venv-docs/bin/mkdocs build --strict",
+    "docs:seo:validate": "node scripts/validate-docs-seo.mjs",
     "version:apply": "node scripts/apply-release-version.mjs",
     "server:validate": "node scripts/validate-server-json.mjs",
     "audit:prod": "npm audit --omit=dev --audit-level=high",
@@ -89,7 +90,7 @@
     "type": "git",
     "url": "git+https://github.com/swimmwatch/cloakbrowser-mcp.git"
   },
-  "homepage": "https://github.com/swimmwatch/cloakbrowser-mcp#readme",
+  "homepage": "https://swimmwatch.github.io/cloakbrowser-mcp/",
   "bugs": {
     "url": "https://github.com/swimmwatch/cloakbrowser-mcp/issues"
   }
