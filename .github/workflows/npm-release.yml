@@ -22,8 +22,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     environment: npm-production
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v6
 
@@ -41,14 +39,6 @@ jobs:
 
       - name: Verify dependency signatures
         run: npm audit signatures
-
-      - name: Configure npm token authentication
-        run: |
-          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
-            echo "::error title=Missing NPM_TOKEN::Configure an npm automation token as the NPM_TOKEN repository secret."
-            exit 1
-          fi
-          printf '//registry.npmjs.org/:_authToken=%s\n' "$NODE_AUTH_TOKEN" > ~/.npmrc
 
       - id: release
         name: Apply release version from tag
@@ -106,4 +96,4 @@ jobs:
         env:
           RELEASE_VERSION: ${{ steps.release.outputs.version }}
           RELEASE_VERSION_TAG: ${{ steps.release.outputs.version_tag }}
-        run: npm publish "${{ steps.pack.outputs.package_file }}" --access public --tag "${{ steps.npm-tag.outputs.tag }}" --provenance
+        run: npm publish "${{ steps.pack.outputs.package_file }}" --access public --tag "${{ steps.npm-tag.outputs.tag }}"

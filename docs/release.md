@@ -34,32 +34,37 @@ Add required reviewers to `npm-production` and `docker-production` if releases s
 
 ## npm Publishing
 
-The npm release workflow uses a repository secret named `NPM_TOKEN`.
+The npm release workflow publishes through npm Trusted Publishing with GitHub
+Actions OIDC. It does not use `NPM_TOKEN` for publishing.
 
-Create an npm automation token with publish access to `cloakbrowser-mcp`, then
-add it to GitHub:
+Configure the trusted publisher on npmjs.com with these exact values:
 
-```text
-Settings -> Secrets and variables -> Actions -> Repository secrets -> NPM_TOKEN
-```
+| npm Trusted Publisher field | Value |
+| --- | --- |
+| Provider | GitHub Actions |
+| Repository | `swimmwatch/cloakbrowser-mcp` |
+| Workflow filename | `npm-release.yml` |
+| Environment | `npm-production` |
+| Allowed action | `npm publish` |
 
-The workflow fails before packaging if `NPM_TOKEN` is missing.
+The workflow runs on GitHub-hosted runners, uses Node.js 24, and keeps
+`id-token: write` so npm can exchange the GitHub Actions OIDC token for a
+short-lived publish credential. npm Trusted Publishing requires npm CLI
+`>=11.5.1` and Node.js `>=22.14.0`.
 
 Publishing uses:
 
 ```bash
-npm publish <tarball> --access public --tag <latest|next> --provenance
+npm publish <tarball> --access public --tag <latest|next>
 ```
 
-The workflow keeps `id-token: write` so npm can attach provenance from GitHub
-Actions while authenticating with `NPM_TOKEN`.
+When publishing through Trusted Publishing, npm automatically generates package
+provenance for public packages from public repositories. Do not add a long-lived
+npm publish token back to this workflow.
 
 The package version is applied from the GitHub Release tag before `npm pack`
 and `npm publish`, and the workflow fails if `package.json` does not match the
 resolved release version.
-
-npm Trusted Publishing is intentionally deferred. Releases currently use
-`NPM_TOKEN` plus npm provenance.
 
 ## Docker Publishing
 
@@ -185,7 +190,8 @@ Before publishing a release:
 - Merge only after `Actionlint` and `CI` are green.
 - Create a GitHub Release from a tag like `v1.2.3`.
 - Mark the release as prerelease when publishing a `next` npm version.
-- Confirm the `NPM_TOKEN` repository secret is present.
+- Confirm the npm Trusted Publisher is configured for `npm-release.yml` and
+  `npm-production`.
 - Confirm `npm-production` and `docker-production` environments exist.
 - Confirm GitHub code scanning is enabled if SARIF upload visibility is needed.
 - Confirm GHCR package visibility is public after the first Docker publish.
