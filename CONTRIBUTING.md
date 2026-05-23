@@ -1,34 +1,31 @@
 # Contributing
 
-Thanks for considering a contribution! The complete contributor guide lives in [docs/contributing.md](docs/contributing.md). The short version is below.
+Thanks for considering a contribution. The complete contributor guide lives in [docs/contributing.md](docs/contributing.md).
 
-## Local setup
+## Local Setup
 
 ```bash
 git clone https://github.com/swimmwatch/cloakbrowser-mcp.git
 cd cloakbrowser-mcp
 npm install
-npm run check     # typecheck + lint + format:check + test
+npm run check
 ```
 
-Node ≥ 20 is required. The default test suite does not need a browser binary.
+Node.js 20 or newer is required.
 
-## Pull request checklist
+## Pull Request Checklist
 
 - [ ] `npm run check` passes.
-- [ ] Any new capability flag defaults to **off** and is documented in `docs/configuration.md`.
-- [ ] All browser access goes through `BrowserAdapter`, never `cloakbrowser` directly.
-- [ ] Untrusted input is validated with `zod` at the boundary.
-- [ ] Module-boundary errors are `CloakMcpError` with a documented code.
-- [ ] At least one unit test and one integration test (using `MockBrowserAdapter`) cover the change.
-- [ ] `docs/tools.md` and/or `docs/configuration.md` updated when the public surface changes.
-- [ ] Entry added under `## [Unreleased]` in `CHANGELOG.md`.
+- [ ] Bridge behavior is covered by unit or integration tests.
+- [ ] Upstream Playwright MCP tool contracts are not copied or modified.
+- [ ] Documentation is updated for user-visible CLI, Docker, env, or metadata changes.
+- [ ] `CHANGELOG.md` is updated when the change is user-visible.
 - [ ] Security-sensitive changes are called out in the PR description.
 
-## Code of conduct
+## Code Of Conduct
 
 By participating you agree to abide by the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-## Reporting a security issue
+## Security
 
-Use **GitHub Security Advisories** on the repository — not public issues. See [SECURITY.md](SECURITY.md).
+Use GitHub Security Advisories on the repository for private vulnerability reporting. See [SECURITY.md](SECURITY.md).

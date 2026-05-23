@@ -1,0 +1,97 @@
+{
+  "name": "cloakbrowser-mcp",
+  "version": "1.0.0",
+  "description": "Playwright MCP bridge that runs upstream browser tools with CloakBrowser.",
+  "mcpName": "io.github.swimmwatch/cloakbrowser-mcp",
+  "type": "module",
+  "packageManager": "npm@10.9.2",
+  "license": "MIT",
+  "author": "swimmwatch",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "cloakbrowser-mcp": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "server.json"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist coverage",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:coverage": "vitest run --coverage",
+    "start": "node dist/cli.js",
+    "dev": "tsx src/cli.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "docs:install": "python3 -m venv .venv-docs && .venv-docs/bin/pip install -r docs/requirements.txt",
+    "docs:assets": "node scripts/generate-brand-assets.mjs",
+    "docs:serve": ".venv-docs/bin/mkdocs serve",
+    "docs:build": ".venv-docs/bin/mkdocs build --strict",
+    "docs:seo:validate": "node scripts/validate-docs-seo.mjs",
+    "version:apply": "node scripts/apply-release-version.mjs",
+    "server:validate": "node scripts/validate-server-json.mjs",
+    "audit:prod": "npm audit --omit=dev --audit-level=high",
+    "package:verify": "npm run build && npm run server:validate && node scripts/verify-npm-package.mjs",
+    "docker:build": "docker buildx build --load -t cloakbrowser-mcp:dev --build-arg RELEASE_VERSION=$npm_package_version --build-arg RELEASE_VERSION_TAG=v$npm_package_version .",
+    "docker:smoke": "docker run --rm --init cloakbrowser-mcp:dev --help",
+    "bridge:compare": "node scripts/compare-playwright-mcp-bridge.mjs",
+    "upstream:check": "node scripts/check-playwright-mcp-updates.mjs",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run server:validate && npm run build && npm test",
+    "check:ci": "npm run check && npm run audit:prod && npm run test:coverage"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.0",
+    "@playwright/mcp": "^0.0.75",
+    "cloakbrowser": "^0.3.30"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "@types/node": "^20.14.0",
+    "@vitest/coverage-v8": "^2.1.9",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "eslint": "^9.13.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.3",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.11.0",
+    "vitest": "^2.0.5"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "cloakbrowser",
+    "browser-automation",
+    "playwright",
+    "stealth",
+    "ai-agent"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/swimmwatch/cloakbrowser-mcp.git"
+  },
+  "homepage": "https://swimmwatch.github.io/cloakbrowser-mcp/",
+  "bugs": {
+    "url": "https://github.com/swimmwatch/cloakbrowser-mcp/issues"
+  }
+}

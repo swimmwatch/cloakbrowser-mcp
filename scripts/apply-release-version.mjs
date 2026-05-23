@@ -1,0 +1,43 @@
+#!/usr/bin/env node
+import process from 'node:process';
+import { appendGithubOutput } from './lib/github-output.mjs';
+import {
+  normalizeReleaseVersion,
+  toDockerMajorMinor,
+  toDockerTag,
+  updatePackageJsonVersion,
+  updatePinnedInstallCommands,
+  updateServerJsonVersion,
+  updateVersionMarkers,
+} from './lib/release-version.mjs';
+
+const rawVersion =
+  process.argv[2] ??
+  process.env.RELEASE_VERSION ??
+  process.env.GITHUB_REF_NAME ??
+  process.env.npm_package_version;
+
+if (!rawVersion) {
+  throw new Error('release version is required; pass a semver tag such as v1.2.3');
+}
+
+const version = normalizeReleaseVersion(rawVersion);
+const versionTag = `v${version}`;
+const dockerTag = toDockerTag(versionTag);
+const dockerVersion = toDockerTag(version);
+const dockerMajorMinor = toDockerMajorMinor(version);
+
+updatePackageJsonVersion('package.json', version);
+updatePackageJsonVersion('package-lock.json', version);
+updateServerJsonVersion('server.json', version, dockerVersion);
+updateVersionMarkers(['docs/index.md'], versionTag);
+updatePinnedInstallCommands('docs/getting-started.md', version, dockerVersion);
+await appendGithubOutput({
+  docker_major_minor: dockerMajorMinor,
+  docker_tag: dockerTag,
+  docker_version: dockerVersion,
+  version,
+  version_tag: versionTag,
+});
+
+process.stderr.write(`applied release version ${versionTag}\n`);

@@ -1,0 +1,33 @@
+name: Actionlint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/actionlint.yml
+      - .github/workflows/**
+  pull_request:
+    paths:
+      - .github/actionlint.yml
+      - .github/workflows/**
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  ACTIONLINT_IMAGE_REGISTRY: docker.io
+  ACTIONLINT_IMAGE_NAME: rhysd/actionlint
+  ACTIONLINT_IMAGE_TAG: 1.7.12
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run actionlint
+        run: docker run --rm -v "$PWD:/repo" --workdir /repo "$ACTIONLINT_IMAGE_REGISTRY/$ACTIONLINT_IMAGE_NAME:$ACTIONLINT_IMAGE_TAG" -color

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="CloakBrowser MCP">
+  <rect width="64" height="64" rx="14" fill="#0f172a" />
+  <path d="M14 18a7 7 0 0 1 7-7h22a7 7 0 0 1 7 7v31a7 7 0 0 1-7 7H21a7 7 0 0 1-7-7V18Z" fill="#14b8a6" />
+  <path d="M19 26c3-8 8-12 13-12s10 4 13 12c-4 2-7 7-7 13 0 3 1 6 2 8-2 2-5 3-8 3s-6-1-8-3c1-2 2-5 2-8 0-6-3-11-7-13Z" fill="#0f172a" />
+  <path d="M21 32c3-4 7-6 11-6s8 2 11 6c-3 5-6 7-11 7s-8-2-11-7Z" fill="#f8fafc" />
+  <circle cx="32" cy="32" r="5" fill="#0f172a" />
+  <path d="M48 46h7m-3.5-3.5v7M9 46h7m-3.5-3.5v7" stroke="#f97316" stroke-width="3" stroke-linecap="round" />
+</svg>

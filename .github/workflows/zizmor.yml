@@ -1,0 +1,36 @@
+name: Zizmor
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/zizmor.yml
+      - .github/workflows/**
+  pull_request:
+    paths:
+      - .github/zizmor.yml
+      - .github/workflows/**
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  zizmor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Run zizmor
+        run: |
+          python3 -m pip install --user pipx
+          python3 -m pipx run zizmor --min-severity high .

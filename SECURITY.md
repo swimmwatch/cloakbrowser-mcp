@@ -37,6 +37,6 @@ Please avoid public disclosure until a coordinated fix is released.
 
 ## Scope notes
 
-This repository intentionally exposes Playwright MCP-compatible unsafe tools, including `browser_evaluate` and `browser_run_code_unsafe`. Reports about unintended access to this MCP server, sandbox escapes beyond the documented unsafe tool behavior, path handling bugs in artifact writes, or transport/logging leaks are in scope.
+This repository exposes upstream Playwright MCP tools unchanged, including unsafe tools such as `browser_evaluate` and `browser_run_code_unsafe`. Reports about bridge-specific process isolation, stdio transport leaks, Docker packaging, metadata, or CloakBrowser executable resolution are in scope. Reports about upstream Playwright MCP tool behavior should also be reported upstream when the issue reproduces without this bridge.
 
 The project does not support requests for CAPTCHA-solving, anti-bot evasion, or bypassing access controls. Such requests are out of scope and will be declined.

@@ -1,0 +1,112 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.swimmwatch/cloakbrowser-mcp",
+  "title": "CloakBrowser MCP",
+  "description": "Playwright MCP bridge that runs upstream browser tools with the CloakBrowser Chromium binary.",
+  "version": "1.0.0",
+  "websiteUrl": "https://swimmwatch.github.io/cloakbrowser-mcp/",
+  "repository": {
+    "url": "https://github.com/swimmwatch/cloakbrowser-mcp",
+    "source": "github"
+  },
+  "icons": [
+    {
+      "src": "https://swimmwatch.github.io/cloakbrowser-mcp/assets/brand/logo.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": ["any"]
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "cloakbrowser-mcp",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "PLAYWRIGHT_MCP_BROWSER_ENGINE",
+          "description": "Bridge browser engine: cloak or playwright.",
+          "format": "string",
+          "default": "cloak"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_HEADLESS",
+          "description": "Run the browser in headless mode.",
+          "format": "boolean",
+          "default": "true"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_OUTPUT_DIR",
+          "description": "Directory where upstream Playwright MCP writes artifacts.",
+          "format": "filepath",
+          "default": ".playwright-mcp"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_OUTPUT_MODE",
+          "description": "Return snapshots, console logs, and network logs through stdout or files.",
+          "format": "string",
+          "default": "stdout"
+        },
+        {
+          "name": "CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK",
+          "description": "Patch upstream console message collection for CloakBrowser compatibility.",
+          "format": "boolean",
+          "default": "true"
+        },
+        {
+          "name": "CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS",
+          "description": "Comma-separated or JSON array of extra Chromium launch arguments.",
+          "format": "string"
+        }
+      ]
+    },
+    {
+      "registryType": "oci",
+      "registryBaseUrl": "https://ghcr.io",
+      "identifier": "ghcr.io/swimmwatch/cloakbrowser-mcp:1.0.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "PLAYWRIGHT_MCP_BROWSER_ENGINE",
+          "description": "Bridge browser engine: cloak or playwright.",
+          "format": "string",
+          "default": "cloak"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_HEADLESS",
+          "description": "Run the browser in headless mode.",
+          "format": "boolean",
+          "default": "true"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_OUTPUT_DIR",
+          "description": "Directory inside the container where upstream Playwright MCP writes artifacts.",
+          "format": "filepath",
+          "default": "/data"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_OUTPUT_MODE",
+          "description": "Return snapshots, console logs, and network logs through stdout or files.",
+          "format": "string",
+          "default": "stdout"
+        },
+        {
+          "name": "CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK",
+          "description": "Patch upstream console message collection for CloakBrowser compatibility.",
+          "format": "boolean",
+          "default": "true"
+        },
+        {
+          "name": "CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS",
+          "description": "Comma-separated or JSON array of extra Chromium launch arguments.",
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}

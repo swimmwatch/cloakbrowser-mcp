@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="CloakBrowser MCP social preview">
+  <defs>
+    <linearGradient id="bg" x1="120" y1="0" x2="1080" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0f172a" />
+      <stop offset="0.62" stop-color="#134e4a" />
+      <stop offset="1" stop-color="#7c2d12" />
+    </linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0v48" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1" />
+    </pattern>
+    <linearGradient id="mark" x1="92" y1="126" x2="318" y2="396" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#14b8a6" />
+      <stop offset="0.6" stop-color="#0f766e" />
+      <stop offset="1" stop-color="#f97316" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <rect width="1200" height="630" fill="url(#grid)" />
+  <path d="M960 92h120M1020 32v120M884 510h160M964 430v160" stroke="#f97316" stroke-opacity="0.8" stroke-width="20" stroke-linecap="round" />
+  <path d="M88 178a36 36 0 0 1 36-36h140a36 36 0 0 1 36 36v224a36 36 0 0 1-36 36H124a36 36 0 0 1-36-36V178Z" fill="url(#mark)" />
+  <path d="M118 236c18-50 44-76 76-76s58 26 76 76c-22 10-36 34-36 62 0 16 5 31 14 43-14 12-32 18-54 18s-40-6-54-18c9-12 14-27 14-43 0-28-14-52-36-62Z" fill="#0f172a" />
+  <path d="M141 284c16-22 34-32 53-32s37 10 53 32c-14 28-31 42-53 42s-39-14-53-42Z" fill="#f8fafc" />
+  <circle cx="194" cy="286" r="25" fill="#0f172a" />
+  <circle cx="204" cy="276" r="7" fill="#f8fafc" />
+  <text x="360" y="262" fill="#f8fafc" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="76" font-weight="850">CloakBrowser MCP</text>
+  <text x="365" y="334" fill="#ccfbf1" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="34" font-weight="550">Stealth Chromium automation for MCP agents.</text>
+  <text x="365" y="404" fill="#fed7aa" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="26" font-weight="700">Node.js - TypeScript - Docker - npm</text>
+</svg>

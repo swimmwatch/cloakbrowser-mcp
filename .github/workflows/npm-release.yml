@@ -1,0 +1,109 @@
+name: NPM Release
+
+on:
+  release:
+    types: [published]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '24'
+  NPM_CONFIG_AUDIT: 'false'
+  NPM_CONFIG_FUND: 'false'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: npm-production
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --fund=false
+
+      - name: Audit production dependencies
+        run: npm run audit:prod
+
+      - name: Verify dependency signatures
+        run: npm audit signatures
+
+      - name: Configure npm token authentication
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::error title=Missing NPM_TOKEN::Configure an npm automation token as the NPM_TOKEN repository secret."
+            exit 1
+          fi
+          printf '//registry.npmjs.org/:_authToken=%s\n' "$NODE_AUTH_TOKEN" > ~/.npmrc
+
+      - id: release
+        name: Apply release version from tag
+        run: npm run version:apply -- "$GITHUB_REF_NAME"
+
+      - id: package
+        name: Read package metadata
+        run: |
+          name="$(node -p "require('./package.json').name")"
+          version="$(node -p "require('./package.json').version")"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure package version is not already published
+        run: |
+          package="${{ steps.package.outputs.name }}@${{ steps.package.outputs.version }}"
+          if npm view "$package" version >/dev/null 2>&1; then
+            echo "::error title=Package version already exists::$package is already published on npm"
+            exit 1
+          fi
+
+      - name: Verify package metadata matches release tag
+        run: |
+          if [ "${{ steps.package.outputs.version }}" != "${{ steps.release.outputs.version }}" ]; then
+            echo "::error title=Release version mismatch::package.json version ${{ steps.package.outputs.version }} does not match ${{ steps.release.outputs.version_tag }}"
+            exit 1
+          fi
+
+      - run: npm run check:ci
+
+      - id: pack
+        name: Pack and verify npm tarball
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+          RELEASE_VERSION_TAG: ${{ steps.release.outputs.version_tag }}
+        run: npm run package:verify
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: npm-package-${{ steps.release.outputs.version_tag }}
+          path: ${{ steps.pack.outputs.package_file }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - id: npm-tag
+        name: Select npm dist-tag
+        run: |
+          if [ "${{ github.event.release.prerelease }}" = "true" ]; then
+            echo "tag=next" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npm
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+          RELEASE_VERSION_TAG: ${{ steps.release.outputs.version_tag }}
+        run: npm publish "${{ steps.pack.outputs.package_file }}" --access public --tag "${{ steps.npm-tag.outputs.tag }}" --provenance

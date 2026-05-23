@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 160" role="img" aria-label="CloakBrowser MCP">
+  <defs>
+    <linearGradient id="mark" x1="24" y1="22" x2="132" y2="138" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#14b8a6" />
+      <stop offset="0.6" stop-color="#0f766e" />
+      <stop offset="1" stop-color="#f97316" />
+    </linearGradient>
+  </defs>
+  <rect width="720" height="160" rx="24" fill="#0f172a" />
+  <path d="M38 42a14 14 0 0 1 14-14h56a14 14 0 0 1 14 14v76a14 14 0 0 1-14 14H52a14 14 0 0 1-14-14V42Z" fill="url(#mark)" />
+  <path d="M50 60c6-16 16-24 30-24s24 8 30 24c-8 3-13 12-13 22 0 6 2 11 5 15-6 4-13 6-22 6s-16-2-22-6c3-4 5-9 5-15 0-10-5-19-13-22Z" fill="#0f172a" />
+  <path d="M59 76c6-8 13-12 21-12s15 4 21 12c-5 10-12 15-21 15s-16-5-21-15Z" fill="#f8fafc" />
+  <circle cx="80" cy="77" r="9" fill="#0f172a" />
+  <path d="M112 105h16m-8-8v16" stroke="#f97316" stroke-width="6" stroke-linecap="round" />
+  <text x="156" y="78" fill="#f8fafc" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="42" font-weight="800">CloakBrowser MCP</text>
+  <text x="158" y="113" fill="#99f6e4" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="22" font-weight="500">Stealth Chromium automation for AI agents</text>
+</svg>

@@ -1,0 +1,8 @@
+dist
+coverage
+artifacts
+node_modules
+*.md
+*.png
+docs/overrides/**/*.html
+package-lock.json
