@@ -5,10 +5,16 @@ on:
     types: [published]
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -44,4 +50,19 @@ jobs:
 
       - run: mkdocs build --strict
 
-      - run: mkdocs gh-deploy --force --clean --message "Deploy docs for ${{ steps.release.outputs.version_tag }}"
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: site/
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

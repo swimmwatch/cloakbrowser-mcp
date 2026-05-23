@@ -23,7 +23,7 @@ Configure these settings before the first release.
 | Actions | Enable GitHub Actions for the repository. |
 | Actions token | Allow workflows to request the permissions declared in each workflow. |
 | Branch protection | Require `Actionlint` and the `CI` jobs before merging to `main`. |
-| Pages | Use the `gh-pages` branch from the repository root after the first docs release. |
+| Pages | Set `Build and deployment -> Source` to `GitHub Actions`. |
 | Packages | Allow GitHub Actions to publish packages to GitHub Packages. |
 
 ## npm Publishing
@@ -81,10 +81,13 @@ repository.
 
 ## Documentation Publishing
 
-The docs release workflow deploys MkDocs to the `gh-pages` branch. GitHub Pages
-should serve from that branch and the repository root.
+The docs release workflow deploys MkDocs with the native GitHub Pages Actions
+deployment flow. Repository Pages settings must use `GitHub Actions` as the
+source.
 
-The workflow builds documentation in strict mode before deployment.
+The workflow builds documentation in strict mode, uploads the generated `site/`
+directory with `actions/upload-pages-artifact`, and deploys it with
+`actions/deploy-pages` to the `github-pages` environment.
 
 ## Upstream Monitoring
 
