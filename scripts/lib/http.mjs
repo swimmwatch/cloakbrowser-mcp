@@ -19,3 +19,18 @@ export async function fetchJson(url, { githubToken, userAgent = defaultUserAgent
 
   return response.json();
 }
+
+export async function fetchText(url, { userAgent = defaultUserAgent } = {}) {
+  const response = await fetch(url, {
+    headers: {
+      Accept: 'text/plain, application/xml, text/xml, */*',
+      'User-Agent': userAgent,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
+  }
+
+  return response.text();
+}

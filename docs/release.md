@@ -1,4 +1,6 @@
 ---
+description: Release process for the CloakBrowser MCP npm package, Docker image, documentation site, and GitHub Pages deployment.
+icon: material/tag-check
 tags:
   - Project Internals
   - Release
@@ -131,6 +133,25 @@ The workflow builds documentation in strict mode, uploads the generated `site/`
 directory with `actions/upload-pages-artifact`, and deploys it with
 `actions/deploy-pages` to the `github-pages` environment.
 
+Documentation publishing also runs the SEO validator after the MkDocs build.
+Optional webmaster verification tokens use official free webmaster tools and can
+be provided as repository variables or secrets:
+
+- `GOOGLE_SITE_VERIFICATION`
+- `BING_SITE_VERIFICATION`
+- `YANDEX_SITE_VERIFICATION`
+- `BAIDU_SITE_VERIFICATION`
+- `NAVER_SITE_VERIFICATION`
+
+Optional IndexNow notifications require a repository secret named
+`INDEXNOW_KEY`. When it is set, the workflow publishes the required key file and
+submits the generated sitemap URLs after GitHub Pages deployment. See
+[Search Engine Indexing](seo.md) for setup details.
+
+Do not add paid SEO tools, advertising products, paid indexing services, or
+third-party analytics to the documentation release flow without a separate
+explicit decision.
+
 ## Upstream Monitoring
 
 The upstream monitor workflow runs daily and can also be started manually from
@@ -172,4 +193,3 @@ Before publishing a release:
 
 `SUPPORT.md` is intentionally deferred until the project has a stable support
 policy beyond GitHub issues and security advisories.
-Давай закоммить свои изменения.
