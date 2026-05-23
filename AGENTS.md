@@ -86,7 +86,11 @@ Update `README.md`, `docs/getting-started.md`, `docs/configuration.md`, `docs/do
 ## Commit And PR Hygiene
 
 - One logical change per commit.
-- Imperative present-tense commit subjects.
+- Commit messages must follow Conventional Commits `1.0.0`.
+- The pinned specification URL is `https://www.conventionalcommits.org/en/v1.0.0/`.
+- Before creating a commit, open and scan the pinned specification, then choose the commit `type`, optional `scope`, optional breaking-change marker, subject, body, and footers according to that version.
+- Use lowercase conventional types such as `feat`, `fix`, `docs`, `test`, `ci`, `build`, `refactor`, `perf`, `style`, or `chore` when they match the change.
+- Keep commit subjects concise, imperative, and present tense after the conventional prefix.
 - Bump `version` only when explicitly asked.
 - Call out security-sensitive changes in the PR description.
 
