@@ -24,8 +24,6 @@ The server is intentionally thin:
 - the bridge exposes upstream tools unchanged;
 - the only local tools are `cloakbrowser_binary_info` and `cloakbrowser_bridge_info`.
 
-Current version: <!-- project-version -->v1.0.0<!-- /project-version -->. License: [MIT](LICENSE).
-
 ## Version compatibility
 
 | cloakbrowser-mcp | @playwright/mcp dependency | Playwright MCP Docker base | Notes |
