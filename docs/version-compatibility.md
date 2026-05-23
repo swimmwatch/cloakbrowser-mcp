@@ -13,6 +13,7 @@ Playwright MCP version it is built and tested against.
 
 | cloakbrowser-mcp | @playwright/mcp dependency | Playwright MCP Docker base | CloakBrowser dependency | Node.js | Transport | Tested platform | Tool parity |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| `1.0.1` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio | npm on Node.js 20/22, Docker `linux/amd64` | Upstream default browser tools compared against the official Playwright MCP image in CI. |
 | `1.0.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio | npm on Node.js 20/22, Docker `linux/amd64` | Upstream default browser tools compared against the official Playwright MCP image in CI. |
 
 ## How To Read This Table
