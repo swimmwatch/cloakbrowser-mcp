@@ -13,12 +13,14 @@ The published image is the recommended runtime for repeatable MCP usage.
 ## Run
 
 ```bash
-docker run --rm -i \
+docker run --rm --init -i \
   -v "$PWD/artifacts:/data" \
   ghcr.io/swimmwatch/cloakbrowser-mcp:latest
 ```
 
 Artifacts are written to `/data` in the container. Mount that path to keep screenshots, snapshots, downloads, and network output.
+
+`--init` is recommended because browser automation can create short-lived child processes. Docker's init process reaps those children cleanly.
 
 ## Defaults
 
@@ -42,6 +44,7 @@ Artifacts are written to `/data` in the container. Mount that path to keep scree
       "args": [
         "run",
         "--rm",
+        "--init",
         "-i",
         "-v",
         "/tmp/cloakbrowser-artifacts:/data",
@@ -59,4 +62,6 @@ npm run docker:build
 npm run docker:smoke
 ```
 
-The Dockerfile uses the pinned official Playwright MCP image as the runtime base and installs the bridge under `/opt/cloakbrowser-mcp`.
+The Dockerfile uses the pinned official Playwright MCP image as the runtime base, applies available Debian security updates during the build, removes the unused global npm payload from the runtime image, and installs the bridge under `/opt/cloakbrowser-mcp`.
+
+The release workflow publishes SBOM and provenance attestations, includes OCI labels for source, revision, version, license, base image name, and base image digest, and scans the built image with Trivy before publishing.

@@ -22,6 +22,7 @@ RUN npm prune --omit=dev --ignore-scripts \
 
 FROM ${PLAYWRIGHT_MCP_IMAGE} AS runtime
 ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.75
+ARG PLAYWRIGHT_MCP_IMAGE_DIGEST=unknown
 ARG RELEASE_VERSION=0.0.0
 ARG RELEASE_VERSION_TAG=v0.0.0
 ARG VCS_REF=unknown
@@ -41,6 +42,13 @@ LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.authors="swimmwatch"
 LABEL org.opencontainers.image.vendor="swimmwatch"
 LABEL org.opencontainers.image.base.name="${PLAYWRIGHT_MCP_IMAGE}"
+LABEL org.opencontainers.image.base.digest="${PLAYWRIGHT_MCP_IMAGE_DIGEST}"
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
+ && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
+ && rm -rf /var/lib/apt/lists/*
 
 COPY --from=prod-deps --chown=node:node /src/node_modules ./node_modules
 COPY --from=build --chown=node:node /src/dist ./dist

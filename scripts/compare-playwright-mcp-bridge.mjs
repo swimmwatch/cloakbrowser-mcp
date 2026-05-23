@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createServer } from 'node:http';
-import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
@@ -14,7 +14,7 @@ import {
   normalizeToolResponseText,
 } from './lib/playwright-mcp-parity.mjs';
 
-const image = process.argv[2] ?? 'cloakbrowser-mcp:dev';
+const { image, reportPath } = parseArgs(process.argv.slice(2));
 const baselineImage = process.env.PLAYWRIGHT_MCP_BASELINE_IMAGE ?? 'mcr.microsoft.com/playwright/mcp:v0.0.75';
 
 const fixtureServer = await startFixtureServer();
@@ -26,6 +26,7 @@ try {
   const cloakRun = await runScenario(cloak, fixtureServer.url);
   compareRuns(baselineRun, cloakRun);
   await assertLocalTools(cloak);
+  if (reportPath) writeReport(reportPath, createReport(baselineRun, cloakRun));
   printSummary(baselineRun, cloakRun);
 } finally {
   await baseline.close();
@@ -33,12 +34,41 @@ try {
   await fixtureServer.close();
 }
 
+function parseArgs(args) {
+  const parsed = {
+    image: 'cloakbrowser-mcp:dev',
+    reportPath: undefined,
+  };
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === '--report') {
+      const value = args[index + 1];
+      if (!value) throw new Error('--report requires a file path');
+      parsed.reportPath = value;
+      index += 1;
+      continue;
+    }
+    if (arg.startsWith('--report=')) {
+      parsed.reportPath = arg.slice('--report='.length);
+      if (!parsed.reportPath) throw new Error('--report requires a file path');
+      continue;
+    }
+    if (arg.startsWith('-')) {
+      throw new Error(`unknown option: ${arg}`);
+    }
+    parsed.image = arg;
+  }
+
+  return parsed;
+}
+
 async function startMcpContainer(mode, containerImage, useCloakWrapper) {
   const dataDir = mkdtempSync(path.join(tmpdir(), `pwmcp-${mode}-`));
   chmodSync(dataDir, 0o777);
   writeFileSync(path.join(dataDir, 'upload.txt'), `upload from ${mode}\n`);
 
-  const dockerArgs = ['run', '--rm', '-i', '--network', 'host', '-v', `${dataDir}:/data`];
+  const dockerArgs = ['run', '--rm', '--init', '-i', '--network', 'host', '-v', `${dataDir}:/data`];
   if (useCloakWrapper) {
     dockerArgs.push(
       '-e',
@@ -211,6 +241,44 @@ function printSummary(baselineRun, cloakRun) {
       } ${String(cloakCall.ms).padStart(5)}ms\n`,
     );
   }
+  if (reportPath) {
+    process.stdout.write(`Parity report: ${reportPath}\n`);
+  }
+}
+
+function createReport(baselineRun, cloakRun) {
+  return {
+    schemaVersion: 1,
+    generatedAt: new Date().toISOString(),
+    baselineImage,
+    cloakImage: image,
+    upstreamToolCount: baselineRun.tools.length,
+    upstreamTools: baselineRun.tools,
+    localTools: localToolNames,
+    result: {
+      matched: true,
+      comparedCalls: baselineRun.calls.length,
+    },
+    calls: baselineRun.calls.map((baselineCall, index) => {
+      const cloakCall = cloakRun.calls[index];
+      return {
+        name: baselineCall.name,
+        baseline: {
+          ok: baselineCall.ok,
+          durationMs: baselineCall.ms,
+        },
+        cloak: {
+          ok: cloakCall.ok,
+          durationMs: cloakCall.ms,
+        },
+      };
+    }),
+  };
+}
+
+function writeReport(filePath, report) {
+  mkdirSync(path.dirname(path.resolve(filePath)), { recursive: true });
+  writeFileSync(filePath, `${JSON.stringify(report, null, 2)}\n`);
 }
 
 async function startFixtureServer() {

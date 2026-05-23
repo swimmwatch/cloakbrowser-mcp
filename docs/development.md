@@ -21,6 +21,8 @@ node dist/cli.js --help
 npm run typecheck
 npm run lint
 npm run format:check
+npm run server:validate
+npm run audit:prod
 npm test
 npm run build
 npm run check
@@ -50,7 +52,7 @@ The removed native adapter/tool-registry implementation should not be reintroduc
 ```bash
 npm run docker:build
 npm run docker:smoke
-docker run --rm -i -v "$PWD/artifacts:/data" cloakbrowser-mcp:dev
+docker run --rm --init -i -v "$PWD/artifacts:/data" cloakbrowser-mcp:dev
 ```
 
 ## Docs

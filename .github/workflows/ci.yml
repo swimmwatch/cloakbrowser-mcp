@@ -9,6 +9,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  security-events: write
+
 env:
   CI_DOCKER_IMAGE: cloakbrowser-mcp:ci
   DOCKER_CACHE_SCOPE: cloakbrowser-mcp-docker
@@ -16,6 +20,18 @@ env:
   PLAYWRIGHT_MCP_IMAGE: mcr.microsoft.com/playwright/mcp:v0.0.75
 
 jobs:
+  npm-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run audit:prod
+
   quality:
     runs-on: ubuntu-latest
     strategy:
@@ -32,6 +48,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
+      - run: npm run server:validate
       - run: npm run build
       - run: npm run test:unit
       - run: npm run test:integration
@@ -97,6 +114,15 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "version_tag=v$version" >> "$GITHUB_OUTPUT"
       - uses: docker/setup-buildx-action@v4
+      - id: base
+        name: Resolve Playwright MCP base digest
+        run: |
+          digest="$(docker buildx imagetools inspect "$PLAYWRIGHT_MCP_IMAGE" | awk '/^Digest:/ { print $2; exit }')"
+          if [ -z "$digest" ]; then
+            echo "::error title=Base image digest not found::Could not resolve $PLAYWRIGHT_MCP_IMAGE"
+            exit 1
+          fi
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
       - name: Build image
         uses: docker/build-push-action@v7
         with:
@@ -107,12 +133,42 @@ jobs:
           build-args: |
             NODE_IMAGE_TAG=${{ env.NODE_IMAGE_TAG }}
             PLAYWRIGHT_MCP_IMAGE=${{ env.PLAYWRIGHT_MCP_IMAGE }}
+            PLAYWRIGHT_MCP_IMAGE_DIGEST=${{ steps.base.outputs.digest }}
             RELEASE_VERSION=${{ steps.package.outputs.version }}
             RELEASE_VERSION_TAG=${{ steps.package.outputs.version_tag }}
             VCS_REF=${{ github.sha }}
           cache-from: type=gha,scope=${{ env.DOCKER_CACHE_SCOPE }}
           cache-to: type=gha,mode=max,scope=${{ env.DOCKER_CACHE_SCOPE }},ignore-error=true
       - name: Smoke (--help)
-        run: docker run --rm "$CI_DOCKER_IMAGE" --help
+        run: docker run --rm --init "$CI_DOCKER_IMAGE" --help
       - name: Compare with upstream Playwright MCP
-        run: npm run bridge:compare -- "$CI_DOCKER_IMAGE"
+        run: npm run bridge:compare -- "$CI_DOCKER_IMAGE" --report bridge-parity-report.json
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: bridge-parity-report
+          path: bridge-parity-report.json
+          if-no-files-found: warn
+      - name: Scan Docker image
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: ${{ env.CI_DOCKER_IMAGE }}
+          version: v0.70.0
+          scanners: vuln
+          format: sarif
+          output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+          vuln-type: os,library
+          ignore-unfixed: true
+          exit-code: '1'
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: trivy-results
+          path: trivy-results.sarif
+          if-no-files-found: warn
+      - name: Upload Trivy SARIF
+        if: always() && github.event_name != 'pull_request' && hashFiles('trivy-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-results.sarif

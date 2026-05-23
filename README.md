@@ -6,6 +6,10 @@
 
 [![CI](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/ci.yml)
 [![Actionlint](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/actionlint.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/actionlint.yml)
+[![CodeQL](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/codeql.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/codeql.yml)
+[![Dependency Review](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/dependency-review.yml)
+[![OpenSSF Scorecard](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/scorecard.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/scorecard.yml)
+[![Zizmor](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/zizmor.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/zizmor.yml)
 [![NPM Release](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/npm-release.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/npm-release.yml)
 [![Docker Release](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/docker-release.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/docker-release.yml)
 [![Docs Release](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/docs-release.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/docs-release.yml)
@@ -26,9 +30,9 @@ The server is intentionally thin:
 
 ## Version compatibility
 
-| cloakbrowser-mcp | @playwright/mcp dependency | Playwright MCP Docker base | Notes |
-| --- | --- | --- | --- |
-| `1.0.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | Initial bridge release. Upstream Playwright MCP tool contracts are forwarded unchanged. |
+| cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base | CloakBrowser | Node.js | Transport | Platform | Parity |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `1.0.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
 
 See [Version Compatibility](docs/version-compatibility.md) for the maintained compatibility table.
 
@@ -45,7 +49,7 @@ Requires Node.js 20 or newer. The first real browser action may download the Clo
 
 ```bash
 docker pull ghcr.io/swimmwatch/cloakbrowser-mcp:latest
-docker run --rm -i \
+docker run --rm --init -i \
   -v "$PWD/artifacts:/data" \
   ghcr.io/swimmwatch/cloakbrowser-mcp:latest
 ```
@@ -81,6 +85,7 @@ The Docker image is based on the pinned official Playwright MCP image, installs 
       "args": [
         "run",
         "--rm",
+        "--init",
         "-i",
         "-v",
         "/tmp/cloakbrowser-artifacts:/data",
@@ -126,7 +131,8 @@ npm run build
 npm test
 npm run docker:build
 npm run docker:smoke
-npm run bridge:compare
+npm run server:validate
+npm run bridge:compare -- cloakbrowser-mcp:dev --report bridge-parity-report.json
 ```
 
 Documentation starts at [docs/getting-started.md](docs/getting-started.md). Contributor material is grouped under [docs/contributor-guide.md](docs/contributor-guide.md).

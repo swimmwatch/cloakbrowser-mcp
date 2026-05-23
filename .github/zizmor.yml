@@ -1,0 +1,6 @@
+rules:
+  unpinned-uses:
+    disable: true
+  cache-poisoning:
+    ignore:
+      - ci.yml

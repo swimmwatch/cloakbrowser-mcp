@@ -21,6 +21,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    environment: npm-production
     env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
@@ -34,6 +35,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --fund=false
+
+      - name: Audit production dependencies
+        run: npm run audit:prod
 
       - name: Verify dependency signatures
         run: npm audit signatures

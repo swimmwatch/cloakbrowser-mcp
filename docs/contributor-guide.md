@@ -28,5 +28,12 @@ Run the full check before committing. Docker parity is heavier and can be run wi
 
 ```bash
 npm run docker:build
-npm run bridge:compare
+npm run bridge:compare -- cloakbrowser-mcp:dev --report bridge-parity-report.json
+```
+
+Metadata and production dependency checks can be run directly with:
+
+```bash
+npm run server:validate
+npm run audit:prod
 ```

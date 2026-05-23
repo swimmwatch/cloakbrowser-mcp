@@ -35,3 +35,11 @@ Returns structured bridge metadata:
 ## Parity
 
 CI builds the Docker image and runs `npm run bridge:compare`. That script starts the official Playwright MCP image and the CloakBrowser bridge image in parallel, compares the upstream tool list, and exercises the default upstream browser tools against the same fixture page.
+
+Use `--report` to write a machine-readable JSON parity report:
+
+```bash
+npm run bridge:compare -- cloakbrowser-mcp:dev --report bridge-parity-report.json
+```
+
+CI uploads that report as an artifact for Docker builds and release builds.
