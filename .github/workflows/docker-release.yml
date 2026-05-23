@@ -11,6 +11,11 @@ env:
   IMAGE_NAME: cloakbrowser-mcp
   IMAGE_TITLE: cloakbrowser-mcp
   IMAGE_DESCRIPTION: Playwright MCP bridge that runs upstream browser tools with CloakBrowser
+  IMAGE_URL: https://swimmwatch.github.io/cloakbrowser-mcp/
+  IMAGE_DOCUMENTATION: https://swimmwatch.github.io/cloakbrowser-mcp/
+  IMAGE_AUTHORS: swimmwatch
+  IMAGE_VENDOR: swimmwatch
+  IMAGE_LICENSES: MIT
   MCP_SERVER_NAME: io.github.swimmwatch/cloakbrowser-mcp
   DOCKER_PLATFORMS: linux/amd64
   DOCKER_CACHE_SCOPE: cloakbrowser-mcp-docker
@@ -87,11 +92,16 @@ jobs:
           labels: |
             org.opencontainers.image.title=${{ env.IMAGE_TITLE }}
             org.opencontainers.image.description=${{ env.IMAGE_DESCRIPTION }}
+            org.opencontainers.image.url=${{ env.IMAGE_URL }}
+            org.opencontainers.image.documentation=${{ env.IMAGE_DOCUMENTATION }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.version=${{ steps.release.outputs.version }}
             org.opencontainers.image.ref.name=${{ steps.release.outputs.version_tag }}
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.licenses=${{ env.IMAGE_LICENSES }}
+            org.opencontainers.image.authors=${{ env.IMAGE_AUTHORS }}
+            org.opencontainers.image.vendor=${{ env.IMAGE_VENDOR }}
+            org.opencontainers.image.base.name=${{ env.PLAYWRIGHT_MCP_IMAGE }}
             io.modelcontextprotocol.server.name=${{ env.MCP_SERVER_NAME }}
 
       - uses: docker/build-push-action@v7

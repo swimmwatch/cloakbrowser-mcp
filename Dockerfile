@@ -21,6 +21,7 @@ RUN npm prune --omit=dev --ignore-scripts \
  && npm cache clean --force
 
 FROM ${PLAYWRIGHT_MCP_IMAGE} AS runtime
+ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.75
 ARG RELEASE_VERSION=0.0.0
 ARG RELEASE_VERSION_TAG=v0.0.0
 ARG VCS_REF=unknown
@@ -30,11 +31,16 @@ WORKDIR /opt/cloakbrowser-mcp
 LABEL io.modelcontextprotocol.server.name="io.github.swimmwatch/cloakbrowser-mcp"
 LABEL org.opencontainers.image.title="CloakBrowser MCP"
 LABEL org.opencontainers.image.description="Playwright MCP bridge that runs upstream browser tools with CloakBrowser."
+LABEL org.opencontainers.image.url="https://swimmwatch.github.io/cloakbrowser-mcp/"
+LABEL org.opencontainers.image.documentation="https://swimmwatch.github.io/cloakbrowser-mcp/"
 LABEL org.opencontainers.image.source="https://github.com/swimmwatch/cloakbrowser-mcp"
 LABEL org.opencontainers.image.version="${RELEASE_VERSION}"
 LABEL org.opencontainers.image.ref.name="${RELEASE_VERSION_TAG}"
 LABEL org.opencontainers.image.revision="${VCS_REF}"
 LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.authors="swimmwatch"
+LABEL org.opencontainers.image.vendor="swimmwatch"
+LABEL org.opencontainers.image.base.name="${PLAYWRIGHT_MCP_IMAGE}"
 
 COPY --from=prod-deps --chown=node:node /src/node_modules ./node_modules
 COPY --from=build --chown=node:node /src/dist ./dist
@@ -61,7 +67,9 @@ ENV CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX=true
 
 RUN --mount=type=cache,target=/home/node/.cache/cloakbrowser-build,uid=1000,gid=1000,sharing=locked \
     CLOAKBROWSER_CACHE_DIR=/home/node/.cache/cloakbrowser-build node node_modules/cloakbrowser/dist/cli.js install \
- && cp -a /home/node/.cache/cloakbrowser-build/. /home/node/.cloakbrowser/
+ && rm -f /home/node/.cache/cloakbrowser-build/_download_*.tar.gz \
+ && cp -a /home/node/.cache/cloakbrowser-build/. /home/node/.cloakbrowser/ \
+ && rm -f /home/node/.cloakbrowser/_download_*.tar.gz
 
 VOLUME ["/data"]
 ENTRYPOINT ["node", "/opt/cloakbrowser-mcp/dist/cli.js"]
