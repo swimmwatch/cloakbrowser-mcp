@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
 import process from 'node:process';
+import type { Implementation } from '@modelcontextprotocol/sdk/types.js';
+import { parseCliOptions } from './http/options.js';
+import { startStreamableHttpBridge } from './http/server.js';
 import { PROJECT_METADATA } from './project/metadata.js';
 import { startBridge } from './server.js';
 
@@ -13,7 +16,8 @@ const help = `cloakbrowser-mcp ${pkg.version}
 Playwright MCP bridge backed by CloakBrowser.
 
 Usage:
-  cloakbrowser-mcp
+  cloakbrowser-mcp [--transport stdio]
+  cloakbrowser-mcp --transport streamable-http [--http-host 127.0.0.1] [--http-port 3000]
   cloakbrowser-mcp --help
   cloakbrowser-mcp --version
 
@@ -21,6 +25,14 @@ Primary configuration is provided with PLAYWRIGHT_MCP_* environment variables.
 Cloak-specific toggles use CLOAK_PLAYWRIGHT_MCP_*.
 
 Common environment variables:
+  CLOAK_PLAYWRIGHT_MCP_TRANSPORT       stdio | streamable-http (default: stdio)
+  CLOAK_PLAYWRIGHT_MCP_HTTP_HOST       HTTP bind host (default: 127.0.0.1)
+  CLOAK_PLAYWRIGHT_MCP_HTTP_PORT       HTTP bind port (default: 3000)
+  CLOAK_PLAYWRIGHT_MCP_HTTP_ENDPOINT   HTTP endpoint path (default: /mcp)
+  CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN optional HTTP Bearer token
+  CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_BACKEND memory (default: memory)
+  CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_IDLE_TTL_MS session idle TTL ms (default: 3600000)
+  CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX max active HTTP sessions (default: 32)
   PLAYWRIGHT_MCP_BROWSER_ENGINE        cloak | playwright (default: cloak)
   PLAYWRIGHT_MCP_HEADLESS              true | false (default: true)
   PLAYWRIGHT_MCP_OUTPUT_DIR            artifact directory (default: .playwright-mcp)
@@ -44,22 +56,33 @@ async function main(): Promise<void> {
     return;
   }
 
-  const bridge = await startBridge({
-    serverInfo: {
-      name: PROJECT_METADATA.mcpName,
-      title: PROJECT_METADATA.title,
-      version: pkg.version,
-      description: PROJECT_METADATA.description,
-      websiteUrl: PROJECT_METADATA.websiteUrl,
-      icons: PROJECT_METADATA.icons,
-    },
-  });
+  const options = parseCliOptions(args);
+  const serverInfo = {
+    name: PROJECT_METADATA.mcpName,
+    title: PROJECT_METADATA.title,
+    version: pkg.version,
+    description: PROJECT_METADATA.description,
+    websiteUrl: PROJECT_METADATA.websiteUrl,
+    icons: PROJECT_METADATA.icons,
+  };
+
+  const running =
+    options.transport === 'streamable-http'
+      ? await startStreamableHttpBridge({ ...options.http, serverInfo })
+      : await startStdioBridge(serverInfo);
 
   for (const signal of ['SIGINT', 'SIGTERM'] as const) {
     process.once(signal, () => {
-      void bridge.dispose().finally(() => process.exit(0));
+      void running.close().finally(() => process.exit(0));
     });
   }
+}
+
+async function startStdioBridge(serverInfo: Partial<Implementation>): Promise<{ close(): Promise<void> }> {
+  const bridge = await startBridge({ serverInfo });
+  return {
+    close: () => bridge.dispose(),
+  };
 }
 
 void main().catch((error: unknown) => {

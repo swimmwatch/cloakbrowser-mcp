@@ -9,7 +9,7 @@ tags:
 
 ## What is CloakBrowser MCP?
 
-CloakBrowser MCP is a stdio [Model Context Protocol](https://modelcontextprotocol.io/) server for browser automation. It runs upstream [`@playwright/mcp`](https://github.com/microsoft/playwright-mcp) and points the Playwright MCP browser launch configuration at the [CloakBrowser](https://github.com/CloakHQ/CloakBrowser) Chromium binary.
+CloakBrowser MCP is a [Model Context Protocol](https://modelcontextprotocol.io/) server for browser automation over stdio or Streamable HTTP. It runs upstream [`@playwright/mcp`](https://github.com/microsoft/playwright-mcp) and points the Playwright MCP browser launch configuration at the [CloakBrowser](https://github.com/CloakHQ/CloakBrowser) Chromium binary.
 
 ## How is it different from upstream Playwright MCP?
 
@@ -21,7 +21,7 @@ Use npm when your MCP client already runs on your machine and Node.js 20 or newe
 
 ## Which MCP clients can use it?
 
-Any MCP client that supports stdio servers can use CloakBrowser MCP. The [Getting Started](getting-started.md) guide includes JSON examples for Codex, Claude Desktop, Claude Code, Cursor, VS Code/Cline-style clients, Continue, Windsurf, Goose, and Warp-style configurations.
+Any MCP client that supports stdio or Streamable HTTP servers can use CloakBrowser MCP. The [Getting Started](getting-started.md) guide includes stdio JSON examples for Codex, Claude Desktop, Claude Code, Cursor, VS Code/Cline-style clients, Continue, Windsurf, Goose, and Warp-style configurations.
 
 ## Does it support the same browser tools as Playwright MCP?
 

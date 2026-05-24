@@ -1,6 +1,6 @@
 # CloakBrowser MCP
 
-> CloakBrowser MCP is a stdio Model Context Protocol server that runs upstream Playwright MCP browser tools with the CloakBrowser Chromium binary.
+> CloakBrowser MCP is a stdio and Streamable HTTP Model Context Protocol server that runs upstream Playwright MCP browser tools with the CloakBrowser Chromium binary.
 
 Documentation: https://swimmwatch.github.io/cloakbrowser-mcp/
 Repository: https://github.com/swimmwatch/cloakbrowser-mcp

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Added optional Streamable HTTP transport with per-session bridge isolation, in-memory session metadata, Bearer token support, and HTTP configuration flags.
+
 ## [1.0.2] - 2026-05-23
 
 ### Changed
