@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderCliReferenceMarkdown } from '../src/cli/options.js';
@@ -13,4 +13,9 @@ const outputDirectory = path.join(root, 'docs', 'generated');
 const outputPath = path.join(outputDirectory, 'cli.md');
 
 mkdirSync(outputDirectory, { recursive: true });
-writeFileSync(outputPath, renderCliReferenceMarkdown(packageJson.version));
+
+const markdown = renderCliReferenceMarkdown(packageJson.version);
+
+if (!existsSync(outputPath) || readFileSync(outputPath, 'utf8') !== markdown) {
+  writeFileSync(outputPath, markdown);
+}
