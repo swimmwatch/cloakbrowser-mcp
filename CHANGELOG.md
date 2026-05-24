@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-05-24
+
+### Added
+
+- Added optional Streamable HTTP transport with per-session bridge isolation, in-memory session metadata, Bearer token support, and HTTP configuration flags.
+- Added Codecov coverage upload and a README coverage badge.
+
+### Fixed
+
+- Streamable HTTP sessions now start upstream Playwright MCP with isolated browser profiles for concurrent users.
+- Generated CLI docs no longer trigger infinite rebuilds during `mkdocs serve`.
+- Hardened Streamable HTTP authorization parsing, IPv6 endpoint matching, and internal error responses.
+
+### Security
+
+- Updated the Vitest/Vite development test stack to patched transitive `vite` and `esbuild` versions.
+
 ## [1.0.2] - 2026-05-23
 
 ### Changed
@@ -49,7 +66,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/swimmwatch/cloakbrowser-mcp/releases/tag/v1.0.0

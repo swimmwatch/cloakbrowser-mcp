@@ -11,13 +11,18 @@ import {
   type ListToolsRequest,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { prepareBridgeRuntime, type BridgeRuntime } from './bridge/config.js';
+import {
+  prepareBridgeRuntime,
+  type BridgeRuntime,
+  type PrepareBridgeRuntimeOptions,
+} from './bridge/config.js';
 import { resolvePlaywrightMcpCliPath } from './bridge/paths.js';
 import { callLocalTool, createLocalTools, isLocalTool } from './bridge/tools.js';
 import { MCP_SERVER_INSTRUCTIONS, PROJECT_METADATA } from './project/metadata.js';
 
 export interface StartBridgeOptions {
   serverInfo?: Partial<Implementation>;
+  runtimeOptions?: Pick<PrepareBridgeRuntimeOptions, 'browserIsolated'>;
 }
 
 export interface BridgeServerOptions extends StartBridgeOptions {
@@ -39,7 +44,7 @@ export async function startBridge(options: StartBridgeOptions = {}): Promise<Bri
 }
 
 export async function createBridgeServer(options: BridgeServerOptions = {}): Promise<BridgeServer> {
-  const runtime = options.runtime ?? (await prepareBridgeRuntime());
+  const runtime = options.runtime ?? (await prepareBridgeRuntime(options.runtimeOptions));
   const upstreamClient = options.upstreamClient ?? (await connectUpstream(runtime));
   const localTools = createLocalTools();
   const upstreamToolCache = new Map<string, Promise<ListToolsResult>>();

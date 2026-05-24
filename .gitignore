@@ -24,6 +24,7 @@ junit.xml
 # Documentation output
 /.generated-docs/
 /.venv-docs/
+/docs/generated/
 /.cache/
 /site/
 

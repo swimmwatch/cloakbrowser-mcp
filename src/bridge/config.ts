@@ -23,11 +23,13 @@ export interface PrepareBridgeRuntimeOptions {
   env?: EnvReader;
   tempRoot?: string;
   ensureCloakBinary?: () => Promise<string>;
+  browserIsolated?: boolean;
 }
 
 export interface PlaywrightMcpBridgeConfig {
   browser?: {
     browserName?: 'chromium';
+    isolated?: boolean;
     launchOptions?: {
       executablePath?: string;
       headless?: boolean;
@@ -64,6 +66,11 @@ export async function prepareBridgeRuntime(
       launchOptions,
     },
   };
+
+  if (options.browserIsolated === true) {
+    config.browser!.isolated = true;
+    childEnv.PLAYWRIGHT_MCP_ISOLATED = 'true';
+  }
 
   let cloakBinaryPath: string | undefined;
   if (useCloak) {

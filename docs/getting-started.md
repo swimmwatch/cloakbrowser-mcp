@@ -18,15 +18,19 @@ For a quick overview of common setup questions, see the [FAQ](faq.md).
 ```bash
 npx -y cloakbrowser-mcp@latest --help
 npx -y cloakbrowser-mcp@latest
+npx -y cloakbrowser-mcp@latest --transport streamable-http --http-port 3000
 ```
 
 Pin a release when reproducibility matters:
 
 ```bash
-npx -y cloakbrowser-mcp@1.0.2
+npx -y cloakbrowser-mcp@1.1.0
 ```
 
 The npm package requires Node.js 20 or newer. CloakBrowser downloads its Chromium binary on first use unless it is already cached.
+
+The default transport is stdio. Use `--transport streamable-http` when your MCP client connects to an HTTP endpoint instead of spawning a stdio process. The HTTP endpoint defaults to `http://127.0.0.1:3000/mcp`.
+See the generated [CLI Reference](generated/cli.md) for the full flag list and matching environment variables.
 
 ## Docker
 
@@ -39,18 +43,28 @@ docker run --rm --init -i \
 
 Docker is the most reproducible runtime because the image is based on the pinned official Playwright MCP image and includes a prepared CloakBrowser browser cache.
 
+For local Streamable HTTP with Docker, publish the port on loopback and bind the server inside the container:
+
+```bash
+docker run --rm --init -p 127.0.0.1:3000:3000 \
+  -v "$PWD/artifacts:/data" \
+  ghcr.io/swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http --http-host 0.0.0.0 --http-port 3000
+```
+
 Pin a release when reproducibility matters:
 
 ```bash
-docker pull ghcr.io/swimmwatch/cloakbrowser-mcp:1.0.2
+docker pull ghcr.io/swimmwatch/cloakbrowser-mcp:1.1.0
 docker run --rm --init -i \
   -v "$PWD/artifacts:/data" \
-  ghcr.io/swimmwatch/cloakbrowser-mcp:1.0.2
+  ghcr.io/swimmwatch/cloakbrowser-mcp:1.1.0
 ```
 
 ## MCP Client Config
 
 Most MCP clients use the same stdio shape: `command`, optional `args`, and optional `env`.
+For Streamable HTTP clients, start the server separately and configure the client URL as `http://127.0.0.1:3000/mcp`.
 
 ### npm Config
 

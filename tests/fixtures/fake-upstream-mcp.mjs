@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import process from 'node:process';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
@@ -32,6 +33,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     name: request.params.name,
     arguments: request.params.arguments ?? {},
   };
+  if (request.params.arguments?.includePid === true) value.upstreamPid = process.pid;
   return {
     content: [{ type: 'text', text: JSON.stringify(value) }],
     structuredContent: value,

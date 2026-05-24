@@ -64,6 +64,13 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm run test:coverage
+      - uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage/lcov.info
+          flags: vitest
+          name: vitest-node20
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
       - uses: actions/upload-artifact@v7
         with:
           name: coverage

@@ -12,9 +12,11 @@ This project is a browser automation bridge. Treat it as trusted-code execution 
 
 ## Trust Boundary
 
-The outer server uses stdio. It starts upstream Playwright MCP as a child process and forwards tool calls. Browser automation, file output, network access, and unsafe evaluation behavior are governed by upstream Playwright MCP.
+The outer server supports stdio and Streamable HTTP. It starts upstream Playwright MCP as a child process and forwards tool calls. Browser automation, file output, network access, and unsafe evaluation behavior are governed by upstream Playwright MCP.
 
 Do not expose the stdio server through an unauthenticated network wrapper. Any client that can call tools can drive the browser, read browser-observable page data, and request artifacts.
+
+Streamable HTTP binds to `127.0.0.1` by default. If you bind it to `0.0.0.0` or publish it outside loopback, require `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` or equivalent reverse proxy authentication, use TLS at the network edge, and restrict access to trusted clients.
 
 ## Unsafe Tools
 
@@ -52,6 +54,8 @@ If your MCP client injects credentials into browser sessions, prefer short-lived
 ## Docker
 
 Docker is recommended when you want isolation and reproducible browser dependencies. Mount only the artifact directory you need and use `--init` so browser child processes are cleaned up correctly.
+
+When publishing Streamable HTTP from Docker, prefer `-p 127.0.0.1:3000:3000`. Publishing directly to a public interface gives any reachable client browser automation capability unless you add authentication and network controls.
 
 The Docker image is scanned with Trivy in CI and before release publishing. The scanner checks high and critical OS/library vulnerabilities and uploads SARIF results to GitHub code scanning when enabled.
 

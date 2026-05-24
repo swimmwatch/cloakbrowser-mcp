@@ -8,6 +8,8 @@ edit_uri: edit/main/docs/
 copyright: Copyright &copy; 2026 swimmwatch
 docs_dir: docs
 site_dir: site
+hooks:
+  - docs/hooks/generate_cli_docs.py
 exclude_docs: |
   hooks/
   overrides/
@@ -110,6 +112,7 @@ nav:
       - Docker: docker.md
       - Version Compatibility: version-compatibility.md
       - Configuration: configuration.md
+      - CLI Reference: generated/cli.md
       - Tools: tools.md
       - Security: security.md
       - FAQ: faq.md
