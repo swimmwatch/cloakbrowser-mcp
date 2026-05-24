@@ -65,6 +65,24 @@ describe('bridge config generation', () => {
     runtime.dispose();
   });
 
+  it('enables isolated browser profiles when requested', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      browserIsolated: true,
+      ensureCloakBinary: async () => '/tmp/cloakbrowser/chrome',
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    expect(runtime.config.browser?.isolated).toBe(true);
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_ISOLATED).toBe('true');
+
+    runtime.dispose();
+  });
+
   it('does not apply Cloak-specific defaults in Playwright engine mode', async () => {
     const root = createTempRoot();
     const runtime = await prepareBridgeRuntime({
@@ -78,6 +96,8 @@ describe('bridge config generation', () => {
 
     expect(runtime.cloakBinaryPath).toBeUndefined();
     expect(runtime.childEnv.PLAYWRIGHT_MCP_EXECUTABLE_PATH).toBeUndefined();
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_ISOLATED).toBeUndefined();
+    expect(runtime.config.browser?.isolated).toBeUndefined();
     expect(runtime.childEnv.NODE_OPTIONS).toBeUndefined();
     expect(runtime.config.browser?.launchOptions?.args).toEqual([]);
     expect(runtime.config.browser?.launchOptions?.chromiumSandbox).toBeUndefined();

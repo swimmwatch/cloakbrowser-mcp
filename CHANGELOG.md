@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Added optional Streamable HTTP transport with per-session bridge isolation, in-memory session metadata, Bearer token support, and HTTP configuration flags.
 
+### Fixed
+
+- Streamable HTTP sessions now start upstream Playwright MCP with isolated browser profiles for concurrent users.
+
 ## [1.0.2] - 2026-05-23
 
 ### Changed

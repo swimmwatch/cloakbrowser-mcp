@@ -48,6 +48,7 @@ class StreamableHttpBridgeController {
   readonly #closing = new Map<string, Promise<void>>();
   readonly #httpServer: Server;
   readonly #cleanupTimer: NodeJS.Timeout;
+  #pendingSessionInitializations = 0;
 
   constructor(options: StartStreamableHttpBridgeOptions) {
     this.#options = options;
@@ -192,7 +193,7 @@ class StreamableHttpBridgeController {
     parsedBody: unknown,
   ): Promise<void> {
     const now = Date.now();
-    if ((await this.#store.countActive(now)) >= this.#options.sessionMax) {
+    if (this.#sessions.size + this.#pendingSessionInitializations >= this.#options.sessionMax) {
       writeJsonRpcError(
         res,
         HttpStatus.ServiceUnavailable,
@@ -202,6 +203,7 @@ class StreamableHttpBridgeController {
       return;
     }
 
+    this.#pendingSessionInitializations += 1;
     const sessionId = randomUUID();
     const record: HttpSessionRecord = {
       id: sessionId,
@@ -224,15 +226,19 @@ class StreamableHttpBridgeController {
       },
     });
 
-    const bridge = await createBridgeServer({ serverInfo: this.#options.serverInfo });
-    this.#sessions.set(sessionId, { id: sessionId, bridge, transport });
-
     try {
+      const bridge = await createBridgeServer({
+        serverInfo: this.#options.serverInfo,
+        runtimeOptions: { browserIsolated: true },
+      });
+      this.#sessions.set(sessionId, { id: sessionId, bridge, transport });
       await bridge.start(transport);
       await transport.handleRequest(req, res, parsedBody);
     } catch (error) {
       await this.#closeSession(sessionId);
       throw error;
+    } finally {
+      this.#pendingSessionInitializations -= 1;
     }
   }
 

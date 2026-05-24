@@ -101,6 +101,24 @@ describe('streamable HTTP bridge', () => {
     });
   });
 
+  it('enforces the session limit during concurrent initialization', async () => {
+    await withFakeUpstream(async () => {
+      const server = await startHttpBridge({ sessionMax: 2 });
+
+      const attempts = await Promise.allSettled([
+        connectHttpClient(server),
+        connectHttpClient(server),
+        connectHttpClient(server),
+      ]);
+
+      const accepted = attempts.filter((attempt) => attempt.status === 'fulfilled');
+      const rejected = attempts.filter((attempt) => attempt.status === 'rejected');
+      expect(accepted).toHaveLength(2);
+      expect(rejected).toHaveLength(1);
+      expect(String((rejected[0] as PromiseRejectedResult).reason)).toContain('HTTP session limit reached');
+    });
+  });
+
   it('enforces optional Bearer auth before handling MCP requests', async () => {
     await withFakeUpstream(async () => {
       const server = await startHttpBridge({ authToken: 'secret' });

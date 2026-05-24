@@ -35,7 +35,7 @@ The bridge writes a temporary JSON config with CloakBrowser launch options. Upst
 
 The default transport is stdio. Streamable HTTP is enabled explicitly with `--transport streamable-http` or `CLOAK_PLAYWRIGHT_MCP_TRANSPORT=streamable-http`.
 
-For stdio, one outer server owns one upstream Playwright MCP child process. For Streamable HTTP, each MCP session owns its own outer server, upstream child process, generated config, and in-memory transport state. This keeps browser state isolated between HTTP clients.
+For stdio, one outer server owns one upstream Playwright MCP child process and keeps upstream Playwright MCP's default profile behavior. For Streamable HTTP, each MCP session owns its own outer server, upstream child process, generated config, and in-memory transport state. HTTP sessions start upstream Playwright MCP with isolated browser profiles so concurrent users do not share or contend for the same persistent Chromium profile.
 
 The session backend stores metadata only. The built-in backend is `memory`; future Redis, Postgres, or SQLite adapters can coordinate metadata and locks, but they cannot restore a live upstream browser process after its owning server process exits. Horizontal scaling should use sticky sessions keyed by `mcp-session-id`.
 
