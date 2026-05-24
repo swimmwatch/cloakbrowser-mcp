@@ -34,6 +34,7 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
 ```
 
 The host-side `127.0.0.1:3000` bind keeps the endpoint local. If you publish Streamable HTTP on a non-loopback interface, put it behind authentication, TLS, and network controls.
+See the generated [CLI Reference](generated/cli.md) for all HTTP transport flags and environment variables.
 
 ## Defaults
 

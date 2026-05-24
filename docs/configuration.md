@@ -11,6 +11,7 @@ tags:
 Use upstream `PLAYWRIGHT_MCP_*` variables for Playwright MCP behavior. Use `CLOAK_PLAYWRIGHT_MCP_*` only for Cloak-specific bridge behavior.
 
 The old `CLOAKBROWSER_MCP_*` variables are not supported.
+The generated [CLI Reference](generated/cli.md) is the authoritative list of bridge CLI flags and their matching environment variables.
 
 ## Bridge Options
 

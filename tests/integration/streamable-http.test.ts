@@ -7,6 +7,7 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { afterEach, describe, expect, it } from 'vitest';
 import { defaultStreamableHttpOptions } from '../../src/http/options.js';
 import { startStreamableHttpBridge, type StreamableHttpBridgeServer } from '../../src/http/server.js';
+import { HttpStatus } from '../../src/http/status.js';
 
 const tempRoots: string[] = [];
 const clients: Client[] = [];
@@ -56,10 +57,10 @@ describe('streamable HTTP bridge', () => {
       const server = await startHttpBridge();
 
       const missing = await postToolsList(server.url);
-      expect(missing.status).toBe(400);
+      expect(missing.status).toBe(HttpStatus.BadRequest);
 
       const unknown = await postToolsList(server.url, 'missing-session');
-      expect(unknown.status).toBe(404);
+      expect(unknown.status).toBe(HttpStatus.NotFound);
     });
   });
 
@@ -73,7 +74,7 @@ describe('streamable HTTP bridge', () => {
       await transport.terminateSession();
 
       const response = await postToolsList(server.url, sessionId);
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(HttpStatus.NotFound);
     });
   });
 
@@ -105,7 +106,7 @@ describe('streamable HTTP bridge', () => {
       const server = await startHttpBridge({ authToken: 'secret' });
 
       const unauthorized = await fetch(server.url, { method: 'GET' });
-      expect(unauthorized.status).toBe(401);
+      expect(unauthorized.status).toBe(HttpStatus.Unauthorized);
       expect(unauthorized.headers.get('www-authenticate')).toBe('Bearer');
 
       const transport = new StreamableHTTPClientTransport(new URL(server.url), {

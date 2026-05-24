@@ -6,6 +6,7 @@ import { isInitializeRequest, type Implementation } from '@modelcontextprotocol/
 import { createBridgeServer, type BridgeServer } from '../server.js';
 import { createSessionStore, type HttpSessionRecord, type SessionStore } from './sessionStore.js';
 import type { HttpSessionBackend, StreamableHttpOptions } from './options.js';
+import { HttpStatus, JsonRpcErrorCode } from './status.js';
 
 const mcpSessionIdHeader = 'mcp-session-id';
 const jsonRpcContentType = 'application/json';
@@ -84,12 +85,12 @@ class StreamableHttpBridgeController {
   async #handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     try {
       if (!this.#isEndpointRequest(req)) {
-        writeJsonRpcError(res, 404, -32000, 'Not found');
+        writeJsonRpcError(res, HttpStatus.NotFound, JsonRpcErrorCode.ServerError, 'Not found');
         return;
       }
 
       if (!isAuthorizedRequest(req, this.#options.authToken)) {
-        writeJsonRpcError(res, 401, -32000, 'Unauthorized', {
+        writeJsonRpcError(res, HttpStatus.Unauthorized, JsonRpcErrorCode.ServerError, 'Unauthorized', {
           'WWW-Authenticate': 'Bearer',
         });
         return;
@@ -99,7 +100,15 @@ class StreamableHttpBridgeController {
 
       const method = req.method ?? '';
       if (method !== 'GET' && method !== 'POST' && method !== 'DELETE') {
-        writeJsonRpcError(res, 405, -32000, 'Method not allowed.', { Allow: allowedMethods });
+        writeJsonRpcError(
+          res,
+          HttpStatus.MethodNotAllowed,
+          JsonRpcErrorCode.ServerError,
+          'Method not allowed.',
+          {
+            Allow: allowedMethods,
+          },
+        );
         return;
       }
 
@@ -111,7 +120,14 @@ class StreamableHttpBridgeController {
       await this.#handleSessionRequest(req, res);
     } catch (error) {
       if (!res.headersSent) {
-        writeJsonRpcError(res, 500, -32603, 'Internal server error', undefined, String(error));
+        writeJsonRpcError(
+          res,
+          HttpStatus.InternalServerError,
+          JsonRpcErrorCode.InternalError,
+          'Internal server error',
+          undefined,
+          String(error),
+        );
       } else {
         res.end();
       }
@@ -120,7 +136,12 @@ class StreamableHttpBridgeController {
 
   async #handlePostRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (!hasJsonContentType(req)) {
-      writeJsonRpcError(res, 415, -32000, 'Unsupported Media Type: Content-Type must be application/json');
+      writeJsonRpcError(
+        res,
+        HttpStatus.UnsupportedMediaType,
+        JsonRpcErrorCode.ServerError,
+        'Unsupported Media Type: Content-Type must be application/json',
+      );
       return;
     }
 
@@ -129,9 +150,19 @@ class StreamableHttpBridgeController {
       parsedBody = await readJsonBody(req, this.#options.bodyLimitBytes);
     } catch (error) {
       if (error instanceof RequestBodyTooLargeError) {
-        writeJsonRpcError(res, 413, -32000, 'Request body too large');
+        writeJsonRpcError(
+          res,
+          HttpStatus.PayloadTooLarge,
+          JsonRpcErrorCode.ServerError,
+          'Request body too large',
+        );
       } else {
-        writeJsonRpcError(res, 400, -32700, 'Parse error: Invalid JSON');
+        writeJsonRpcError(
+          res,
+          HttpStatus.BadRequest,
+          JsonRpcErrorCode.ParseError,
+          'Parse error: Invalid JSON',
+        );
       }
       return;
     }
@@ -143,7 +174,12 @@ class StreamableHttpBridgeController {
     }
 
     if (!containsInitializeRequest(parsedBody)) {
-      writeJsonRpcError(res, 400, -32000, 'Bad Request: No valid session ID provided');
+      writeJsonRpcError(
+        res,
+        HttpStatus.BadRequest,
+        JsonRpcErrorCode.ServerError,
+        'Bad Request: No valid session ID provided',
+      );
       return;
     }
 
@@ -157,7 +193,12 @@ class StreamableHttpBridgeController {
   ): Promise<void> {
     const now = Date.now();
     if ((await this.#store.countActive(now)) >= this.#options.sessionMax) {
-      writeJsonRpcError(res, 503, -32000, 'HTTP session limit reached');
+      writeJsonRpcError(
+        res,
+        HttpStatus.ServiceUnavailable,
+        JsonRpcErrorCode.ServerError,
+        'HTTP session limit reached',
+      );
       return;
     }
 
@@ -202,13 +243,18 @@ class StreamableHttpBridgeController {
   ): Promise<void> {
     const sessionId = getSingleHeader(req, mcpSessionIdHeader);
     if (!sessionId) {
-      writeJsonRpcError(res, 400, -32000, 'Bad Request: Mcp-Session-Id header is required');
+      writeJsonRpcError(
+        res,
+        HttpStatus.BadRequest,
+        JsonRpcErrorCode.ServerError,
+        'Bad Request: Mcp-Session-Id header is required',
+      );
       return;
     }
 
     const session = await this.#getActiveSession(sessionId);
     if (!session) {
-      writeJsonRpcError(res, 404, -32001, 'Session not found');
+      writeJsonRpcError(res, HttpStatus.NotFound, JsonRpcErrorCode.SessionNotFound, 'Session not found');
       return;
     }
 
@@ -297,8 +343,8 @@ function getSingleHeader(req: IncomingMessage, name: string): string | undefined
 
 function writeJsonRpcError(
   res: ServerResponse,
-  status: number,
-  code: number,
+  status: HttpStatus,
+  code: JsonRpcErrorCode,
   message: string,
   headers: Record<string, string> = {},
   data?: string,

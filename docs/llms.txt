@@ -12,6 +12,7 @@ Docker image: https://github.com/swimmwatch/cloakbrowser-mcp/pkgs/container/cloa
 - Getting Started: https://swimmwatch.github.io/cloakbrowser-mcp/getting-started/
 - Docker: https://swimmwatch.github.io/cloakbrowser-mcp/docker/
 - Configuration: https://swimmwatch.github.io/cloakbrowser-mcp/configuration/
+- CLI Reference: https://swimmwatch.github.io/cloakbrowser-mcp/generated/cli/
 - Tools: https://swimmwatch.github.io/cloakbrowser-mcp/tools/
 - Security: https://swimmwatch.github.io/cloakbrowser-mcp/security/
 - FAQ: https://swimmwatch.github.io/cloakbrowser-mcp/faq/

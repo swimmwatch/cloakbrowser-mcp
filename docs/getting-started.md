@@ -30,6 +30,7 @@ npx -y cloakbrowser-mcp@1.0.2
 The npm package requires Node.js 20 or newer. CloakBrowser downloads its Chromium binary on first use unless it is already cached.
 
 The default transport is stdio. Use `--transport streamable-http` when your MCP client connects to an HTTP endpoint instead of spawning a stdio process. The HTTP endpoint defaults to `http://127.0.0.1:3000/mcp`.
+See the generated [CLI Reference](generated/cli.md) for the full flag list and matching environment variables.
 
 ## Docker
 

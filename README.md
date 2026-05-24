@@ -50,6 +50,7 @@ npx -y cloakbrowser-mcp@latest --transport streamable-http --http-port 3000
 
 Requires Node.js 20 or newer. The first real browser action may download the CloakBrowser binary unless it is already cached.
 The default transport is stdio. Streamable HTTP binds to `127.0.0.1` by default and serves MCP at `/mcp`.
+For the complete generated CLI flag reference, see the published [CLI Reference](https://swimmwatch.github.io/cloakbrowser-mcp/generated/cli/).
 
 ## Run from Docker
 
@@ -110,6 +111,7 @@ The Docker image is based on the pinned official Playwright MCP image, installs 
 ## Configuration
 
 Use upstream `PLAYWRIGHT_MCP_*` variables for browser, artifact, timeout, network, and tool capability settings. Cloak-specific bridge toggles use `CLOAK_PLAYWRIGHT_MCP_*`.
+CLI flags are documented in the generated [CLI Reference](https://swimmwatch.github.io/cloakbrowser-mcp/generated/cli/).
 
 Common variables:
 

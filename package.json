@@ -44,6 +44,7 @@
     "format:check": "prettier --check .",
     "docs:install": "python3 -m venv .venv-docs && .venv-docs/bin/pip install -r docs/requirements.txt",
     "docs:assets": "node scripts/generate-brand-assets.mjs",
+    "docs:cli": "tsx scripts/generate-cli-docs.ts",
     "docs:serve": ".venv-docs/bin/mkdocs serve",
     "docs:build": ".venv-docs/bin/mkdocs build --strict",
     "docs:seo:validate": "node scripts/validate-docs-seo.mjs",
@@ -61,7 +62,8 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.0",
     "@playwright/mcp": "^0.0.75",
-    "cloakbrowser": "^0.3.30"
+    "cloakbrowser": "^0.3.30",
+    "commander": "^14.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
