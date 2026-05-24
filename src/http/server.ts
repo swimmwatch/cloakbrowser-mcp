@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
@@ -38,7 +38,20 @@ export async function startStreamableHttpBridge(
 
 export function isAuthorizedRequest(req: IncomingMessage, authToken: string | undefined): boolean {
   if (authToken === undefined) return true;
-  return req.headers.authorization === `Bearer ${authToken}`;
+  const authorization = getSingleHeader(req, 'authorization');
+  if (!authorization) return false;
+
+  const parts = authorization.trim().split(/\s+/);
+  if (parts.length !== 2) return false;
+
+  const [scheme, token] = parts;
+  return scheme.toLowerCase() === 'bearer' && timingSafeStringEqual(token, authToken);
+}
+
+export function isEndpointRequest(req: IncomingMessage, endpoint: string, fallbackHost: string): boolean {
+  const host = getSingleHeader(req, 'host') ?? formatHost(fallbackHost);
+  const url = new URL(req.url ?? '/', `http://${host}`);
+  return url.pathname === endpoint;
 }
 
 class StreamableHttpBridgeController {
@@ -85,7 +98,7 @@ class StreamableHttpBridgeController {
 
   async #handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     try {
-      if (!this.#isEndpointRequest(req)) {
+      if (!isEndpointRequest(req, this.#options.endpoint, this.#options.host)) {
         writeJsonRpcError(res, HttpStatus.NotFound, JsonRpcErrorCode.ServerError, 'Not found');
         return;
       }
@@ -119,15 +132,13 @@ class StreamableHttpBridgeController {
       }
 
       await this.#handleSessionRequest(req, res);
-    } catch (error) {
+    } catch {
       if (!res.headersSent) {
         writeJsonRpcError(
           res,
           HttpStatus.InternalServerError,
           JsonRpcErrorCode.InternalError,
           'Internal server error',
-          undefined,
-          String(error),
         );
       } else {
         res.end();
@@ -306,11 +317,6 @@ class StreamableHttpBridgeController {
     if (!session) return;
     await session.bridge.dispose();
   }
-
-  #isEndpointRequest(req: IncomingMessage): boolean {
-    const url = new URL(req.url ?? '/', `http://${req.headers.host ?? this.#options.host}`);
-    return url.pathname === this.#options.endpoint;
-  }
 }
 
 function hasJsonContentType(req: IncomingMessage): boolean {
@@ -371,7 +377,14 @@ function writeJsonRpcError(
 }
 
 function formatHost(host: string): string {
+  if (host.startsWith('[') && host.endsWith(']')) return host;
   return host.includes(':') ? `[${host}]` : host;
+}
+
+function timingSafeStringEqual(actual: string, expected: string): boolean {
+  const actualBuffer = Buffer.from(actual);
+  const expectedBuffer = Buffer.from(expected);
+  return actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer);
 }
 
 async function closeHttpServer(server: Server): Promise<void> {

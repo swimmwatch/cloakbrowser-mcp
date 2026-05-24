@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Streamable HTTP sessions now start upstream Playwright MCP with isolated browser profiles for concurrent users.
 - Generated CLI docs no longer trigger infinite rebuilds during `mkdocs serve`.
+- Hardened Streamable HTTP authorization parsing, IPv6 endpoint matching, and internal error responses.
 
 ## [1.0.2] - 2026-05-23
 
