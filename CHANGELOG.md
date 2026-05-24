@@ -19,6 +19,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated CLI docs no longer trigger infinite rebuilds during `mkdocs serve`.
 - Hardened Streamable HTTP authorization parsing, IPv6 endpoint matching, and internal error responses.
 
+### Security
+
+- Updated the Vitest/Vite development test stack to patched transitive `vite` and `esbuild` versions.
+
 ## [1.0.2] - 2026-05-23
 
 ### Changed
