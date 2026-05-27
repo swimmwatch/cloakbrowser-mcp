@@ -157,6 +157,34 @@ Verify the published registry entry with:
 curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.swimmwatch/cloakbrowser-mcp"
 ```
 
+## Glama Directory Checklist
+
+Glama directory scoring is separate from GitHub releases and official MCP
+Registry publishing. The repository includes `glama.json` so the
+`swimmwatch` maintainer account can claim or confirm ownership in Glama.
+
+Before publishing a stable release, complete the free Glama checklist:
+
+- sync the server from the Glama MCP server admin interface after `glama.json`
+  is merged to `main`;
+- open
+  `https://glama.ai/mcp/servers/swimmwatch/cloakbrowser-mcp/admin/dockerfile`;
+- configure Glama to build this repository Dockerfile and start the existing
+  stdio entrypoint without extra secrets;
+- keep the runtime compatible with CloakBrowser defaults: `cloak` browser
+  engine, headless mode, stdout output, and `/data` artifact storage;
+- click Deploy and wait for the build test to pass;
+- create and publish a Glama release with the same version as the GitHub
+  release, for example `1.2.5`;
+- use the Glama "Try in Browser" feature once after release to seed initial
+  usage;
+- add related servers manually, at minimum the official Playwright MCP server,
+  and optionally closely related browser automation alternatives.
+
+Do not add a billing method or paid Glama hosting just to improve the directory
+score. If Glama requires billing for a required checklist item, treat that as a
+release blocker that needs an explicit maintainer decision.
+
 ## Security Workflows
 
 The repository uses free security tooling:
@@ -242,6 +270,8 @@ Before publishing a release:
   `mcp-registry-production` environments exist.
 - Confirm GitHub code scanning is enabled if SARIF upload visibility is needed.
 - Confirm GHCR package visibility is public after the first Docker publish.
+- Confirm the Glama server has been synced, tested through the Dockerfile admin
+  page, and released with the same stable version.
 
 `SUPPORT.md` is intentionally deferred until the project has a stable support
 policy beyond GitHub issues and security advisories.
