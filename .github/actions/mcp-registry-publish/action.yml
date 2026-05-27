@@ -10,19 +10,7 @@ inputs:
     description: Official MCP server name to publish and verify.
     required: true
   server-version:
-    description: MCP server version to verify in the registry.
-    required: true
-  npm-package:
-    description: npm package name that must be visible before publishing.
-    required: true
-  npm-version:
-    description: npm package version that must be visible before publishing.
-    required: true
-  docker-image:
-    description: OCI image name that must be visible before publishing.
-    required: true
-  docker-tag:
-    description: OCI image tag that must be visible before publishing.
+    description: MCP server version to publish and verify.
     required: true
   registry-api-url:
     description: MCP Registry API base URL.
@@ -32,22 +20,6 @@ inputs:
     description: mcp-publisher release tag to install, or latest.
     required: false
     default: latest
-  npm-wait-attempts:
-    description: Number of npm availability checks before failing.
-    required: false
-    default: '120'
-  npm-wait-interval-seconds:
-    description: Seconds to wait between npm availability checks.
-    required: false
-    default: '30'
-  docker-wait-attempts:
-    description: Number of Docker availability checks before failing.
-    required: false
-    default: '120'
-  docker-wait-interval-seconds:
-    description: Seconds to wait between Docker availability checks.
-    required: false
-    default: '30'
   registry-wait-attempts:
     description: Number of registry verification checks before failing.
     required: false
@@ -79,7 +51,7 @@ outputs:
     value: ${{ steps.result.outputs.published }}
   existing:
     description: Whether the target server version already existed before publish.
-    value: ${{ steps.registry-entry.outputs.exists }}
+    value: ${{ steps.result.outputs.existing }}
   server-version:
     description: Published or verified server version.
     value: ${{ steps.result.outputs.server-version }}
@@ -94,10 +66,6 @@ runs:
       name: Validate inputs
       shell: bash
       env:
-        NPM_WAIT_ATTEMPTS: ${{ inputs.npm-wait-attempts }}
-        NPM_WAIT_INTERVAL_SECONDS: ${{ inputs.npm-wait-interval-seconds }}
-        DOCKER_WAIT_ATTEMPTS: ${{ inputs.docker-wait-attempts }}
-        DOCKER_WAIT_INTERVAL_SECONDS: ${{ inputs.docker-wait-interval-seconds }}
         REGISTRY_WAIT_ATTEMPTS: ${{ inputs.registry-wait-attempts }}
         REGISTRY_WAIT_INTERVAL_SECONDS: ${{ inputs.registry-wait-interval-seconds }}
         PUBLISH_ATTEMPTS: ${{ inputs.publish-attempts }}
@@ -107,10 +75,6 @@ runs:
         set -euo pipefail
 
         for name in \
-          NPM_WAIT_ATTEMPTS \
-          NPM_WAIT_INTERVAL_SECONDS \
-          DOCKER_WAIT_ATTEMPTS \
-          DOCKER_WAIT_INTERVAL_SECONDS \
           REGISTRY_WAIT_ATTEMPTS \
           REGISTRY_WAIT_INTERVAL_SECONDS \
           PUBLISH_ATTEMPTS \
@@ -141,46 +105,6 @@ runs:
         set -euo pipefail
         encoded_name="$(jq -nr --arg value "$SERVER_NAME" '$value | @uri')"
         echo "url=${REGISTRY_API_URL%/}/servers?search=${encoded_name}" >> "$GITHUB_OUTPUT"
-
-    - name: Wait for npm package
-      shell: bash
-      env:
-        PACKAGE_NAME: ${{ inputs.npm-package }}
-        PACKAGE_VERSION: ${{ inputs.npm-version }}
-        WAIT_ATTEMPTS: ${{ inputs.npm-wait-attempts }}
-        WAIT_INTERVAL_SECONDS: ${{ inputs.npm-wait-interval-seconds }}
-      run: |
-        set -euo pipefail
-        package="${PACKAGE_NAME}@${PACKAGE_VERSION}"
-        for attempt in $(seq 1 "$WAIT_ATTEMPTS"); do
-          if npm view "$package" version >/dev/null 2>&1; then
-            echo "$package is available on npm"
-            exit 0
-          fi
-          echo "Waiting for $package on npm ($attempt/$WAIT_ATTEMPTS)"
-          sleep "$WAIT_INTERVAL_SECONDS"
-        done
-        echo "::error title=npm package not available::$package was not visible after waiting"
-        exit 1
-
-    - name: Wait for Docker image
-      shell: bash
-      env:
-        IMAGE_REF: ${{ inputs.docker-image }}:${{ inputs.docker-tag }}
-        WAIT_ATTEMPTS: ${{ inputs.docker-wait-attempts }}
-        WAIT_INTERVAL_SECONDS: ${{ inputs.docker-wait-interval-seconds }}
-      run: |
-        set -euo pipefail
-        for attempt in $(seq 1 "$WAIT_ATTEMPTS"); do
-          if docker manifest inspect "$IMAGE_REF" >/dev/null 2>&1; then
-            echo "$IMAGE_REF is available"
-            exit 0
-          fi
-          echo "Waiting for $IMAGE_REF ($attempt/$WAIT_ATTEMPTS)"
-          sleep "$WAIT_INTERVAL_SECONDS"
-        done
-        echo "::error title=Docker image not available::$IMAGE_REF was not visible after waiting"
-        exit 1
 
     - name: Run local server metadata validation
       shell: bash
@@ -235,7 +159,7 @@ runs:
       run: |
         set -euo pipefail
         response="$(curl -fsSL "$REGISTRY_URL")"
-        echo "$response" | jq '{metadata, servers: [.servers[]? | {name: .server.name, version: .server.version}]}'
+        echo "$response" | jq '{metadata, servers: [.servers[]? | {name: .server.name, version: .server.version, isLatest: .server.isLatest}]}'
         count="$(echo "$response" | jq --arg name "$SERVER_NAME" --arg version "$SERVER_VERSION" '[.servers[]? | select(.server.name == $name and .server.version == $version)] | length')"
         if [ "$count" = "1" ]; then
           echo "exists=true" >> "$GITHUB_OUTPUT"
@@ -310,7 +234,7 @@ runs:
         set -euo pipefail
         for attempt in $(seq 1 "$WAIT_ATTEMPTS"); do
           response="$(curl -fsSL "$REGISTRY_URL")"
-          echo "$response" | jq '{metadata, servers: [.servers[]? | {name: .server.name, version: .server.version}]}'
+          echo "$response" | jq '{metadata, servers: [.servers[]? | {name: .server.name, version: .server.version, isLatest: .server.isLatest}]}'
           count="$(echo "$response" | jq --arg name "$SERVER_NAME" --arg version "$SERVER_VERSION" '[.servers[]? | select(.server.name == $name and .server.version == $version)] | length')"
           if [ "$count" = "1" ]; then
             echo "$SERVER_NAME version $SERVER_VERSION is visible in the MCP Registry"
@@ -327,7 +251,7 @@ runs:
       shell: bash
       env:
         EXISTING: ${{ steps.registry-entry.outputs.exists }}
-        PUBLISHED: ${{ steps.publish.outputs.published }}
+        PUBLISHED: ${{ steps.publish.outputs.published || 'false' }}
         SERVER_VERSION: ${{ inputs.server-version }}
       run: |
         set -euo pipefail
