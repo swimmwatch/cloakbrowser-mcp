@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-05-27
+
+### Fixed
+
+- Removed the OCI package `registryBaseUrl` from `server.json` so official MCP Registry publishing accepts the GHCR image metadata.
+- Added local validation for the official MCP Registry OCI metadata rule.
+
 ## [1.2.0] - 2026-05-27
 
 ### Added
@@ -72,7 +79,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.0.1...v1.0.2

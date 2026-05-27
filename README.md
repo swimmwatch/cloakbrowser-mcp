@@ -36,6 +36,7 @@ The server is intentionally thin:
 
 | cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base | CloakBrowser | Node.js | Transport | Platform | Parity |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| `1.2.1` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
 | `1.2.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
 | `1.1.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
 | `1.0.2` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
