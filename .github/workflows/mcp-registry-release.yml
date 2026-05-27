@@ -23,6 +23,7 @@ env:
   MCP_REGISTRY_SERVER_NAME: io.github.swimmwatch/cloakbrowser-mcp
   MCP_REGISTRY_PACKAGE_NAME: cloakbrowser-mcp
   MCP_REGISTRY_IMAGE_NAME: ghcr.io/swimmwatch/cloakbrowser-mcp
+  MCP_REGISTRY_API_URL: https://registry.modelcontextprotocol.io/v0.1
 
 jobs:
   publish:
@@ -45,91 +46,17 @@ jobs:
           RELEASE_VERSION_TAG: ${{ github.event.release.tag_name || inputs.version_tag }}
         run: npm run version:apply -- "$RELEASE_VERSION_TAG"
 
-      - name: Wait for npm package
-        env:
-          PACKAGE_NAME: ${{ env.MCP_REGISTRY_PACKAGE_NAME }}
-          PACKAGE_VERSION: ${{ steps.release.outputs.version }}
-        run: |
-          set -euo pipefail
-          package="${PACKAGE_NAME}@${PACKAGE_VERSION}"
-          for attempt in $(seq 1 120); do
-            if npm view "$package" version >/dev/null 2>&1; then
-              echo "$package is available on npm"
-              exit 0
-            fi
-            echo "Waiting for $package on npm ($attempt/120)"
-            sleep 30
-          done
-          echo "::error title=npm package not available::$package was not visible after waiting"
-          exit 1
-
-      - name: Wait for Docker image
-        env:
-          IMAGE_REF: ${{ env.MCP_REGISTRY_IMAGE_NAME }}:${{ steps.release.outputs.docker_version }}
-        run: |
-          set -euo pipefail
-          for attempt in $(seq 1 120); do
-            if docker manifest inspect "$IMAGE_REF" >/dev/null 2>&1; then
-              echo "$IMAGE_REF is available in GHCR"
-              exit 0
-            fi
-            echo "Waiting for $IMAGE_REF in GHCR ($attempt/120)"
-            sleep 30
-          done
-          echo "::error title=Docker image not available::$IMAGE_REF was not visible after waiting"
-          exit 1
-
-      - run: npm run server:validate
-
-      - name: Install mcp-publisher
-        run: |
-          set -euo pipefail
-          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
-          chmod +x mcp-publisher
-
-      - name: Validate server metadata with mcp-publisher
-        run: ./mcp-publisher validate server.json
-
-      - id: registry-entry
-        name: Check existing registry entry
-        env:
-          SERVER_NAME: ${{ env.MCP_REGISTRY_SERVER_NAME }}
-          SERVER_VERSION: ${{ steps.release.outputs.version }}
-        run: |
-          set -euo pipefail
-          response="$(curl -fsSL "https://registry.modelcontextprotocol.io/v0.1/servers?search=${SERVER_NAME}")"
-          echo "$response" | jq '{metadata, servers: [.servers[] | {name: .server.name, version: .server.version}]}'
-          count="$(echo "$response" | jq --arg name "$SERVER_NAME" --arg version "$SERVER_VERSION" '[.servers[] | select(.server.name == $name and .server.version == $version)] | length')"
-          if [ "$count" = "1" ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Authenticate to MCP Registry
-        if: steps.registry-entry.outputs.exists != 'true'
-        run: ./mcp-publisher login github-oidc
-
-      - name: Publish to MCP Registry
-        if: steps.registry-entry.outputs.exists != 'true'
-        run: ./mcp-publisher publish server.json
-
-      - name: Verify registry entry
-        env:
-          SERVER_NAME: ${{ env.MCP_REGISTRY_SERVER_NAME }}
-          SERVER_VERSION: ${{ steps.release.outputs.version }}
-        run: |
-          set -euo pipefail
-          for attempt in $(seq 1 20); do
-            response="$(curl -fsSL "https://registry.modelcontextprotocol.io/v0.1/servers?search=${SERVER_NAME}")"
-            echo "$response" | jq '{metadata, servers: [.servers[] | {name: .server.name, version: .server.version}]}'
-            count="$(echo "$response" | jq --arg name "$SERVER_NAME" --arg version "$SERVER_VERSION" '[.servers[] | select(.server.name == $name and .server.version == $version)] | length')"
-            if [ "$count" = "1" ]; then
-              echo "$SERVER_NAME version $SERVER_VERSION is visible in the MCP Registry"
-              exit 0
-            fi
-            echo "Waiting for $SERVER_NAME version $SERVER_VERSION in the MCP Registry ($attempt/20)"
-            sleep 15
-          done
-          echo "::error title=MCP Registry verification failed::Could not find $SERVER_NAME version $SERVER_VERSION"
-          exit 1
+      - id: mcp-registry-publish
+        name: Publish to MCP Registry
+        uses: ./.github/actions/mcp-registry-publish
+        with:
+          server-json: server.json
+          server-name: ${{ env.MCP_REGISTRY_SERVER_NAME }}
+          server-version: ${{ steps.release.outputs.version }}
+          npm-package: ${{ env.MCP_REGISTRY_PACKAGE_NAME }}
+          npm-version: ${{ steps.release.outputs.version }}
+          docker-image: ${{ env.MCP_REGISTRY_IMAGE_NAME }}
+          docker-tag: ${{ steps.release.outputs.docker_version }}
+          registry-api-url: ${{ env.MCP_REGISTRY_API_URL }}
+          publisher-version: latest
+          skip-existing: 'true'
