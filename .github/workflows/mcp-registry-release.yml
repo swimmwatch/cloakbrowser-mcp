@@ -90,10 +90,28 @@ jobs:
       - name: Validate server metadata with mcp-publisher
         run: ./mcp-publisher validate server.json
 
+      - id: registry-entry
+        name: Check existing registry entry
+        env:
+          SERVER_NAME: ${{ env.MCP_REGISTRY_SERVER_NAME }}
+          SERVER_VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          response="$(curl -fsSL "https://registry.modelcontextprotocol.io/v0.1/servers?search=${SERVER_NAME}")"
+          echo "$response" | jq '{metadata, servers: [.servers[] | {name: .server.name, version: .server.version}]}'
+          count="$(echo "$response" | jq --arg name "$SERVER_NAME" --arg version "$SERVER_VERSION" '[.servers[] | select(.server.name == $name and .server.version == $version)] | length')"
+          if [ "$count" = "1" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Authenticate to MCP Registry
+        if: steps.registry-entry.outputs.exists != 'true'
         run: ./mcp-publisher login github-oidc
 
       - name: Publish to MCP Registry
+        if: steps.registry-entry.outputs.exists != 'true'
         run: ./mcp-publisher publish server.json
 
       - name: Verify registry entry
@@ -104,8 +122,8 @@ jobs:
           set -euo pipefail
           for attempt in $(seq 1 20); do
             response="$(curl -fsSL "https://registry.modelcontextprotocol.io/v0.1/servers?search=${SERVER_NAME}")"
-            echo "$response" | jq .
-            count="$(echo "$response" | jq --arg name "$SERVER_NAME" --arg version "$SERVER_VERSION" '[.servers[] | select(.name == $name and .version == $version)] | length')"
+            echo "$response" | jq '{metadata, servers: [.servers[] | {name: .server.name, version: .server.version}]}'
+            count="$(echo "$response" | jq --arg name "$SERVER_NAME" --arg version "$SERVER_VERSION" '[.servers[] | select(.server.name == $name and .server.version == $version)] | length')"
             if [ "$count" = "1" ]; then
               echo "$SERVER_NAME version $SERVER_VERSION is visible in the MCP Registry"
               exit 0
