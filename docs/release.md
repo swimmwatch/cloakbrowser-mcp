@@ -122,10 +122,10 @@ registry at:
 https://registry.modelcontextprotocol.io
 ```
 
-Server publishing uses the official `mcp-publisher` CLI and GitHub Actions OIDC.
-Do not open a pull request to `modelcontextprotocol/registry` to list this
-server; that repository explicitly requires package authors to publish with
-`mcp-publisher`.
+Server publishing uses the local `MCP Registry Publish` composite GitHub Action,
+the official `mcp-publisher` CLI, and GitHub Actions OIDC. Do not open a pull
+request to `modelcontextprotocol/registry` to list this server; that repository
+explicitly requires package authors to publish with `mcp-publisher`.
 
 The workflow does not need Glama, billing, a GitHub PAT, DNS credentials, or
 long-lived registry secrets. It uses:
@@ -138,13 +138,13 @@ long-lived registry secrets. It uses:
   image ownership.
 
 The MCP Registry workflow starts from the same GitHub Release event as npm,
-Docker, and documentation publishing. Before publishing, it waits for the
-matching npm package and GHCR image tag to become visible, validates
-`server.json` locally, validates it against the official registry, and then
-publishes the server metadata.
+Docker, and documentation publishing. Before publishing, the composite action
+waits for the matching npm package and GHCR image tag to become visible,
+validates `server.json` locally, validates it against the official registry,
+and then publishes the server metadata.
 
 Manual re-publishing is available from GitHub Actions by running
-`MCP Registry Release` with a release tag such as `v1.2.0`.
+`MCP Registry Release` with a release tag such as `v1.2.3`.
 
 Verify the published registry entry with:
 
