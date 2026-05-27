@@ -56,6 +56,14 @@ inputs:
     description: Seconds to wait between registry verification checks.
     required: false
     default: '15'
+  publish-attempts:
+    description: Number of mcp-publisher publish attempts before failing.
+    required: false
+    default: '5'
+  publish-retry-interval-seconds:
+    description: Seconds to wait between mcp-publisher publish attempts.
+    required: false
+    default: '60'
   skip-existing:
     description: Skip publish when the same server version already exists.
     required: false
@@ -92,6 +100,8 @@ runs:
         DOCKER_WAIT_INTERVAL_SECONDS: ${{ inputs.docker-wait-interval-seconds }}
         REGISTRY_WAIT_ATTEMPTS: ${{ inputs.registry-wait-attempts }}
         REGISTRY_WAIT_INTERVAL_SECONDS: ${{ inputs.registry-wait-interval-seconds }}
+        PUBLISH_ATTEMPTS: ${{ inputs.publish-attempts }}
+        PUBLISH_RETRY_INTERVAL_SECONDS: ${{ inputs.publish-retry-interval-seconds }}
         SKIP_EXISTING: ${{ inputs.skip-existing }}
       run: |
         set -euo pipefail
@@ -102,7 +112,9 @@ runs:
           DOCKER_WAIT_ATTEMPTS \
           DOCKER_WAIT_INTERVAL_SECONDS \
           REGISTRY_WAIT_ATTEMPTS \
-          REGISTRY_WAIT_INTERVAL_SECONDS
+          REGISTRY_WAIT_INTERVAL_SECONDS \
+          PUBLISH_ATTEMPTS \
+          PUBLISH_RETRY_INTERVAL_SECONDS
         do
           value="${!name}"
           if ! [[ "$value" =~ ^[1-9][0-9]*$ ]]; then
@@ -247,10 +259,43 @@ runs:
       env:
         PUBLISHER: ${{ steps.publisher.outputs.path }}
         SERVER_JSON: ${{ inputs.server-json }}
+        REGISTRY_URL: ${{ steps.registry-url.outputs.url }}
+        SERVER_NAME: ${{ inputs.server-name }}
+        SERVER_VERSION: ${{ inputs.server-version }}
+        PUBLISH_ATTEMPTS: ${{ inputs.publish-attempts }}
+        PUBLISH_RETRY_INTERVAL_SECONDS: ${{ inputs.publish-retry-interval-seconds }}
       run: |
         set -euo pipefail
-        "$PUBLISHER" publish "$SERVER_JSON"
-        echo "published=true" >> "$GITHUB_OUTPUT"
+
+        registry_contains_version() {
+          response="$(curl -fsSL "$REGISTRY_URL" || true)"
+          if [ -z "$response" ]; then
+            return 1
+          fi
+          count="$(echo "$response" | jq --arg name "$SERVER_NAME" --arg version "$SERVER_VERSION" '[.servers[]? | select(.server.name == $name and .server.version == $version)] | length')"
+          [ "$count" = "1" ]
+        }
+
+        for attempt in $(seq 1 "$PUBLISH_ATTEMPTS"); do
+          if "$PUBLISHER" publish "$SERVER_JSON"; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if registry_contains_version; then
+            echo "$SERVER_NAME version $SERVER_VERSION became visible after publish returned an error"
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$attempt" = "$PUBLISH_ATTEMPTS" ]; then
+            echo "::error title=MCP Registry publish failed::mcp-publisher publish failed after $PUBLISH_ATTEMPTS attempts"
+            exit 1
+          fi
+
+          echo "mcp-publisher publish failed; retrying in $PUBLISH_RETRY_INTERVAL_SECONDS seconds ($attempt/$PUBLISH_ATTEMPTS)"
+          sleep "$PUBLISH_RETRY_INTERVAL_SECONDS"
+        done
 
     - name: Verify registry entry
       shell: bash

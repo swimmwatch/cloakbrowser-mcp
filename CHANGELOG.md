@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- Added retries around MCP Registry publishing to tolerate transient registry gateway timeouts.
+
 ## [1.2.3] - 2026-05-27
 
 ### Changed
