@@ -243,15 +243,6 @@ runs:
           echo "exists=false" >> "$GITHUB_OUTPUT"
         fi
 
-    - name: Authenticate to MCP Registry
-      if: ${{ inputs.skip-existing != 'true' || steps.registry-entry.outputs.exists != 'true' }}
-      shell: bash
-      env:
-        PUBLISHER: ${{ steps.publisher.outputs.path }}
-      run: |
-        set -euo pipefail
-        "$PUBLISHER" login github-oidc
-
     - id: publish
       name: Publish to MCP Registry
       if: ${{ inputs.skip-existing != 'true' || steps.registry-entry.outputs.exists != 'true' }}
@@ -277,6 +268,16 @@ runs:
         }
 
         for attempt in $(seq 1 "$PUBLISH_ATTEMPTS"); do
+          if ! "$PUBLISHER" login github-oidc; then
+            if [ "$attempt" = "$PUBLISH_ATTEMPTS" ]; then
+              echo "::error title=MCP Registry authentication failed::mcp-publisher login failed on the final attempt"
+              exit 1
+            fi
+            echo "mcp-publisher login failed; retrying in $PUBLISH_RETRY_INTERVAL_SECONDS seconds ($attempt/$PUBLISH_ATTEMPTS)"
+            sleep "$PUBLISH_RETRY_INTERVAL_SECONDS"
+            continue
+          fi
+
           if "$PUBLISHER" publish "$SERVER_JSON"; then
             echo "published=true" >> "$GITHUB_OUTPUT"
             exit 0
