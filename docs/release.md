@@ -1,5 +1,5 @@
 ---
-description: Release process for the CloakBrowser MCP npm package, Docker image, documentation site, and GitHub Pages deployment.
+description: Release process for the CloakBrowser MCP npm package, Docker image, documentation site, MCP Registry listing, and GitHub Pages deployment.
 icon: material/tag-check
 tags:
   - Project Internals
@@ -27,10 +27,12 @@ Configure these settings before the first release.
 | Branch protection | Require `Actionlint`, `CI`, `CodeQL`, and `Dependency Review` before merging to `main`. |
 | Pages | Set `Build and deployment -> Source` to `GitHub Actions`. |
 | Packages | Allow GitHub Actions to publish packages to GitHub Packages. |
-| Environments | Create `npm-production` and `docker-production`. |
+| Environments | Create `npm-production`, `docker-production`, and `mcp-registry-production`. |
 | Code scanning | Enable code scanning to view CodeQL, Scorecard, and Trivy SARIF results. |
 
-Add required reviewers to `npm-production` and `docker-production` if releases should require manual approval after a GitHub Release is published.
+Add required reviewers to `npm-production`, `docker-production`, and
+`mcp-registry-production` if releases should require manual approval after a
+GitHub Release is published.
 
 ## npm Publishing
 
@@ -110,6 +112,45 @@ repository.
 Docker multi-platform publishing is intentionally limited to `linux/amd64`
 until CloakBrowser and upstream Playwright MCP behavior are verified on other
 architectures.
+
+## MCP Registry Publishing
+
+The MCP Registry release workflow publishes `server.json` to the official
+registry at:
+
+```text
+https://registry.modelcontextprotocol.io
+```
+
+Server publishing uses the official `mcp-publisher` CLI and GitHub Actions OIDC.
+Do not open a pull request to `modelcontextprotocol/registry` to list this
+server; that repository explicitly requires package authors to publish with
+`mcp-publisher`.
+
+The workflow does not need Glama, billing, a GitHub PAT, DNS credentials, or
+long-lived registry secrets. It uses:
+
+- `id-token: write` for GitHub OIDC authentication;
+- `mcp-publisher login github-oidc`;
+- the existing GitHub namespace `io.github.swimmwatch/cloakbrowser-mcp`;
+- the npm package `mcpName` value to prove npm package ownership;
+- the Docker image label `io.modelcontextprotocol.server.name` to prove OCI
+  image ownership.
+
+The MCP Registry workflow starts from the same GitHub Release event as npm,
+Docker, and documentation publishing. Before publishing, it waits for the
+matching npm package and GHCR image tag to become visible, validates
+`server.json` locally, validates it against the official registry, and then
+publishes the server metadata.
+
+Manual re-publishing is available from GitHub Actions by running
+`MCP Registry Release` with a release tag such as `v1.2.0`.
+
+Verify the published registry entry with:
+
+```bash
+curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.swimmwatch/cloakbrowser-mcp"
+```
 
 ## Security Workflows
 
@@ -192,7 +233,8 @@ Before publishing a release:
 - Mark the release as prerelease when publishing a `next` npm version.
 - Confirm the npm Trusted Publisher is configured for `npm-release.yml` and
   `npm-production`.
-- Confirm `npm-production` and `docker-production` environments exist.
+- Confirm `npm-production`, `docker-production`, and `mcp-registry-production`
+  environments exist.
 - Confirm GitHub code scanning is enabled if SARIF upload visibility is needed.
 - Confirm GHCR package visibility is public after the first Docker publish.
 

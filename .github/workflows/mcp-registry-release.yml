@@ -1,0 +1,119 @@
+name: MCP Registry Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: Release tag to publish, for example v1.2.0.
+        required: true
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name || inputs.version_tag }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  NODE_VERSION: '22'
+  MCP_REGISTRY_SERVER_NAME: io.github.swimmwatch/cloakbrowser-mcp
+  MCP_REGISTRY_PACKAGE_NAME: cloakbrowser-mcp
+  MCP_REGISTRY_IMAGE_NAME: ghcr.io/swimmwatch/cloakbrowser-mcp
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    environment: mcp-registry-production
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.version_tag }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          package-manager-cache: false
+
+      - run: npm ci --ignore-scripts
+
+      - id: release
+        name: Apply release version from tag
+        env:
+          RELEASE_VERSION_TAG: ${{ github.event.release.tag_name || inputs.version_tag }}
+        run: npm run version:apply -- "$RELEASE_VERSION_TAG"
+
+      - name: Wait for npm package
+        env:
+          PACKAGE_NAME: ${{ env.MCP_REGISTRY_PACKAGE_NAME }}
+          PACKAGE_VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          package="${PACKAGE_NAME}@${PACKAGE_VERSION}"
+          for attempt in $(seq 1 120); do
+            if npm view "$package" version >/dev/null 2>&1; then
+              echo "$package is available on npm"
+              exit 0
+            fi
+            echo "Waiting for $package on npm ($attempt/120)"
+            sleep 30
+          done
+          echo "::error title=npm package not available::$package was not visible after waiting"
+          exit 1
+
+      - name: Wait for Docker image
+        env:
+          IMAGE_REF: ${{ env.MCP_REGISTRY_IMAGE_NAME }}:${{ steps.release.outputs.docker_version }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 120); do
+            if docker manifest inspect "$IMAGE_REF" >/dev/null 2>&1; then
+              echo "$IMAGE_REF is available in GHCR"
+              exit 0
+            fi
+            echo "Waiting for $IMAGE_REF in GHCR ($attempt/120)"
+            sleep 30
+          done
+          echo "::error title=Docker image not available::$IMAGE_REF was not visible after waiting"
+          exit 1
+
+      - run: npm run server:validate
+
+      - name: Install mcp-publisher
+        run: |
+          set -euo pipefail
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+          chmod +x mcp-publisher
+
+      - name: Validate server metadata with mcp-publisher
+        run: ./mcp-publisher validate server.json
+
+      - name: Authenticate to MCP Registry
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish to MCP Registry
+        run: ./mcp-publisher publish server.json
+
+      - name: Verify registry entry
+        env:
+          SERVER_NAME: ${{ env.MCP_REGISTRY_SERVER_NAME }}
+          SERVER_VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 20); do
+            response="$(curl -fsSL "https://registry.modelcontextprotocol.io/v0.1/servers?search=${SERVER_NAME}")"
+            echo "$response" | jq .
+            count="$(echo "$response" | jq --arg name "$SERVER_NAME" --arg version "$SERVER_VERSION" '[.servers[] | select(.name == $name and .version == $version)] | length')"
+            if [ "$count" = "1" ]; then
+              echo "$SERVER_NAME version $SERVER_VERSION is visible in the MCP Registry"
+              exit 0
+            fi
+            echo "Waiting for $SERVER_NAME version $SERVER_VERSION in the MCP Registry ($attempt/20)"
+            sleep 15
+          done
+          echo "::error title=MCP Registry verification failed::Could not find $SERVER_NAME version $SERVER_VERSION"
+          exit 1
