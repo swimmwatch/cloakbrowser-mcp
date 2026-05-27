@@ -389,7 +389,7 @@ jobs:
           package-manager-cache: false
 
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
       - name: Notify IndexNow
         if: ${{ env.INDEXNOW_KEY != '' }}
