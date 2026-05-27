@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Replaced the separate npm, Docker, documentation, and MCP Registry release workflows with one unified `Release` workflow.
 - Simplified the local `MCP Registry Publish` composite action so npm and Docker publication ordering is handled by workflow job dependencies.
+- Added Glama ownership metadata, score badge, and release checklist documentation before the stable `1.2.5` release.
 
 ### Fixed
 
