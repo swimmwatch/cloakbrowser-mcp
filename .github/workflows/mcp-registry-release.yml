@@ -31,8 +31,6 @@ jobs:
     environment: mcp-registry-production
     steps:
       - uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event.release.tag_name || inputs.version_tag }}
 
       - uses: actions/setup-node@v6
         with:

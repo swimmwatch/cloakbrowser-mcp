@@ -13,6 +13,14 @@ if (typeof schemaUrl !== 'string' || schemaUrl.length === 0) {
   throw new Error(`${serverJsonPath} must declare a non-empty $schema URL.`);
 }
 
+for (const [index, pkg] of (serverJson.packages ?? []).entries()) {
+  if (pkg?.registryType === 'oci' && Object.hasOwn(pkg, 'registryBaseUrl')) {
+    throw new Error(
+      `${serverJsonPath} package ${index + 1} is an OCI package and must not declare registryBaseUrl; use the canonical image reference in identifier instead.`,
+    );
+  }
+}
+
 const schema = await fetchJson(schemaUrl, {
   userAgent: 'cloakbrowser-mcp-server-validator',
 });
