@@ -1,6 +1,6 @@
 {
   "name": "cloakbrowser-mcp",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Playwright MCP bridge that runs upstream browser tools with CloakBrowser.",
   "mcpName": "io.github.swimmwatch/cloakbrowser-mcp",
   "type": "module",
