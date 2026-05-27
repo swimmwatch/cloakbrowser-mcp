@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-05-27
+
+### Fixed
+
+- Fixed MCP Registry release verification to use the official registry API response shape.
+- Made MCP Registry release reruns skip publishing when the target server version is already visible.
+
 ## [1.2.1] - 2026-05-27
 
 ### Fixed
@@ -79,7 +86,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.0.2...v1.1.0
