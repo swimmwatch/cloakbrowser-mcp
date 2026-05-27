@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.5] - 2026-05-27
+
+### Changed
+
+- Replaced the separate npm, Docker, documentation, and MCP Registry release workflows with one unified `Release` workflow.
+- Simplified the local `MCP Registry Publish` composite action so npm and Docker publication ordering is handled by workflow job dependencies.
+
 ### Fixed
 
 - Added retries with fresh GitHub OIDC login attempts around MCP Registry publishing to tolerate transient registry gateway timeouts.
@@ -97,7 +104,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.3...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.5...HEAD
+[1.2.5]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.3...v1.2.5
 [1.2.3]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.0...v1.2.1
