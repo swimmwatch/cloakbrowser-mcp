@@ -1,7 +1,7 @@
 {
   "name": "CloakBrowser MCP",
   "short_name": "Cloak MCP",
-  "description": "Model Context Protocol server for CloakBrowser stealth Chromium automation.",
+  "description": "Model Context Protocol server for CloakBrowser Chromium browser automation.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

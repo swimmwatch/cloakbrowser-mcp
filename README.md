@@ -35,6 +35,7 @@ The server is intentionally thin:
 
 | cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base | CloakBrowser | Node.js | Transport | Platform | Parity |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| `1.2.6` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
 | `1.2.5` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
 | `1.2.3` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
 | `1.2.2` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
@@ -46,6 +47,18 @@ The server is intentionally thin:
 | `1.0.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
 
 See [Version Compatibility](docs/version-compatibility.md) for the maintained compatibility table.
+
+## Registry visibility
+
+`cloakbrowser-mcp` publishes `server.json` to the official [MCP Registry](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.swimmwatch%2Fcloakbrowser-mcp). GitHub's [`github.com/mcp`](https://github.com/mcp) registry is a separate curated discovery surface, so an official MCP Registry release may not appear there immediately.
+
+Verify the current official registry entry and GitHub MCP visibility probe with:
+
+```bash
+npm run registry:check
+```
+
+Use `npm run registry:check:strict` only when GitHub MCP listing visibility should be treated as a required release gate.
 
 ## Run from npm
 

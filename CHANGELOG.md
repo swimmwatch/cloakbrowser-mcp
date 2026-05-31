@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.6] - 2026-05-31
+
+### Added
+
+- Added a registry verification script for official MCP Registry, npm package,
+  GHCR image, and GitHub MCP Registry visibility checks.
+- Added documentation that distinguishes official MCP Registry publication from
+  GitHub's curated `github.com/mcp` registry surface.
+
+### Changed
+
+- Refined registry-facing package and server metadata to describe the project
+  as a Playwright MCP-compatible browser automation bridge.
+
 ## [1.2.5] - 2026-05-27
 
 ### Changed
@@ -105,7 +119,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.5...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.6...HEAD
+[1.2.6]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.5...v1.2.6
 [1.2.5]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.3...v1.2.5
 [1.2.3]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.1...v1.2.2

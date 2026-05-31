@@ -1,7 +1,7 @@
 {
   "name": "cloakbrowser-mcp",
-  "version": "1.2.5",
-  "description": "Playwright MCP bridge that runs upstream browser tools with CloakBrowser.",
+  "version": "1.2.6",
+  "description": "Playwright MCP-compatible browser automation bridge for CloakBrowser Chromium.",
   "mcpName": "io.github.swimmwatch/cloakbrowser-mcp",
   "type": "module",
   "packageManager": "npm@10.9.2",
@@ -50,6 +50,8 @@
     "docs:seo:validate": "node scripts/validate-docs-seo.mjs",
     "version:apply": "node scripts/apply-release-version.mjs",
     "server:validate": "node scripts/validate-server-json.mjs",
+    "registry:check": "node scripts/check-github-mcp-registry.mjs",
+    "registry:check:strict": "node scripts/check-github-mcp-registry.mjs --strict",
     "audit:prod": "npm audit --omit=dev --audit-level=high",
     "package:verify": "npm run build && npm run server:validate && node scripts/verify-npm-package.mjs",
     "docker:build": "docker buildx build --load -t cloakbrowser-mcp:dev --build-arg RELEASE_VERSION=$npm_package_version --build-arg RELEASE_VERSION_TAG=v$npm_package_version .",
@@ -88,7 +90,7 @@
     "cloakbrowser",
     "browser-automation",
     "playwright",
-    "stealth",
+    "chromium",
     "ai-agent"
   ],
   "repository": {

@@ -9,7 +9,7 @@ tags:
 # Release
 
 Releases are driven by a published GitHub Release whose tag is a semver value
-prefixed with `v`, for example `v1.2.5`.
+prefixed with `v`, for example `v1.2.6`.
 
 The unified `Release` workflow resolves the tag once, then passes the derived `version`,
 `version_tag`, and Docker-safe image tag through npm packaging, Docker build
@@ -155,7 +155,16 @@ Verify the published registry entry with:
 
 ```bash
 curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.swimmwatch/cloakbrowser-mcp"
+npm run registry:check
 ```
+
+GitHub's `https://github.com/mcp` registry is a separate curated discovery
+surface. Publishing to the official MCP Registry is required, but it does not
+guarantee immediate visibility on GitHub's `/mcp` page. Treat `npm run
+registry:check` as a release verification tool for the official registry, npm,
+GHCR, and a best-effort GitHub MCP visibility probe. Use `npm run
+registry:check:strict` only after GitHub MCP visibility should become a hard
+gate.
 
 ## Glama Directory Checklist
 
@@ -175,7 +184,7 @@ Before publishing a stable release, complete the free Glama checklist:
   engine, headless mode, stdout output, and `/data` artifact storage;
 - click Deploy and wait for the build test to pass;
 - create and publish a Glama release with the same version as the GitHub
-  release, for example `1.2.5`;
+  release, for example `1.2.6`;
 - use the Glama "Try in Browser" feature once after release to seed initial
   usage;
 - add related servers manually, at minimum the official Playwright MCP server,
@@ -262,7 +271,7 @@ npm run upstream:check
 Before publishing a release:
 
 - Merge only after `Actionlint` and `CI` are green.
-- Create a GitHub Release from a tag like `v1.2.5`.
+- Create a GitHub Release from a tag like `v1.2.6`.
 - Mark the release as prerelease when publishing a `next` npm version.
 - Confirm the npm Trusted Publisher is configured for `release.yml` and
   `npm-production`.
