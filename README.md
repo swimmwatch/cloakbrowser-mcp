@@ -15,6 +15,7 @@
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-published-2E8555)](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.swimmwatch%2Fcloakbrowser-mcp)
 [![cloakbrowser-mcp MCP server](https://glama.ai/mcp/servers/swimmwatch/cloakbrowser-mcp/badges/score.svg)](https://glama.ai/mcp/servers/swimmwatch/cloakbrowser-mcp)
 [![npm](https://img.shields.io/npm/v/cloakbrowser-mcp.svg?logo=npm)](https://www.npmjs.com/package/cloakbrowser-mcp)
+[![Docker Hub pulls](https://img.shields.io/docker/pulls/swimmwatch/cloakbrowser-mcp?logo=docker&label=Docker%20Hub)](https://hub.docker.com/r/swimmwatch/cloakbrowser-mcp)
 [![Node.js >=20](https://img.shields.io/badge/Node.js-%3E%3D20-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![MCP Server](https://img.shields.io/badge/MCP-server-000000)](https://modelcontextprotocol.io/)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](docs/docker.md)
@@ -35,6 +36,7 @@ The server is intentionally thin:
 
 | cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base | CloakBrowser | Node.js | Transport | Platform | Parity |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| `1.2.7` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
 | `1.2.6` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
 | `1.2.5` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
 | `1.2.3` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
@@ -75,18 +77,19 @@ For the complete generated CLI flag reference, see the published [CLI Reference]
 ## Run from Docker
 
 ```bash
-docker pull ghcr.io/swimmwatch/cloakbrowser-mcp:latest
+docker pull swimmwatch/cloakbrowser-mcp:latest
 docker run --rm --init -i \
   -v "$PWD/artifacts:/data" \
-  ghcr.io/swimmwatch/cloakbrowser-mcp:latest
+  swimmwatch/cloakbrowser-mcp:latest
 
 docker run --rm --init -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
-  ghcr.io/swimmwatch/cloakbrowser-mcp:latest \
+  swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
 ```
 
 The Docker image is based on the pinned official Playwright MCP image, installs the bridge under `/opt/cloakbrowser-mcp`, and writes artifacts to `/data` by default.
+The same tags are also published to `ghcr.io/swimmwatch/cloakbrowser-mcp`.
 
 ## MCP client configuration
 
@@ -121,7 +124,7 @@ The Docker image is based on the pinned official Playwright MCP image, installs 
         "-i",
         "-v",
         "/tmp/cloakbrowser-artifacts:/data",
-        "ghcr.io/swimmwatch/cloakbrowser-mcp:latest"
+        "swimmwatch/cloakbrowser-mcp:latest"
       ]
     }
   }

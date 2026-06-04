@@ -23,6 +23,7 @@ env:
   NPM_CONFIG_FUND: 'false'
   NODE_IMAGE_TAG: 22-bookworm-slim
   DOCKER_REGISTRY: ghcr.io
+  DOCKERHUB_IMAGE: swimmwatch/cloakbrowser-mcp
   IMAGE_NAME: cloakbrowser-mcp
   IMAGE_TITLE: cloakbrowser-mcp
   IMAGE_DESCRIPTION: Playwright MCP bridge that runs upstream browser tools with CloakBrowser
@@ -259,16 +260,25 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
 
-      - uses: docker/login-action@v4
+      - name: Login to GHCR
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.DOCKER_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          images: |
+            ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+            ${{ env.DOCKERHUB_IMAGE }}
           tags: |
             type=raw,value=${{ needs.metadata.outputs.docker_tag }}
             type=raw,value=${{ needs.metadata.outputs.docker_version }}
@@ -309,6 +319,15 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ env.DOCKER_CACHE_SCOPE }},ignore-error=true
           sbom: true
           provenance: mode=max
+
+      - name: Update Docker Hub overview
+        uses: peter-evans/dockerhub-description@v5
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ env.DOCKERHUB_IMAGE }}
+          readme-filepath: ./docs/dockerhub-readme.md
+          short-description: CloakBrowser-backed Playwright MCP browser automation for AI agents
 
   docs-build:
     runs-on: ubuntu-latest

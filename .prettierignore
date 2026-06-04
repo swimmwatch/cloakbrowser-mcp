@@ -1,6 +1,7 @@
 dist
 coverage
 artifacts
+.playwright-mcp
 node_modules
 *.md
 *.png

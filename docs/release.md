@@ -9,7 +9,7 @@ tags:
 # Release
 
 Releases are driven by a published GitHub Release whose tag is a semver value
-prefixed with `v`, for example `v1.2.6`.
+prefixed with `v`, for example `v1.2.7`.
 
 The unified `Release` workflow resolves the tag once, then passes the derived `version`,
 `version_tag`, and Docker-safe image tag through npm packaging, Docker build
@@ -75,10 +75,18 @@ Docker images are published to:
 
 ```text
 ghcr.io/swimmwatch/cloakbrowser-mcp
+docker.io/swimmwatch/cloakbrowser-mcp
 ```
 
 The `docker` job uses the repository `GITHUB_TOKEN` with
-`packages: write`. No extra Docker token is required for GHCR.
+`packages: write` for GHCR. Docker Hub publishing requires
+`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` in the `docker-production`
+environment or repository secrets.
+
+The workflow updates the Docker Hub repository overview after a successful
+image push. Docker Hub does not pull the root `README.md` automatically for
+this GitHub Actions release flow; the Docker Hub-specific overview is
+maintained in `docs/dockerhub-readme.md`.
 
 Before pushing the release image, the workflow:
 
@@ -108,7 +116,7 @@ image scans. SARIF results are uploaded to GitHub code scanning when code
 scanning is enabled.
 
 After the first publish, confirm the GHCR package is public and linked to this
-repository.
+repository, and confirm the Docker Hub repository is public.
 
 Docker multi-platform publishing is intentionally limited to `linux/amd64`
 until CloakBrowser and upstream Playwright MCP behavior are verified on other
@@ -162,7 +170,7 @@ GitHub's `https://github.com/mcp` registry is a separate curated discovery
 surface. Publishing to the official MCP Registry is required, but it does not
 guarantee immediate visibility on GitHub's `/mcp` page. Treat `npm run
 registry:check` as a release verification tool for the official registry, npm,
-GHCR, and a best-effort GitHub MCP visibility probe. Use `npm run
+GHCR, Docker Hub, and a best-effort GitHub MCP visibility probe. Use `npm run
 registry:check:strict` only after GitHub MCP visibility should become a hard
 gate.
 
@@ -184,7 +192,7 @@ Before publishing a stable release, complete the free Glama checklist:
   engine, headless mode, stdout output, and `/data` artifact storage;
 - click Deploy and wait for the build test to pass;
 - create and publish a Glama release with the same version as the GitHub
-  release, for example `1.2.6`;
+  release, for example `1.2.7`;
 - use the Glama "Try in Browser" feature once after release to seed initial
   usage;
 - add related servers manually, at minimum the official Playwright MCP server,
@@ -271,7 +279,7 @@ npm run upstream:check
 Before publishing a release:
 
 - Merge only after `Actionlint` and `CI` are green.
-- Create a GitHub Release from a tag like `v1.2.6`.
+- Create a GitHub Release from a tag like `v1.2.7`.
 - Mark the release as prerelease when publishing a `next` npm version.
 - Confirm the npm Trusted Publisher is configured for `release.yml` and
   `npm-production`.
