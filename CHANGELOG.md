@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Added Docker Hub publication and MCP Registry metadata for
   `docker.io/swimmwatch/cloakbrowser-mcp` alongside GHCR.
+- Added automatic Docker Hub repository overview updates from a
+  Docker-specific README.
 
 ## [1.2.6] - 2026-05-31
 

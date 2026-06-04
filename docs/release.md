@@ -83,6 +83,11 @@ The `docker` job uses the repository `GITHUB_TOKEN` with
 `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` in the `docker-production`
 environment or repository secrets.
 
+The workflow updates the Docker Hub repository overview after a successful
+image push. Docker Hub does not pull the root `README.md` automatically for
+this GitHub Actions release flow; the Docker Hub-specific overview is
+maintained in `docs/dockerhub-readme.md`.
+
 Before pushing the release image, the workflow:
 
 - applies the release version;

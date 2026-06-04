@@ -11,6 +11,7 @@ site_dir: site
 hooks:
   - docs/hooks/generate_cli_docs.py
 exclude_docs: |
+  dockerhub-readme.md
   hooks/
   overrides/
   requirements.txt
