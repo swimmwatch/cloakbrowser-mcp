@@ -24,7 +24,7 @@ npx -y cloakbrowser-mcp@latest --transport streamable-http --http-port 3000
 Pin a release when reproducibility matters:
 
 ```bash
-npx -y cloakbrowser-mcp@1.2.6
+npx -y cloakbrowser-mcp@1.2.7
 ```
 
 The npm package requires Node.js 20 or newer. CloakBrowser downloads its Chromium binary on first use unless it is already cached.
@@ -56,10 +56,10 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
 Pin a release when reproducibility matters:
 
 ```bash
-docker pull swimmwatch/cloakbrowser-mcp:1.2.6
+docker pull swimmwatch/cloakbrowser-mcp:1.2.7
 docker run --rm --init -i \
   -v "$PWD/artifacts:/data" \
-  swimmwatch/cloakbrowser-mcp:1.2.6
+  swimmwatch/cloakbrowser-mcp:1.2.7
 ```
 
 ## MCP Client Config

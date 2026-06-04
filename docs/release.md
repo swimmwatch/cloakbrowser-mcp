@@ -9,7 +9,7 @@ tags:
 # Release
 
 Releases are driven by a published GitHub Release whose tag is a semver value
-prefixed with `v`, for example `v1.2.6`.
+prefixed with `v`, for example `v1.2.7`.
 
 The unified `Release` workflow resolves the tag once, then passes the derived `version`,
 `version_tag`, and Docker-safe image tag through npm packaging, Docker build
@@ -192,7 +192,7 @@ Before publishing a stable release, complete the free Glama checklist:
   engine, headless mode, stdout output, and `/data` artifact storage;
 - click Deploy and wait for the build test to pass;
 - create and publish a Glama release with the same version as the GitHub
-  release, for example `1.2.6`;
+  release, for example `1.2.7`;
 - use the Glama "Try in Browser" feature once after release to seed initial
   usage;
 - add related servers manually, at minimum the official Playwright MCP server,
@@ -279,7 +279,7 @@ npm run upstream:check
 Before publishing a release:
 
 - Merge only after `Actionlint` and `CI` are green.
-- Create a GitHub Release from a tag like `v1.2.6`.
+- Create a GitHub Release from a tag like `v1.2.7`.
 - Mark the release as prerelease when publishing a `next` npm version.
 - Confirm the npm Trusted Publisher is configured for `release.yml` and
   `npm-production`.
