@@ -5,7 +5,8 @@
 Documentation: https://swimmwatch.github.io/cloakbrowser-mcp/
 Repository: https://github.com/swimmwatch/cloakbrowser-mcp
 npm package: https://www.npmjs.com/package/cloakbrowser-mcp
-Docker image: https://github.com/swimmwatch/cloakbrowser-mcp/pkgs/container/cloakbrowser-mcp
+Docker Hub image: https://hub.docker.com/r/swimmwatch/cloakbrowser-mcp
+GHCR image: https://github.com/swimmwatch/cloakbrowser-mcp/pkgs/container/cloakbrowser-mcp
 
 ## Key Pages
 

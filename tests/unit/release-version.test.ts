@@ -46,6 +46,7 @@ describe('release version script', () => {
           packages: [
             { registryType: 'npm', version: '0.0.0' },
             { registryType: 'oci', identifier: 'ghcr.io/swimmwatch/cloakbrowser-mcp:0.0.0' },
+            { registryType: 'oci', identifier: 'docker.io/swimmwatch/cloakbrowser-mcp:0.0.0' },
           ],
         },
         null,
@@ -58,7 +59,11 @@ describe('release version script', () => {
     );
     writeFileSync(
       path.join(root, 'docs/getting-started.md'),
-      ['npx -y cloakbrowser-mcp@0.0.0', 'docker pull ghcr.io/swimmwatch/cloakbrowser-mcp:0.0.0'].join('\n'),
+      [
+        'npx -y cloakbrowser-mcp@0.0.0',
+        'docker pull swimmwatch/cloakbrowser-mcp:0.0.0',
+        'docker pull ghcr.io/swimmwatch/cloakbrowser-mcp:0.0.0',
+      ].join('\n'),
     );
 
     const githubOutputPath = path.join(root, 'github-output');
@@ -88,12 +93,18 @@ describe('release version script', () => {
     expect(serverJson.version).toBe('2.3.4-beta.1+build');
     expect(serverJson.packages[0]?.version).toBe('2.3.4-beta.1+build');
     expect(serverJson.packages[1]?.identifier).toBe('ghcr.io/swimmwatch/cloakbrowser-mcp:2.3.4-beta.1-build');
+    expect(serverJson.packages[2]?.identifier).toBe(
+      'docker.io/swimmwatch/cloakbrowser-mcp:2.3.4-beta.1-build',
+    );
     expect(readFileSync(path.join(root, 'docs/index.md'), 'utf8')).toContain('v2.3.4-beta.1+build');
     expect(readFileSync(path.join(root, 'docs/getting-started.md'), 'utf8')).toContain(
       'cloakbrowser-mcp@2.3.4-beta.1+build',
     );
     expect(readFileSync(path.join(root, 'docs/getting-started.md'), 'utf8')).toContain(
       'ghcr.io/swimmwatch/cloakbrowser-mcp:2.3.4-beta.1-build',
+    );
+    expect(readFileSync(path.join(root, 'docs/getting-started.md'), 'utf8')).toContain(
+      'swimmwatch/cloakbrowser-mcp:2.3.4-beta.1-build',
     );
     expect(outputs).toEqual({
       docker_major_minor: '2.3',

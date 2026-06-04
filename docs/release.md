@@ -75,10 +75,13 @@ Docker images are published to:
 
 ```text
 ghcr.io/swimmwatch/cloakbrowser-mcp
+docker.io/swimmwatch/cloakbrowser-mcp
 ```
 
 The `docker` job uses the repository `GITHUB_TOKEN` with
-`packages: write`. No extra Docker token is required for GHCR.
+`packages: write` for GHCR. Docker Hub publishing requires
+`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` in the `docker-production`
+environment or repository secrets.
 
 Before pushing the release image, the workflow:
 
@@ -108,7 +111,7 @@ image scans. SARIF results are uploaded to GitHub code scanning when code
 scanning is enabled.
 
 After the first publish, confirm the GHCR package is public and linked to this
-repository.
+repository, and confirm the Docker Hub repository is public.
 
 Docker multi-platform publishing is intentionally limited to `linux/amd64`
 until CloakBrowser and upstream Playwright MCP behavior are verified on other
@@ -162,7 +165,7 @@ GitHub's `https://github.com/mcp` registry is a separate curated discovery
 surface. Publishing to the official MCP Registry is required, but it does not
 guarantee immediate visibility on GitHub's `/mcp` page. Treat `npm run
 registry:check` as a release verification tool for the official registry, npm,
-GHCR, and a best-effort GitHub MCP visibility probe. Use `npm run
+GHCR, Docker Hub, and a best-effort GitHub MCP visibility probe. Use `npm run
 registry:check:strict` only after GitHub MCP visibility should become a hard
 gate.
 

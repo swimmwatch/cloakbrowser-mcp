@@ -75,18 +75,19 @@ For the complete generated CLI flag reference, see the published [CLI Reference]
 ## Run from Docker
 
 ```bash
-docker pull ghcr.io/swimmwatch/cloakbrowser-mcp:latest
+docker pull swimmwatch/cloakbrowser-mcp:latest
 docker run --rm --init -i \
   -v "$PWD/artifacts:/data" \
-  ghcr.io/swimmwatch/cloakbrowser-mcp:latest
+  swimmwatch/cloakbrowser-mcp:latest
 
 docker run --rm --init -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
-  ghcr.io/swimmwatch/cloakbrowser-mcp:latest \
+  swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
 ```
 
 The Docker image is based on the pinned official Playwright MCP image, installs the bridge under `/opt/cloakbrowser-mcp`, and writes artifacts to `/data` by default.
+The same tags are also published to `ghcr.io/swimmwatch/cloakbrowser-mcp`.
 
 ## MCP client configuration
 
@@ -121,7 +122,7 @@ The Docker image is based on the pinned official Playwright MCP image, installs 
         "-i",
         "-v",
         "/tmp/cloakbrowser-artifacts:/data",
-        "ghcr.io/swimmwatch/cloakbrowser-mcp:latest"
+        "swimmwatch/cloakbrowser-mcp:latest"
       ]
     }
   }

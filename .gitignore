@@ -18,6 +18,7 @@ junit.xml
 
 # Runtime artifacts and browser caches
 /artifacts/
+/.playwright-mcp/
 /.cloakbrowser/
 /.cloakbrowser-mcp/
 

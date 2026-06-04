@@ -46,10 +46,9 @@ const report = {
     version: null,
     url: null,
   },
-  ghcr: {
+  oci: {
     status: 'unknown',
-    image: null,
-    url: null,
+    images: [],
   },
   githubMcp: {
     status: 'unknown',
@@ -114,7 +113,7 @@ async function run() {
   }
 
   await checkNpmPackage(targetEntry.server, targetVersion);
-  await checkOciPackage(targetEntry.server);
+  await checkOciPackages(targetEntry.server);
   await checkGitHubMcpListing(targetEntry.server);
 }
 
@@ -149,25 +148,32 @@ async function checkNpmPackage(server, targetVersion) {
   }
 }
 
-async function checkOciPackage(server) {
-  const ociPackage = server.packages?.find((pkg) => pkg.registryType === 'oci');
+async function checkOciPackages(server) {
+  const ociPackages = server.packages?.filter((pkg) => pkg.registryType === 'oci') ?? [];
 
-  if (!ociPackage) {
+  if (ociPackages.length === 0) {
     report.errors.push(`${server.name}@${server.version} has no OCI package in server.json`);
-    report.ghcr.status = 'missing';
+    report.oci.status = 'missing';
     return;
   }
 
-  const image = String(ociPackage.identifier);
-  const result = await checkOciManifest(image);
+  for (const ociPackage of ociPackages) {
+    const image = String(ociPackage.identifier);
+    const result = await checkOciManifest(image);
 
-  report.ghcr.image = image;
-  report.ghcr.url = result.url;
-  report.ghcr.status = result.ok ? 'ok' : 'failed';
+    report.oci.images.push({
+      image,
+      registry: formatOciRegistryName(image),
+      status: result.ok ? 'ok' : 'failed',
+      url: result.url,
+    });
 
-  if (!result.ok) {
-    report.errors.push(`OCI image ${image} is not available: HTTP ${result.status}`);
+    if (!result.ok) {
+      report.errors.push(`OCI image ${image} is not available: HTTP ${result.status}`);
+    }
   }
+
+  report.oci.status = report.oci.images.every((image) => image.status === 'ok') ? 'ok' : 'failed';
 }
 
 async function checkGitHubMcpListing(server) {
@@ -256,7 +262,8 @@ function selectLatestEntry(entries) {
 
 async function checkOciManifest(identifier) {
   const parsed = parseOciIdentifier(identifier);
-  const url = `https://${parsed.registry}/v2/${parsed.repository}/manifests/${encodeURIComponent(parsed.tag)}`;
+  const registryApiHost = getOciRegistryApiHost(parsed.registry);
+  const url = `https://${registryApiHost}/v2/${parsed.repository}/manifests/${encodeURIComponent(parsed.tag)}`;
   const firstResponse = await fetchWithStatus(url, {
     headers: {
       Accept: manifestAccept,
@@ -323,6 +330,24 @@ function parseOciIdentifier(identifier) {
     repository: image.slice(0, tagSeparator),
     tag: image.slice(tagSeparator + 1),
   };
+}
+
+function getOciRegistryApiHost(registry) {
+  return registry === 'docker.io' ? 'registry-1.docker.io' : registry;
+}
+
+function formatOciRegistryName(identifier) {
+  const parsed = parseOciIdentifier(identifier);
+
+  if (parsed.registry === 'ghcr.io') {
+    return 'GHCR';
+  }
+
+  if (parsed.registry === 'docker.io') {
+    return 'Docker Hub';
+  }
+
+  return parsed.registry;
 }
 
 function createBearerTokenUrl(authHeader, fallbackScope) {
@@ -435,9 +460,17 @@ function printReport(value) {
     `Target version: ${value.targetVersion ?? 'unknown'} (local: ${value.localVersion})`,
     `Official MCP Registry: ${value.officialRegistry.status} (${value.officialRegistry.url})`,
     `npm package: ${value.npm.status} ${value.npm.package}@${value.npm.version ?? 'unknown'}`,
-    `OCI image: ${value.ghcr.status} ${value.ghcr.image ?? 'unknown'}`,
+    `OCI images: ${value.oci.status}`,
     `GitHub MCP Registry: ${value.githubMcp.status}`,
   ];
+
+  if (value.oci.images.length > 0) {
+    lines.push('OCI image URLs checked:');
+
+    for (const image of value.oci.images) {
+      lines.push(`- ${image.registry}: ${image.status} ${image.image} (${image.url})`);
+    }
+  }
 
   if (value.githubMcp.checkedUrls.length > 0) {
     lines.push('GitHub MCP URLs checked:');
