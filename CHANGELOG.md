@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Updated CloakBrowser dependency to `^0.3.31`.
 - Updated documentation dependency minimums for MkDocs plugins.
+- Updated npm development dependency minimums to current compatible releases.
 - Expanded Node.js workflow check coverage across major versions 20 through
   26.
 - Updated the project Pull Request skill to assign PRs to the authenticated
