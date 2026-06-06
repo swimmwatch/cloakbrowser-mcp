@@ -64,7 +64,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.0",
     "@playwright/mcp": "^0.0.75",
-    "cloakbrowser": "^0.3.30",
+    "cloakbrowser": "^0.3.31",
     "commander": "^14.0.3"
   },
   "devDependencies": {
