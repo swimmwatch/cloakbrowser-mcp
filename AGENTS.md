@@ -92,6 +92,7 @@ For Pull Request creation, updates, or review-prep requests, read and follow `.a
 ## Commit And PR Hygiene
 
 - One logical change per commit.
+- Before creating a commit for local changes, ask the user for explicit confirmation that the commit should be created.
 - Commit messages must follow Conventional Commits `1.0.0`.
 - The pinned specification URL is `https://www.conventionalcommits.org/en/v1.0.0/`.
 - Before creating a commit, open and scan the pinned specification, then choose the commit `type`, optional `scope`, optional breaking-change marker, subject, body, and footers according to that version.
