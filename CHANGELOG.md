@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Added a project release skill for AI agents to prepare, publish, verify, and
+  recover releases.
+
+### Changed
+
+- Updated CloakBrowser dependency to `^0.3.31`.
+
 ## [1.2.7] - 2026-06-04
 
 ### Added
