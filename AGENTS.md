@@ -78,6 +78,38 @@ npm run check
 - Integration tests live under `tests/integration/`.
 - Use the fake upstream MCP server for proxy behavior.
 - Tests must write only to `tmpdir()` paths they create and clean up.
+- Prefer property-based tests for parsers, option normalization, environment
+  handling, and other boundary-heavy pure logic.
+
+## Supply Chain And GitHub Security
+
+- Keep GitHub workflow permissions least-privilege: use top-level
+  `contents: read`, and declare write permissions only on the specific job that
+  needs them.
+- Pin external GitHub Actions by full commit SHA. Keep the intended upstream
+  version in a trailing comment, for example `# v6`, so updates remain
+  reviewable.
+- Pin Docker images used by the Dockerfile and workflows with `tag@sha256:...`
+  references. Preserve the readable tag next to the digest.
+- Use image reference variables such as `NODE_IMAGE_REF` for pinned image refs;
+  avoid tag-only variables for build inputs.
+- When changing the pinned upstream Playwright MCP image, keep
+  `scripts/lib/playwright-mcp-upstream.mjs` able to read the tag from a
+  `tag@sha256:...` value.
+- Do not disable zizmor or OpenSSF Scorecard findings broadly. Suppress only a
+  narrowly scoped finding with a clear reason.
+- Run actionlint and zizmor after workflow, Docker, token permission, or
+  registry publishing changes:
+
+```bash
+docker run --rm -v "$PWD:/repo" --workdir /repo docker.io/rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color
+python3 -m pipx run zizmor --min-severity high .
+```
+
+- Keep `SECURITY.md` actionable with a private vulnerability reporting path.
+- Repository settings such as branch protection, rulesets, required reviewers,
+  and required checks are maintainer-controlled. Do not change them without
+  explicit confirmation of the exact policy.
 
 ## Documentation
 
@@ -92,6 +124,7 @@ For Pull Request creation, updates, or review-prep requests, read and follow `.a
 ## Commit And PR Hygiene
 
 - One logical change per commit.
+- Before creating a commit for local changes, ask the user for explicit confirmation that the commit should be created.
 - Commit messages must follow Conventional Commits `1.0.0`.
 - The pinned specification URL is `https://www.conventionalcommits.org/en/v1.0.0/`.
 - Before creating a commit, open and scan the pinned specification, then choose the commit `type`, optional `scope`, optional breaking-change marker, subject, body, and footers according to that version.

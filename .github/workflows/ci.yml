@@ -10,21 +10,30 @@ concurrency:
 
 permissions:
   contents: read
-  security-events: write
 
 env:
   CI_DOCKER_IMAGE: cloakbrowser-mcp:ci
   DOCKER_CACHE_SCOPE: cloakbrowser-mcp-docker
-  NODE_IMAGE_TAG: 22-bookworm-slim
-  PLAYWRIGHT_MCP_IMAGE: mcr.microsoft.com/playwright/mcp:v0.0.75
+  NODE_CHECK_VERSIONS: '["20", "21", "22", "23", "24", "25", "26"]'
+  NODE_IMAGE_REF: node:22-bookworm-slim@sha256:7af03b14a13c8cdd38e45058fd957bf00a72bbe17feac43b1c15a689c029c732
+  PLAYWRIGHT_MCP_IMAGE: mcr.microsoft.com/playwright/mcp:v0.0.75@sha256:d238ec7bc98cc4e22df0696d6031dad5b8a4b46781f4f0abaa3bfadeedb43b9a
 
 jobs:
+  node-versions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      node_versions: ${{ steps.versions.outputs.node_versions }}
+    steps:
+      - id: versions
+        run: echo "node_versions=$NODE_CHECK_VERSIONS" >> "$GITHUB_OUTPUT"
+
   npm-audit:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: 22
           cache: npm
@@ -33,13 +42,14 @@ jobs:
 
   quality:
     runs-on: ubuntu-latest
+    needs: node-versions
     strategy:
       fail-fast: false
       matrix:
-        node-version: [20, 22]
+        node-version: ${{ fromJSON(needs.node-versions.outputs.node_versions) }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
@@ -55,25 +65,31 @@ jobs:
 
   coverage:
     runs-on: ubuntu-latest
-    needs: quality
+    needs:
+      - node-versions
+      - quality
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ${{ fromJSON(needs.node-versions.outputs.node_versions) }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm run test:coverage
-      - uses: codecov/codecov-action@v6
+      - uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6
         with:
           files: ./coverage/lcov.info
-          flags: vitest
-          name: vitest-node20
+          flags: vitest,node${{ matrix.node-version }}
+          name: vitest-node${{ matrix.node-version }}
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: coverage
+          name: coverage-node${{ matrix.node-version }}
           path: coverage/
           if-no-files-found: error
 
@@ -81,15 +97,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: quality
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: '3.12'
           cache: pip
@@ -107,9 +123,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: quality
     timeout-minutes: 45
+    permissions:
+      contents: read
+      security-events: write
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: 22
           cache: npm
@@ -120,7 +139,7 @@ jobs:
           version="$(node -p "require('./package.json').version")"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "version_tag=v$version" >> "$GITHUB_OUTPUT"
-      - uses: docker/setup-buildx-action@v4
+      - uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4
       - id: base
         name: Resolve Playwright MCP base digest
         run: |
@@ -131,14 +150,14 @@ jobs:
           fi
           echo "digest=$digest" >> "$GITHUB_OUTPUT"
       - name: Build image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7
         with:
           context: .
           load: true
           pull: true
           tags: ${{ env.CI_DOCKER_IMAGE }}
           build-args: |
-            NODE_IMAGE_TAG=${{ env.NODE_IMAGE_TAG }}
+            NODE_IMAGE_REF=${{ env.NODE_IMAGE_REF }}
             PLAYWRIGHT_MCP_IMAGE=${{ env.PLAYWRIGHT_MCP_IMAGE }}
             PLAYWRIGHT_MCP_IMAGE_DIGEST=${{ steps.base.outputs.digest }}
             RELEASE_VERSION=${{ steps.package.outputs.version }}
@@ -150,14 +169,14 @@ jobs:
         run: docker run --rm --init "$CI_DOCKER_IMAGE" --help
       - name: Compare with upstream Playwright MCP
         run: npm run bridge:compare -- "$CI_DOCKER_IMAGE" --report bridge-parity-report.json
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: bridge-parity-report
           path: bridge-parity-report.json
           if-no-files-found: warn
       - name: Scan Docker image
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ${{ env.CI_DOCKER_IMAGE }}
           version: v0.70.0
@@ -168,7 +187,7 @@ jobs:
           vuln-type: os,library
           ignore-unfixed: true
           exit-code: '1'
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: trivy-results
@@ -176,6 +195,6 @@ jobs:
           if-no-files-found: warn
       - name: Upload Trivy SARIF
         if: always() && github.event_name != 'pull_request' && hashFiles('trivy-results.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
         with:
           sarif_file: trivy-results.sarif

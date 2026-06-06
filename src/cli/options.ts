@@ -21,6 +21,14 @@ interface CommanderCliOptions {
   httpSessionMax: number;
 }
 
+interface DoctorCliOptions {
+  json?: boolean;
+}
+
+interface CreateCliCommandOptions {
+  doctorAction?: (options: DoctorCliOptions) => Promise<void> | void;
+}
+
 type CliOptionValue = string | number;
 
 interface CliOptionDefinition {
@@ -65,7 +73,7 @@ export const cliOptionDefinitions: readonly CliOptionDefinition[] = [
   {
     name: 'httpEndpoint',
     flags: '--http-endpoint <path>',
-    description: 'Streamable HTTP endpoint path.',
+    description: 'Streamable HTTP endpoint path. Reserved probe paths: /healthz, /readyz.',
     env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_ENDPOINT',
     group: 'Streamable HTTP',
     defaultValue: defaultStreamableHttpOptions.endpoint,
@@ -108,18 +116,21 @@ export const cliOptionDefinitions: readonly CliOptionDefinition[] = [
   },
 ];
 
-export function createCliCommand(version: string): Command {
+export function createCliCommand(version: string, options: CreateCliCommandOptions = {}): Command {
   const command = new Command()
     .name('cloakbrowser-mcp')
     .description(cliDescription)
     .version(version)
     .showHelpAfterError()
     .showSuggestionAfterError()
-    .allowExcessArguments(false);
+    .allowExcessArguments(false)
+    .action(() => undefined);
 
   for (const definition of cliOptionDefinitions) {
     command.addOption(createCommanderOption(definition));
   }
+
+  command.addCommand(createDoctorCommand(options.doctorAction));
 
   return command;
 }
@@ -151,10 +162,32 @@ This page is generated from the Commander.js CLI definition during MkDocs builds
 ${command.helpInformation().trimEnd()}
 \`\`\`
 
+## Commands
+
+### \`doctor\`
+
+\`\`\`text
+${createDoctorCommand().helpInformation().trimEnd()}
+\`\`\`
+
 ## Options
 
 ${renderOptionsTable()}
 `;
+}
+
+function createDoctorCommand(action?: (options: DoctorCliOptions) => Promise<void> | void): Command {
+  const command = new Command('doctor')
+    .description('Run local diagnostics without starting the MCP bridge.')
+    .option('--json', 'Output diagnostics as JSON.');
+
+  if (action) {
+    command.action(async (options: DoctorCliOptions) => {
+      await action(options);
+    });
+  }
+
+  return command;
 }
 
 function createCommanderOption(definition: CliOptionDefinition): Option {
@@ -258,6 +291,9 @@ function parseInteger(label: string, value: string): number {
 function parseHttpEndpoint(value: string): string {
   if (!value.startsWith('/') || value.includes('?') || value.includes('#')) {
     throw new InvalidArgumentError('HTTP endpoint must be an absolute path such as "/mcp"');
+  }
+  if (value === '/healthz' || value === '/readyz') {
+    throw new InvalidArgumentError('HTTP endpoint must not use reserved probe paths "/healthz" or "/readyz"');
   }
   if (value.length > 1 && value.endsWith('/')) {
     throw new InvalidArgumentError('HTTP endpoint must not end with "/"');

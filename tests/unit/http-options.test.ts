@@ -1,3 +1,4 @@
+import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import {
   cliOptionDefinitions,
@@ -71,13 +72,78 @@ describe('Commander CLI options', () => {
 
   it('validates HTTP bounds', () => {
     withCliEnv({}, () => {
+      expect(() => parseCliOptions(['--http-port', 'abc'])).toThrow('HTTP port must be an integer');
+      expect(() => parseCliOptions(['--http-port', '9007199254740992'])).toThrow(
+        'HTTP port must be a safe integer',
+      );
       expect(() => parseCliOptions(['--transport', 'streamable-http', '--http-port', '70000'])).toThrow(
         'HTTP port',
       );
       expect(() => parseCliOptions(['--http-endpoint', 'mcp'])).toThrow('HTTP endpoint');
+      expect(() => parseCliOptions(['--http-endpoint', '/mcp?debug=1'])).toThrow('HTTP endpoint');
+      expect(() => parseCliOptions(['--http-endpoint', '/mcp#debug'])).toThrow('HTTP endpoint');
+      expect(() => parseCliOptions(['--http-endpoint', '/mcp/'])).toThrow('must not end with "/"');
+      expect(() => parseCliOptions(['--http-endpoint', '/healthz'])).toThrow('reserved probe paths');
+      expect(() => parseCliOptions(['--http-endpoint', '/readyz'])).toThrow('reserved probe paths');
+      expect(() => parseCliOptions(['--http-auth-token', '   '])).toThrow(
+        'HTTP auth token must not be empty',
+      );
       expect(() => parseCliOptions(['--http-session-idle-ttl-ms', '0'])).toThrow('idle TTL');
       expect(() => parseCliOptions(['--http-session-max', '0'])).toThrow('session max');
     });
+  });
+
+  it('accepts valid HTTP ports from CLI flags across the full port range', () => {
+    fc.assert(
+      fc.property(fc.integer({ min: 0, max: 65_535 }), (port) => {
+        withCliEnv({}, () => {
+          expect(parseCliOptions(['--http-port', String(port)]).http.port).toBe(port);
+        });
+      }),
+    );
+  });
+
+  it('accepts valid absolute HTTP endpoint paths', () => {
+    const segment = fc
+      .array(fc.constantFrom(...'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._~-'), {
+        minLength: 1,
+        maxLength: 12,
+      })
+      .map((chars) => chars.join(''));
+    const endpoint = fc
+      .array(segment, { minLength: 1, maxLength: 4 })
+      .map((segments) => `/${segments.join('/')}`)
+      .filter((value) => value !== '/healthz' && value !== '/readyz');
+
+    fc.assert(
+      fc.property(endpoint, (value) => {
+        withCliEnv({}, () => {
+          expect(parseCliOptions(['--http-endpoint', value]).http.endpoint).toBe(value);
+        });
+      }),
+    );
+  });
+
+  it('wires the doctor subcommand and JSON flag', async () => {
+    let doctorJson = false;
+    const command = createCliCommand('1.2.3', {
+      doctorAction: (options) => {
+        doctorJson = options.json === true;
+      },
+    });
+    command.exitOverride();
+    command.configureOutput({
+      writeOut: () => undefined,
+      writeErr: () => undefined,
+    });
+
+    await command.parseAsync(['doctor', '--json'], { from: 'user' });
+
+    expect(doctorJson).toBe(true);
+    expect(command.helpInformation()).toContain('doctor');
+    expect(
+      command.commands.find((subcommand) => subcommand.name() === 'doctor')?.helpInformation(),
+    ).toContain('--json');
   });
 
   it('generates Commander help and Markdown reference from the option metadata', () => {
@@ -86,9 +152,12 @@ describe('Commander CLI options', () => {
 
     expect(help).toContain('Playwright MCP bridge backed by CloakBrowser');
     expect(help).toContain('--transport <mode>');
+    expect(help).toContain('doctor');
     expect(help).toContain('--http-session-max <count>');
     expect(help).toContain('CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX');
     expect(reference).toContain('# CLI Reference');
+    expect(reference).toContain('### `doctor`');
+    expect(reference).toContain('--json');
     expect(reference).toContain('| `--http-auth-token <token>` |');
     expect(reference).toContain('`streamable-http`');
   });

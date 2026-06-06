@@ -91,7 +91,7 @@ export function createReleaseNotesSummary(releases) {
 
 function extractDockerImageVersion(dockerfile) {
   const match = dockerfile.match(
-    /^ARG PLAYWRIGHT_MCP_IMAGE=mcr\.microsoft\.com\/playwright\/mcp:(?<tag>\S+)$/m,
+    /^ARG PLAYWRIGHT_MCP_IMAGE=mcr\.microsoft\.com\/playwright\/mcp:(?<tag>[^@\s]+)(?:@sha256:[a-f0-9]{64})?$/m,
   );
 
   if (!match?.groups?.tag) {

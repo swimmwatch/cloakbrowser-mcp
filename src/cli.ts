@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 import process from 'node:process';
 import type { Implementation } from '@modelcontextprotocol/sdk/types.js';
+import { createDoctorReport, renderDoctorReport } from './cli/doctor.js';
 import { createCliCommand, readCliOptions } from './cli/options.js';
 import { startStreamableHttpBridge } from './http/server.js';
 import { PROJECT_METADATA } from './project/metadata.js';
@@ -12,7 +13,15 @@ const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url),
 };
 
 async function main(): Promise<void> {
-  const command = createCliCommand(pkg.version);
+  const command = createCliCommand(pkg.version, {
+    doctorAction: (options) => {
+      const report = createDoctorReport();
+      process.stdout.write(
+        options.json ? `${JSON.stringify(report, null, 2)}\n` : renderDoctorReport(report),
+      );
+      if (report.status === 'error') process.exitCode = 1;
+    },
+  });
   command.action(async () => {
     const options = readCliOptions(command);
     const serverInfo = {

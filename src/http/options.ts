@@ -6,6 +6,7 @@ export const bridgeTransportModes = [
   'streamable-http',
 ] as const satisfies readonly BridgeTransportMode[];
 export const httpSessionBackends = ['memory'] as const satisfies readonly HttpSessionBackend[];
+export const streamableHttpProbePaths = ['/healthz', '/readyz'] as const;
 
 export interface StreamableHttpOptions {
   host: string;

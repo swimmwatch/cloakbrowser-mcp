@@ -20,7 +20,7 @@ The generated [CLI Reference](generated/cli.md) is the authoritative list of bri
 | `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` | Bridge transport: `stdio` or `streamable-http`. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` | Streamable HTTP bind host. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_PORT` | `3000` | Streamable HTTP bind port. Use `0` for an ephemeral port in tests. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_ENDPOINT` | `/mcp` | Streamable HTTP endpoint path. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_ENDPOINT` | `/mcp` | Streamable HTTP endpoint path. `/healthz` and `/readyz` are reserved for probes. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` | unset | Optional Bearer token required on Streamable HTTP requests. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_BACKEND` | `memory` | Session metadata backend. Only `memory` is implemented in this release. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_IDLE_TTL_MS` | `3600000` | Idle TTL for Streamable HTTP sessions. Expired sessions dispose their bridge and upstream child process. |
@@ -58,3 +58,13 @@ Refer to the upstream Playwright MCP documentation for the full upstream option 
 Each Streamable HTTP MCP session owns its own bridge runtime and upstream Playwright MCP child process. HTTP sessions run upstream Playwright MCP with an isolated browser profile so concurrent users do not contend for the same persistent Chromium profile. The built-in `memory` session backend stores only metadata such as session ID, timestamps, expiry, and status. Browser state remains in the live upstream child process, and artifacts are still controlled by `PLAYWRIGHT_MCP_OUTPUT_DIR`.
 
 For horizontal scaling, run multiple server replicas behind a load balancer with sticky sessions keyed by the `mcp-session-id` header. Future Redis, Postgres, or SQLite backends can coordinate metadata and locks, but they cannot restore a live browser session after the process that owns it exits.
+
+## Streamable HTTP Probes
+
+When the bridge runs with `--transport streamable-http`, it exposes fixed probe endpoints on the same host and port as the MCP endpoint:
+
+- `GET /healthz` returns process health metadata: `status`, `version`, `transport`, and `uptimeMs`.
+- `GET /readyz` returns readiness metadata and session capacity: `sessions.active`, `sessions.pending`, `sessions.max`, and `sessions.available`.
+
+Readiness returns HTTP `200` while session capacity is available and HTTP `503` when `active + pending >= max`.
+If `--http-auth-token` or `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` is configured, both probes require the same `Authorization: Bearer ...` header as MCP requests. Without an auth token, the probes are open on the configured HTTP bind address.

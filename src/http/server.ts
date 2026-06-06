@@ -5,11 +5,12 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { isInitializeRequest, type Implementation } from '@modelcontextprotocol/sdk/types.js';
 import { createBridgeServer, type BridgeServer } from '../server.js';
 import { createSessionStore, type HttpSessionRecord, type SessionStore } from './sessionStore.js';
-import type { HttpSessionBackend, StreamableHttpOptions } from './options.js';
+import { streamableHttpProbePaths, type HttpSessionBackend, type StreamableHttpOptions } from './options.js';
 import { HttpStatus, JsonRpcErrorCode } from './status.js';
 
 const mcpSessionIdHeader = 'mcp-session-id';
 const jsonRpcContentType = 'application/json';
+const [healthzPath, readyzPath] = streamableHttpProbePaths;
 const allowedMethods = 'GET, POST, DELETE';
 
 export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions {
@@ -61,6 +62,7 @@ class StreamableHttpBridgeController {
   readonly #closing = new Map<string, Promise<void>>();
   readonly #httpServer: Server;
   readonly #cleanupTimer: NodeJS.Timeout;
+  readonly #startedAt = Date.now();
   #pendingSessionInitializations = 0;
 
   constructor(options: StartStreamableHttpBridgeOptions) {
@@ -98,6 +100,16 @@ class StreamableHttpBridgeController {
 
   async #handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     try {
+      if (isEndpointRequest(req, healthzPath, this.#options.host)) {
+        this.#handleHealthProbe(req, res);
+        return;
+      }
+
+      if (isEndpointRequest(req, readyzPath, this.#options.host)) {
+        await this.#handleReadinessProbe(req, res);
+        return;
+      }
+
       if (!isEndpointRequest(req, this.#options.endpoint, this.#options.host)) {
         writeJsonRpcError(res, HttpStatus.NotFound, JsonRpcErrorCode.ServerError, 'Not found');
         return;
@@ -317,6 +329,63 @@ class StreamableHttpBridgeController {
     if (!session) return;
     await session.bridge.dispose();
   }
+
+  #handleHealthProbe(req: IncomingMessage, res: ServerResponse): void {
+    if (!this.#authorizeProbeRequest(req, res)) return;
+    if (req.method !== 'GET') {
+      writeJsonResponse(res, HttpStatus.MethodNotAllowed, { status: 'method_not_allowed' }, { Allow: 'GET' });
+      return;
+    }
+
+    writeJsonResponse(res, HttpStatus.Ok, {
+      status: 'ok',
+      version: this.#options.serverInfo?.version ?? 'unknown',
+      transport: 'streamable-http',
+      uptimeMs: this.#uptimeMs(),
+    });
+  }
+
+  async #handleReadinessProbe(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    if (!this.#authorizeProbeRequest(req, res)) return;
+    if (req.method !== 'GET') {
+      writeJsonResponse(res, HttpStatus.MethodNotAllowed, { status: 'method_not_allowed' }, { Allow: 'GET' });
+      return;
+    }
+
+    await this.#closeExpiredSessions();
+    const active = this.#sessions.size;
+    const pending = this.#pendingSessionInitializations;
+    const max = this.#options.sessionMax;
+    const available = Math.max(max - active - pending, 0);
+    const ready = available > 0;
+    writeJsonResponse(res, ready ? HttpStatus.Ok : HttpStatus.ServiceUnavailable, {
+      status: ready ? 'ready' : 'not_ready',
+      version: this.#options.serverInfo?.version ?? 'unknown',
+      transport: 'streamable-http',
+      uptimeMs: this.#uptimeMs(),
+      sessions: {
+        active,
+        pending,
+        max,
+        available,
+      },
+    });
+  }
+
+  #authorizeProbeRequest(req: IncomingMessage, res: ServerResponse): boolean {
+    if (isAuthorizedRequest(req, this.#options.authToken)) return true;
+    writeJsonResponse(
+      res,
+      HttpStatus.Unauthorized,
+      { status: 'unauthorized' },
+      { 'WWW-Authenticate': 'Bearer' },
+    );
+    return false;
+  }
+
+  #uptimeMs(): number {
+    return Math.max(Date.now() - this.#startedAt, 0);
+  }
 }
 
 function hasJsonContentType(req: IncomingMessage): boolean {
@@ -374,6 +443,19 @@ function writeJsonRpcError(
       id: null,
     }),
   );
+}
+
+function writeJsonResponse(
+  res: ServerResponse,
+  status: HttpStatus,
+  body: Record<string, unknown>,
+  headers: Record<string, string> = {},
+): void {
+  res.writeHead(status, {
+    'Content-Type': jsonRpcContentType,
+    ...headers,
+  });
+  res.end(JSON.stringify(body));
 }
 
 function formatHost(host: string): string {

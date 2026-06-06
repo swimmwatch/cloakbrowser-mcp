@@ -119,6 +119,33 @@ describe('streamable HTTP bridge', () => {
     });
   });
 
+  it('reports readiness based on active HTTP session capacity', async () => {
+    await withFakeUpstream(async () => {
+      const server = await startHttpBridge({ sessionMax: 1 });
+
+      const initial = await fetch(new URL('/readyz', server.url));
+      expect(initial.status).toBe(HttpStatus.Ok);
+
+      await connectHttpClient(server);
+
+      const full = await fetch(new URL('/readyz', server.url));
+      const body = (await full.json()) as {
+        status: string;
+        sessions: { active: number; pending: number; max: number; available: number };
+      };
+      expect(full.status).toBe(HttpStatus.ServiceUnavailable);
+      expect(body).toMatchObject({
+        status: 'not_ready',
+        sessions: {
+          active: 1,
+          pending: 0,
+          max: 1,
+          available: 0,
+        },
+      });
+    });
+  });
+
   it('enforces optional Bearer auth before handling MCP requests', async () => {
     await withFakeUpstream(async () => {
       const server = await startHttpBridge({ authToken: 'secret' });

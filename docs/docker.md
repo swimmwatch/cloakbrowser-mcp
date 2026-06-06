@@ -33,9 +33,13 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
+
+curl http://127.0.0.1:3000/healthz
+curl http://127.0.0.1:3000/readyz
 ```
 
 The host-side `127.0.0.1:3000` bind keeps the endpoint local. If you publish Streamable HTTP on a non-loopback interface, put it behind authentication, TLS, and network controls.
+Streamable HTTP exposes fixed `GET /healthz` and `GET /readyz` probes on the same host and port. If `--http-auth-token` or `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` is configured, the probes require the same `Authorization: Bearer ...` header as MCP requests.
 See the generated [CLI Reference](generated/cli.md) for all HTTP transport flags and environment variables.
 
 ## Defaults
@@ -50,6 +54,7 @@ See the generated [CLI Reference](generated/cli.md) for all HTTP transport flags
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_PORT` | `3000` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_ENDPOINT` | `/mcp` |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_BACKEND` | `memory` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_IDLE_TTL_MS` | `3600000` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` |
