@@ -10,8 +10,7 @@ import { HttpStatus, JsonRpcErrorCode } from './status.js';
 
 const mcpSessionIdHeader = 'mcp-session-id';
 const jsonRpcContentType = 'application/json';
-const healthzPath = streamableHttpProbePaths[0];
-const readyzPath = streamableHttpProbePaths[1];
+const [healthzPath, readyzPath] = streamableHttpProbePaths;
 const allowedMethods = 'GET, POST, DELETE';
 
 export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions {
