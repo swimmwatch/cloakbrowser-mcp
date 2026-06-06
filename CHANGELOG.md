@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - Updated CloakBrowser dependency to `^0.3.31`.
+- Updated the project Pull Request skill to assign PRs to the authenticated
+  GitHub user by default.
 
 ## [1.2.7] - 2026-06-04
 

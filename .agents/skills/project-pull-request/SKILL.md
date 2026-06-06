@@ -1,6 +1,6 @@
 ---
 name: project-pull-request
-description: Use when creating, updating, or reviewing a cloakbrowser-mcp GitHub Pull Request. Defines branch, base/head, title, required PR body template, checklist, security review, test evidence, and post-create reporting rules.
+description: Use when creating, updating, or reviewing a cloakbrowser-mcp GitHub Pull Request. Defines branch, base/head, assignee, title, required PR body template, checklist, security review, test evidence, and post-create reporting rules.
 ---
 
 # Project Pull Request
@@ -20,6 +20,15 @@ replace it with a second template.
 - Push the current feature branch to `origin` before creating the PR.
 - Create PRs ready for review by default. Use draft only when the user
   explicitly asks for a draft PR.
+
+## Assignee
+
+- Assign the PR to the authenticated GitHub user by default. Resolve the login
+  with `gh api user --jq .login` or the equivalent GitHub connector identity.
+- For this repository, the expected default assignee is `swimmwatch` unless the
+  user explicitly requests another assignee.
+- If the assignee cannot be resolved or GitHub rejects it, report the blocker
+  and leave the PR otherwise complete.
 
 ## Title
 
@@ -51,4 +60,5 @@ Do not leave HTML comments or placeholder text in the submitted PR body.
 - If a PR already exists for the branch, update its title/body instead of
   creating a duplicate.
 - After creating or updating the PR, report the PR URL, base/head branches,
-  title, whether it is draft or ready for review, and any skipped checks.
+  title, assignee, whether it is draft or ready for review, and any skipped
+  checks.
