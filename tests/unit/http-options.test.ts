@@ -1,3 +1,4 @@
+import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import {
   cliOptionDefinitions,
@@ -90,6 +91,37 @@ describe('Commander CLI options', () => {
       expect(() => parseCliOptions(['--http-session-idle-ttl-ms', '0'])).toThrow('idle TTL');
       expect(() => parseCliOptions(['--http-session-max', '0'])).toThrow('session max');
     });
+  });
+
+  it('accepts valid HTTP ports from CLI flags across the full port range', () => {
+    fc.assert(
+      fc.property(fc.integer({ min: 0, max: 65_535 }), (port) => {
+        withCliEnv({}, () => {
+          expect(parseCliOptions(['--http-port', String(port)]).http.port).toBe(port);
+        });
+      }),
+    );
+  });
+
+  it('accepts valid absolute HTTP endpoint paths', () => {
+    const segment = fc
+      .array(fc.constantFrom(...'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._~-'), {
+        minLength: 1,
+        maxLength: 12,
+      })
+      .map((chars) => chars.join(''));
+    const endpoint = fc
+      .array(segment, { minLength: 1, maxLength: 4 })
+      .map((segments) => `/${segments.join('/')}`)
+      .filter((value) => value !== '/healthz' && value !== '/readyz');
+
+    fc.assert(
+      fc.property(endpoint, (value) => {
+        withCliEnv({}, () => {
+          expect(parseCliOptions(['--http-endpoint', value]).http.endpoint).toBe(value);
+        });
+      }),
+    );
   });
 
   it('wires the doctor subcommand and JSON flag', async () => {

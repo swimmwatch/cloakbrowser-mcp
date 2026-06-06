@@ -12,6 +12,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   recover releases.
 - Added a project Pull Request skill for AI agents to prepare, create, update,
   and report PRs consistently.
+- Added property-based tests for CLI and environment parsing.
+- Added agent instructions for supply-chain hardening and GitHub security
+  changes.
 - Added Streamable HTTP `GET /healthz` and `GET /readyz` probes for health and
   readiness checks.
 - Added the `cloakbrowser-mcp doctor` diagnostics command with human and JSON
@@ -22,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - Added the Advanced SEO MkDocs plugin for generated documentation metadata.
+- Hardened GitHub workflow token permissions and pinned workflow actions.
 - Updated CloakBrowser dependency to `^0.3.31`.
 - Updated documentation dependency minimums for MkDocs plugins.
 - Updated npm development dependency minimums to current compatible releases.

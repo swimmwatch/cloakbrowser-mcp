@@ -8,10 +8,11 @@ The project has not published a stable release yet. Security fixes are applied t
 
 Please report vulnerabilities through **GitHub Security Advisories** (private reporting):
 
-1. Open the repository on GitHub.
-2. Go to the **Security** tab.
-3. Click **Report a vulnerability**.
-4. Submit details privately.
+1. Open the private vulnerability report form:
+   <https://github.com/swimmwatch/cloakbrowser-mcp/security/advisories/new>.
+2. Or open the repository on GitHub, go to the **Security** tab, and click
+   **Report a vulnerability**.
+3. Submit details privately.
 
 Do **not** open public issues for vulnerabilities.
 

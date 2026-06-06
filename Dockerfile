@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1.7
 
-ARG NODE_IMAGE_TAG=22-bookworm-slim
-ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.75
+ARG NODE_IMAGE_REF=node:22-bookworm-slim@sha256:7af03b14a13c8cdd38e45058fd957bf00a72bbe17feac43b1c15a689c029c732
+ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.75@sha256:d238ec7bc98cc4e22df0696d6031dad5b8a4b46781f4f0abaa3bfadeedb43b9a
 
-FROM node:${NODE_IMAGE_TAG} AS deps
+FROM ${NODE_IMAGE_REF} AS deps
 WORKDIR /src
 ENV NPM_CONFIG_UPDATE_NOTIFIER=false
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
@@ -21,7 +21,7 @@ RUN npm prune --omit=dev --ignore-scripts \
  && npm cache clean --force
 
 FROM ${PLAYWRIGHT_MCP_IMAGE} AS runtime
-ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.75
+ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.75@sha256:d238ec7bc98cc4e22df0696d6031dad5b8a4b46781f4f0abaa3bfadeedb43b9a
 ARG PLAYWRIGHT_MCP_IMAGE_DIGEST=unknown
 ARG RELEASE_VERSION=0.0.0
 ARG RELEASE_VERSION_TAG=v0.0.0
