@@ -109,6 +109,8 @@ the smallest release-relevant cause and rerun the relevant command.
 ## PR And Release Flow
 
 - Commit release preparation as `chore(release): prepare vX.Y.Z`.
+- For release PR creation or updates, also read and follow
+  `.agents/skills/project-pull-request/SKILL.md`.
 - Open a PR to `main` with a concise release summary and validation list.
 - Call out security-sensitive release workflow changes, especially registry
   credentials, public image publishing, OIDC, or token behavior.

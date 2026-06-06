@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Added a project release skill for AI agents to prepare, publish, verify, and
   recover releases.
+- Added a project Pull Request skill for AI agents to prepare, create, update,
+  and report PRs consistently.
 
 ### Changed
 

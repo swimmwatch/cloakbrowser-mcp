@@ -85,6 +85,8 @@ Update `README.md`, `docs/getting-started.md`, `docs/configuration.md`, `docs/do
 
 For release preparation, publishing, verification, or recovery requests, read and follow `.agents/skills/project-release/SKILL.md`.
 
+For Pull Request creation, updates, or review-prep requests, read and follow `.agents/skills/project-pull-request/SKILL.md`.
+
 `CHANGELOG.md` must follow Keep a Changelog `1.1.0`. The pinned specification URL is `https://keepachangelog.com/en/1.1.0/`. Before editing release notes, open and scan that specification, then write human-readable entries in reverse chronological order with an `[Unreleased]` section, ISO dates, comparison links, and standard sections such as `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, and `Security`.
 
 ## Commit And PR Hygiene
