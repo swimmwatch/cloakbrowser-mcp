@@ -5,10 +5,8 @@
   {% set seo = config.extra.seo or {} %}
   {% set verification = seo.verification or {} %}
   {% set raw_page_title = page.meta.title if page.meta and page.meta.title else page.title | striptags %}
-  {% set seo_title = raw_page_title if page.is_homepage else raw_page_title ~ " - " ~ config.site_name %}
   {% set seo_description = page.meta.description if page.meta and page.meta.description else config.site_description %}
   {% set canonical_url = page.canonical_url or config.site_url %}
-  {% set social_image = config.site_url ~ seo.image %}
 
   <link rel="apple-touch-icon" sizes="180x180" href="{{ 'assets/brand/apple-touch-icon.png' | url }}" />
   <link rel="manifest" href="{{ 'site.webmanifest' | url }}" />
@@ -31,20 +29,6 @@
   {% if verification.naver %}
     <meta name="naver-site-verification" content="{{ verification.naver }}" />
   {% endif %}
-
-  <meta property="og:site_name" content="{{ config.site_name }}" />
-  <meta property="og:title" content="{{ seo_title }}" />
-  <meta property="og:description" content="{{ seo_description }}" />
-  <meta property="og:type" content="{{ 'website' if page.is_homepage else 'article' }}" />
-  <meta property="og:url" content="{{ canonical_url }}" />
-  <meta property="og:image" content="{{ social_image }}" />
-  <meta property="og:image:alt" content="CloakBrowser MCP social preview card" />
-  <meta property="og:locale" content="en_US" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="{{ seo_title }}" />
-  <meta name="twitter:description" content="{{ seo_description }}" />
-  <meta name="twitter:image" content="{{ social_image }}" />
-  <meta name="twitter:image:alt" content="CloakBrowser MCP social preview card" />
 
   <script type="application/ld+json">
     {{

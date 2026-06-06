@@ -101,6 +101,17 @@ plugins:
         logo: docs/assets/brand/logo.svg
         background_color: '#0f766e'
         color: '#ffffff'
+  - advanced-seo:
+      url_base: https://swimmwatch.github.io/cloakbrowser-mcp/
+      use_canonical_url: false
+      use_open_graph: true
+      use_twitter_cards: true
+      add_schema_org_json_ld: true
+      og_type: website
+      og_image: assets/brand/social-card.png
+      og_locale: en_US
+      twitter_card_type: summary_large_image
+      support_document_dates: true
   - minify:
       minify_html: !ENV [MKDOCS_MINIFY_HTML, true]
       htmlmin_opts:
