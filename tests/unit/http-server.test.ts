@@ -63,6 +63,65 @@ describe('HTTP server helpers', () => {
     }
   });
 
+  it('serves unauthenticated health and readiness probes when no auth token is configured', async () => {
+    const server = await startStreamableHttpBridge({
+      ...defaultStreamableHttpOptions,
+      port: 0,
+      serverInfo: { version: '1.2.3' },
+    });
+
+    try {
+      const health = await fetch(new URL('/healthz', server.url));
+      const healthBody = (await health.json()) as Record<string, unknown>;
+      expect(health.status).toBe(HttpStatus.Ok);
+      expect(healthBody).toMatchObject({
+        status: 'ok',
+        version: '1.2.3',
+        transport: 'streamable-http',
+      });
+      expect(healthBody.uptimeMs).toEqual(expect.any(Number));
+
+      const ready = await fetch(new URL('/readyz', server.url));
+      const readyBody = (await ready.json()) as {
+        status: string;
+        sessions: { active: number; pending: number; max: number; available: number };
+      };
+      expect(ready.status).toBe(HttpStatus.Ok);
+      expect(readyBody).toMatchObject({
+        status: 'ready',
+        sessions: {
+          active: 0,
+          pending: 0,
+          max: defaultStreamableHttpOptions.sessionMax,
+          available: defaultStreamableHttpOptions.sessionMax,
+        },
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('protects probes with the configured Bearer token', async () => {
+    const server = await startStreamableHttpBridge({
+      ...defaultStreamableHttpOptions,
+      port: 0,
+      authToken: 'secret',
+    });
+
+    try {
+      const unauthorized = await fetch(new URL('/healthz', server.url));
+      expect(unauthorized.status).toBe(HttpStatus.Unauthorized);
+      expect(unauthorized.headers.get('www-authenticate')).toBe('Bearer');
+
+      const authorized = await fetch(new URL('/readyz', server.url), {
+        headers: { Authorization: 'Bearer secret' },
+      });
+      expect(authorized.status).toBe(HttpStatus.Ok);
+    } finally {
+      await server.close();
+    }
+  });
+
   it('exports named HTTP and JSON-RPC response codes used by server responses', () => {
     expect(HttpStatus.BadRequest).toBe(400);
     expect(HttpStatus.Unauthorized).toBe(401);

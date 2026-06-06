@@ -66,12 +66,15 @@ Use `npm run registry:check:strict` only when GitHub MCP listing visibility shou
 
 ```bash
 npx -y cloakbrowser-mcp@latest --help
+npx -y cloakbrowser-mcp@latest doctor
+npx -y cloakbrowser-mcp@latest doctor --json
 npx -y cloakbrowser-mcp@latest
 npx -y cloakbrowser-mcp@latest --transport streamable-http --http-port 3000
 ```
 
 Requires Node.js 20 or newer. The first real browser action may download the CloakBrowser binary unless it is already cached.
-The default transport is stdio. Streamable HTTP binds to `127.0.0.1` by default and serves MCP at `/mcp`.
+Use `doctor` for local diagnostics before connecting an MCP client. It checks the Node.js engine, project metadata, upstream Playwright MCP resolution, and CloakBrowser binary metadata without starting the bridge or downloading a browser.
+The default transport is stdio. Streamable HTTP binds to `127.0.0.1` by default, serves MCP at `/mcp`, and exposes fixed `GET /healthz` and `GET /readyz` probes. If `--http-auth-token` is set, the probes require the same `Authorization: Bearer ...` header as MCP requests.
 For the complete generated CLI flag reference, see the published [CLI Reference](https://swimmwatch.github.io/cloakbrowser-mcp/generated/cli/).
 
 ## Run from Docker
@@ -86,6 +89,9 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
+
+curl http://127.0.0.1:3000/healthz
+curl http://127.0.0.1:3000/readyz
 ```
 
 The Docker image is based on the pinned official Playwright MCP image, installs the bridge under `/opt/cloakbrowser-mcp`, and writes artifacts to `/data` by default.

@@ -17,6 +17,8 @@ For a quick overview of common setup questions, see the [FAQ](faq.md).
 
 ```bash
 npx -y cloakbrowser-mcp@latest --help
+npx -y cloakbrowser-mcp@latest doctor
+npx -y cloakbrowser-mcp@latest doctor --json
 npx -y cloakbrowser-mcp@latest
 npx -y cloakbrowser-mcp@latest --transport streamable-http --http-port 3000
 ```
@@ -29,7 +31,9 @@ npx -y cloakbrowser-mcp@1.2.7
 
 The npm package requires Node.js 20 or newer. CloakBrowser downloads its Chromium binary on first use unless it is already cached.
 
-The default transport is stdio. Use `--transport streamable-http` when your MCP client connects to an HTTP endpoint instead of spawning a stdio process. The HTTP endpoint defaults to `http://127.0.0.1:3000/mcp`.
+Use `doctor` to verify the local Node.js runtime, package metadata, upstream Playwright MCP CLI resolution, and CloakBrowser binary metadata before connecting a client. The command does not start the bridge or download a browser.
+
+The default transport is stdio. Use `--transport streamable-http` when your MCP client connects to an HTTP endpoint instead of spawning a stdio process. The HTTP endpoint defaults to `http://127.0.0.1:3000/mcp`, with fixed `GET /healthz` and `GET /readyz` probes on the same host and port.
 See the generated [CLI Reference](generated/cli.md) for the full flag list and matching environment variables.
 
 ## Docker
@@ -51,6 +55,9 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
+
+curl http://127.0.0.1:3000/healthz
+curl http://127.0.0.1:3000/readyz
 ```
 
 Pin a release when reproducibility matters:
@@ -66,6 +73,7 @@ docker run --rm --init -i \
 
 Most MCP clients use the same stdio shape: `command`, optional `args`, and optional `env`.
 For Streamable HTTP clients, start the server separately and configure the client URL as `http://127.0.0.1:3000/mcp`.
+If `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` or `--http-auth-token` is set, send the same Bearer token to `/mcp`, `/healthz`, and `/readyz`.
 
 ### npm Config
 

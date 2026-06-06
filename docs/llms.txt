@@ -24,3 +24,9 @@ Upstream Playwright MCP browser tools are forwarded unchanged. CloakBrowser MCP 
 
 - cloakbrowser_binary_info
 - cloakbrowser_bridge_info
+
+## Diagnostics
+
+- CLI diagnostics: `cloakbrowser-mcp doctor` or `cloakbrowser-mcp doctor --json`
+- Streamable HTTP probes: `GET /healthz` and `GET /readyz`
+- Probe authorization: when `--http-auth-token` is configured, probes require the same Bearer token as MCP requests.

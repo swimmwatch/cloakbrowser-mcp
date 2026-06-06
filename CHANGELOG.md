@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   recover releases.
 - Added a project Pull Request skill for AI agents to prepare, create, update,
   and report PRs consistently.
+- Added Streamable HTTP `GET /healthz` and `GET /readyz` probes for health and
+  readiness checks.
+- Added the `cloakbrowser-mcp doctor` diagnostics command with human and JSON
+  output.
 
 ### Changed
 
