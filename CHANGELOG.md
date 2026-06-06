@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-06-06
+
 ### Added
 
 - Added a project release skill for AI agents to prepare, publish, verify, and
@@ -157,7 +159,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.7...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.7...v1.3.0
 [1.2.7]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.6...v1.2.7
 [1.2.6]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.5...v1.2.6
 [1.2.5]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.3...v1.2.5
