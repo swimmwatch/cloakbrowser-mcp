@@ -101,6 +101,34 @@ describe('HTTP server helpers', () => {
     }
   });
 
+  it('serves probe JSON with default version metadata and rejects non-GET probe methods', async () => {
+    const server = await startStreamableHttpBridge({
+      ...defaultStreamableHttpOptions,
+      port: 0,
+    });
+
+    try {
+      const health = await fetch(new URL('/healthz?probe=1', server.url));
+      const healthBody = (await health.json()) as Record<string, unknown>;
+      expect(health.status).toBe(HttpStatus.Ok);
+      expect(healthBody).toMatchObject({
+        status: 'ok',
+        version: 'unknown',
+        transport: 'streamable-http',
+      });
+
+      for (const path of ['/healthz', '/readyz']) {
+        const methodNotAllowed = await fetch(new URL(path, server.url), { method: 'POST' });
+        const methodNotAllowedBody = (await methodNotAllowed.json()) as Record<string, unknown>;
+        expect(methodNotAllowed.status).toBe(HttpStatus.MethodNotAllowed);
+        expect(methodNotAllowed.headers.get('allow')).toBe('GET');
+        expect(methodNotAllowedBody).toEqual({ status: 'method_not_allowed' });
+      }
+    } finally {
+      await server.close();
+    }
+  });
+
   it('protects probes with the configured Bearer token', async () => {
     const server = await startStreamableHttpBridge({
       ...defaultStreamableHttpOptions,
@@ -110,8 +138,10 @@ describe('HTTP server helpers', () => {
 
     try {
       const unauthorized = await fetch(new URL('/healthz', server.url));
+      const unauthorizedBody = (await unauthorized.json()) as Record<string, unknown>;
       expect(unauthorized.status).toBe(HttpStatus.Unauthorized);
       expect(unauthorized.headers.get('www-authenticate')).toBe('Bearer');
+      expect(unauthorizedBody).toEqual({ status: 'unauthorized' });
 
       const authorized = await fetch(new URL('/readyz', server.url), {
         headers: { Authorization: 'Bearer secret' },

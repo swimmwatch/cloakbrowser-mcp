@@ -71,12 +71,22 @@ describe('Commander CLI options', () => {
 
   it('validates HTTP bounds', () => {
     withCliEnv({}, () => {
+      expect(() => parseCliOptions(['--http-port', 'abc'])).toThrow('HTTP port must be an integer');
+      expect(() => parseCliOptions(['--http-port', '9007199254740992'])).toThrow(
+        'HTTP port must be a safe integer',
+      );
       expect(() => parseCliOptions(['--transport', 'streamable-http', '--http-port', '70000'])).toThrow(
         'HTTP port',
       );
       expect(() => parseCliOptions(['--http-endpoint', 'mcp'])).toThrow('HTTP endpoint');
+      expect(() => parseCliOptions(['--http-endpoint', '/mcp?debug=1'])).toThrow('HTTP endpoint');
+      expect(() => parseCliOptions(['--http-endpoint', '/mcp#debug'])).toThrow('HTTP endpoint');
+      expect(() => parseCliOptions(['--http-endpoint', '/mcp/'])).toThrow('must not end with "/"');
       expect(() => parseCliOptions(['--http-endpoint', '/healthz'])).toThrow('reserved probe paths');
       expect(() => parseCliOptions(['--http-endpoint', '/readyz'])).toThrow('reserved probe paths');
+      expect(() => parseCliOptions(['--http-auth-token', '   '])).toThrow(
+        'HTTP auth token must not be empty',
+      );
       expect(() => parseCliOptions(['--http-session-idle-ttl-ms', '0'])).toThrow('idle TTL');
       expect(() => parseCliOptions(['--http-session-max', '0'])).toThrow('session max');
     });
