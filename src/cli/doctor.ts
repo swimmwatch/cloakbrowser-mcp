@@ -44,6 +44,23 @@ const packageMetadata = JSON.parse(
   readFileSync(new URL('../../package.json', import.meta.url), 'utf8'),
 ) as PackageMetadata;
 
+const doctorReportTemplate = `CloakBrowser MCP doctor
+Status: {{status}}
+Project: {{project}}
+Node.js: {{node}}
+Upstream: {{upstream}}
+Upstream CLI: {{upstreamCli}}
+CloakBrowser: {{cloakbrowser}}
+
+Checks:
+{{checks}}
+`;
+
+type DoctorReportTemplateValues = Record<
+  'status' | 'project' | 'node' | 'upstream' | 'upstreamCli' | 'cloakbrowser' | 'checks',
+  string
+>;
+
 export function createDoctorReport(): DoctorReport {
   const checks: DoctorCheck[] = [];
   const nodeEngine = packageMetadata.engines?.node ?? 'unknown';
@@ -131,25 +148,29 @@ export function createDoctorReport(): DoctorReport {
 }
 
 export function renderDoctorReport(report: DoctorReport): string {
-  return [
-    'CloakBrowser MCP doctor',
-    `Status: ${report.status}`,
-    `Project: ${report.project.packageName} ${report.project.version} (${report.project.mcpName})`,
-    `Node.js: ${report.node.version} (requires ${report.project.nodeEngine})`,
-    `Upstream: ${report.upstream.package} ${report.upstream.version}`,
-    `Upstream CLI: ${report.upstream.cliPath ?? 'unresolved'}`,
-    `CloakBrowser: ${formatCloakbrowserSummary(report)}`,
-    '',
-    'Checks:',
-    ...report.checks.map((check) => `- [${check.status}] ${check.name}: ${check.message}`),
-    '',
-  ].join('\n');
+  return formatDoctorReportTemplate({
+    status: report.status,
+    project: `${report.project.packageName} ${report.project.version} (${report.project.mcpName})`,
+    node: `${report.node.version} (requires ${report.project.nodeEngine})`,
+    upstream: `${report.upstream.package} ${report.upstream.version}`,
+    upstreamCli: report.upstream.cliPath ?? 'unresolved',
+    cloakbrowser: formatCloakbrowserSummary(report),
+    checks: report.checks.map((check) => `- [${check.status}] ${check.name}: ${check.message}`).join('\n'),
+  });
 }
 
 function formatCloakbrowserSummary(report: DoctorReport): string {
   if (!report.cloakbrowser) return 'unavailable';
   const installed = report.cloakbrowser.installed ? 'installed' : 'not installed';
   return `${report.cloakbrowser.version} (${report.cloakbrowser.platform}, ${installed})`;
+}
+
+function formatDoctorReportTemplate(values: DoctorReportTemplateValues): string {
+  let output = doctorReportTemplate;
+  for (const [key, value] of Object.entries(values)) {
+    output = output.replaceAll(`{{${key}}}`, value);
+  }
+  return output;
 }
 
 function summarizeStatus(checks: readonly DoctorCheck[]): DoctorStatus {
