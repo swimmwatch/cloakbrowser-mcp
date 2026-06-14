@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-06-14
+
+### Changed
+
+- Updated `@playwright/mcp` dependency to `^0.0.76`.
+- Updated Playwright MCP Docker base image to `mcr.microsoft.com/playwright/mcp:v0.0.76`.
+
 ## [1.3.0] - 2026-06-06
 
 ### Added
@@ -159,7 +166,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.7...v1.3.0
 [1.2.7]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.6...v1.2.7
 [1.2.6]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.5...v1.2.6

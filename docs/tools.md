@@ -14,7 +14,7 @@ tags:
 
 The default upstream browser tool surface is expected to match the pinned Playwright MCP dependency. This includes the core browser tools such as navigation, snapshot, click, typing, screenshots, tabs, console messages, network inspection, file upload, dialogs, and unsafe evaluation tools.
 
-For a stable upstream reference, see the Playwright MCP `@playwright/mcp@0.0.75` capability test pinned to the exact package commit: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/8116437ffcfee1309cebc07dd30cee37720d2d19/tests/capabilities.spec.ts#L19-L77).
+For a stable upstream reference, see the Playwright MCP `@playwright/mcp@0.0.76` capability test pinned to the exact package commit: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/b301c372ec741289eff1cf6aab9d3bec553f31e2/tests/capabilities.spec.ts#L19-L77).
 
 This project treats upstream Playwright MCP as authoritative and does not maintain a copied schema reference.
 
