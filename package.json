@@ -65,7 +65,7 @@
     "@modelcontextprotocol/sdk": "^1.18.0",
     "@playwright/mcp": "^0.0.76",
     "cloakbrowser": "^0.3.31",
-    "commander": "^14.0.3",
+    "commander": "^15.0.0",
     "pino": "^10.3.1"
   },
   "devDependencies": {
