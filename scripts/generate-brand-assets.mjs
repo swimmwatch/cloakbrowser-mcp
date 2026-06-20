@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import path from 'node:path';
 import process from 'node:process';
-import { brandRenders } from './lib/brand-assets.mjs';
-import { assertCommandAvailable, runCommand } from './lib/command.mjs';
-import { assertFileExists } from './lib/files.mjs';
+import { brandRenders } from '#scripts/lib/brand-assets';
+import { assertCommandAvailable, runCommand } from '#scripts/lib/command';
+import { assertFileExists } from '#scripts/lib/files';
 
 const root = process.cwd();
 const brandDir = path.join(root, 'docs', 'assets', 'brand');

@@ -12,7 +12,7 @@ import {
   expectedDefaultTools,
   localToolNames,
   normalizeToolResponseText,
-} from './lib/playwright-mcp-parity.mjs';
+} from '#scripts/lib/playwright-mcp-parity';
 
 const { image, reportPath } = parseArgs(process.argv.slice(2));
 const baselineImage =

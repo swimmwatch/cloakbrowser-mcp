@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import process from 'node:process';
 import { URL } from 'node:url';
-import { readJson } from './lib/files.mjs';
-import { compareVersions } from './lib/semver.mjs';
+import { readJson } from '#scripts/lib/files';
+import { compareVersions } from '#scripts/lib/semver';
 
 const defaultRegistryApiUrl = 'https://registry.modelcontextprotocol.io/v0.1';
 const officialMetaKey = 'io.modelcontextprotocol.registry/official';

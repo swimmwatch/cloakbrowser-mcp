@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import process from 'node:process';
-import { writeIndexNowKeyFile } from './lib/indexnow.mjs';
+import { writeIndexNowKeyFile } from '#scripts/lib/indexnow';
 
 const key = process.env.INDEXNOW_KEY;
 

@@ -4,8 +4,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import process from 'node:process';
-import { appendGithubOutput } from './lib/github-output.mjs';
-import { fetchJson as fetchJsonWithAuth } from './lib/http.mjs';
+import { appendGithubOutput } from '#scripts/lib/github-output';
+import { fetchJson as fetchJsonWithAuth } from '#scripts/lib/http';
 import {
   createReleaseNotesSummary,
   getLatestDockerVersion,
@@ -13,9 +13,9 @@ import {
   getReleaseNotes,
   readCurrentPlaywrightMcpVersions,
   upstreamConfig,
-} from './lib/playwright-mcp-upstream.mjs';
-import { latestVersion, toVersionTag } from './lib/semver.mjs';
-import { renderTemplateFile } from './lib/template.mjs';
+} from '#scripts/lib/playwright-mcp-upstream';
+import { latestVersion, toVersionTag } from '#scripts/lib/semver';
+import { renderTemplateFile } from '#scripts/lib/template';
 
 const defaultIssueAssignee = 'swimmwatch';
 const scriptDir = dirname(fileURLToPath(import.meta.url));

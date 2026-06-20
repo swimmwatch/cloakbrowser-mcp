@@ -19,7 +19,8 @@
       "development": "./src/*.ts",
       "types": "./src/*.ts",
       "default": "./dist/*.js"
-    }
+    },
+    "#scripts/*": "./scripts/*.mjs"
   },
   "bin": {
     "cloakbrowser-mcp": "dist/cli.js"

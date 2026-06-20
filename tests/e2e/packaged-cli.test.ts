@@ -9,8 +9,8 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { afterEach, describe, expect, it } from 'vitest';
 import { LOCAL_TOOL_BINARY_INFO, LOCAL_TOOL_BRIDGE_INFO } from '@/bridge/tools.js';
 import { BRIDGE_TRANSPORT_STREAMABLE_HTTP } from '@/http/options.js';
-import { fetchHealth, fetchReady, healthUrl, postInitialize } from '../helpers/http.js';
-import { tlsCertPath, tlsKeyPath, withDisabledTlsVerification } from '../helpers/tls.js';
+import { fetchHealth, fetchReady, healthUrl, postInitialize } from '@tests/helpers/http.js';
+import { tlsCertPath, tlsKeyPath, withDisabledTlsVerification } from '@tests/helpers/tls.js';
 
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 const distCliPath = path.join(repoRoot, 'dist/cli.js');

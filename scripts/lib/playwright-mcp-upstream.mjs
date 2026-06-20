@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { compareVersions, parseVersion, semverPattern, stripDependencyRange } from './semver.mjs';
+import { compareVersions, parseVersion, semverPattern, stripDependencyRange } from '#scripts/lib/semver';
 
 export const upstreamConfig = {
   dockerRepository: 'mcr.microsoft.com/playwright/mcp',

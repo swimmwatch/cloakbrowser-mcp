@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
-import { fetchHealth } from '../helpers/http.js';
+import { fetchHealth } from '@tests/helpers/http.js';
 
 const tempRoots: string[] = [];
 const children: ChildProcessWithoutNullStreams[] = [];

@@ -1,4 +1,4 @@
-import { readJson, readText, writeJson, writeText } from './files.mjs';
+import { readJson, readText, writeJson, writeText } from '#scripts/lib/files';
 
 const markerPattern = /<!-- project-version -->(.*?)<!-- \/project-version -->/gs;
 const packageVersionPattern = String.raw`\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?`;

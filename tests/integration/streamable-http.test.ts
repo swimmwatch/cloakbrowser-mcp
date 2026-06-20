@@ -9,8 +9,8 @@ import { LOCAL_TOOL_BINARY_INFO, LOCAL_TOOL_BRIDGE_INFO } from '@/bridge/tools.j
 import { defaultStreamableHttpOptions } from '@/http/options.js';
 import { startStreamableHttpBridge, type StreamableHttpBridgeServer } from '@/http/server.js';
 import { HttpStatus } from '@/http/status.js';
-import { fetchHealth, fetchReady, postToolsList } from '../helpers/http.js';
-import { tlsConfig, withDisabledTlsVerification } from '../helpers/tls.js';
+import { fetchHealth, fetchReady, postToolsList } from '@tests/helpers/http.js';
+import { tlsConfig, withDisabledTlsVerification } from '@tests/helpers/tls.js';
 
 const tempRoots: string[] = [];
 const clients: Client[] = [];

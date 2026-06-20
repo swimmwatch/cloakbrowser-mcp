@@ -3,10 +3,10 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { runCommand } from './lib/command.mjs';
-import { readJson } from './lib/files.mjs';
-import { appendGithubOutput } from './lib/github-output.mjs';
-import { assertPackageFileList, formatBytes } from './lib/npm-package.mjs';
+import { runCommand } from '#scripts/lib/command';
+import { readJson } from '#scripts/lib/files';
+import { appendGithubOutput } from '#scripts/lib/github-output';
+import { assertPackageFileList, formatBytes } from '#scripts/lib/npm-package';
 
 const root = process.cwd();
 const packageJsonPath = path.join(root, 'package.json');

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import process from 'node:process';
-import { validateBuiltDocsSeo } from './lib/docs-seo.mjs';
+import { validateBuiltDocsSeo } from '#scripts/lib/docs-seo';
 
 const siteDir = process.argv[2] ?? 'site';
 const siteUrl = process.env.MKDOCS_SITE_URL ?? 'https://swimmwatch.github.io/cloakbrowser-mcp/';

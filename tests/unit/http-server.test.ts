@@ -6,8 +6,8 @@ import type { SessionStore } from '@/http/sessionStore.js';
 import { isAuthorizedRequest, isEndpointRequest, startStreamableHttpBridge } from '@/http/server.js';
 import { HttpStatus, JsonRpcErrorCode } from '@/http/status.js';
 import type { BridgeLogger } from '@/logging/logger.js';
-import { fetchHealth, fetchReady, healthUrl, readyUrl } from '../helpers/http.js';
-import { tlsConfig, withDisabledTlsVerification } from '../helpers/tls.js';
+import { fetchHealth, fetchReady, healthUrl, readyUrl } from '@tests/helpers/http.js';
+import { tlsConfig, withDisabledTlsVerification } from '@tests/helpers/tls.js';
 
 describe('HTTP server helpers', () => {
   it('accepts requests when no auth token is configured', () => {

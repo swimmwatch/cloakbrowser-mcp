@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import process from 'node:process';
-import { readJson, readText, writeText } from './lib/files.mjs';
+import { readJson, readText, writeText } from '#scripts/lib/files';
 
 const checkOnly = process.argv.includes('--check');
 const dataPath = 'docs/data/version-compatibility.json';
