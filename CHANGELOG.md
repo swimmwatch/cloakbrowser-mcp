@@ -6,12 +6,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-## [1.3.1] - 2026-06-14
+## [1.4.0] - 2026-06-21
+
+### Added
+
+- Added pino-backed operational logging for Streamable HTTP startup and
+  completed HTTP requests.
+- Added protocol-selectable Streamable HTTP HTTPS support with certificate,
+  key, PFX, and passphrase configuration.
+- Added packaged CLI end-to-end coverage for stdio, Streamable HTTP, auth,
+  HTTPS, CLI/env options, and doctor JSON output.
+- Added generated compatibility tables shared by the README and documentation.
 
 ### Changed
 
+- Expanded supported npm validation to Node.js 22 through 26 across Linux
+  x64/arm64, macOS arm64/x64, and Windows x64.
+- Expanded Docker release validation and publishing to `linux/amd64` and
+  `linux/arm64`.
+- Updated MCP client installation documentation for npm, Docker, Codex CLI,
+  Claude Code, Claude Desktop, VS Code, Cursor, Continue, Windsurf/Cascade,
+  Goose, Warp, and Streamable HTTP.
 - Updated `@playwright/mcp` dependency to `^0.0.76`.
 - Updated Playwright MCP Docker base image to `mcr.microsoft.com/playwright/mcp:v0.0.76`.
+- Updated CloakBrowser dependency to `^0.3.32`.
+
+### Fixed
+
+- Hardened internal Streamable HTTP error responses so server exception details
+  are not exposed to clients.
+- Replaced global test TLS validation disabling with a scoped fixture
+  certificate trust path.
+- Fixed cross-platform command, path, line-ending, and import resolution issues
+  for Windows, macOS, and Linux CI.
 
 ## [1.3.0] - 2026-06-06
 
@@ -166,8 +193,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.3.1...HEAD
-[1.3.1]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.3.0...v1.3.1
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.7...v1.3.0
 [1.2.7]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.6...v1.2.7
 [1.2.6]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.5...v1.2.6
