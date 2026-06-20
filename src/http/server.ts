@@ -4,6 +4,7 @@ import type { AddressInfo } from 'node:net';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest, type Implementation } from '@modelcontextprotocol/sdk/types.js';
 import { createBridgeServer, type BridgeServer } from '../server.js';
+import type { BridgeLogger } from '../logging/logger.js';
 import { createSessionStore, type HttpSessionRecord, type SessionStore } from './sessionStore.js';
 import { streamableHttpProbePaths, type HttpSessionBackend, type StreamableHttpOptions } from './options.js';
 import { HttpStatus, JsonRpcErrorCode } from './status.js';
@@ -16,6 +17,7 @@ const allowedMethods = 'GET, POST, DELETE';
 export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions {
   serverInfo?: Partial<Implementation>;
   sessionStore?: SessionStore;
+  logger?: BridgeLogger;
 }
 
 export interface StreamableHttpBridgeServer {
@@ -99,6 +101,8 @@ class StreamableHttpBridgeController {
   }
 
   async #handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const startedAt = Date.now();
+    this.#logRequestOnFinish(req, res, startedAt);
     try {
       if (isEndpointRequest(req, healthzPath, this.#options.host)) {
         this.#handleHealthProbe(req, res);
@@ -386,6 +390,30 @@ class StreamableHttpBridgeController {
   #uptimeMs(): number {
     return Math.max(Date.now() - this.#startedAt, 0);
   }
+
+  #logRequestOnFinish(req: IncomingMessage, res: ServerResponse, startedAt: number): void {
+    const logger = this.#options.logger;
+    if (!logger) return;
+    res.once('finish', () => {
+      const method = req.method ?? 'UNKNOWN';
+      const pathName = requestPathName(req, this.#options.host);
+      const durationMs = Math.max(Date.now() - startedAt, 0);
+      logger.info(
+        {
+          duration_ms: durationMs,
+          method,
+          path: pathName,
+          status: res.statusCode,
+        },
+        'http request',
+      );
+    });
+  }
+}
+
+function requestPathName(req: IncomingMessage, fallbackHost: string): string {
+  const host = getSingleHeader(req, 'host') ?? formatHost(fallbackHost);
+  return new URL(req.url ?? '/', `http://${host}`).pathname;
 }
 
 function hasJsonContentType(req: IncomingMessage): boolean {

@@ -5,6 +5,7 @@ import type { Implementation } from '@modelcontextprotocol/sdk/types.js';
 import { createDoctorReport, renderDoctorReport } from './cli/doctor.js';
 import { createCliCommand, readCliOptions } from './cli/options.js';
 import { startStreamableHttpBridge } from './http/server.js';
+import { createBridgeLogger } from './logging/logger.js';
 import { PROJECT_METADATA } from './project/metadata.js';
 import { startBridge } from './server.js';
 
@@ -35,7 +36,7 @@ async function main(): Promise<void> {
 
     const running =
       options.transport === 'streamable-http'
-        ? await startStreamableHttpBridge({ ...options.http, serverInfo })
+        ? await startStreamableHttpCliBridge({ ...options.http, serverInfo })
         : await startStdioBridge(serverInfo);
 
     for (const signal of ['SIGINT', 'SIGTERM'] as const) {
@@ -52,6 +53,18 @@ async function startStdioBridge(serverInfo: Partial<Implementation>): Promise<{ 
   return {
     close: () => bridge.dispose(),
   };
+}
+
+async function startStreamableHttpCliBridge(
+  options: Parameters<typeof startStreamableHttpBridge>[0],
+): Promise<{ close(): Promise<void> }> {
+  const logger = createBridgeLogger();
+  const bridge = await startStreamableHttpBridge({
+    ...options,
+    logger,
+  });
+  logger.info({ url: bridge.url }, 'streamable-http listening');
+  return bridge;
 }
 
 void main().catch((error: unknown) => {

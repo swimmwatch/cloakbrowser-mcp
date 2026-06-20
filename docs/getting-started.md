@@ -60,6 +60,8 @@ curl http://127.0.0.1:3000/healthz
 curl http://127.0.0.1:3000/readyz
 ```
 
+Streamable HTTP mode writes the listening MCP endpoint URL and request logs to stdout. Stdio mode does not emit routine operational logs so MCP JSON-RPC stdout remains protocol-clean.
+
 Pin a release when reproducibility matters:
 
 ```bash
