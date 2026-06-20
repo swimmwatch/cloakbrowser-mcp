@@ -1,12 +1,12 @@
 import type { CallToolResult, Tool } from '@modelcontextprotocol/sdk/types.js';
-import { getCurrentCloakBinaryInfo, type BridgeRuntime } from '#/bridge/config';
+import { getCurrentCloakBinaryInfo, type BridgeRuntime } from '#src/bridge/config';
 import {
   CLOAKBROWSER_TOOL_COUNT,
   PLAYWRIGHT_MCP_BROWSER_TOOL_COUNT,
   PLAYWRIGHT_MCP_PACKAGE,
   PLAYWRIGHT_MCP_VERSION,
   PROJECT_METADATA,
-} from '#/project/metadata';
+} from '#src/project/metadata';
 
 export const LOCAL_TOOL_BINARY_INFO = 'cloakbrowser_binary_info' as const;
 export const LOCAL_TOOL_BRIDGE_INFO = 'cloakbrowser_bridge_info' as const;

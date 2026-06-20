@@ -10,7 +10,7 @@ import {
   type Server as HttpsServer,
   type ServerOptions as HttpsServerOptions,
 } from 'node:https';
-import { HTTP_PROTOCOL_HTTPS, type StreamableHttpOptions } from '#/http/options';
+import { HTTP_PROTOCOL_HTTPS, type StreamableHttpOptions } from '#src/http/options';
 
 export type StreamableNodeServer = HttpServer | HttpsServer;
 

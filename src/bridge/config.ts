@@ -10,9 +10,9 @@ import {
   envString,
   quoteNodeOptionValue,
   type EnvReader,
-} from '#/bridge/env';
-import { resolvePlaywrightCoreBundlePath } from '#/bridge/paths';
-import { consoleFallbackInitScript, consoleFallbackPreloadScript } from '#/runtime/consoleFallback';
+} from '#src/bridge/env';
+import { resolvePlaywrightCoreBundlePath } from '#src/bridge/paths';
+import { consoleFallbackInitScript, consoleFallbackPreloadScript } from '#src/runtime/consoleFallback';
 
 export type BrowserEngine = 'cloak' | 'playwright';
 

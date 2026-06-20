@@ -2,13 +2,13 @@
 import { readFileSync } from 'node:fs';
 import process from 'node:process';
 import type { Implementation } from '@modelcontextprotocol/sdk/types.js';
-import { createDoctorReport, renderDoctorReport } from '#/cli/doctor';
-import { createCliCommand, readCliOptions } from '#/cli/options';
-import { BRIDGE_TRANSPORT_STREAMABLE_HTTP } from '#/http/options';
-import { startStreamableHttpBridge } from '#/http/server';
-import { createBridgeLogger } from '#/logging/logger';
-import { PROJECT_METADATA } from '#/project/metadata';
-import { startBridge } from '#/server';
+import { createDoctorReport, renderDoctorReport } from '#src/cli/doctor';
+import { createCliCommand, readCliOptions } from '#src/cli/options';
+import { BRIDGE_TRANSPORT_STREAMABLE_HTTP } from '#src/http/options';
+import { startStreamableHttpBridge } from '#src/http/server';
+import { createBridgeLogger } from '#src/logging/logger';
+import { PROJECT_METADATA } from '#src/project/metadata';
+import { startBridge } from '#src/server';
 
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as {
   version: string;

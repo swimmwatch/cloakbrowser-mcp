@@ -1,6 +1,6 @@
 import type { ServerResponse } from 'node:http';
-import { HttpStatus, JsonRpcErrorCode } from '#/http/status';
-import { JSON_CONTENT_TYPE, JSON_RPC_VERSION } from '#/protocol/constants';
+import { HttpStatus, JsonRpcErrorCode } from '#src/http/status';
+import { JSON_CONTENT_TYPE, JSON_RPC_VERSION } from '#src/protocol/constants';
 
 export function writeJsonRpcError(
   res: ServerResponse,

@@ -60,7 +60,7 @@ npm run check
 - Keep `strict` mode on.
 - ESM only. Internal imports end with `.js`.
 - Use configured aliases for internal imports instead of relative paths:
-  `#/...` for runtime source, `@/...` for source imports in tests,
+  `#src/...` for runtime source, `@/...` for source imports in tests,
   `@tests/...` for test helpers, and `#scripts/...` for scripts.
 - Prefer explicit types and small pure functions.
 - Do not use `console.*` in runtime code. CLI help/version may write to `process.stdout`; errors may write to `process.stderr`.

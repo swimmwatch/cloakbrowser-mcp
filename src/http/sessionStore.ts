@@ -1,4 +1,4 @@
-import { HTTP_SESSION_BACKEND_MEMORY } from '#/http/options';
+import { HTTP_SESSION_BACKEND_MEMORY } from '#src/http/options';
 
 export const HTTP_SESSION_STATUS_ACTIVE = 'active' as const;
 export const HTTP_SESSION_STATUS_CLOSED = 'closed' as const;

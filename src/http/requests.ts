@@ -1,8 +1,8 @@
 import type { IncomingMessage } from 'node:http';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import { formatHost } from '#/http/nodeServer';
-import { type StreamableHttpOptions } from '#/http/options';
-import { JSON_CONTENT_TYPE } from '#/protocol/constants';
+import { formatHost } from '#src/http/nodeServer';
+import { type StreamableHttpOptions } from '#src/http/options';
+import { JSON_CONTENT_TYPE } from '#src/protocol/constants';
 
 export function isEndpointRequest(
   req: IncomingMessage,

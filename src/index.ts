@@ -1,1 +1,1 @@
-export { PROJECT_METADATA } from '#/project/metadata';
+export { PROJECT_METADATA } from '#src/project/metadata';

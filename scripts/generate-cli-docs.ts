@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { renderCliReferenceMarkdown } from '#/cli/options';
+import { renderCliReferenceMarkdown } from '#src/cli/options';
 
 interface PackageJson {
   version: string;

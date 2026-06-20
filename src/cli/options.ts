@@ -13,7 +13,7 @@ import {
   type HttpProtocol,
   type HttpSessionBackend,
   type StreamableHttpTlsOptions,
-} from '#/http/options';
+} from '#src/http/options';
 
 export const cliDescription = 'Playwright MCP bridge backed by CloakBrowser.';
 

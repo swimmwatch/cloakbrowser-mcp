@@ -15,7 +15,7 @@
     "./package.json": "./package.json"
   },
   "imports": {
-    "#/*": {
+    "#src/*": {
       "development": "./src/*.ts",
       "types": "./src/*.ts",
       "default": "./dist/*.js"

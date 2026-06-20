@@ -26,6 +26,8 @@ describe('streamable HTTP CLI logging', () => {
     const child = spawn(
       process.execPath,
       [
+        '--conditions',
+        'development',
         '--import',
         'tsx',
         'src/cli.ts',

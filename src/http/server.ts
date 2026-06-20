@@ -9,24 +9,24 @@ import {
   READYZ_PATH,
   type HttpSessionBackend,
   type StreamableHttpOptions,
-} from '#/http/options';
+} from '#src/http/options';
 import {
   HTTP_SESSION_STATUS_ACTIVE,
   createSessionStore,
   type HttpSessionRecord,
   type SessionStore,
-} from '#/http/sessionStore';
-import { HttpStatus, JsonRpcErrorCode } from '#/http/status';
-import type { BridgeLogger } from '#/logging/logger';
-import { MCP_SESSION_ID_HEADER } from '#/protocol/constants';
-import { createBridgeServer, type BridgeServer } from '#/server';
+} from '#src/http/sessionStore';
+import { HttpStatus, JsonRpcErrorCode } from '#src/http/status';
+import type { BridgeLogger } from '#src/logging/logger';
+import { MCP_SESSION_ID_HEADER } from '#src/protocol/constants';
+import { createBridgeServer, type BridgeServer } from '#src/server';
 import {
   closeHttpServer,
   createStreamableNodeServer,
   formatHost,
   listenHttpServer,
   type StreamableNodeServer,
-} from '#/http/nodeServer';
+} from '#src/http/nodeServer';
 import {
   RequestBodyTooLargeError,
   containsInitializeRequest,
@@ -35,8 +35,8 @@ import {
   isEndpointRequest,
   readJsonBody,
   requestPathName,
-} from '#/http/requests';
-import { endResponse, writeJsonResponse, writeJsonRpcError } from '#/http/responses';
+} from '#src/http/requests';
+import { endResponse, writeJsonResponse, writeJsonRpcError } from '#src/http/responses';
 
 const allowedMethods = 'GET, POST, DELETE';
 
@@ -77,7 +77,7 @@ export function isAuthorizedRequest(req: IncomingMessage, authToken: string | un
   return scheme.toLowerCase() === 'bearer' && timingSafeStringEqual(token, authToken);
 }
 
-export { isEndpointRequest } from '#/http/requests';
+export { isEndpointRequest } from '#src/http/requests';
 
 class StreamableHttpBridgeController {
   readonly #options: StartStreamableHttpBridgeOptions;
