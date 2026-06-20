@@ -20,7 +20,9 @@ describe('CLI doctor diagnostics', () => {
     });
     expect(report.node.supported).toBe(true);
     expect(report.upstream.package).toBe('@playwright/mcp');
-    expect(report.upstream.cliPath).toEqual(expect.stringContaining('@playwright/mcp'));
+    expect(report.upstream.cliPath?.replaceAll('\\', '/')).toEqual(
+      expect.stringContaining('@playwright/mcp'),
+    );
     expect(report.checks.map((check) => check.name)).toEqual([
       'node',
       'playwright-mcp-cli',
