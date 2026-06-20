@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { formatLogRecord, parseLogLevel } from '../../src/logging/logger.js';
+import {
+  createBridgeLogger,
+  createHumanLogStream,
+  formatLogLine,
+  formatLogRecord,
+  parseLogLevel,
+} from '../../src/logging/logger.js';
 
 describe('bridge logger', () => {
   it('defaults to info when no log level is configured', () => {
@@ -10,6 +16,7 @@ describe('bridge logger', () => {
     for (const level of ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent']) {
       expect(parseLogLevel(level)).toBe(level);
       expect(parseLogLevel(level.toUpperCase())).toBe(level);
+      expect(parseLogLevel(` ${level} `)).toBe(level);
     }
   });
 
@@ -31,6 +38,19 @@ describe('bridge logger', () => {
     ).toBe(
       '2026-06-20T15:26:44.123Z INFO cloakbrowser-mcp streamable-http listening url=http://127.0.0.1:3000/mcp',
     );
+  });
+
+  it('uses fallback fields when pino records are incomplete', () => {
+    expect(
+      formatLogRecord({
+        level: 40,
+        name: true,
+        message: null,
+        trace_id: 123n,
+        ok: false,
+        empty: null,
+      }),
+    ).toMatch(/^\d{4}-\d{2}-\d{2}T.* 40 true empty=null ok=false trace_id=123$/u);
   });
 
   it('quotes whitespace values, omits undefined fields, and stringifies structured values', () => {
@@ -61,5 +81,54 @@ describe('bridge logger', () => {
         callback: () => undefined,
       }),
     ).toBe('2026-06-20T15:26:46.001Z INFO cloakbrowser-mcp unsupported field callback=[unserializable]');
+  });
+
+  it('returns raw log lines when input is not a JSON object log record', () => {
+    expect(formatLogLine('plain text')).toBe('plain text');
+    expect(formatLogLine('["not","record"]')).toBe('["not","record"]');
+  });
+
+  it('formats complete lines from a human log stream and flushes buffered final data', async () => {
+    const chunks: string[] = [];
+    const sink = {
+      write(chunk: string) {
+        chunks.push(chunk);
+        return true;
+      },
+    };
+    const stream = createHumanLogStream(sink as NodeJS.WritableStream);
+
+    stream.write(
+      '{"time":"2026-06-20T15:26:47.001Z","level":"info","name":"cloakbrowser-mcp","message":"first"}\n\n{"time":"2026-06-20T15:26:48.001Z"',
+    );
+    stream.end(',"level":"error","name":"cloakbrowser-mcp","message":"second","reason":"has spaces"}');
+    await new Promise<void>((resolve) => stream.on('finish', resolve));
+
+    expect(chunks).toEqual([
+      '2026-06-20T15:26:47.001Z INFO cloakbrowser-mcp first\n',
+      '2026-06-20T15:26:48.001Z ERROR cloakbrowser-mcp second reason="has spaces"\n',
+    ]);
+  });
+
+  it('creates pino-backed loggers that write formatted lines to the configured sink', async () => {
+    const chunks: string[] = [];
+    const sink = {
+      write(chunk: string) {
+        chunks.push(chunk);
+        return true;
+      },
+    };
+    const logger = createBridgeLogger({
+      env: { CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL: 'debug' },
+      name: 'test-logger',
+      sink: sink as NodeJS.WritableStream,
+    });
+
+    logger.info({ path: '/healthz', status: 200 }, 'http request');
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(chunks.join('')).toMatch(
+      /^\d{4}-\d{2}-\d{2}T.* INFO test-logger http request path=\/healthz status=200\n$/u,
+    );
   });
 });
