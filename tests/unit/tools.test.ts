@@ -7,13 +7,14 @@ import {
   createLocalTools,
   isLocalTool,
 } from '@/bridge/tools.js';
+import { fakeCloakBinaryPath, fakeConfigPath, fakeOutputDir, fakeRuntimeDir } from '@tests/helpers/paths.js';
 
 const runtime: BridgeRuntime = {
   browserEngine: 'cloak',
-  configPath: '/tmp/config.json',
-  tempDir: '/tmp/runtime',
-  outputDir: '/tmp/output',
-  cloakBinaryPath: '/tmp/cloakbrowser/chrome',
+  configPath: fakeConfigPath,
+  tempDir: fakeRuntimeDir,
+  outputDir: fakeOutputDir,
+  cloakBinaryPath: fakeCloakBinaryPath,
   childEnv: {},
   config: {},
   dispose() {},
@@ -48,8 +49,8 @@ describe('local Cloak tools', () => {
 
     expect(result.structuredContent).toMatchObject({
       browserEngine: 'cloak',
-      executablePath: '/tmp/cloakbrowser/chrome',
-      outputDir: '/tmp/output',
+      executablePath: fakeCloakBinaryPath,
+      outputDir: fakeOutputDir,
     });
   });
 });

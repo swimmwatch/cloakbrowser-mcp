@@ -37,3 +37,7 @@ export function envList(env: EnvReader, name: string, fallback = ''): string[] {
 export function appendNodeOption(existing: string | undefined, option: string): string {
   return existing ? `${existing} ${option}` : option;
 }
+
+export function quoteNodeOptionValue(value: string): string {
+  return /\s/u.test(value) ? `"${value.replaceAll('"', '\\"')}"` : value;
+}

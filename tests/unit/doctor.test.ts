@@ -1,6 +1,8 @@
 import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createDoctorReport, renderDoctorReport } from '@/cli/doctor.js';
+import { fakeCloakBinaryPath } from '@tests/helpers/paths.js';
 
 describe('CLI doctor diagnostics', () => {
   afterEach(() => {
@@ -49,9 +51,9 @@ describe('CLI doctor diagnostics', () => {
       getCurrentCloakBinaryInfo: () => ({
         version: '146.0.0',
         platform: 'linux-x64',
-        binaryPath: '/cache/chrome',
+        binaryPath: fakeCloakBinaryPath,
         installed: false,
-        cacheDir: '/cache',
+        cacheDir: path.dirname(fakeCloakBinaryPath),
         downloadUrl: 'https://example.invalid/cloakbrowser.tar.gz',
       }),
     }));

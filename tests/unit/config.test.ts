@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createLaunchArgs, prepareBridgeRuntime } from '@/bridge/config.js';
+import { fakeCloakBinaryPath } from '@tests/helpers/paths.js';
 
 const tempRoots: string[] = [];
 
@@ -22,7 +23,7 @@ describe('bridge config generation', () => {
     const outputDir = path.join(root, 'artifacts');
     const runtime = await prepareBridgeRuntime({
       tempRoot: root,
-      ensureCloakBinary: async () => '/tmp/cloakbrowser/chrome',
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
       env: {
         PLAYWRIGHT_MCP_OUTPUT_DIR: outputDir,
         PLAYWRIGHT_MCP_HEADLESS: 'false',
@@ -34,12 +35,12 @@ describe('bridge config generation', () => {
     });
 
     expect(runtime.browserEngine).toBe('cloak');
-    expect(runtime.cloakBinaryPath).toBe('/tmp/cloakbrowser/chrome');
+    expect(runtime.cloakBinaryPath).toBe(fakeCloakBinaryPath);
     expect(runtime.outputDir).toBe(outputDir);
-    expect(runtime.childEnv.PLAYWRIGHT_MCP_EXECUTABLE_PATH).toBe('/tmp/cloakbrowser/chrome');
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_EXECUTABLE_PATH).toBe(fakeCloakBinaryPath);
     expect(runtime.childEnv.PLAYWRIGHT_MCP_OUTPUT_MODE).toBe('file');
     expect(runtime.config.browser?.launchOptions).toMatchObject({
-      executablePath: '/tmp/cloakbrowser/chrome',
+      executablePath: fakeCloakBinaryPath,
       headless: false,
       args: ['--no-sandbox', '--foo', '--bar=baz'],
       chromiumSandbox: false,
@@ -52,7 +53,7 @@ describe('bridge config generation', () => {
     const root = createTempRoot();
     const runtime = await prepareBridgeRuntime({
       tempRoot: root,
-      ensureCloakBinary: async () => '/tmp/cloakbrowser/chrome',
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
       env: {
         PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
         CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'true',
@@ -70,7 +71,7 @@ describe('bridge config generation', () => {
     const runtime = await prepareBridgeRuntime({
       tempRoot: root,
       browserIsolated: true,
-      ensureCloakBinary: async () => '/tmp/cloakbrowser/chrome',
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
       env: {
         PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
         CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
@@ -87,7 +88,7 @@ describe('bridge config generation', () => {
     const root = createTempRoot();
     const runtime = await prepareBridgeRuntime({
       tempRoot: root,
-      ensureCloakBinary: async () => '/tmp/cloakbrowser/chrome',
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
       env: {
         PLAYWRIGHT_MCP_BROWSER_ENGINE: 'playwright',
         PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
@@ -109,7 +110,7 @@ describe('bridge config generation', () => {
     await expect(
       prepareBridgeRuntime({
         tempRoot: createTempRoot(),
-        ensureCloakBinary: async () => '/tmp/cloakbrowser/chrome',
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
         env: {
           PLAYWRIGHT_MCP_BROWSER_ENGINE: 'firefox',
         },
