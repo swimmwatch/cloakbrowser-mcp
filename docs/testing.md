@@ -24,6 +24,8 @@ npm run test:integration
 
 Integration tests use a fake upstream MCP child process and verify that the bridge merges local tools and forwards upstream calls unchanged.
 
+CI runs the unit, integration, and packaged CLI E2E suites on Ubuntu Node.js 22-26 and on Node.js 22 for Linux x64, Linux arm64, macOS arm64, macOS x64, and Windows x64.
+
 ## Package Verification
 
 ```bash
@@ -41,7 +43,7 @@ npm run docker:build
 npm run docker:smoke
 ```
 
-The smoke test verifies that the built image starts and prints CLI help.
+The smoke test verifies that the built image starts and prints CLI help. CI smoke-tests Docker images for `linux/amd64` and `linux/arm64`.
 
 ## Upstream Parity
 
@@ -52,7 +54,7 @@ npm run bridge:compare -- cloakbrowser-mcp:dev --report bridge-parity-report.jso
 
 The parity script starts the official Playwright MCP Docker image and the CloakBrowser bridge image, compares upstream tool names, exercises the default browser tool surface on one fixture page, and verifies local Cloak introspection tools.
 
-CI uploads the JSON parity report as an artifact for Docker build jobs and release jobs.
+CI uploads the JSON parity report as an artifact for Docker build jobs and release jobs. Browser parity is currently run on `linux/amd64`; arm64 Docker jobs use smoke and vulnerability checks.
 
 ## Security Checks
 

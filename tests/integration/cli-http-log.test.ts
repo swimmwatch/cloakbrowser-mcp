@@ -150,12 +150,24 @@ async function terminateChild(child: ChildProcessWithoutNullStreams): Promise<vo
   if (child.exitCode !== null || child.signalCode !== null) return;
   await new Promise<void>((resolve) => {
     const timeout = setTimeout(() => {
-      child.kill('SIGKILL');
+      killChild(child, 'SIGKILL');
     }, 2_000);
     child.once('exit', () => {
       clearTimeout(timeout);
       resolve();
     });
-    child.kill('SIGTERM');
+    killChild(child, 'SIGTERM');
   });
+}
+
+function killChild(child: ChildProcessWithoutNullStreams, signal?: NodeJS.Signals): void {
+  try {
+    child.kill(signal);
+  } catch {
+    try {
+      child.kill();
+    } catch {
+      // The process may have exited between the status check and kill call.
+    }
+  }
 }

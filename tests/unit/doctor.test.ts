@@ -16,7 +16,7 @@ describe('CLI doctor diagnostics', () => {
     expect(report.project).toMatchObject({
       packageName: 'cloakbrowser-mcp',
       mcpName: 'io.github.swimmwatch/cloakbrowser-mcp',
-      nodeEngine: '>=20.0.0',
+      nodeEngine: '>=22.12.0',
     });
     expect(report.node.supported).toBe(true);
     expect(report.upstream.package).toBe('@playwright/mcp');

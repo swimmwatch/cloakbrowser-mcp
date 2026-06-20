@@ -29,7 +29,7 @@ Pin a release when reproducibility matters:
 npx -y cloakbrowser-mcp@1.3.1
 ```
 
-The npm package requires Node.js 20 or newer. CloakBrowser downloads its Chromium binary on first use unless it is already cached.
+The npm package requires Node.js 22.12 or newer. CloakBrowser downloads its Chromium binary on first use unless it is already cached.
 
 Use `doctor` to verify the local Node.js runtime, package metadata, upstream Playwright MCP CLI resolution, and CloakBrowser binary metadata before connecting a client. The command does not start the bridge or download a browser.
 
@@ -45,7 +45,7 @@ docker run --rm --init -i \
   swimmwatch/cloakbrowser-mcp:latest
 ```
 
-Docker is the most reproducible runtime because the image is based on the pinned official Playwright MCP image and includes a prepared CloakBrowser browser cache.
+Docker is the most reproducible runtime because the image is based on the pinned official Playwright MCP image and includes a prepared CloakBrowser browser cache. Published images support `linux/amd64` and `linux/arm64`.
 The same tags are also published to `ghcr.io/swimmwatch/cloakbrowser-mcp`.
 
 For local Streamable HTTP with Docker, publish the port on loopback and bind the server inside the container:

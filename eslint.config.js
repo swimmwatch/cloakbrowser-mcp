@@ -20,6 +20,7 @@ export default tseslint.config(
           allowDefaultProject: [
             'eslint.config.js',
             'vitest.config.ts',
+            'vitest.e2e.config.ts',
             '*.cjs',
             '*.mjs',
             'scripts/*.mjs',

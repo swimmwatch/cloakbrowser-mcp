@@ -13,7 +13,7 @@ Playwright MCP version it is built and tested against.
 
 | cloakbrowser-mcp | @playwright/mcp dependency | Playwright MCP Docker base | CloakBrowser dependency | Node.js | Transport | Tested platform | Tool parity |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `1.3.1` | `^0.0.76` | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.3.31` | `>=20` | stdio, Streamable HTTP | npm on Node.js 20-26, Docker `linux/amd64` | Upstream default browser tools compared against the official Playwright MCP image in CI. |
+| `1.3.1` | `^0.0.76` | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.3.32` | `>=22.12` | stdio, Streamable HTTP | npm on Node.js 22-26 across Linux, macOS, and Windows; Docker `linux/amd64`, `linux/arm64` | Upstream default browser tools compared against the official Playwright MCP image in CI. |
 | `1.3.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.31` | `>=20` | stdio, Streamable HTTP | npm on Node.js 20-26, Docker `linux/amd64` | Upstream default browser tools compared against the official Playwright MCP image in CI. |
 | `1.2.7` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | npm on Node.js 20/22, Docker `linux/amd64` | Upstream default browser tools compared against the official Playwright MCP image in CI. |
 | `1.2.6` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | npm on Node.js 20/22, Docker `linux/amd64` | Upstream default browser tools compared against the official Playwright MCP image in CI. |
@@ -45,6 +45,6 @@ Playwright MCP version it is built and tested against.
 When reproducibility matters, pin `cloakbrowser-mcp` by exact version instead
 of using `latest`.
 
-Docker releases currently publish `linux/amd64` only. Other architectures are
-deferred until CloakBrowser and upstream Playwright MCP behavior are verified
-end to end for those targets.
+Docker releases currently publish `linux/amd64` and `linux/arm64`. Browser
+parity is compared on `linux/amd64`; both Docker platforms receive release
+smoke tests before a multi-platform manifest is published.
