@@ -26,7 +26,8 @@ describe('streamable HTTP CLI logging', () => {
     const child = spawn(
       process.execPath,
       [
-        fileURLToPath(new URL('../../node_modules/tsx/dist/cli.mjs', import.meta.url)),
+        '--import',
+        'tsx',
         'src/cli.ts',
         '--transport',
         'streamable-http',
@@ -55,7 +56,12 @@ describe('streamable HTTP CLI logging', () => {
     const stdout = collectStream(child.stdout);
     const stderr = collectStream(child.stderr);
 
-    const stdoutLine = await waitForLine(child, stdout, / INFO cloakbrowser-mcp streamable-http listening /u);
+    const stdoutLine = await waitForLine(
+      child,
+      stdout,
+      / INFO cloakbrowser-mcp streamable-http listening /u,
+      () => stderr.text,
+    );
     expect(stdoutLine).toMatch(
       /^\d{4}-\d{2}-\d{2}T\S+Z INFO cloakbrowser-mcp streamable-http listening url=http:\/\/127\.0\.0\.1:\d+\/mcp$/u,
     );
@@ -103,6 +109,7 @@ function waitForLine(
   child: ChildProcessWithoutNullStreams,
   stream: CollectedStream,
   pattern: RegExp,
+  diagnostics?: () => string,
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
@@ -119,8 +126,16 @@ function waitForLine(
     };
     const onExit = (code: number | null, signal: NodeJS.Signals | null): void => {
       cleanup();
+      const diagnosticText = diagnostics?.().trim();
       reject(
-        new Error(`CLI exited before logging HTTP URL: code=${code ?? 'null'} signal=${signal ?? 'null'}`),
+        new Error(
+          [
+            `CLI exited before logging HTTP URL: code=${code ?? 'null'} signal=${signal ?? 'null'}`,
+            diagnosticText ? `stderr:\n${diagnosticText}` : undefined,
+          ]
+            .filter((line) => line !== undefined)
+            .join('\n'),
+        ),
       );
     };
     const onError = (error: Error): void => {
