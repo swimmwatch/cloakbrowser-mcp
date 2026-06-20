@@ -14,21 +14,38 @@ export function readyUrl(base: string | URL): URL {
   return new URL(READYZ_PATH, base);
 }
 
-export function fetchHealth(base: string | URL, init?: RequestInit): Promise<Response> {
-  return fetch(healthUrl(base), init);
+export function fetchHealth(
+  base: string | URL,
+  init?: RequestInit,
+  fetchImpl: typeof fetch = fetch,
+): Promise<Response> {
+  return fetchImpl(healthUrl(base), init);
 }
 
-export function fetchReady(base: string | URL, init?: RequestInit): Promise<Response> {
-  return fetch(readyUrl(base), init);
+export function fetchReady(
+  base: string | URL,
+  init?: RequestInit,
+  fetchImpl: typeof fetch = fetch,
+): Promise<Response> {
+  return fetchImpl(readyUrl(base), init);
 }
 
-export function postToolsList(base: string | URL, sessionId?: string, init?: RequestInit): Promise<Response> {
+export function postToolsList(
+  base: string | URL,
+  sessionId?: string,
+  init?: RequestInit,
+  fetchImpl: typeof fetch = fetch,
+): Promise<Response> {
   const headers = createJsonRpcHeaders(init?.headers);
   if (sessionId) headers.set(MCP_SESSION_ID_HEADER, sessionId);
-  return postJsonRpc(base, { id: 1, method: 'tools/list', params: {} }, { ...init, headers });
+  return postJsonRpc(base, { id: 1, method: 'tools/list', params: {} }, { ...init, headers }, fetchImpl);
 }
 
-export function postInitialize(base: string | URL, init?: RequestInit): Promise<Response> {
+export function postInitialize(
+  base: string | URL,
+  init?: RequestInit,
+  fetchImpl: typeof fetch = fetch,
+): Promise<Response> {
   return postJsonRpc(
     base,
     {
@@ -41,6 +58,7 @@ export function postInitialize(base: string | URL, init?: RequestInit): Promise<
       },
     },
     init,
+    fetchImpl,
   );
 }
 
@@ -48,8 +66,9 @@ function postJsonRpc(
   base: string | URL,
   request: { id: number; method: string; params: Record<string, unknown> },
   init?: RequestInit,
+  fetchImpl: typeof fetch = fetch,
 ): Promise<Response> {
-  return fetch(base, {
+  return fetchImpl(base, {
     ...init,
     method: 'POST',
     headers: createJsonRpcHeaders(init?.headers),

@@ -10,7 +10,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { LOCAL_TOOL_BINARY_INFO, LOCAL_TOOL_BRIDGE_INFO } from '@/bridge/tools.js';
 import { BRIDGE_TRANSPORT_STREAMABLE_HTTP } from '@/http/options.js';
 import { fetchHealth, fetchReady, healthUrl, postInitialize } from '@tests/helpers/http.js';
-import { tlsCertPath, tlsKeyPath, withDisabledTlsVerification } from '@tests/helpers/tls.js';
+import { fetchWithTestTls, tlsCertPath, tlsKeyPath } from '@tests/helpers/tls.js';
 
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 const distCliPath = path.join(repoRoot, 'dist/cli.js');
@@ -225,27 +225,25 @@ describe('packaged CLI end-to-end', () => {
     const endpointUrl = parseLoggedUrl(startupLine);
     expect(endpointUrl.protocol).toBe('https:');
 
-    await withDisabledTlsVerification(async () => {
-      const health = await fetchHealth(endpointUrl);
-      expect(health.status).toBe(200);
+    const health = await fetchHealth(endpointUrl, undefined, fetchWithTestTls);
+    expect(health.status).toBe(200);
 
-      const { client } = await connectHttpClient(endpointUrl);
-      const tools = await client.listTools();
-      expect(tools.tools.map((tool) => tool.name)).toEqual([
-        'browser_snapshot',
-        'browser_navigate',
-        LOCAL_TOOL_BINARY_INFO,
-        LOCAL_TOOL_BRIDGE_INFO,
-      ]);
+    const { client } = await connectHttpClient(endpointUrl, {}, fetchWithTestTls);
+    const tools = await client.listTools();
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      'browser_snapshot',
+      'browser_navigate',
+      LOCAL_TOOL_BINARY_INFO,
+      LOCAL_TOOL_BRIDGE_INFO,
+    ]);
 
-      const forwarded = await client.callTool({
-        name: 'browser_navigate',
-        arguments: { url: 'https://secure.example' },
-      });
-      expect(forwarded.structuredContent).toMatchObject({
-        forwarded: true,
-        name: 'browser_navigate',
-      });
+    const forwarded = await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: 'https://secure.example' },
+    });
+    expect(forwarded.structuredContent).toMatchObject({
+      forwarded: true,
+      name: 'browser_navigate',
     });
 
     expect(stderr.text).toBe('');
@@ -310,9 +308,11 @@ function spawnHttpCli(args: string[], env: Record<string, string> = {}): ChildPr
 async function connectHttpClient(
   endpointUrl: URL,
   headers: Record<string, string> = {},
+  fetchImpl: typeof fetch = fetch,
 ): Promise<{ client: Client; transport: StreamableHTTPClientTransport }> {
   const transport = new StreamableHTTPClientTransport(endpointUrl, {
     requestInit: { headers },
+    fetch: fetchImpl,
   });
   const client = new Client({ name: 'packaged-http-e2e-client', version: '1.0.0' });
   clients.push(client);

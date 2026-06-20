@@ -10,7 +10,7 @@ import { defaultStreamableHttpOptions } from '@/http/options.js';
 import { startStreamableHttpBridge, type StreamableHttpBridgeServer } from '@/http/server.js';
 import { HttpStatus } from '@/http/status.js';
 import { fetchHealth, fetchReady, postToolsList } from '@tests/helpers/http.js';
-import { tlsConfig, withDisabledTlsVerification } from '@tests/helpers/tls.js';
+import { fetchWithTestTls, tlsConfig } from '@tests/helpers/tls.js';
 
 const tempRoots: string[] = [];
 const clients: Client[] = [];
@@ -178,22 +178,20 @@ describe('streamable HTTP bridge', () => {
       });
 
       expect(server.url).toMatch(/^https:\/\/127\.0\.0\.1:\d+\/mcp$/u);
-      await withDisabledTlsVerification(async () => {
-        const health = await fetchHealth(server.url);
-        expect(health.status).toBe(HttpStatus.Ok);
+      const health = await fetchHealth(server.url, undefined, fetchWithTestTls);
+      expect(health.status).toBe(HttpStatus.Ok);
 
-        const { client } = await connectHttpClient(server);
-        const tools = await client.listTools();
-        expect(tools.tools.map((tool) => tool.name)).toContain(LOCAL_TOOL_BRIDGE_INFO);
+      const { client } = await connectHttpClient(server, fetchWithTestTls);
+      const tools = await client.listTools();
+      expect(tools.tools.map((tool) => tool.name)).toContain(LOCAL_TOOL_BRIDGE_INFO);
 
-        const result = await client.callTool({
-          name: 'browser_navigate',
-          arguments: { url: 'https://secure.example' },
-        });
-        expect(result.structuredContent).toMatchObject({
-          forwarded: true,
-          name: 'browser_navigate',
-        });
+      const result = await client.callTool({
+        name: 'browser_navigate',
+        arguments: { url: 'https://secure.example' },
+      });
+      expect(result.structuredContent).toMatchObject({
+        forwarded: true,
+        name: 'browser_navigate',
       });
     });
   });
@@ -214,8 +212,9 @@ async function startHttpBridge(
 
 async function connectHttpClient(
   server: StreamableHttpBridgeServer,
+  fetchImpl: typeof fetch = fetch,
 ): Promise<{ client: Client; transport: StreamableHTTPClientTransport }> {
-  const transport = new StreamableHTTPClientTransport(new URL(server.url));
+  const transport = new StreamableHTTPClientTransport(new URL(server.url), { fetch: fetchImpl });
   const client = new Client({ name: 'http-test-client', version: '1.0.0' });
   clients.push(client);
   await client.connect(transport);

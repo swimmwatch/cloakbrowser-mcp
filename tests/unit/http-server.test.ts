@@ -7,7 +7,7 @@ import { isAuthorizedRequest, isEndpointRequest, startStreamableHttpBridge } fro
 import { HttpStatus, JsonRpcErrorCode } from '@/http/status.js';
 import type { BridgeLogger } from '@/logging/logger.js';
 import { fetchHealth, fetchReady, healthUrl, readyUrl } from '@tests/helpers/http.js';
-import { tlsConfig, withDisabledTlsVerification } from '@tests/helpers/tls.js';
+import { fetchWithTestTls, tlsConfig } from '@tests/helpers/tls.js';
 
 describe('HTTP server helpers', () => {
   it('accepts requests when no auth token is configured', () => {
@@ -116,15 +116,13 @@ describe('HTTP server helpers', () => {
 
     try {
       expect(server.url).toMatch(/^https:\/\/127\.0\.0\.1:\d+\/mcp$/u);
-      await withDisabledTlsVerification(async () => {
-        const health = await fetchHealth(server.url);
-        const healthBody = (await health.json()) as Record<string, unknown>;
-        expect(health.status).toBe(HttpStatus.Ok);
-        expect(healthBody).toMatchObject({
-          status: 'ok',
-          version: '1.2.3',
-          transport: BRIDGE_TRANSPORT_STREAMABLE_HTTP,
-        });
+      const health = await fetchHealth(server.url, undefined, fetchWithTestTls);
+      const healthBody = (await health.json()) as Record<string, unknown>;
+      expect(health.status).toBe(HttpStatus.Ok);
+      expect(healthBody).toMatchObject({
+        status: 'ok',
+        version: '1.2.3',
+        transport: BRIDGE_TRANSPORT_STREAMABLE_HTTP,
       });
     } finally {
       await server.close();
