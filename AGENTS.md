@@ -15,7 +15,8 @@ Operating manual for AI coding agents working in this repository.
 1. Write the simplest possible code. Do only what was requested.
 2. Use the `context7` MCP tool whenever you need up-to-date documentation or API references for external libraries.
 3. Everything in this repository is written in English.
-4. Do not copy, rewrite, or mutate upstream Playwright MCP browser tool contracts.
+4. AI-agent reasoning and code-agent reasoning for this repository must be in English.
+5. Do not copy, rewrite, or mutate upstream Playwright MCP browser tool contracts.
 
 ## Project Layout
 
@@ -58,6 +59,9 @@ npm run check
 
 - Keep `strict` mode on.
 - ESM only. Internal imports end with `.js`.
+- Use configured aliases for internal imports instead of relative paths:
+  `#src/...` for runtime source, `@/...` for source imports in tests,
+  `@tests/...` for test helpers, and `#scripts/...` for scripts.
 - Prefer explicit types and small pure functions.
 - Do not use `console.*` in runtime code. CLI help/version may write to `process.stdout`; errors may write to `process.stderr`.
 - Do not add `any`, `// @ts-ignore`, or non-null assertions to silence the checker.
@@ -114,6 +118,8 @@ python3 -m pipx run zizmor --min-severity high .
 ## Documentation
 
 Update `README.md`, `docs/getting-started.md`, `docs/configuration.md`, `docs/docker.md`, or `docs/tools.md` when public CLI, Docker, environment, or tool-surface behavior changes.
+
+Compatibility tables are generated from `docs/data/version-compatibility.json`. For release work, add the new compatibility row there, run `npm run docs:compatibility`, and verify both the full table in `docs/version-compatibility.md` and the compact compatibility table in `README.md` are updated. Run `npm run docs:compatibility:check` before finishing so the generated tables in `README.md`, `docs/index.md`, and `docs/version-compatibility.md` cannot drift.
 
 For release preparation, publishing, verification, or recovery requests, read and follow `.agents/skills/project-release/SKILL.md`.
 

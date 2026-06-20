@@ -1,6 +1,8 @@
 import fc from 'fast-check';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { appendNodeOption, envBool, envInt, envList, envString } from '../../src/bridge/env.js';
+import { appendNodeOption, envBool, envInt, envList, envString, quoteNodeOptionValue } from '@/bridge/env.js';
+import { fakeRuntimeDir } from '@tests/helpers/paths.js';
 
 describe('bridge environment helpers', () => {
   it('reads strings, booleans, integers, and lists', () => {
@@ -23,9 +25,17 @@ describe('bridge environment helpers', () => {
   });
 
   it('appends node options without dropping existing flags', () => {
-    expect(appendNodeOption(undefined, '--require=/tmp/a.cjs')).toBe('--require=/tmp/a.cjs');
-    expect(appendNodeOption('--enable-source-maps', '--require=/tmp/a.cjs')).toBe(
-      '--enable-source-maps --require=/tmp/a.cjs',
+    const preloadOption = `--require=${path.join(fakeRuntimeDir, 'a.cjs')}`;
+    expect(appendNodeOption(undefined, preloadOption)).toBe(preloadOption);
+    expect(appendNodeOption('--enable-source-maps', preloadOption)).toBe(
+      `--enable-source-maps ${preloadOption}`,
+    );
+  });
+
+  it('quotes Node.js option values only when paths contain whitespace', () => {
+    expect(quoteNodeOptionValue(path.join(fakeRuntimeDir, 'a.cjs'))).toBe(path.join(fakeRuntimeDir, 'a.cjs'));
+    expect(quoteNodeOptionValue(path.join(fakeRuntimeDir, 'with space', 'a.cjs'))).toBe(
+      `"${path.join(fakeRuntimeDir, 'with space', 'a.cjs')}"`,
     );
   });
 

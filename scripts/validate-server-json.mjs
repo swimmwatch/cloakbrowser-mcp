@@ -2,8 +2,8 @@
 import process from 'node:process';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
-import { readJson } from './lib/files.mjs';
-import { fetchJson } from './lib/http.mjs';
+import { readJson } from '#scripts/lib/files';
+import { fetchJson } from '#scripts/lib/http';
 
 const serverJsonPath = process.argv[2] ?? 'server.json';
 const serverJson = readJson(serverJsonPath);

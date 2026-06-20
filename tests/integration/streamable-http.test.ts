@@ -5,9 +5,12 @@ import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { afterEach, describe, expect, it } from 'vitest';
-import { defaultStreamableHttpOptions } from '../../src/http/options.js';
-import { startStreamableHttpBridge, type StreamableHttpBridgeServer } from '../../src/http/server.js';
-import { HttpStatus } from '../../src/http/status.js';
+import { LOCAL_TOOL_BINARY_INFO, LOCAL_TOOL_BRIDGE_INFO } from '@/bridge/tools.js';
+import { defaultStreamableHttpOptions } from '@/http/options.js';
+import { startStreamableHttpBridge, type StreamableHttpBridgeServer } from '@/http/server.js';
+import { HttpStatus } from '@/http/status.js';
+import { fetchHealth, fetchReady, postToolsList } from '@tests/helpers/http.js';
+import { fetchWithTestTls, tlsConfig } from '@tests/helpers/tls.js';
 
 const tempRoots: string[] = [];
 const clients: Client[] = [];
@@ -36,8 +39,8 @@ describe('streamable HTTP bridge', () => {
       expect(tools.tools.map((tool) => tool.name)).toEqual([
         'browser_snapshot',
         'browser_navigate',
-        'cloakbrowser_binary_info',
-        'cloakbrowser_bridge_info',
+        LOCAL_TOOL_BINARY_INFO,
+        LOCAL_TOOL_BRIDGE_INFO,
       ]);
 
       const result = await client.callTool({
@@ -123,12 +126,12 @@ describe('streamable HTTP bridge', () => {
     await withFakeUpstream(async () => {
       const server = await startHttpBridge({ sessionMax: 1 });
 
-      const initial = await fetch(new URL('/readyz', server.url));
+      const initial = await fetchReady(server.url);
       expect(initial.status).toBe(HttpStatus.Ok);
 
       await connectHttpClient(server);
 
-      const full = await fetch(new URL('/readyz', server.url));
+      const full = await fetchReady(server.url);
       const body = (await full.json()) as {
         status: string;
         sessions: { active: number; pending: number; max: number; available: number };
@@ -166,6 +169,32 @@ describe('streamable HTTP bridge', () => {
       expect((await client.listTools()).tools.length).toBeGreaterThan(0);
     });
   });
+
+  it('serves MCP sessions over HTTPS when TLS files are configured', async () => {
+    await withFakeUpstream(async () => {
+      const server = await startHttpBridge({
+        protocol: 'https',
+        tls: tlsConfig,
+      });
+
+      expect(server.url).toMatch(/^https:\/\/127\.0\.0\.1:\d+\/mcp$/u);
+      const health = await fetchHealth(server.url, undefined, fetchWithTestTls);
+      expect(health.status).toBe(HttpStatus.Ok);
+
+      const { client } = await connectHttpClient(server, fetchWithTestTls);
+      const tools = await client.listTools();
+      expect(tools.tools.map((tool) => tool.name)).toContain(LOCAL_TOOL_BRIDGE_INFO);
+
+      const result = await client.callTool({
+        name: 'browser_navigate',
+        arguments: { url: 'https://secure.example' },
+      });
+      expect(result.structuredContent).toMatchObject({
+        forwarded: true,
+        name: 'browser_navigate',
+      });
+    });
+  });
 });
 
 async function startHttpBridge(
@@ -183,30 +212,13 @@ async function startHttpBridge(
 
 async function connectHttpClient(
   server: StreamableHttpBridgeServer,
+  fetchImpl: typeof fetch = fetch,
 ): Promise<{ client: Client; transport: StreamableHTTPClientTransport }> {
-  const transport = new StreamableHTTPClientTransport(new URL(server.url));
+  const transport = new StreamableHTTPClientTransport(new URL(server.url), { fetch: fetchImpl });
   const client = new Client({ name: 'http-test-client', version: '1.0.0' });
   clients.push(client);
   await client.connect(transport);
   return { client, transport };
-}
-
-async function postToolsList(url: string, sessionId?: string): Promise<Response> {
-  const headers: Record<string, string> = {
-    Accept: 'application/json, text/event-stream',
-    'Content-Type': 'application/json',
-  };
-  if (sessionId) headers['Mcp-Session-Id'] = sessionId;
-  return fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'tools/list',
-      params: {},
-    }),
-  });
 }
 
 async function withFakeUpstream(fn: () => Promise<void>): Promise<void> {

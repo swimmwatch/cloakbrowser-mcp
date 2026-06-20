@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import process from 'node:process';
 import { format } from 'prettier';
-import { appendGithubOutput } from './lib/github-output.mjs';
-import { readText, writeText } from './lib/files.mjs';
+import { appendGithubOutput } from '#scripts/lib/github-output';
+import { readText, writeText } from '#scripts/lib/files';
 import {
   normalizeReleaseVersion,
   toDockerMajorMinor,
@@ -11,7 +11,7 @@ import {
   updatePinnedInstallCommands,
   updateServerJsonVersion,
   updateVersionMarkers,
-} from './lib/release-version.mjs';
+} from '#scripts/lib/release-version';
 
 const rawVersion =
   process.argv[2] ??

@@ -2,11 +2,13 @@
 import { readFileSync } from 'node:fs';
 import process from 'node:process';
 import type { Implementation } from '@modelcontextprotocol/sdk/types.js';
-import { createDoctorReport, renderDoctorReport } from './cli/doctor.js';
-import { createCliCommand, readCliOptions } from './cli/options.js';
-import { startStreamableHttpBridge } from './http/server.js';
-import { PROJECT_METADATA } from './project/metadata.js';
-import { startBridge } from './server.js';
+import { createDoctorReport, renderDoctorReport } from '#src/cli/doctor';
+import { createCliCommand, readCliOptions } from '#src/cli/options';
+import { BRIDGE_TRANSPORT_STREAMABLE_HTTP } from '#src/http/options';
+import { startStreamableHttpBridge } from '#src/http/server';
+import { createBridgeLogger } from '#src/logging/logger';
+import { PROJECT_METADATA } from '#src/project/metadata';
+import { startBridge } from '#src/server';
 
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as {
   version: string;
@@ -34,8 +36,8 @@ async function main(): Promise<void> {
     };
 
     const running =
-      options.transport === 'streamable-http'
-        ? await startStreamableHttpBridge({ ...options.http, serverInfo })
+      options.transport === BRIDGE_TRANSPORT_STREAMABLE_HTTP
+        ? await startStreamableHttpCliBridge({ ...options.http, serverInfo })
         : await startStdioBridge(serverInfo);
 
     for (const signal of ['SIGINT', 'SIGTERM'] as const) {
@@ -52,6 +54,18 @@ async function startStdioBridge(serverInfo: Partial<Implementation>): Promise<{ 
   return {
     close: () => bridge.dispose(),
   };
+}
+
+async function startStreamableHttpCliBridge(
+  options: Parameters<typeof startStreamableHttpBridge>[0],
+): Promise<{ close(): Promise<void> }> {
+  const logger = createBridgeLogger();
+  const bridge = await startStreamableHttpBridge({
+    ...options,
+    logger,
+  });
+  logger.info({ url: bridge.url }, 'streamable-http listening');
+  return bridge;
 }
 
 void main().catch((error: unknown) => {

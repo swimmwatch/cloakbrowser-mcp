@@ -1,9 +1,13 @@
 import type { IncomingMessage } from 'node:http';
+import { createConnection } from 'node:net';
 import { describe, expect, it } from 'vitest';
-import { defaultStreamableHttpOptions } from '../../src/http/options.js';
-import type { SessionStore } from '../../src/http/sessionStore.js';
-import { isAuthorizedRequest, isEndpointRequest, startStreamableHttpBridge } from '../../src/http/server.js';
-import { HttpStatus, JsonRpcErrorCode } from '../../src/http/status.js';
+import { BRIDGE_TRANSPORT_STREAMABLE_HTTP, defaultStreamableHttpOptions } from '@/http/options.js';
+import type { SessionStore } from '@/http/sessionStore.js';
+import { isAuthorizedRequest, isEndpointRequest, startStreamableHttpBridge } from '@/http/server.js';
+import { HttpStatus, JsonRpcErrorCode } from '@/http/status.js';
+import type { BridgeLogger } from '@/logging/logger.js';
+import { fetchHealth, fetchReady, healthUrl, readyUrl } from '@tests/helpers/http.js';
+import { fetchWithTestTls, tlsConfig } from '@tests/helpers/tls.js';
 
 describe('HTTP server helpers', () => {
   it('accepts requests when no auth token is configured', () => {
@@ -71,17 +75,17 @@ describe('HTTP server helpers', () => {
     });
 
     try {
-      const health = await fetch(new URL('/healthz', server.url));
+      const health = await fetchHealth(server.url);
       const healthBody = (await health.json()) as Record<string, unknown>;
       expect(health.status).toBe(HttpStatus.Ok);
       expect(healthBody).toMatchObject({
         status: 'ok',
         version: '1.2.3',
-        transport: 'streamable-http',
+        transport: BRIDGE_TRANSPORT_STREAMABLE_HTTP,
       });
       expect(healthBody.uptimeMs).toEqual(expect.any(Number));
 
-      const ready = await fetch(new URL('/readyz', server.url));
+      const ready = await fetchReady(server.url);
       const readyBody = (await ready.json()) as {
         status: string;
         sessions: { active: number; pending: number; max: number; available: number };
@@ -101,6 +105,30 @@ describe('HTTP server helpers', () => {
     }
   });
 
+  it('serves HTTPS probes and reports an https endpoint URL', async () => {
+    const server = await startStreamableHttpBridge({
+      ...defaultStreamableHttpOptions,
+      protocol: 'https',
+      tls: tlsConfig,
+      port: 0,
+      serverInfo: { version: '1.2.3' },
+    });
+
+    try {
+      expect(server.url).toMatch(/^https:\/\/127\.0\.0\.1:\d+\/mcp$/u);
+      const health = await fetchHealth(server.url, undefined, fetchWithTestTls);
+      const healthBody = (await health.json()) as Record<string, unknown>;
+      expect(health.status).toBe(HttpStatus.Ok);
+      expect(healthBody).toMatchObject({
+        status: 'ok',
+        version: '1.2.3',
+        transport: BRIDGE_TRANSPORT_STREAMABLE_HTTP,
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
   it('serves probe JSON with default version metadata and rejects non-GET probe methods', async () => {
     const server = await startStreamableHttpBridge({
       ...defaultStreamableHttpOptions,
@@ -108,17 +136,19 @@ describe('HTTP server helpers', () => {
     });
 
     try {
-      const health = await fetch(new URL('/healthz?probe=1', server.url));
+      const healthProbeUrl = healthUrl(server.url);
+      healthProbeUrl.search = 'probe=1';
+      const health = await fetch(healthProbeUrl);
       const healthBody = (await health.json()) as Record<string, unknown>;
       expect(health.status).toBe(HttpStatus.Ok);
       expect(healthBody).toMatchObject({
         status: 'ok',
         version: 'unknown',
-        transport: 'streamable-http',
+        transport: BRIDGE_TRANSPORT_STREAMABLE_HTTP,
       });
 
-      for (const path of ['/healthz', '/readyz']) {
-        const methodNotAllowed = await fetch(new URL(path, server.url), { method: 'POST' });
+      for (const url of [healthUrl(server.url), readyUrl(server.url)]) {
+        const methodNotAllowed = await fetch(url, { method: 'POST' });
         const methodNotAllowedBody = (await methodNotAllowed.json()) as Record<string, unknown>;
         expect(methodNotAllowed.status).toBe(HttpStatus.MethodNotAllowed);
         expect(methodNotAllowed.headers.get('allow')).toBe('GET');
@@ -137,16 +167,50 @@ describe('HTTP server helpers', () => {
     });
 
     try {
-      const unauthorized = await fetch(new URL('/healthz', server.url));
+      const unauthorized = await fetchHealth(server.url);
       const unauthorizedBody = (await unauthorized.json()) as Record<string, unknown>;
       expect(unauthorized.status).toBe(HttpStatus.Unauthorized);
       expect(unauthorized.headers.get('www-authenticate')).toBe('Bearer');
       expect(unauthorizedBody).toEqual({ status: 'unauthorized' });
 
-      const authorized = await fetch(new URL('/readyz', server.url), {
+      const authorized = await fetchReady(server.url, {
         headers: { Authorization: 'Bearer secret' },
       });
       expect(authorized.status).toBe(HttpStatus.Ok);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('logs a safe path when Host cannot be parsed as a URL base', async () => {
+    const requestLogs: Array<Record<string, unknown>> = [];
+    const logger = {
+      info(fields: Record<string, unknown>, message: string) {
+        requestLogs.push({ ...fields, message });
+      },
+    } as BridgeLogger;
+    const server = await startStreamableHttpBridge({
+      ...defaultStreamableHttpOptions,
+      port: 0,
+      logger,
+    });
+
+    try {
+      const response = await rawHttpRequest(
+        server.address.port,
+        'GET /healthz?token=secret HTTP/1.1\r\nHost: bad host\r\nConnection: close\r\n\r\n',
+      );
+
+      expect(response).toContain('HTTP/1.1 500');
+      expect(requestLogs).toContainEqual(
+        expect.objectContaining({
+          duration_ms: expect.any(Number),
+          message: 'http request',
+          method: 'GET',
+          path: '/healthz',
+          status: HttpStatus.InternalServerError,
+        }),
+      );
     } finally {
       await server.close();
     }
@@ -160,6 +224,24 @@ describe('HTTP server helpers', () => {
     expect(JsonRpcErrorCode.ParseError).toBe(-32700);
   });
 });
+
+async function rawHttpRequest(port: number, request: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const socket = createConnection({ host: '127.0.0.1', port });
+    let response = '';
+    socket.setEncoding('utf8');
+    socket.setTimeout(5_000);
+    socket.on('connect', () => socket.end(request));
+    socket.on('data', (chunk) => {
+      response += String(chunk);
+    });
+    socket.on('end', () => resolve(response));
+    socket.on('timeout', () => {
+      socket.destroy(new Error('Timed out waiting for raw HTTP response'));
+    });
+    socket.on('error', reject);
+  });
+}
 
 function createThrowingSessionStore(message: string): SessionStore {
   return {

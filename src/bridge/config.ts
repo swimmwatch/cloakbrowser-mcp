@@ -2,9 +2,17 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { binaryInfo, ensureBinary, getDefaultStealthArgs } from 'cloakbrowser';
-import { appendNodeOption, envBool, envInt, envList, envString, type EnvReader } from './env.js';
-import { resolvePlaywrightCoreBundlePath } from './paths.js';
-import { consoleFallbackInitScript, consoleFallbackPreloadScript } from '../runtime/consoleFallback.js';
+import {
+  appendNodeOption,
+  envBool,
+  envInt,
+  envList,
+  envString,
+  quoteNodeOptionValue,
+  type EnvReader,
+} from '#src/bridge/env';
+import { resolvePlaywrightCoreBundlePath } from '#src/bridge/paths';
+import { consoleFallbackInitScript, consoleFallbackPreloadScript } from '#src/runtime/consoleFallback';
 
 export type BrowserEngine = 'cloak' | 'playwright';
 
@@ -86,7 +94,10 @@ export async function prepareBridgeRuntime(
     writeFileSync(initScriptPath, consoleFallbackInitScript);
     writeFileSync(preloadPath, consoleFallbackPreloadScript(resolvePlaywrightCoreBundlePath()));
     config.browser!.initScript = [...(config.browser!.initScript ?? []), initScriptPath];
-    childEnv.NODE_OPTIONS = appendNodeOption(childEnv.NODE_OPTIONS, `--require=${preloadPath}`);
+    childEnv.NODE_OPTIONS = appendNodeOption(
+      childEnv.NODE_OPTIONS,
+      `--require=${quoteNodeOptionValue(preloadPath)}`,
+    );
   }
 
   const configPath = path.join(tempDir, 'playwright-mcp.config.json');

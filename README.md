@@ -16,7 +16,9 @@
 [![cloakbrowser-mcp MCP server](https://glama.ai/mcp/servers/swimmwatch/cloakbrowser-mcp/badges/score.svg)](https://glama.ai/mcp/servers/swimmwatch/cloakbrowser-mcp)
 [![npm](https://img.shields.io/npm/v/cloakbrowser-mcp.svg?logo=npm)](https://www.npmjs.com/package/cloakbrowser-mcp)
 [![Docker Hub pulls](https://img.shields.io/docker/pulls/swimmwatch/cloakbrowser-mcp?logo=docker&label=Docker%20Hub)](https://hub.docker.com/r/swimmwatch/cloakbrowser-mcp)
-[![Node.js >=20](https://img.shields.io/badge/Node.js-%3E%3D20-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Node.js >=22.12](https://img.shields.io/badge/Node.js-%3E%3D22.12-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Cross-platform](https://img.shields.io/badge/Cross--platform-Linux%20%7C%20macOS%20%7C%20Windows-2563eb)](docs/version-compatibility.md)
+[![Available on CodeGuilds](https://img.shields.io/badge/Available_on-CodeGuilds-6366f1)](https://codeguilds.dev/packages/cloakbrowser-mcp)
 [![MCP Server](https://img.shields.io/badge/MCP-server-000000)](https://modelcontextprotocol.io/)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](docs/docker.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -24,6 +26,8 @@
 `cloakbrowser-mcp` is a [Model Context Protocol](https://modelcontextprotocol.io/) browser automation server that runs upstream [`@playwright/mcp`](https://github.com/microsoft/playwright-mcp) with the [CloakBrowser](https://github.com/CloakHQ/CloakBrowser) Chromium binary. It provides Playwright MCP-compatible tools through a thin CloakBrowser bridge for npm and Docker users over stdio or Streamable HTTP.
 
 Documentation: [swimmwatch.github.io/cloakbrowser-mcp](https://swimmwatch.github.io/cloakbrowser-mcp/)
+
+Cross-platform checks cover npm on Linux x64/arm64, macOS arm64/x64, and Windows x64 across Node.js 22-26. Docker images are built and smoke-tested for `linux/amd64` and `linux/arm64`.
 
 The server is intentionally thin:
 
@@ -34,20 +38,25 @@ The server is intentionally thin:
 
 ## Version compatibility
 
-| cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base | CloakBrowser | Node.js | Transport | Platform | Parity |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `1.3.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.31` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.2.7` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.2.6` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.2.5` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.2.3` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.2.2` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.2.1` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.2.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.1.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.0.2` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.0.1` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.0.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
+<!-- compatibility-table:start -->
+
+| cloakbrowser-mcp | @playwright/mcp | CloakBrowser | Node.js   | Platform                                                                                  |
+| ---------------- | --------------- | ------------ | --------- | ----------------------------------------------------------------------------------------- |
+| `1.4.0`          | `^0.0.76`       | `^0.3.32`    | `>=22.12` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
+| `1.3.0`          | `^0.0.75`       | `^0.3.31`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.7`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.6`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.5`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.3`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.2`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.1`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.0`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.1.0`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.0.2`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.0.1`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.0.0`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+
+<!-- compatibility-table:end -->
 
 See [Version Compatibility](docs/version-compatibility.md) for the maintained compatibility table.
 
@@ -71,11 +80,12 @@ npx -y cloakbrowser-mcp@latest doctor
 npx -y cloakbrowser-mcp@latest doctor --json
 npx -y cloakbrowser-mcp@latest
 npx -y cloakbrowser-mcp@latest --transport streamable-http --http-port 3000
+npx -y cloakbrowser-mcp@latest --transport streamable-http --http-protocol https --https-cert ./cert.pem --https-key ./key.pem
 ```
 
-Requires Node.js 20 or newer. The first real browser action may download the CloakBrowser binary unless it is already cached.
+Requires Node.js 22.12 or newer. The first real browser action may download the CloakBrowser binary unless it is already cached.
 Use `doctor` for local diagnostics before connecting an MCP client. It checks the Node.js engine, project metadata, upstream Playwright MCP resolution, and CloakBrowser binary metadata without starting the bridge or downloading a browser.
-The default transport is stdio. Streamable HTTP binds to `127.0.0.1` by default, serves MCP at `/mcp`, and exposes fixed `GET /healthz` and `GET /readyz` probes. If `--http-auth-token` is set, the probes require the same `Authorization: Bearer ...` header as MCP requests.
+The default transport is stdio. Streamable HTTP binds to `127.0.0.1` by default, serves MCP at `/mcp`, and exposes fixed `GET /healthz` and `GET /readyz` probes. Use `--http-protocol https` with `--https-cert` and `--https-key` or `--https-pfx` for direct TLS. If `--http-auth-token` is set, the probes require the same `Authorization: Bearer ...` header as MCP requests.
 For the complete generated CLI flag reference, see the published [CLI Reference](https://swimmwatch.github.io/cloakbrowser-mcp/generated/cli/).
 
 ## Run from Docker
@@ -95,7 +105,18 @@ curl http://127.0.0.1:3000/healthz
 curl http://127.0.0.1:3000/readyz
 ```
 
-The Docker image is based on the pinned official Playwright MCP image, installs the bridge under `/opt/cloakbrowser-mcp`, and writes artifacts to `/data` by default.
+For direct HTTPS from the container, mount your TLS files and select HTTPS:
+
+```bash
+docker run --rm --init -p 127.0.0.1:3000:3000 \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/certs:/certs:ro" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http --http-host 0.0.0.0 --http-port 3000 \
+  --http-protocol https --https-cert /certs/cert.pem --https-key /certs/key.pem
+```
+
+The Docker image is based on the pinned official Playwright MCP image, installs the bridge under `/opt/cloakbrowser-mcp`, writes artifacts to `/data` by default, and is published for `linux/amd64` and `linux/arm64`.
 The same tags are also published to `ghcr.io/swimmwatch/cloakbrowser-mcp`.
 
 ## MCP client configuration
@@ -148,6 +169,7 @@ Common variables:
 | Variable | Default | Description |
 | --- | --- | --- |
 | `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` | MCP transport exposed by the bridge: `stdio` or `streamable-http`. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` | Streamable HTTP listener protocol: `http` or `https`. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` | Streamable HTTP bind host. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_PORT` | `3000` | Streamable HTTP bind port. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_ENDPOINT` | `/mcp` | Streamable HTTP endpoint path. |
@@ -155,6 +177,11 @@ Common variables:
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_BACKEND` | `memory` | Session metadata backend. Only `memory` is implemented in this release. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_IDLE_TTL_MS` | `3600000` | Idle TTL for Streamable HTTP sessions. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` | Maximum active Streamable HTTP sessions in one process. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_CERT` | unset | TLS certificate PEM path for HTTPS Streamable HTTP. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_KEY` | unset | TLS private key PEM path for HTTPS Streamable HTTP. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_PFX` | unset | TLS PFX/PKCS12 path for HTTPS Streamable HTTP. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_PASSPHRASE` | unset | Passphrase for an encrypted HTTPS key or PFX. |
+| `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` | Streamable HTTP operational log level: `trace`, `debug`, `info`, `warn`, `error`, `fatal`, or `silent`. |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses CloakBrowser. `playwright` uses the upstream Playwright MCP browser runtime. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium headless. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm usage. Docker defaults to `/data`. |

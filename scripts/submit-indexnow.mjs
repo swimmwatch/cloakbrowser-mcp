@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import process from 'node:process';
-import { loadSitemapUrls, submitIndexNow } from './lib/indexnow.mjs';
+import { loadSitemapUrls, submitIndexNow } from '#scripts/lib/indexnow';
 
 const key = process.env.INDEXNOW_KEY;
 const siteUrl = process.env.INDEXNOW_SITE_URL ?? 'https://swimmwatch.github.io/cloakbrowser-mcp/';

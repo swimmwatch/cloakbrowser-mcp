@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { URL } from 'node:url';
-import { readText, writeText } from './files.mjs';
-import { fetchText } from './http.mjs';
+import { readText, writeText } from '#scripts/lib/files';
+import { fetchText } from '#scripts/lib/http';
 
 const indexNowEndpoint = 'https://api.indexnow.org/indexnow';
 const keyPattern = /^[0-9a-fA-F]{8,128}$/;

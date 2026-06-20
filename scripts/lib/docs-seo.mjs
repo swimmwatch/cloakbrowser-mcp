@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { URL } from 'node:url';
-import { readText } from './files.mjs';
+import { readText } from '#scripts/lib/files';
 
 const htmlEntityMap = new Map([
   ['amp', '&'],

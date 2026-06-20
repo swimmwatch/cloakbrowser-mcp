@@ -118,9 +118,9 @@ scanning is enabled.
 After the first publish, confirm the GHCR package is public and linked to this
 repository, and confirm the Docker Hub repository is public.
 
-Docker multi-platform publishing is intentionally limited to `linux/amd64`
-until CloakBrowser and upstream Playwright MCP behavior are verified on other
-architectures.
+Docker publishes a multi-platform manifest for `linux/amd64` and
+`linux/arm64`. The release workflow smoke-tests both platforms before publish
+and keeps browser parity comparison on `linux/amd64`.
 
 ## MCP Registry Publishing
 

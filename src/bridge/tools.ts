@@ -1,14 +1,16 @@
 import type { CallToolResult, Tool } from '@modelcontextprotocol/sdk/types.js';
-import { getCurrentCloakBinaryInfo, type BridgeRuntime } from './config.js';
+import { getCurrentCloakBinaryInfo, type BridgeRuntime } from '#src/bridge/config';
 import {
   CLOAKBROWSER_TOOL_COUNT,
   PLAYWRIGHT_MCP_BROWSER_TOOL_COUNT,
   PLAYWRIGHT_MCP_PACKAGE,
   PLAYWRIGHT_MCP_VERSION,
   PROJECT_METADATA,
-} from '../project/metadata.js';
+} from '#src/project/metadata';
 
-export const localToolNames = ['cloakbrowser_binary_info', 'cloakbrowser_bridge_info'] as const;
+export const LOCAL_TOOL_BINARY_INFO = 'cloakbrowser_binary_info' as const;
+export const LOCAL_TOOL_BRIDGE_INFO = 'cloakbrowser_bridge_info' as const;
+export const localToolNames = [LOCAL_TOOL_BINARY_INFO, LOCAL_TOOL_BRIDGE_INFO] as const;
 const localToolNameSet = new Set<string>(localToolNames);
 
 export type LocalToolName = (typeof localToolNames)[number];
@@ -21,7 +23,7 @@ const emptyInputSchema = {
 
 const localTools: Tool[] = [
   {
-    name: 'cloakbrowser_binary_info',
+    name: LOCAL_TOOL_BINARY_INFO,
     title: 'CloakBrowser binary info',
     description: 'Return CloakBrowser package, cache, platform, and resolved browser binary information.',
     inputSchema: emptyInputSchema,
@@ -32,7 +34,7 @@ const localTools: Tool[] = [
     },
   },
   {
-    name: 'cloakbrowser_bridge_info',
+    name: LOCAL_TOOL_BRIDGE_INFO,
     title: 'CloakBrowser bridge info',
     description: 'Return runtime metadata for the CloakBrowser bridge over upstream Playwright MCP.',
     inputSchema: emptyInputSchema,
@@ -57,7 +59,7 @@ export function callLocalTool(
   runtime: BridgeRuntime,
   upstreamToolCount: number,
 ): CallToolResult {
-  if (name === 'cloakbrowser_binary_info') {
+  if (name === LOCAL_TOOL_BINARY_INFO) {
     return jsonResult({
       browserEngine: runtime.browserEngine,
       executablePath: runtime.cloakBinaryPath ?? null,

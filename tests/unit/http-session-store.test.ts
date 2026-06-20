@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { InMemorySessionStore, createSessionStore } from '../../src/http/sessionStore.js';
+import { HTTP_SESSION_BACKEND_MEMORY } from '@/http/options.js';
+import {
+  HTTP_SESSION_STATUS_ACTIVE,
+  HTTP_SESSION_STATUS_CLOSED,
+  InMemorySessionStore,
+  createSessionStore,
+} from '@/http/sessionStore.js';
 
 describe('HTTP session store', () => {
   it('creates, touches, expires, and closes session metadata', async () => {
@@ -9,7 +15,7 @@ describe('HTTP session store', () => {
       createdAt: 1000,
       lastSeenAt: 1000,
       expiresAt: 2000,
-      status: 'active',
+      status: HTTP_SESSION_STATUS_ACTIVE,
     });
 
     expect(await store.countActive(1500)).toBe(1);
@@ -19,19 +25,19 @@ describe('HTTP session store', () => {
     expect(await store.get('session-1')).toMatchObject({
       lastSeenAt: 3000,
       expiresAt: 4000,
-      status: 'active',
+      status: HTTP_SESSION_STATUS_ACTIVE,
     });
 
     await store.markClosed('session-1', 3500);
     expect(await store.get('session-1')).toMatchObject({
       expiresAt: 3500,
-      status: 'closed',
+      status: HTTP_SESSION_STATUS_CLOSED,
     });
     expect(await store.countActive(3500)).toBe(0);
   });
 
   it('constructs only the memory backend in this release', () => {
-    expect(createSessionStore('memory')).toBeInstanceOf(InMemorySessionStore);
+    expect(createSessionStore(HTTP_SESSION_BACKEND_MEMORY)).toBeInstanceOf(InMemorySessionStore);
     expect(() => createSessionStore('sqlite')).toThrow('Unsupported HTTP session backend');
   });
 });

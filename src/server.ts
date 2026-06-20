@@ -15,10 +15,10 @@ import {
   prepareBridgeRuntime,
   type BridgeRuntime,
   type PrepareBridgeRuntimeOptions,
-} from './bridge/config.js';
-import { resolvePlaywrightMcpCliPath } from './bridge/paths.js';
-import { callLocalTool, createLocalTools, isLocalTool } from './bridge/tools.js';
-import { MCP_SERVER_INSTRUCTIONS, PROJECT_METADATA } from './project/metadata.js';
+} from '#src/bridge/config';
+import { resolvePlaywrightMcpCliPath } from '#src/bridge/paths';
+import { callLocalTool, createLocalTools, isLocalTool } from '#src/bridge/tools';
+import { MCP_SERVER_INSTRUCTIONS, PROJECT_METADATA } from '#src/project/metadata';
 
 export interface StartBridgeOptions {
   serverInfo?: Partial<Implementation>;
