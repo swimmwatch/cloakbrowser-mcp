@@ -15,7 +15,8 @@ Operating manual for AI coding agents working in this repository.
 1. Write the simplest possible code. Do only what was requested.
 2. Use the `context7` MCP tool whenever you need up-to-date documentation or API references for external libraries.
 3. Everything in this repository is written in English.
-4. Do not copy, rewrite, or mutate upstream Playwright MCP browser tool contracts.
+4. AI-agent reasoning and code-agent reasoning for this repository must be in English.
+5. Do not copy, rewrite, or mutate upstream Playwright MCP browser tool contracts.
 
 ## Project Layout
 
