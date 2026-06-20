@@ -18,6 +18,84 @@ GHCR image: https://github.com/swimmwatch/cloakbrowser-mcp/pkgs/container/cloakb
 - Security: https://swimmwatch.github.io/cloakbrowser-mcp/security/
 - FAQ: https://swimmwatch.github.io/cloakbrowser-mcp/faq/
 
+## Install
+
+The recommended local stdio command for most MCP clients is:
+
+```bash
+npx -y cloakbrowser-mcp@latest
+```
+
+Docker stdio alternative:
+
+```bash
+docker run --rm --init -i -v /tmp/cloakbrowser-artifacts:/data swimmwatch/cloakbrowser-mcp:latest
+```
+
+Generic stdio JSON for Claude Desktop, Cursor, Cline-style clients, Windsurf, Warp, and other `mcpServers` clients:
+
+```json
+{
+  "mcpServers": {
+    "cloakbrowser": {
+      "command": "npx",
+      "args": ["-y", "cloakbrowser-mcp@latest"]
+    }
+  }
+}
+```
+
+Codex CLI:
+
+```bash
+codex mcp add cloakbrowser -- npx -y cloakbrowser-mcp@latest
+```
+
+Claude Code:
+
+```bash
+claude mcp add --transport stdio cloakbrowser -- npx -y cloakbrowser-mcp@latest
+```
+
+VS Code `mcp.json`:
+
+```json
+{
+  "servers": {
+    "cloakbrowser": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "cloakbrowser-mcp@latest"]
+    }
+  }
+}
+```
+
+Continue `.continue/mcpServers/cloakbrowser-mcp.yaml`:
+
+```yaml
+name: CloakBrowser MCP
+version: 0.0.1
+schema: v1
+mcpServers:
+  - name: CloakBrowser
+    type: stdio
+    command: npx
+    args:
+      - -y
+      - cloakbrowser-mcp@latest
+```
+
+Streamable HTTP:
+
+```bash
+npx -y cloakbrowser-mcp@latest --transport streamable-http --http-port 3000
+codex mcp add cloakbrowser --url http://127.0.0.1:3000/mcp
+claude mcp add --transport http cloakbrowser http://127.0.0.1:3000/mcp
+```
+
+Stdio mode does not emit routine operational logs to stdout, so MCP JSON-RPC remains protocol-clean. Streamable HTTP mode writes startup and request logs to stdout. See Getting Started and Configuration for complete options.
+
 ## Tool Surface
 
 Upstream Playwright MCP browser tools are forwarded unchanged. CloakBrowser MCP adds only two local introspection tools:

@@ -15,7 +15,9 @@ import {
 } from './lib/playwright-mcp-parity.mjs';
 
 const { image, reportPath } = parseArgs(process.argv.slice(2));
-const baselineImage = process.env.PLAYWRIGHT_MCP_BASELINE_IMAGE ?? 'mcr.microsoft.com/playwright/mcp:v0.0.76';
+const baselineImage =
+  process.env.PLAYWRIGHT_MCP_BASELINE_IMAGE ??
+  'mcr.microsoft.com/playwright/mcp:v0.0.76@sha256:3108dac789720d5236ee1869ad65c8f32fbbfe9d7eea8a5eb89920ab35a665d6';
 
 const fixtureServer = await startFixtureServer();
 const baseline = await startMcpContainer('playwright', baselineImage, false);

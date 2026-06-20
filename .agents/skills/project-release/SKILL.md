@@ -73,10 +73,14 @@ The script updates:
 
 Manual release updates still required:
 
-- add the new row to the compatibility tables in `README.md`,
-  `docs/index.md`, and `docs/version-compatibility.md`;
-- verify each new row records the actual `@playwright/mcp`, Playwright MCP
-  Docker base, CloakBrowser dependency, supported transport, and platform;
+- add one new row to `docs/data/version-compatibility.json`;
+- run `npm run docs:compatibility`;
+- verify `README.md`, `docs/index.md`, and `docs/version-compatibility.md`
+  changed as expected;
+- verify the new compatibility row records the actual `@playwright/mcp`,
+  Playwright MCP Docker base, CloakBrowser dependency, supported transport, and
+  platform;
+- run `npm run docs:compatibility:check`;
 - move current `[Unreleased]` entries in `CHANGELOG.md` into
   `## [X.Y.Z] - YYYY-MM-DD`;
 - add or update the empty `[Unreleased]` section above the new release;

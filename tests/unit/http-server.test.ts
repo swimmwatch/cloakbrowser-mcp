@@ -1,9 +1,11 @@
 import type { IncomingMessage } from 'node:http';
+import { createConnection } from 'node:net';
 import { describe, expect, it } from 'vitest';
 import { defaultStreamableHttpOptions } from '../../src/http/options.js';
 import type { SessionStore } from '../../src/http/sessionStore.js';
 import { isAuthorizedRequest, isEndpointRequest, startStreamableHttpBridge } from '../../src/http/server.js';
 import { HttpStatus, JsonRpcErrorCode } from '../../src/http/status.js';
+import type { BridgeLogger } from '../../src/logging/logger.js';
 
 describe('HTTP server helpers', () => {
   it('accepts requests when no auth token is configured', () => {
@@ -152,6 +154,40 @@ describe('HTTP server helpers', () => {
     }
   });
 
+  it('logs a safe path when Host cannot be parsed as a URL base', async () => {
+    const requestLogs: Array<Record<string, unknown>> = [];
+    const logger = {
+      info(fields: Record<string, unknown>, message: string) {
+        requestLogs.push({ ...fields, message });
+      },
+    } as BridgeLogger;
+    const server = await startStreamableHttpBridge({
+      ...defaultStreamableHttpOptions,
+      port: 0,
+      logger,
+    });
+
+    try {
+      const response = await rawHttpRequest(
+        server.address.port,
+        'GET /healthz?token=secret HTTP/1.1\r\nHost: bad host\r\nConnection: close\r\n\r\n',
+      );
+
+      expect(response).toContain('HTTP/1.1 500');
+      expect(requestLogs).toContainEqual(
+        expect.objectContaining({
+          duration_ms: expect.any(Number),
+          message: 'http request',
+          method: 'GET',
+          path: '/healthz',
+          status: HttpStatus.InternalServerError,
+        }),
+      );
+    } finally {
+      await server.close();
+    }
+  });
+
   it('exports named HTTP and JSON-RPC response codes used by server responses', () => {
     expect(HttpStatus.BadRequest).toBe(400);
     expect(HttpStatus.Unauthorized).toBe(401);
@@ -160,6 +196,24 @@ describe('HTTP server helpers', () => {
     expect(JsonRpcErrorCode.ParseError).toBe(-32700);
   });
 });
+
+async function rawHttpRequest(port: number, request: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const socket = createConnection({ host: '127.0.0.1', port });
+    let response = '';
+    socket.setEncoding('utf8');
+    socket.setTimeout(5_000);
+    socket.on('connect', () => socket.end(request));
+    socket.on('data', (chunk) => {
+      response += String(chunk);
+    });
+    socket.on('end', () => resolve(response));
+    socket.on('timeout', () => {
+      socket.destroy(new Error('Timed out waiting for raw HTTP response'));
+    });
+    socket.on('error', reject);
+  });
+}
 
 function createThrowingSessionStore(message: string): SessionStore {
   return {

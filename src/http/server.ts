@@ -413,7 +413,16 @@ class StreamableHttpBridgeController {
 
 function requestPathName(req: IncomingMessage, fallbackHost: string): string {
   const host = getSingleHeader(req, 'host') ?? formatHost(fallbackHost);
-  return new URL(req.url ?? '/', `http://${host}`).pathname;
+  try {
+    return new URL(req.url ?? '/', `http://${host}`).pathname;
+  } catch {
+    return fallbackPathName(req.url);
+  }
+}
+
+function fallbackPathName(url: string | undefined): string {
+  const pathName = (url ?? '/').split(/[?#]/u, 1)[0];
+  return pathName.length > 0 ? pathName : '/';
 }
 
 function hasJsonContentType(req: IncomingMessage): boolean {

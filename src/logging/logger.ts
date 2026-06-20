@@ -18,7 +18,8 @@ const defaultLoggerName = 'cloakbrowser-mcp';
 const reservedLogKeys = new Set(['level', 'time', 'name', 'message', 'msg']);
 
 export function createBridgeLogger(options: CreateBridgeLoggerOptions = {}): BridgeLogger {
-  const level = parseLogLevel(options.env?.[logLevelEnvName]);
+  const env = options.env ?? process.env;
+  const level = parseLogLevel(env[logLevelEnvName]);
   return pino(
     {
       base: undefined,

@@ -17,6 +17,8 @@
 [![npm](https://img.shields.io/npm/v/cloakbrowser-mcp.svg?logo=npm)](https://www.npmjs.com/package/cloakbrowser-mcp)
 [![Docker Hub pulls](https://img.shields.io/docker/pulls/swimmwatch/cloakbrowser-mcp?logo=docker&label=Docker%20Hub)](https://hub.docker.com/r/swimmwatch/cloakbrowser-mcp)
 [![Node.js >=22.12](https://img.shields.io/badge/Node.js-%3E%3D22.12-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Cross-platform](https://img.shields.io/badge/Cross--platform-Linux%20%7C%20macOS%20%7C%20Windows-2563eb)](docs/version-compatibility.md)
+[![Available on CodeGuilds](https://img.shields.io/badge/Available_on-CodeGuilds-6366f1)](https://codeguilds.dev/packages/cloakbrowser-mcp)
 [![MCP Server](https://img.shields.io/badge/MCP-server-000000)](https://modelcontextprotocol.io/)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](docs/docker.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -24,6 +26,8 @@
 `cloakbrowser-mcp` is a [Model Context Protocol](https://modelcontextprotocol.io/) browser automation server that runs upstream [`@playwright/mcp`](https://github.com/microsoft/playwright-mcp) with the [CloakBrowser](https://github.com/CloakHQ/CloakBrowser) Chromium binary. It provides Playwright MCP-compatible tools through a thin CloakBrowser bridge for npm and Docker users over stdio or Streamable HTTP.
 
 Documentation: [swimmwatch.github.io/cloakbrowser-mcp](https://swimmwatch.github.io/cloakbrowser-mcp/)
+
+Cross-platform checks cover npm on Linux x64/arm64, macOS arm64/x64, and Windows x64 across Node.js 22-26. Docker images are built and smoke-tested for `linux/amd64` and `linux/arm64`.
 
 The server is intentionally thin:
 
@@ -34,21 +38,25 @@ The server is intentionally thin:
 
 ## Version compatibility
 
-| cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base | CloakBrowser | Node.js | Transport | Platform | Parity |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `1.3.1` | `^0.0.76` | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.3.32` | `>=22.12` | stdio, Streamable HTTP | npm on Linux, macOS, Windows; Docker `linux/amd64`, `linux/arm64` | Upstream default tools compared in CI. |
-| `1.3.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.31` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.2.7` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.2.6` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.2.5` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.2.3` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.2.2` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.2.1` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.2.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.1.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio, Streamable HTTP | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.0.2` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.0.1` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
-| `1.0.0` | `^0.0.75` | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30` | `>=20` | stdio | `linux/amd64` Docker, Node.js local | Upstream default tools compared in CI. |
+<!-- compatibility-table:start -->
+
+| cloakbrowser-mcp | @playwright/mcp | CloakBrowser | Node.js   | Platform                                                                                  |
+| ---------------- | --------------- | ------------ | --------- | ----------------------------------------------------------------------------------------- |
+| `1.3.1`          | `^0.0.76`       | `^0.3.32`    | `>=22.12` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
+| `1.3.0`          | `^0.0.75`       | `^0.3.31`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.7`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.6`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.5`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.3`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.2`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.1`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.0`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.1.0`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.0.2`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.0.1`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| `1.0.0`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+
+<!-- compatibility-table:end -->
 
 See [Version Compatibility](docs/version-compatibility.md) for the maintained compatibility table.
 

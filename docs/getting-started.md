@@ -73,111 +73,195 @@ docker run --rm --init -i \
 
 ## MCP Client Config
 
-Most MCP clients use the same stdio shape: `command`, optional `args`, and optional `env`.
-For Streamable HTTP clients, start the server separately and configure the client URL as `http://127.0.0.1:3000/mcp`.
-If `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` or `--http-auth-token` is set, send the same Bearer token to `/mcp`, `/healthz`, and `/readyz`.
+Most local MCP clients work best with stdio and npm:
 
-### npm Config
+```bash
+npx -y cloakbrowser-mcp@latest
+```
 
-```json
-{
-  "mcpServers": {
-    "cloakbrowser": {
-      "command": "npx",
-      "args": ["-y", "cloakbrowser-mcp@latest"],
-      "env": {
-        "PLAYWRIGHT_MCP_HEADLESS": "true",
-        "PLAYWRIGHT_MCP_OUTPUT_DIR": "/tmp/cloakbrowser-artifacts"
+Use Docker when you want a repeatable runtime. Keep `-i` so stdio stays connected and add `--init` so browser child processes are reaped correctly.
+
+For Streamable HTTP clients, start the server separately and configure the client URL as `http://127.0.0.1:3000/mcp`. If `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` or `--http-auth-token` is set, send the same Bearer token to `/mcp`, `/healthz`, and `/readyz`.
+
+=== "Codex CLI"
+
+    Register the local stdio server:
+
+    ```bash
+    codex mcp add cloakbrowser -- npx -y cloakbrowser-mcp@latest
+    ```
+
+    Or connect Codex to an already-running Streamable HTTP server:
+
+    ```bash
+    npx -y cloakbrowser-mcp@latest --transport streamable-http --http-port 3000
+    codex mcp add cloakbrowser --url http://127.0.0.1:3000/mcp
+    ```
+
+=== "Claude Code"
+
+    Register the local stdio server:
+
+    ```bash
+    claude mcp add --transport stdio cloakbrowser -- npx -y cloakbrowser-mcp@latest
+    ```
+
+    Or connect Claude Code to an already-running Streamable HTTP server:
+
+    ```bash
+    npx -y cloakbrowser-mcp@latest --transport streamable-http --http-port 3000
+    claude mcp add --transport http cloakbrowser http://127.0.0.1:3000/mcp
+    ```
+
+=== "Claude Desktop"
+
+    Add the server under `mcpServers` in `claude_desktop_config.json`, then restart Claude Desktop:
+
+    ```json
+    {
+      "mcpServers": {
+        "cloakbrowser": {
+          "command": "npx",
+          "args": ["-y", "cloakbrowser-mcp@latest"]
+        }
       }
     }
-  }
-}
-```
+    ```
 
-### Docker Config
+=== "Cursor / Cline"
 
-```json
-{
-  "mcpServers": {
-    "cloakbrowser": {
-      "command": "docker",
-      "args": [
-        "run",
-        "--rm",
-        "--init",
-        "-i",
-        "-v",
-        "/tmp/cloakbrowser-artifacts:/data",
-        "swimmwatch/cloakbrowser-mcp:latest"
-      ]
+    Add the server to the client's MCP JSON configuration:
+
+    ```json
+    {
+      "mcpServers": {
+        "cloakbrowser": {
+          "command": "npx",
+          "args": ["-y", "cloakbrowser-mcp@latest"]
+        }
+      }
     }
-  }
-}
-```
+    ```
 
-## Client Examples
+=== "VS Code"
 
-Use the npm config for local Node.js environments and the Docker config for isolated runtimes. Most MCP clients use the same stdio values and only differ in where the JSON is stored.
+    Add the server to workspace `.vscode/mcp.json` or your user-level `mcp.json`:
 
-### Codex
-
-Add a stdio MCP server named `cloakbrowser` with the npm command:
-
-```json
-{
-  "command": "npx",
-  "args": ["-y", "cloakbrowser-mcp@latest"]
-}
-```
-
-For Docker-backed usage, use the Docker command from the Docker config above.
-
-### Claude Desktop
-
-Add the server under `mcpServers` in `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "cloakbrowser": {
-      "command": "npx",
-      "args": ["-y", "cloakbrowser-mcp@latest"]
+    ```json
+    {
+      "servers": {
+        "cloakbrowser": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "cloakbrowser-mcp@latest"]
+        }
+      }
     }
-  }
-}
-```
+    ```
 
-Restart Claude Desktop after saving the file.
+=== "Continue"
 
-### Claude Code
+    Create `.continue/mcpServers/cloakbrowser-mcp.yaml`:
 
-Register the same stdio server through Claude Code's MCP server configuration. Use:
+    ```yaml
+    name: CloakBrowser MCP
+    version: 0.0.1
+    schema: v1
+    mcpServers:
+      - name: CloakBrowser
+        type: stdio
+        command: npx
+        args:
+          - -y
+          - cloakbrowser-mcp@latest
+    ```
 
-```text
-command: npx
-args: -y cloakbrowser-mcp@latest
-```
+=== "Windsurf / Cascade"
 
-### Cursor
+    In Windsurf, open Settings > Tools > Windsurf Settings > Add Server, or edit `~/.codeium/mcp_config.json`:
 
-Add the server to Cursor's MCP configuration:
-
-```json
-{
-  "mcpServers": {
-    "cloakbrowser": {
-      "command": "npx",
-      "args": ["-y", "cloakbrowser-mcp@latest"]
+    ```json
+    {
+      "mcpServers": {
+        "cloakbrowser": {
+          "command": "npx",
+          "args": ["-y", "cloakbrowser-mcp@latest"]
+        }
+      }
     }
-  }
-}
-```
+    ```
 
-### VS Code, Cline, Continue, Windsurf, Goose, Warp
+    For an already-running Streamable HTTP server, use `serverUrl`:
 
-Use the same `mcpServers` JSON shape if the client accepts JSON configuration. For clients that use TOML or YAML, keep the same command and argument values and translate only the surrounding syntax.
+    ```json
+    {
+      "mcpServers": {
+        "cloakbrowser": {
+          "serverUrl": "http://127.0.0.1:3000/mcp"
+        }
+      }
+    }
+    ```
 
-When using Docker in any client, keep `-i` so stdio stays connected and add `--init` so browser child processes are reaped correctly.
+=== "Goose"
+
+    Add a custom MCP extension and use this command:
+
+    ```bash
+    npx -y cloakbrowser-mcp@latest
+    ```
+
+    Use `cloakbrowser` as the extension name and stdio as the transport.
+
+=== "Warp"
+
+    In Warp, open Settings > Agents > MCP servers, choose Add, then paste:
+
+    ```json
+    {
+      "mcpServers": {
+        "cloakbrowser": {
+          "command": "npx",
+          "args": ["-y", "cloakbrowser-mcp@latest"]
+        }
+      }
+    }
+    ```
+
+    For an already-running Streamable HTTP server, use a URL entry:
+
+    ```json
+    {
+      "mcpServers": {
+        "cloakbrowser": {
+          "url": "http://127.0.0.1:3000/mcp"
+        }
+      }
+    }
+    ```
+
+=== "Docker"
+
+    Use this when your client can spawn a local Docker command:
+
+    ```json
+    {
+      "mcpServers": {
+        "cloakbrowser": {
+          "command": "docker",
+          "args": [
+            "run",
+            "--rm",
+            "--init",
+            "-i",
+            "-v",
+            "/tmp/cloakbrowser-artifacts:/data",
+            "swimmwatch/cloakbrowser-mcp:latest"
+          ]
+        }
+      }
+    }
+    ```
 
 ## Verify
 

@@ -35,7 +35,8 @@
     "test:watch": "vitest",
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
-    "test:e2e": "npm run build && vitest run --config vitest.e2e.config.ts",
+    "test:e2e": "npm run build && npm run test:e2e:run",
+    "test:e2e:run": "vitest run --config vitest.e2e.config.ts",
     "test:coverage": "vitest run --coverage",
     "start": "node dist/cli.js",
     "dev": "tsx src/cli.ts",
@@ -46,6 +47,8 @@
     "docs:install": "python3 -m venv .venv-docs && .venv-docs/bin/pip install -r docs/requirements.txt",
     "docs:assets": "node scripts/generate-brand-assets.mjs",
     "docs:cli": "tsx scripts/generate-cli-docs.ts",
+    "docs:compatibility": "node scripts/generate-version-compatibility.mjs",
+    "docs:compatibility:check": "node scripts/generate-version-compatibility.mjs --check",
     "docs:serve": ".venv-docs/bin/mkdocs serve",
     "docs:build": ".venv-docs/bin/mkdocs build --strict",
     "docs:seo:validate": "node scripts/validate-docs-seo.mjs",
@@ -59,7 +62,7 @@
     "docker:smoke": "docker run --rm --init cloakbrowser-mcp:dev --help",
     "bridge:compare": "node scripts/compare-playwright-mcp-bridge.mjs",
     "upstream:check": "node scripts/check-playwright-mcp-updates.mjs",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm run server:validate && npm run build && npm test && npm run test:e2e",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run docs:compatibility:check && npm run server:validate && npm run build && npm test && npm run test:e2e:run",
     "check:ci": "npm run check && npm run audit:prod && npm run test:coverage"
   },
   "dependencies": {

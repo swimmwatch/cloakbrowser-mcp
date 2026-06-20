@@ -92,17 +92,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel, windows-latest]
         node-version: [22, 23, 24, 25, 26]
-        include:
-          - os: ubuntu-24.04-arm
-            node-version: 22
-          - os: macos-latest
-            node-version: 22
-          - os: macos-15-intel
-            node-version: 22
-          - os: windows-latest
-            node-version: 22
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 

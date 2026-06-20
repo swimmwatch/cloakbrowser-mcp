@@ -23,6 +23,8 @@ Current version: <!-- project-version -->v1.3.1<!-- /project-version -->.
 
 ## Version Compatibility
 
+<!-- compatibility-table:start -->
+
 | cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base                 | CloakBrowser | Transport              | Parity         |
 | ---------------- | --------------- | ------------------------------------------ | ------------ | ---------------------- | -------------- |
 | `1.3.1`          | `^0.0.76`       | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.3.32`    | stdio, Streamable HTTP | Compared in CI |
@@ -38,6 +40,8 @@ Current version: <!-- project-version -->v1.3.1<!-- /project-version -->.
 | `1.0.2`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio                  | Compared in CI |
 | `1.0.1`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio                  | Compared in CI |
 | `1.0.0`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio                  | Compared in CI |
+
+<!-- compatibility-table:end -->
 
 See [Version Compatibility](version-compatibility.md) for the maintained mapping between this project's SemVer releases and upstream Playwright MCP versions.
 

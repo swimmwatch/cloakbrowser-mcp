@@ -22,7 +22,7 @@ describe('bridge logger', () => {
 
   it('rejects invalid log levels with a clear error', () => {
     expect(() => parseLogLevel('verbose')).toThrow(
-      'CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL must be one of trace, debug, info, warn, error, fatal, silent',
+      'CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL must be one of trace, debug, info, warn, error, fatal, silent, got "verbose"',
     );
   });
 
@@ -130,5 +130,37 @@ describe('bridge logger', () => {
     expect(chunks.join('')).toMatch(
       /^\d{4}-\d{2}-\d{2}T.* INFO test-logger http request path=\/healthz status=200\n$/u,
     );
+  });
+
+  it('reads the process log level environment by default', async () => {
+    const previous = process.env.CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL;
+    const chunks: string[] = [];
+    const sink = {
+      write(chunk: string) {
+        chunks.push(chunk);
+        return true;
+      },
+    };
+
+    try {
+      process.env.CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL = 'error';
+      const logger = createBridgeLogger({
+        name: 'test-logger',
+        sink: sink as NodeJS.WritableStream,
+      });
+
+      logger.warn('hidden warning');
+      logger.error('visible error');
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(chunks.join('')).not.toContain('hidden warning');
+      expect(chunks.join('')).toMatch(/ ERROR test-logger visible error\n$/u);
+    } finally {
+      if (previous === undefined) {
+        delete process.env.CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL;
+      } else {
+        process.env.CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL = previous;
+      }
+    }
   });
 });
