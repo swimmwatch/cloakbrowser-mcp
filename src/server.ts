@@ -11,14 +11,10 @@ import {
   type ListToolsRequest,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import {
-  prepareBridgeRuntime,
-  type BridgeRuntime,
-  type PrepareBridgeRuntimeOptions,
-} from './bridge/config.js';
-import { resolvePlaywrightMcpCliPath } from './bridge/paths.js';
-import { callLocalTool, createLocalTools, isLocalTool } from './bridge/tools.js';
-import { MCP_SERVER_INSTRUCTIONS, PROJECT_METADATA } from './project/metadata.js';
+import { prepareBridgeRuntime, type BridgeRuntime, type PrepareBridgeRuntimeOptions } from '#/bridge/config';
+import { resolvePlaywrightMcpCliPath } from '#/bridge/paths';
+import { callLocalTool, createLocalTools, isLocalTool } from '#/bridge/tools';
+import { MCP_SERVER_INSTRUCTIONS, PROJECT_METADATA } from '#/project/metadata';
 
 export interface StartBridgeOptions {
   serverInfo?: Partial<Implementation>;

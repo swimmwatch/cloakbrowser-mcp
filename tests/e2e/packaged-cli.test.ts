@@ -7,6 +7,10 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { afterEach, describe, expect, it } from 'vitest';
+import { LOCAL_TOOL_BINARY_INFO, LOCAL_TOOL_BRIDGE_INFO } from '@/bridge/tools.js';
+import { BRIDGE_TRANSPORT_STREAMABLE_HTTP } from '@/http/options.js';
+import { fetchHealth, fetchReady, healthUrl, postInitialize } from '../helpers/http.js';
+import { tlsCertPath, tlsKeyPath, withDisabledTlsVerification } from '../helpers/tls.js';
 
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 const distCliPath = path.join(repoRoot, 'dist/cli.js');
@@ -38,8 +42,8 @@ describe('packaged CLI end-to-end', () => {
     expect(tools.tools.map((tool) => tool.name)).toEqual([
       'browser_snapshot',
       'browser_navigate',
-      'cloakbrowser_binary_info',
-      'cloakbrowser_bridge_info',
+      LOCAL_TOOL_BINARY_INFO,
+      LOCAL_TOOL_BRIDGE_INFO,
     ]);
 
     const forwarded = await client.callTool({
@@ -52,12 +56,12 @@ describe('packaged CLI end-to-end', () => {
       arguments: { url: 'https://example.com' },
     });
 
-    const bridgeInfo = await client.callTool({ name: 'cloakbrowser_bridge_info', arguments: {} });
+    const bridgeInfo = await client.callTool({ name: LOCAL_TOOL_BRIDGE_INFO, arguments: {} });
     expect(bridgeInfo.structuredContent).toMatchObject({
       runtime: 'playwright-mcp-bridge',
       browserEngine: 'playwright',
       localTools: {
-        names: ['cloakbrowser_binary_info', 'cloakbrowser_bridge_info'],
+        names: [LOCAL_TOOL_BINARY_INFO, LOCAL_TOOL_BRIDGE_INFO],
       },
     });
   });
@@ -80,23 +84,23 @@ describe('packaged CLI end-to-end', () => {
     );
     const endpointUrl = parseLoggedUrl(startupLine);
 
-    const health = await fetch(new URL('/healthz', endpointUrl));
+    const health = await fetchHealth(endpointUrl);
     const healthBody = (await health.json()) as Record<string, unknown>;
     expect(health.status).toBe(200);
-    expect(healthBody).toMatchObject({ status: 'ok', transport: 'streamable-http' });
+    expect(healthBody).toMatchObject({ status: 'ok', transport: BRIDGE_TRANSPORT_STREAMABLE_HTTP });
 
-    const ready = await fetch(new URL('/readyz', endpointUrl));
+    const ready = await fetchReady(endpointUrl);
     const readyBody = (await ready.json()) as Record<string, unknown>;
     expect(ready.status).toBe(200);
-    expect(readyBody).toMatchObject({ status: 'ready', transport: 'streamable-http' });
+    expect(readyBody).toMatchObject({ status: 'ready', transport: BRIDGE_TRANSPORT_STREAMABLE_HTTP });
 
     const { client } = await connectHttpClient(endpointUrl);
     const tools = await client.listTools();
     expect(tools.tools.map((tool) => tool.name)).toEqual([
       'browser_snapshot',
       'browser_navigate',
-      'cloakbrowser_binary_info',
-      'cloakbrowser_bridge_info',
+      LOCAL_TOOL_BINARY_INFO,
+      LOCAL_TOOL_BRIDGE_INFO,
     ]);
 
     const forwarded = await client.callTool({
@@ -135,14 +139,16 @@ describe('packaged CLI end-to-end', () => {
       await waitForLine(child, stdout, / INFO cloakbrowser-mcp streamable-http listening /u),
     );
 
-    const unauthorizedProbe = await fetch(new URL('/healthz?token=secret', endpointUrl));
+    const unauthorizedProbeUrl = healthUrl(endpointUrl);
+    unauthorizedProbeUrl.search = 'token=secret';
+    const unauthorizedProbe = await fetch(unauthorizedProbeUrl);
     expect(unauthorizedProbe.status).toBe(401);
     expect(unauthorizedProbe.headers.get('www-authenticate')).toBe('Bearer');
 
     const unauthorizedMcp = await postInitialize(endpointUrl);
     expect(unauthorizedMcp.status).toBe(401);
 
-    const authorizedProbe = await fetch(new URL('/healthz?token=secret', endpointUrl), {
+    const authorizedProbe = await fetch(unauthorizedProbeUrl, {
       headers: { Authorization: 'Bearer secret' },
     });
     expect(authorizedProbe.status).toBe(200);
@@ -180,7 +186,7 @@ describe('packaged CLI end-to-end', () => {
     const oldEndpoint = await fetch(new URL('/mcp', endpointUrl), { method: 'GET' });
     expect(oldEndpoint.status).toBe(404);
 
-    const health = await fetch(new URL('/healthz', endpointUrl));
+    const health = await fetchHealth(endpointUrl);
     expect(health.status).toBe(200);
 
     const { client } = await connectHttpClient(endpointUrl);
@@ -192,6 +198,57 @@ describe('packaged CLI end-to-end', () => {
       forwarded: true,
       name: 'browser_navigate',
     });
+  });
+
+  it('serves Streamable HTTP over HTTPS from the packaged CLI', async () => {
+    const child = spawnHttpCli([
+      '--transport',
+      'streamable-http',
+      '--http-host',
+      '127.0.0.1',
+      '--http-port',
+      '0',
+      '--http-protocol',
+      'https',
+      '--https-cert',
+      tlsCertPath,
+      '--https-key',
+      tlsKeyPath,
+    ]);
+    const stdout = collectStream(child.stdout);
+    const stderr = collectStream(child.stderr);
+    const startupLine = await waitForLine(
+      child,
+      stdout,
+      / INFO cloakbrowser-mcp streamable-http listening /u,
+    );
+    const endpointUrl = parseLoggedUrl(startupLine);
+    expect(endpointUrl.protocol).toBe('https:');
+
+    await withDisabledTlsVerification(async () => {
+      const health = await fetchHealth(endpointUrl);
+      expect(health.status).toBe(200);
+
+      const { client } = await connectHttpClient(endpointUrl);
+      const tools = await client.listTools();
+      expect(tools.tools.map((tool) => tool.name)).toEqual([
+        'browser_snapshot',
+        'browser_navigate',
+        LOCAL_TOOL_BINARY_INFO,
+        LOCAL_TOOL_BRIDGE_INFO,
+      ]);
+
+      const forwarded = await client.callTool({
+        name: 'browser_navigate',
+        arguments: { url: 'https://secure.example' },
+      });
+      expect(forwarded.structuredContent).toMatchObject({
+        forwarded: true,
+        name: 'browser_navigate',
+      });
+    });
+
+    expect(stderr.text).toBe('');
   });
 
   it('runs packaged doctor JSON without starting the bridge', () => {
@@ -267,26 +324,6 @@ function parseLoggedUrl(line: string): URL {
   const match = / url=(?<url>\S+)$/u.exec(line);
   if (!match?.groups?.url) throw new Error(`Could not parse URL from log line: ${line}`);
   return new URL(match.groups.url);
-}
-
-async function postInitialize(endpointUrl: URL): Promise<Response> {
-  return fetch(endpointUrl, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json, text/event-stream',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'initialize',
-      params: {
-        protocolVersion: '2025-06-18',
-        capabilities: {},
-        clientInfo: { name: 'unauthorized-e2e-client', version: '1.0.0' },
-      },
-    }),
-  });
 }
 
 function httpRequestLogPattern({

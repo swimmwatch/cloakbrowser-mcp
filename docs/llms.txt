@@ -94,7 +94,13 @@ codex mcp add cloakbrowser --url http://127.0.0.1:3000/mcp
 claude mcp add --transport http cloakbrowser http://127.0.0.1:3000/mcp
 ```
 
-Stdio mode does not emit routine operational logs to stdout, so MCP JSON-RPC remains protocol-clean. Streamable HTTP mode writes startup and request logs to stdout. See Getting Started and Configuration for complete options.
+Streamable HTTPS with direct TLS:
+
+```bash
+npx -y cloakbrowser-mcp@latest --transport streamable-http --http-protocol https --https-cert ./cert.pem --https-key ./key.pem
+```
+
+Stdio mode does not emit routine operational logs to stdout, so MCP JSON-RPC remains protocol-clean. Streamable HTTP mode writes startup and request logs to stdout. For non-loopback exposure, use HTTPS plus auth or TLS/auth at a trusted reverse proxy. See Getting Started and Configuration for complete options.
 
 ## Tool Surface
 

@@ -6,8 +6,9 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { afterEach, describe, expect, it } from 'vitest';
-import { prepareBridgeRuntime } from '../../src/bridge/config.js';
-import { createBridgeServer, type BridgeServer } from '../../src/server.js';
+import { prepareBridgeRuntime } from '@/bridge/config.js';
+import { LOCAL_TOOL_BINARY_INFO, LOCAL_TOOL_BRIDGE_INFO } from '@/bridge/tools.js';
+import { createBridgeServer, type BridgeServer } from '@/server.js';
 
 const tempRoots: string[] = [];
 const bridges: BridgeServer[] = [];
@@ -86,8 +87,8 @@ describe('bridge proxy', () => {
     expect(tools.tools.map((tool) => tool.name)).toEqual([
       'browser_snapshot',
       'browser_navigate',
-      'cloakbrowser_binary_info',
-      'cloakbrowser_bridge_info',
+      LOCAL_TOOL_BINARY_INFO,
+      LOCAL_TOOL_BRIDGE_INFO,
     ]);
 
     const result = await outerClient.callTool({

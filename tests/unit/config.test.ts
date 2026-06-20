@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { createLaunchArgs, prepareBridgeRuntime } from '../../src/bridge/config.js';
+import { createLaunchArgs, prepareBridgeRuntime } from '@/bridge/config.js';
 
 const tempRoots: string[] = [];
 

@@ -5,7 +5,7 @@ import {
   formatLogLine,
   formatLogRecord,
   parseLogLevel,
-} from '../../src/logging/logger.js';
+} from '@/logging/logger.js';
 
 describe('bridge logger', () => {
   it('defaults to info when no log level is configured', () => {

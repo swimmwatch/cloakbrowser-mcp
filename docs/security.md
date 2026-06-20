@@ -16,7 +16,7 @@ The outer server supports stdio and Streamable HTTP. It starts upstream Playwrig
 
 Do not expose the stdio server through an unauthenticated network wrapper. Any client that can call tools can drive the browser, read browser-observable page data, and request artifacts.
 
-Streamable HTTP binds to `127.0.0.1` by default. If you bind it to `0.0.0.0` or publish it outside loopback, require `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` or equivalent reverse proxy authentication, use TLS at the network edge, and restrict access to trusted clients.
+Streamable HTTP binds to `127.0.0.1` over HTTP by default for local clients. If you bind it to `0.0.0.0` or publish it outside loopback, require `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` or equivalent reverse proxy authentication, use direct HTTPS with `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL=https` and TLS files or terminate TLS at a trusted network edge, and restrict access to trusted clients.
 
 ## Unsafe Tools
 

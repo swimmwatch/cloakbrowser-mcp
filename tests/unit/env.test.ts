@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { appendNodeOption, envBool, envInt, envList, envString } from '../../src/bridge/env.js';
+import { appendNodeOption, envBool, envInt, envList, envString } from '@/bridge/env.js';
 
 describe('bridge environment helpers', () => {
   it('reads strings, booleans, integers, and lists', () => {

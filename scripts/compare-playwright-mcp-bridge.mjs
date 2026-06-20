@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { createServer } from 'node:http';
-import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:https';
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
@@ -83,6 +83,8 @@ async function startMcpContainer(mode, containerImage, useCloakWrapper) {
       'PLAYWRIGHT_MCP_VIEWPORT_SIZE=1280x720',
       '-e',
       'CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK=true',
+      '-e',
+      'PLAYWRIGHT_MCP_IGNORE_HTTPS_ERRORS=true',
       containerImage,
     );
   } else {
@@ -95,6 +97,7 @@ async function startMcpContainer(mode, containerImage, useCloakWrapper) {
       'stdout',
       '--viewport-size',
       '1280x720',
+      '--ignore-https-errors',
     );
   }
 
@@ -284,8 +287,8 @@ function writeReport(filePath, report) {
 }
 
 async function startFixtureServer() {
-  const server = createServer((request, response) => {
-    const url = new URL(request.url ?? '/', 'http://127.0.0.1');
+  const server = createServer(readFixtureTlsOptions(), (request, response) => {
+    const url = new URL(request.url ?? '/', 'https://127.0.0.1');
     if (url.pathname === '/api/data') {
       response.writeHead(200, { 'content-type': 'application/json' });
       response.end(JSON.stringify({ ok: true, path: url.pathname }));
@@ -302,8 +305,15 @@ async function startFixtureServer() {
 
   const address = server.address();
   return {
-    url: `http://127.0.0.1:${address.port}/`,
+    url: `https://127.0.0.1:${address.port}/`,
     close: () => new Promise((resolve) => server.close(resolve)),
+  };
+}
+
+function readFixtureTlsOptions() {
+  return {
+    cert: readFileSync(new URL('../tests/fixtures/tls/localhost-cert.pem', import.meta.url)),
+    key: readFileSync(new URL('../tests/fixtures/tls/localhost-key.pem', import.meta.url)),
   };
 }
 

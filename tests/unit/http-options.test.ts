@@ -5,7 +5,17 @@ import {
   createCliCommand,
   parseCliOptions,
   renderCliReferenceMarkdown,
-} from '../../src/cli/options.js';
+} from '@/cli/options.js';
+import {
+  BRIDGE_TRANSPORT_STDIO,
+  BRIDGE_TRANSPORT_STREAMABLE_HTTP,
+  HEALTHZ_PATH,
+  HTTP_PROTOCOL_HTTP,
+  HTTP_PROTOCOL_HTTPS,
+  HTTP_SESSION_BACKEND_MEMORY,
+  READYZ_PATH,
+  defaultStreamableHttpOptions,
+} from '@/http/options.js';
 
 const cliEnvNames = cliOptionDefinitions.map((definition) => definition.env);
 
@@ -14,14 +24,16 @@ describe('Commander CLI options', () => {
     withCliEnv({}, () => {
       const options = parseCliOptions([]);
 
-      expect(options.transport).toBe('stdio');
+      expect(options.transport).toBe(BRIDGE_TRANSPORT_STDIO);
       expect(options.http).toMatchObject({
-        host: '127.0.0.1',
-        port: 3000,
-        endpoint: '/mcp',
-        sessionBackend: 'memory',
-        sessionIdleTtlMs: 3_600_000,
-        sessionMax: 32,
+        protocol: HTTP_PROTOCOL_HTTP,
+        host: defaultStreamableHttpOptions.host,
+        port: defaultStreamableHttpOptions.port,
+        endpoint: defaultStreamableHttpOptions.endpoint,
+        tls: {},
+        sessionBackend: HTTP_SESSION_BACKEND_MEMORY,
+        sessionIdleTtlMs: defaultStreamableHttpOptions.sessionIdleTtlMs,
+        sessionMax: defaultStreamableHttpOptions.sessionMax,
       });
     });
   });
@@ -31,9 +43,12 @@ describe('Commander CLI options', () => {
       {
         CLOAK_PLAYWRIGHT_MCP_TRANSPORT: 'streamable-http',
         CLOAK_PLAYWRIGHT_MCP_HTTP_HOST: '0.0.0.0',
+        CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL: 'https',
         CLOAK_PLAYWRIGHT_MCP_HTTP_PORT: '1234',
         CLOAK_PLAYWRIGHT_MCP_HTTP_ENDPOINT: '/mcp',
         CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN: 'secret',
+        CLOAK_PLAYWRIGHT_MCP_HTTPS_CERT: './cert.pem',
+        CLOAK_PLAYWRIGHT_MCP_HTTPS_KEY: './key.pem',
         CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_IDLE_TTL_MS: '5000',
         CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX: '3',
       },
@@ -47,12 +62,17 @@ describe('Commander CLI options', () => {
         ]);
 
         expect(options).toMatchObject({
-          transport: 'streamable-http',
+          transport: BRIDGE_TRANSPORT_STREAMABLE_HTTP,
           http: {
+            protocol: HTTP_PROTOCOL_HTTPS,
             host: '0.0.0.0',
             port: 4321,
             endpoint: '/rpc',
             authToken: 'secret',
+            tls: {
+              cert: './cert.pem',
+              key: './key.pem',
+            },
             sessionIdleTtlMs: 5000,
             sessionMax: 7,
           },
@@ -68,28 +88,78 @@ describe('Commander CLI options', () => {
     withCliEnv({ CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_BACKEND: 'redis' }, () => {
       expect(() => parseCliOptions([])).toThrow('Allowed choices are memory');
     });
+    withCliEnv({ CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL: 'ftp' }, () => {
+      expect(() => parseCliOptions([])).toThrow('Allowed choices are http, https');
+    });
   });
 
-  it('validates HTTP bounds', () => {
+  it('validates HTTP bounds and HTTPS TLS option combinations', () => {
     withCliEnv({}, () => {
       expect(() => parseCliOptions(['--http-port', 'abc'])).toThrow('HTTP port must be an integer');
       expect(() => parseCliOptions(['--http-port', '9007199254740992'])).toThrow(
         'HTTP port must be a safe integer',
       );
-      expect(() => parseCliOptions(['--transport', 'streamable-http', '--http-port', '70000'])).toThrow(
-        'HTTP port',
-      );
+      expect(() =>
+        parseCliOptions(['--transport', BRIDGE_TRANSPORT_STREAMABLE_HTTP, '--http-port', '70000']),
+      ).toThrow('HTTP port');
       expect(() => parseCliOptions(['--http-endpoint', 'mcp'])).toThrow('HTTP endpoint');
       expect(() => parseCliOptions(['--http-endpoint', '/mcp?debug=1'])).toThrow('HTTP endpoint');
       expect(() => parseCliOptions(['--http-endpoint', '/mcp#debug'])).toThrow('HTTP endpoint');
       expect(() => parseCliOptions(['--http-endpoint', '/mcp/'])).toThrow('must not end with "/"');
-      expect(() => parseCliOptions(['--http-endpoint', '/healthz'])).toThrow('reserved probe paths');
-      expect(() => parseCliOptions(['--http-endpoint', '/readyz'])).toThrow('reserved probe paths');
+      expect(() => parseCliOptions(['--http-endpoint', HEALTHZ_PATH])).toThrow('reserved probe paths');
+      expect(() => parseCliOptions(['--http-endpoint', READYZ_PATH])).toThrow('reserved probe paths');
       expect(() => parseCliOptions(['--http-auth-token', '   '])).toThrow(
         'HTTP auth token must not be empty',
       );
       expect(() => parseCliOptions(['--http-session-idle-ttl-ms', '0'])).toThrow('idle TTL');
       expect(() => parseCliOptions(['--http-session-max', '0'])).toThrow('session max');
+      expect(() => parseCliOptions(['--https-cert', './cert.pem', '--https-key', './key.pem'])).toThrow(
+        'HTTPS certificate options require --http-protocol https',
+      );
+      expect(() => parseCliOptions(['--http-protocol', 'https'])).toThrow(
+        'HTTPS requires either --https-cert and --https-key, or --https-pfx',
+      );
+      expect(() => parseCliOptions(['--http-protocol', 'https', '--https-cert', './cert.pem'])).toThrow(
+        'HTTPS requires either --https-cert and --https-key, or --https-pfx',
+      );
+      expect(() =>
+        parseCliOptions([
+          '--http-protocol',
+          'https',
+          '--https-pfx',
+          './cert.pfx',
+          '--https-cert',
+          './cert.pem',
+          '--https-key',
+          './key.pem',
+        ]),
+      ).toThrow('HTTPS must use either --https-pfx or --https-cert with --https-key');
+    });
+  });
+
+  it('accepts HTTPS certificate/key and PFX configurations', () => {
+    withCliEnv({}, () => {
+      expect(
+        parseCliOptions([
+          '--http-protocol',
+          'https',
+          '--https-cert',
+          './cert.pem',
+          '--https-key',
+          './key.pem',
+        ]).http.tls,
+      ).toEqual({ cert: './cert.pem', key: './key.pem', pfx: undefined, passphrase: undefined });
+
+      expect(
+        parseCliOptions([
+          '--http-protocol',
+          'https',
+          '--https-pfx',
+          './cert.pfx',
+          '--https-passphrase',
+          'secret',
+        ]).http.tls,
+      ).toEqual({ cert: undefined, key: undefined, pfx: './cert.pfx', passphrase: 'secret' });
     });
   });
 
@@ -113,7 +183,7 @@ describe('Commander CLI options', () => {
     const endpoint = fc
       .array(segment, { minLength: 1, maxLength: 4 })
       .map((segments) => `/${segments.join('/')}`)
-      .filter((value) => value !== '/healthz' && value !== '/readyz');
+      .filter((value) => value !== HEALTHZ_PATH && value !== READYZ_PATH);
 
     fc.assert(
       fc.property(endpoint, (value) => {
@@ -153,6 +223,8 @@ describe('Commander CLI options', () => {
     expect(help).toContain('Playwright MCP bridge backed by CloakBrowser');
     expect(help).toContain('--transport <mode>');
     expect(help).toContain('doctor');
+    expect(help).toContain('--http-protocol <protocol>');
+    expect(help).toContain('--https-cert <path>');
     expect(help).toContain('--http-session-max <count>');
     expect(help).toContain('CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX');
     expect(reference).toContain('# CLI Reference');

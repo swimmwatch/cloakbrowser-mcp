@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import process from 'node:process';
-import { getCurrentCloakBinaryInfo } from '../bridge/config.js';
-import { resolvePlaywrightMcpCliPath } from '../bridge/paths.js';
-import { PLAYWRIGHT_MCP_PACKAGE, PLAYWRIGHT_MCP_VERSION, PROJECT_METADATA } from '../project/metadata.js';
+import { getCurrentCloakBinaryInfo } from '#/bridge/config';
+import { resolvePlaywrightMcpCliPath } from '#/bridge/paths';
+import { PLAYWRIGHT_MCP_PACKAGE, PLAYWRIGHT_MCP_VERSION, PROJECT_METADATA } from '#/project/metadata';
 
 export type DoctorStatus = 'ok' | 'warning' | 'error';
 

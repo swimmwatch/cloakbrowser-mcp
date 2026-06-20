@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolvePlaywrightCoreBundlePath, resolvePlaywrightMcpCliPath } from '../../src/bridge/paths.js';
+import { resolvePlaywrightCoreBundlePath, resolvePlaywrightMcpCliPath } from '@/bridge/paths.js';
 
 describe('bridge path resolution', () => {
   it('uses explicit upstream paths from the environment', () => {

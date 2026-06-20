@@ -38,7 +38,18 @@ curl http://127.0.0.1:3000/healthz
 curl http://127.0.0.1:3000/readyz
 ```
 
-The host-side `127.0.0.1:3000` bind keeps the endpoint local. If you publish Streamable HTTP on a non-loopback interface, put it behind authentication, TLS, and network controls.
+For direct HTTPS from the container, mount your certificate files and select HTTPS:
+
+```bash
+docker run --rm --init -p 127.0.0.1:3000:3000 \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/certs:/certs:ro" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http --http-host 0.0.0.0 --http-port 3000 \
+  --http-protocol https --https-cert /certs/cert.pem --https-key /certs/key.pem
+```
+
+The host-side `127.0.0.1:3000` bind keeps the endpoint local. If you publish Streamable HTTP on a non-loopback interface, use HTTPS plus authentication, or place the server behind a trusted TLS-terminating reverse proxy with authentication and network controls.
 Streamable HTTP exposes fixed `GET /healthz` and `GET /readyz` probes on the same host and port. If `--http-auth-token` or `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` is configured, the probes require the same `Authorization: Bearer ...` header as MCP requests.
 See the generated [CLI Reference](generated/cli.md) for all HTTP transport flags and environment variables.
 
@@ -51,6 +62,7 @@ See the generated [CLI Reference](generated/cli.md) for all HTTP transport flags
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `/data` |
 | `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` |
 | `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_PORT` | `3000` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_ENDPOINT` | `/mcp` |

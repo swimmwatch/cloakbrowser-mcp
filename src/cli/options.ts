@@ -1,21 +1,33 @@
 import { Command, InvalidArgumentError, Option } from 'commander';
 import {
+  BRIDGE_TRANSPORT_STDIO,
+  HEALTHZ_PATH,
+  HTTP_PROTOCOL_HTTP,
+  READYZ_PATH,
   bridgeTransportModes,
   defaultStreamableHttpOptions,
+  httpProtocols,
   httpSessionBackends,
   type BridgeTransportMode,
   type CliOptions,
+  type HttpProtocol,
   type HttpSessionBackend,
-} from '../http/options.js';
+  type StreamableHttpTlsOptions,
+} from '#/http/options';
 
 export const cliDescription = 'Playwright MCP bridge backed by CloakBrowser.';
 
 interface CommanderCliOptions {
   transport: BridgeTransportMode;
+  httpProtocol: HttpProtocol;
   httpHost: string;
   httpPort: number;
   httpEndpoint: string;
   httpAuthToken?: string;
+  httpsCert?: string;
+  httpsKey?: string;
+  httpsPfx?: string;
+  httpsPassphrase?: string;
   httpSessionBackend: HttpSessionBackend;
   httpSessionIdleTtlMs: number;
   httpSessionMax: number;
@@ -49,8 +61,17 @@ export const cliOptionDefinitions: readonly CliOptionDefinition[] = [
     description: 'MCP transport exposed by the bridge.',
     env: 'CLOAK_PLAYWRIGHT_MCP_TRANSPORT',
     group: 'Transport',
-    defaultValue: 'stdio',
+    defaultValue: BRIDGE_TRANSPORT_STDIO,
     choices: bridgeTransportModes,
+  },
+  {
+    name: 'httpProtocol',
+    flags: '--http-protocol <protocol>',
+    description: 'Streamable HTTP listener protocol.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL',
+    group: 'Streamable HTTP',
+    defaultValue: defaultStreamableHttpOptions.protocol,
+    choices: httpProtocols,
   },
   {
     name: 'httpHost',
@@ -86,6 +107,38 @@ export const cliOptionDefinitions: readonly CliOptionDefinition[] = [
     env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN',
     group: 'Streamable HTTP',
     parser: parseNonEmptyString('HTTP auth token must not be empty'),
+  },
+  {
+    name: 'httpsCert',
+    flags: '--https-cert <path>',
+    description: 'TLS certificate PEM file for HTTPS Streamable HTTP.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTPS_CERT',
+    group: 'Streamable HTTP',
+    parser: parseNonEmptyString('HTTPS certificate path must not be empty'),
+  },
+  {
+    name: 'httpsKey',
+    flags: '--https-key <path>',
+    description: 'TLS private key PEM file for HTTPS Streamable HTTP.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTPS_KEY',
+    group: 'Streamable HTTP',
+    parser: parseNonEmptyString('HTTPS private key path must not be empty'),
+  },
+  {
+    name: 'httpsPfx',
+    flags: '--https-pfx <path>',
+    description: 'TLS PFX/PKCS12 file for HTTPS Streamable HTTP.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTPS_PFX',
+    group: 'Streamable HTTP',
+    parser: parseNonEmptyString('HTTPS PFX path must not be empty'),
+  },
+  {
+    name: 'httpsPassphrase',
+    flags: '--https-passphrase <value>',
+    description: 'Passphrase for an encrypted HTTPS key or PFX.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTPS_PASSPHRASE',
+    group: 'Streamable HTTP',
+    parser: parseNonEmptyString('HTTPS passphrase must not be empty'),
   },
   {
     name: 'httpSessionBackend',
@@ -210,19 +263,54 @@ function createCommanderOption(definition: CliOptionDefinition): Option {
 }
 
 function toCliOptions(options: CommanderCliOptions): CliOptions {
+  const tls = normalizeTlsOptions(options);
+  validateHttpProtocolOptions(options.httpProtocol, tls);
   return {
     transport: options.transport,
     http: {
+      protocol: options.httpProtocol,
       host: options.httpHost,
       port: options.httpPort,
       endpoint: options.httpEndpoint,
       authToken: optionalString(options.httpAuthToken),
+      tls,
       sessionBackend: options.httpSessionBackend,
       sessionIdleTtlMs: options.httpSessionIdleTtlMs,
       sessionMax: options.httpSessionMax,
       bodyLimitBytes: defaultStreamableHttpOptions.bodyLimitBytes,
     },
   };
+}
+
+function normalizeTlsOptions(options: CommanderCliOptions): StreamableHttpTlsOptions {
+  return {
+    cert: optionalString(options.httpsCert),
+    key: optionalString(options.httpsKey),
+    pfx: optionalString(options.httpsPfx),
+    passphrase: optionalString(options.httpsPassphrase),
+  };
+}
+
+function validateHttpProtocolOptions(protocol: HttpProtocol, tls: StreamableHttpTlsOptions): void {
+  const hasCert = tls.cert !== undefined;
+  const hasKey = tls.key !== undefined;
+  const hasPfx = tls.pfx !== undefined;
+  const hasPassphrase = tls.passphrase !== undefined;
+  const hasAnyTlsOption = hasCert || hasKey || hasPfx || hasPassphrase;
+
+  if (protocol === HTTP_PROTOCOL_HTTP) {
+    if (hasAnyTlsOption) {
+      throw new InvalidArgumentError('HTTPS certificate options require --http-protocol https');
+    }
+    return;
+  }
+
+  if (hasPfx && (hasCert || hasKey)) {
+    throw new InvalidArgumentError('HTTPS must use either --https-pfx or --https-cert with --https-key');
+  }
+  if (hasPfx) return;
+  if (hasCert && hasKey) return;
+  throw new InvalidArgumentError('HTTPS requires either --https-cert and --https-key, or --https-pfx');
 }
 
 function renderCliReferenceFrontMatter(): string {
@@ -292,7 +380,7 @@ function parseHttpEndpoint(value: string): string {
   if (!value.startsWith('/') || value.includes('?') || value.includes('#')) {
     throw new InvalidArgumentError('HTTP endpoint must be an absolute path such as "/mcp"');
   }
-  if (value === '/healthz' || value === '/readyz') {
+  if (value === HEALTHZ_PATH || value === READYZ_PATH) {
     throw new InvalidArgumentError('HTTP endpoint must not use reserved probe paths "/healthz" or "/readyz"');
   }
   if (value.length > 1 && value.endsWith('/')) {

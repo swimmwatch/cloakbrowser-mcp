@@ -2,9 +2,9 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { binaryInfo, ensureBinary, getDefaultStealthArgs } from 'cloakbrowser';
-import { appendNodeOption, envBool, envInt, envList, envString, type EnvReader } from './env.js';
-import { resolvePlaywrightCoreBundlePath } from './paths.js';
-import { consoleFallbackInitScript, consoleFallbackPreloadScript } from '../runtime/consoleFallback.js';
+import { appendNodeOption, envBool, envInt, envList, envString, type EnvReader } from '#/bridge/env';
+import { resolvePlaywrightCoreBundlePath } from '#/bridge/paths';
+import { consoleFallbackInitScript, consoleFallbackPreloadScript } from '#/runtime/consoleFallback';
 
 export type BrowserEngine = 'cloak' | 'playwright';
 

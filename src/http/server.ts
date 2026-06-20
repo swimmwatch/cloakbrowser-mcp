@@ -1,17 +1,43 @@
 import { randomUUID, timingSafeEqual } from 'node:crypto';
-import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
+import { type IncomingMessage, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { isInitializeRequest, type Implementation } from '@modelcontextprotocol/sdk/types.js';
-import { createBridgeServer, type BridgeServer } from '../server.js';
-import type { BridgeLogger } from '../logging/logger.js';
-import { createSessionStore, type HttpSessionRecord, type SessionStore } from './sessionStore.js';
-import { streamableHttpProbePaths, type HttpSessionBackend, type StreamableHttpOptions } from './options.js';
-import { HttpStatus, JsonRpcErrorCode } from './status.js';
+import { type Implementation } from '@modelcontextprotocol/sdk/types.js';
+import {
+  BRIDGE_TRANSPORT_STREAMABLE_HTTP,
+  HEALTHZ_PATH,
+  READYZ_PATH,
+  type HttpSessionBackend,
+  type StreamableHttpOptions,
+} from '#/http/options';
+import {
+  HTTP_SESSION_STATUS_ACTIVE,
+  createSessionStore,
+  type HttpSessionRecord,
+  type SessionStore,
+} from '#/http/sessionStore';
+import { HttpStatus, JsonRpcErrorCode } from '#/http/status';
+import type { BridgeLogger } from '#/logging/logger';
+import { MCP_SESSION_ID_HEADER } from '#/protocol/constants';
+import { createBridgeServer, type BridgeServer } from '#/server';
+import {
+  closeHttpServer,
+  createStreamableNodeServer,
+  formatHost,
+  listenHttpServer,
+  type StreamableNodeServer,
+} from '#/http/nodeServer';
+import {
+  RequestBodyTooLargeError,
+  containsInitializeRequest,
+  getSingleHeader,
+  hasJsonContentType,
+  isEndpointRequest,
+  readJsonBody,
+  requestPathName,
+} from '#/http/requests';
+import { endResponse, writeJsonResponse, writeJsonRpcError } from '#/http/responses';
 
-const mcpSessionIdHeader = 'mcp-session-id';
-const jsonRpcContentType = 'application/json';
-const [healthzPath, readyzPath] = streamableHttpProbePaths;
 const allowedMethods = 'GET, POST, DELETE';
 
 export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions {
@@ -51,18 +77,14 @@ export function isAuthorizedRequest(req: IncomingMessage, authToken: string | un
   return scheme.toLowerCase() === 'bearer' && timingSafeStringEqual(token, authToken);
 }
 
-export function isEndpointRequest(req: IncomingMessage, endpoint: string, fallbackHost: string): boolean {
-  const host = getSingleHeader(req, 'host') ?? formatHost(fallbackHost);
-  const url = new URL(req.url ?? '/', `http://${host}`);
-  return url.pathname === endpoint;
-}
+export { isEndpointRequest } from '#/http/requests';
 
 class StreamableHttpBridgeController {
   readonly #options: StartStreamableHttpBridgeOptions;
   readonly #store: SessionStore;
   readonly #sessions = new Map<string, ActiveHttpSession>();
   readonly #closing = new Map<string, Promise<void>>();
-  readonly #httpServer: Server;
+  readonly #httpServer: StreamableNodeServer;
   readonly #cleanupTimer: NodeJS.Timeout;
   readonly #startedAt = Date.now();
   #pendingSessionInitializations = 0;
@@ -70,9 +92,10 @@ class StreamableHttpBridgeController {
   constructor(options: StartStreamableHttpBridgeOptions) {
     this.#options = options;
     this.#store = options.sessionStore ?? createSessionStore(options.sessionBackend);
-    this.#httpServer = createServer((req, res) => {
+    const requestListener = (req: IncomingMessage, res: ServerResponse): void => {
       void this.#handleRequest(req, res);
-    });
+    };
+    this.#httpServer = createStreamableNodeServer(options, requestListener);
     this.#cleanupTimer = setInterval(
       () => {
         void this.#closeExpiredSessions();
@@ -90,7 +113,7 @@ class StreamableHttpBridgeController {
     }
     return {
       address,
-      url: `http://${formatHost(address.address)}:${address.port}${this.#options.endpoint}`,
+      url: `${this.#options.protocol}://${formatHost(address.address)}:${address.port}${this.#options.endpoint}`,
       close: async () => {
         clearInterval(this.#cleanupTimer);
         await Promise.allSettled([...this.#sessions.keys()].map((id) => this.#closeSession(id)));
@@ -104,17 +127,17 @@ class StreamableHttpBridgeController {
     const startedAt = Date.now();
     this.#logRequestOnFinish(req, res, startedAt);
     try {
-      if (isEndpointRequest(req, healthzPath, this.#options.host)) {
+      if (isEndpointRequest(req, HEALTHZ_PATH, this.#options.host, this.#options.protocol)) {
         this.#handleHealthProbe(req, res);
         return;
       }
 
-      if (isEndpointRequest(req, readyzPath, this.#options.host)) {
+      if (isEndpointRequest(req, READYZ_PATH, this.#options.host, this.#options.protocol)) {
         await this.#handleReadinessProbe(req, res);
         return;
       }
 
-      if (!isEndpointRequest(req, this.#options.endpoint, this.#options.host)) {
+      if (!isEndpointRequest(req, this.#options.endpoint, this.#options.host, this.#options.protocol)) {
         writeJsonRpcError(res, HttpStatus.NotFound, JsonRpcErrorCode.ServerError, 'Not found');
         return;
       }
@@ -157,7 +180,7 @@ class StreamableHttpBridgeController {
           'Internal server error',
         );
       } else {
-        res.end();
+        endResponse(res);
       }
     }
   }
@@ -195,7 +218,7 @@ class StreamableHttpBridgeController {
       return;
     }
 
-    const sessionId = getSingleHeader(req, mcpSessionIdHeader);
+    const sessionId = getSingleHeader(req, MCP_SESSION_ID_HEADER);
     if (sessionId) {
       await this.#handleSessionRequest(req, res, parsedBody);
       return;
@@ -237,7 +260,7 @@ class StreamableHttpBridgeController {
       createdAt: now,
       lastSeenAt: now,
       expiresAt: now + this.#options.sessionIdleTtlMs,
-      status: 'active',
+      status: HTTP_SESSION_STATUS_ACTIVE,
     };
 
     const transport = new StreamableHTTPServerTransport({
@@ -274,7 +297,7 @@ class StreamableHttpBridgeController {
     res: ServerResponse,
     parsedBody?: unknown,
   ): Promise<void> {
-    const sessionId = getSingleHeader(req, mcpSessionIdHeader);
+    const sessionId = getSingleHeader(req, MCP_SESSION_ID_HEADER);
     if (!sessionId) {
       writeJsonRpcError(
         res,
@@ -303,8 +326,10 @@ class StreamableHttpBridgeController {
     const record = await this.#store.get(sessionId);
     const session = this.#sessions.get(sessionId);
     const now = Date.now();
-    if (!record || record.status !== 'active' || record.expiresAt <= now || !session) {
-      if (record?.status === 'active' && record.expiresAt <= now) await this.#closeSession(sessionId);
+    if (!record || record.status !== HTTP_SESSION_STATUS_ACTIVE || record.expiresAt <= now || !session) {
+      if (record?.status === HTTP_SESSION_STATUS_ACTIVE && record.expiresAt <= now) {
+        await this.#closeSession(sessionId);
+      }
       return undefined;
     }
     return session;
@@ -344,7 +369,7 @@ class StreamableHttpBridgeController {
     writeJsonResponse(res, HttpStatus.Ok, {
       status: 'ok',
       version: this.#options.serverInfo?.version ?? 'unknown',
-      transport: 'streamable-http',
+      transport: BRIDGE_TRANSPORT_STREAMABLE_HTTP,
       uptimeMs: this.#uptimeMs(),
     });
   }
@@ -365,7 +390,7 @@ class StreamableHttpBridgeController {
     writeJsonResponse(res, ready ? HttpStatus.Ok : HttpStatus.ServiceUnavailable, {
       status: ready ? 'ready' : 'not_ready',
       version: this.#options.serverInfo?.version ?? 'unknown',
-      transport: 'streamable-http',
+      transport: BRIDGE_TRANSPORT_STREAMABLE_HTTP,
       uptimeMs: this.#uptimeMs(),
       sessions: {
         active,
@@ -396,7 +421,7 @@ class StreamableHttpBridgeController {
     if (!logger) return;
     res.once('finish', () => {
       const method = req.method ?? 'UNKNOWN';
-      const pathName = requestPathName(req, this.#options.host);
+      const pathName = requestPathName(req, this.#options.host, this.#options.protocol);
       const durationMs = Math.max(Date.now() - startedAt, 0);
       logger.info(
         {
@@ -411,131 +436,10 @@ class StreamableHttpBridgeController {
   }
 }
 
-function requestPathName(req: IncomingMessage, fallbackHost: string): string {
-  const host = getSingleHeader(req, 'host') ?? formatHost(fallbackHost);
-  try {
-    return new URL(req.url ?? '/', `http://${host}`).pathname;
-  } catch {
-    return fallbackPathName(req.url);
-  }
-}
-
-function fallbackPathName(url: string | undefined): string {
-  const pathName = (url ?? '/').split(/[?#]/u, 1)[0];
-  return pathName.length > 0 ? pathName : '/';
-}
-
-function hasJsonContentType(req: IncomingMessage): boolean {
-  const contentType = getSingleHeader(req, 'content-type');
-  return contentType?.toLowerCase().includes(jsonRpcContentType) ?? false;
-}
-
-async function readJsonBody(req: IncomingMessage, limitBytes: number): Promise<unknown> {
-  const contentLength = getSingleHeader(req, 'content-length');
-  if (contentLength !== undefined && Number.parseInt(contentLength, 10) > limitBytes) {
-    throw new RequestBodyTooLargeError();
-  }
-
-  const chunks: Buffer[] = [];
-  let size = 0;
-  for await (const chunk of req) {
-    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk));
-    size += buffer.byteLength;
-    if (size > limitBytes) throw new RequestBodyTooLargeError();
-    chunks.push(buffer);
-  }
-
-  return JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown;
-}
-
-function containsInitializeRequest(value: unknown): boolean {
-  const messages = Array.isArray(value) ? value : [value];
-  return messages.some((message) => isInitializeRequest(message));
-}
-
-function getSingleHeader(req: IncomingMessage, name: string): string | undefined {
-  const value = req.headers[name];
-  if (Array.isArray(value)) return value[0];
-  return value;
-}
-
-function writeJsonRpcError(
-  res: ServerResponse,
-  status: HttpStatus,
-  code: JsonRpcErrorCode,
-  message: string,
-  headers: Record<string, string> = {},
-  data?: string,
-): void {
-  const error: { code: number; message: string; data?: string } = { code, message };
-  if (data !== undefined) error.data = data;
-  res.writeHead(status, {
-    'Content-Type': jsonRpcContentType,
-    ...headers,
-  });
-  res.end(
-    JSON.stringify({
-      jsonrpc: '2.0',
-      error,
-      id: null,
-    }),
-  );
-}
-
-function writeJsonResponse(
-  res: ServerResponse,
-  status: HttpStatus,
-  body: Record<string, unknown>,
-  headers: Record<string, string> = {},
-): void {
-  res.writeHead(status, {
-    'Content-Type': jsonRpcContentType,
-    ...headers,
-  });
-  res.end(JSON.stringify(body));
-}
-
-function formatHost(host: string): string {
-  if (host.startsWith('[') && host.endsWith(']')) return host;
-  return host.includes(':') ? `[${host}]` : host;
-}
-
 function timingSafeStringEqual(actual: string, expected: string): boolean {
   const actualBuffer = Buffer.from(actual);
   const expectedBuffer = Buffer.from(expected);
   return actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer);
 }
-
-async function closeHttpServer(server: Server): Promise<void> {
-  if (!server.listening) return;
-  await new Promise<void>((resolve, reject) => {
-    server.close((error) => {
-      if (error) reject(error);
-      else resolve();
-    });
-  });
-}
-
-async function listenHttpServer(server: Server, port: number, host: string): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
-    const cleanup = (): void => {
-      server.off('error', onError);
-      server.off('listening', onListening);
-    };
-    const onError = (error: Error): void => {
-      cleanup();
-      reject(error);
-    };
-    const onListening = (): void => {
-      cleanup();
-      resolve();
-    };
-    server.once('error', onError);
-    server.once('listening', onListening);
-    server.listen(port, host);
-  });
-}
-
-class RequestBodyTooLargeError extends Error {}
 
 export type { HttpSessionBackend };

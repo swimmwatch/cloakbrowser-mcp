@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
+import { fetchHealth } from '../helpers/http.js';
 
 const tempRoots: string[] = [];
 const children: ChildProcessWithoutNullStreams[] = [];
@@ -59,7 +60,7 @@ describe('streamable HTTP CLI logging', () => {
       /^\d{4}-\d{2}-\d{2}T\S+Z INFO cloakbrowser-mcp streamable-http listening url=http:\/\/127\.0\.0\.1:\d+\/mcp$/u,
     );
 
-    await expect(fetch(new URL('/healthz', stdoutLine.replace(/^.* url=/u, '')))).resolves.toMatchObject({
+    await expect(fetchHealth(stdoutLine.replace(/^.* url=/u, ''))).resolves.toMatchObject({
       status: 200,
     });
 

@@ -21,6 +21,7 @@ npx -y cloakbrowser-mcp@latest doctor
 npx -y cloakbrowser-mcp@latest doctor --json
 npx -y cloakbrowser-mcp@latest
 npx -y cloakbrowser-mcp@latest --transport streamable-http --http-port 3000
+npx -y cloakbrowser-mcp@latest --transport streamable-http --http-protocol https --https-cert ./cert.pem --https-key ./key.pem
 ```
 
 Pin a release when reproducibility matters:
@@ -33,7 +34,7 @@ The npm package requires Node.js 22.12 or newer. CloakBrowser downloads its Chro
 
 Use `doctor` to verify the local Node.js runtime, package metadata, upstream Playwright MCP CLI resolution, and CloakBrowser binary metadata before connecting a client. The command does not start the bridge or download a browser.
 
-The default transport is stdio. Use `--transport streamable-http` when your MCP client connects to an HTTP endpoint instead of spawning a stdio process. The HTTP endpoint defaults to `http://127.0.0.1:3000/mcp`, with fixed `GET /healthz` and `GET /readyz` probes on the same host and port.
+The default transport is stdio. Use `--transport streamable-http` when your MCP client connects to an HTTP endpoint instead of spawning a stdio process. The HTTP endpoint defaults to `http://127.0.0.1:3000/mcp`, with fixed `GET /healthz` and `GET /readyz` probes on the same host and port. Use `--http-protocol https` with `--https-cert` and `--https-key` or `--https-pfx` when the bridge should terminate TLS directly.
 See the generated [CLI Reference](generated/cli.md) for the full flag list and matching environment variables.
 
 ## Docker
@@ -60,6 +61,17 @@ curl http://127.0.0.1:3000/healthz
 curl http://127.0.0.1:3000/readyz
 ```
 
+For direct HTTPS from Docker, mount your certificate files and select HTTPS:
+
+```bash
+docker run --rm --init -p 127.0.0.1:3000:3000 \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/certs:/certs:ro" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http --http-host 0.0.0.0 --http-port 3000 \
+  --http-protocol https --https-cert /certs/cert.pem --https-key /certs/key.pem
+```
+
 Streamable HTTP mode writes the listening MCP endpoint URL and request logs to stdout. Stdio mode does not emit routine operational logs so MCP JSON-RPC stdout remains protocol-clean.
 
 Pin a release when reproducibility matters:
@@ -81,7 +93,7 @@ npx -y cloakbrowser-mcp@latest
 
 Use Docker when you want a repeatable runtime. Keep `-i` so stdio stays connected and add `--init` so browser child processes are reaped correctly.
 
-For Streamable HTTP clients, start the server separately and configure the client URL as `http://127.0.0.1:3000/mcp`. If `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` or `--http-auth-token` is set, send the same Bearer token to `/mcp`, `/healthz`, and `/readyz`.
+For Streamable HTTP clients, start the server separately and configure the client URL as `http://127.0.0.1:3000/mcp` or `https://127.0.0.1:3000/mcp`. If `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` or `--http-auth-token` is set, send the same Bearer token to `/mcp`, `/healthz`, and `/readyz`.
 
 === "Codex CLI"
 

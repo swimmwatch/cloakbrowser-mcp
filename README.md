@@ -80,11 +80,12 @@ npx -y cloakbrowser-mcp@latest doctor
 npx -y cloakbrowser-mcp@latest doctor --json
 npx -y cloakbrowser-mcp@latest
 npx -y cloakbrowser-mcp@latest --transport streamable-http --http-port 3000
+npx -y cloakbrowser-mcp@latest --transport streamable-http --http-protocol https --https-cert ./cert.pem --https-key ./key.pem
 ```
 
 Requires Node.js 22.12 or newer. The first real browser action may download the CloakBrowser binary unless it is already cached.
 Use `doctor` for local diagnostics before connecting an MCP client. It checks the Node.js engine, project metadata, upstream Playwright MCP resolution, and CloakBrowser binary metadata without starting the bridge or downloading a browser.
-The default transport is stdio. Streamable HTTP binds to `127.0.0.1` by default, serves MCP at `/mcp`, and exposes fixed `GET /healthz` and `GET /readyz` probes. If `--http-auth-token` is set, the probes require the same `Authorization: Bearer ...` header as MCP requests.
+The default transport is stdio. Streamable HTTP binds to `127.0.0.1` by default, serves MCP at `/mcp`, and exposes fixed `GET /healthz` and `GET /readyz` probes. Use `--http-protocol https` with `--https-cert` and `--https-key` or `--https-pfx` for direct TLS. If `--http-auth-token` is set, the probes require the same `Authorization: Bearer ...` header as MCP requests.
 For the complete generated CLI flag reference, see the published [CLI Reference](https://swimmwatch.github.io/cloakbrowser-mcp/generated/cli/).
 
 ## Run from Docker
@@ -102,6 +103,17 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
 
 curl http://127.0.0.1:3000/healthz
 curl http://127.0.0.1:3000/readyz
+```
+
+For direct HTTPS from the container, mount your TLS files and select HTTPS:
+
+```bash
+docker run --rm --init -p 127.0.0.1:3000:3000 \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/certs:/certs:ro" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http --http-host 0.0.0.0 --http-port 3000 \
+  --http-protocol https --https-cert /certs/cert.pem --https-key /certs/key.pem
 ```
 
 The Docker image is based on the pinned official Playwright MCP image, installs the bridge under `/opt/cloakbrowser-mcp`, writes artifacts to `/data` by default, and is published for `linux/amd64` and `linux/arm64`.
@@ -157,6 +169,7 @@ Common variables:
 | Variable | Default | Description |
 | --- | --- | --- |
 | `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` | MCP transport exposed by the bridge: `stdio` or `streamable-http`. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` | Streamable HTTP listener protocol: `http` or `https`. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` | Streamable HTTP bind host. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_PORT` | `3000` | Streamable HTTP bind port. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_ENDPOINT` | `/mcp` | Streamable HTTP endpoint path. |
@@ -164,6 +177,10 @@ Common variables:
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_BACKEND` | `memory` | Session metadata backend. Only `memory` is implemented in this release. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_IDLE_TTL_MS` | `3600000` | Idle TTL for Streamable HTTP sessions. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` | Maximum active Streamable HTTP sessions in one process. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_CERT` | unset | TLS certificate PEM path for HTTPS Streamable HTTP. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_KEY` | unset | TLS private key PEM path for HTTPS Streamable HTTP. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_PFX` | unset | TLS PFX/PKCS12 path for HTTPS Streamable HTTP. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_PASSPHRASE` | unset | Passphrase for an encrypted HTTPS key or PFX. |
 | `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` | Streamable HTTP operational log level: `trace`, `debug`, `info`, `warn`, `error`, `fatal`, or `silent`. |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses CloakBrowser. `playwright` uses the upstream Playwright MCP browser runtime. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium headless. |

@@ -1,4 +1,9 @@
-export type HttpSessionStatus = 'active' | 'closed';
+import { HTTP_SESSION_BACKEND_MEMORY } from '#/http/options';
+
+export const HTTP_SESSION_STATUS_ACTIVE = 'active' as const;
+export const HTTP_SESSION_STATUS_CLOSED = 'closed' as const;
+
+export type HttpSessionStatus = typeof HTTP_SESSION_STATUS_ACTIVE | typeof HTTP_SESSION_STATUS_CLOSED;
 
 export interface HttpSessionRecord {
   id: string;
@@ -33,7 +38,7 @@ export class InMemorySessionStore implements SessionStore {
 
   async touch(id: string, now: number, idleTtlMs: number): Promise<HttpSessionRecord | undefined> {
     const record = this.#records.get(id);
-    if (!record || record.status !== 'active') return undefined;
+    if (!record || record.status !== HTTP_SESSION_STATUS_ACTIVE) return undefined;
     const updated = {
       ...record,
       lastSeenAt: now,
@@ -50,7 +55,7 @@ export class InMemorySessionStore implements SessionStore {
       ...record,
       lastSeenAt: now,
       expiresAt: now,
-      status: 'closed' as const,
+      status: HTTP_SESSION_STATUS_CLOSED,
     };
     this.#records.set(id, updated);
     return { ...updated };
@@ -59,14 +64,14 @@ export class InMemorySessionStore implements SessionStore {
   async countActive(now: number): Promise<number> {
     let count = 0;
     for (const record of this.#records.values()) {
-      if (record.status === 'active' && record.expiresAt > now) count += 1;
+      if (record.status === HTTP_SESSION_STATUS_ACTIVE && record.expiresAt > now) count += 1;
     }
     return count;
   }
 
   async listExpired(now: number): Promise<HttpSessionRecord[]> {
     return [...this.#records.values()]
-      .filter((record) => record.status === 'active' && record.expiresAt <= now)
+      .filter((record) => record.status === HTTP_SESSION_STATUS_ACTIVE && record.expiresAt <= now)
       .map((record) => ({ ...record }));
   }
 
@@ -80,6 +85,6 @@ export class InMemorySessionStore implements SessionStore {
 }
 
 export function createSessionStore(backend: string): SessionStore {
-  if (backend === 'memory') return new InMemorySessionStore();
+  if (backend === HTTP_SESSION_BACKEND_MEMORY) return new InMemorySessionStore();
   throw new Error(`Unsupported HTTP session backend "${backend}"`);
 }
