@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Auto-cleanup of stale Chromium `SingletonLock` files on stdio startup to prevent
+  "Browser is already in use" errors after an unclean shutdown (SIGKILL/crash).
+
 ## [1.4.0] - 2026-06-21
 
 ### Added

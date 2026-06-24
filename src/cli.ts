@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, readlinkSync, unlinkSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
 import process from 'node:process';
 import type { Implementation } from '@modelcontextprotocol/sdk/types.js';
 import { createDoctorReport, renderDoctorReport } from '#src/cli/doctor';
@@ -50,6 +52,7 @@ async function main(): Promise<void> {
 }
 
 async function startStdioBridge(serverInfo: Partial<Implementation>): Promise<{ close(): Promise<void> }> {
+  cleanStaleSingletonLocks();
   const bridge = await startBridge({ serverInfo });
   return {
     close: () => bridge.dispose(),
@@ -66,6 +69,58 @@ async function startStreamableHttpCliBridge(
   });
   logger.info({ url: bridge.url }, 'streamable-http listening');
   return bridge;
+}
+
+/**
+ * Clean stale Chromium SingletonLock files left behind by killed browser
+ * processes. Chromium uses these symlinks to prevent concurrent profile
+ * access — when the browser is killed with SIGKILL, the lock files remain and
+ * block every subsequent launch with "Browser is already in use".
+ *
+ * This runs on every CloakBrowser MCP stdio startup, before the Playwright
+ * MCP subprocess is spawned, so the downstream process never sees a zombie.
+ *
+ * Related upstream issues (fixed in newer @playwright/mcp but not in the
+ * version that ships with CloakBrowser):
+ * - microsoft/playwright-mcp#1311
+ * - microsoft/playwright-mcp#1305
+ * - microsoft/playwright-mcp#1245
+ */
+function cleanStaleSingletonLocks(): void {
+  const cacheDir = join(homedir(), '.cache', 'ms-playwright-mcp');
+  let entries: string[];
+  try {
+    entries = readdirSync(cacheDir);
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    if (!entry.startsWith('mcp-chromium-')) continue;
+    const lockPath = join(cacheDir, entry, 'SingletonLock');
+    let target: string;
+    try {
+      target = readlinkSync(lockPath);
+    } catch {
+      continue;
+    }
+    const pidMatch = /\d+$/.exec(target);
+    if (!pidMatch) continue;
+    const pid = Number(pidMatch[0]);
+    // kill(pid, 0) does NOT send a signal — it only checks existence.
+    try {
+      process.kill(pid, 0);
+      continue; // process alive — skip
+    } catch {
+      // process dead — clean all lock files
+    }
+    for (const f of ['SingletonLock', 'SingletonCookie', 'SingletonSocket'] as const) {
+      try {
+        unlinkSync(join(cacheDir, entry, f));
+      } catch {
+        // ignore — file may not exist
+      }
+    }
+  }
 }
 
 void main().catch((error: unknown) => {
