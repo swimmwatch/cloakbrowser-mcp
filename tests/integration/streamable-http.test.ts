@@ -9,6 +9,7 @@ import { LOCAL_TOOL_BINARY_INFO, LOCAL_TOOL_BRIDGE_INFO } from '@/bridge/tools.j
 import { defaultStreamableHttpOptions } from '@/http/options.js';
 import { startStreamableHttpBridge, type StreamableHttpBridgeServer } from '@/http/server.js';
 import { HttpStatus } from '@/http/status.js';
+import { BRIDGE_INITIALIZE_META_KEY, JSON_RPC_VERSION, MCP_SESSION_ID_HEADER } from '@/protocol/constants.js';
 import { fetchHealth, fetchReady, postToolsList } from '@tests/helpers/http.js';
 import { fetchWithTestTls, tlsConfig } from '@tests/helpers/tls.js';
 
@@ -101,6 +102,65 @@ describe('streamable HTTP bridge', () => {
       const firstContent = firstResult.structuredContent as Record<string, unknown>;
       const secondContent = secondResult.structuredContent as Record<string, unknown>;
       expect(firstContent.upstreamPid).not.toBe(secondContent.upstreamPid);
+    });
+  });
+
+  it('applies independent runtime proxy metadata per HTTP session', async () => {
+    await withFakeUpstream(async () => {
+      const server = await startHttpBridge({ sessionMax: 4 });
+      const [firstSessionId, secondSessionId] = await Promise.all([
+        initializeRawHttpSession(server, {
+          proxyServer: 'http://one.example:8080',
+          proxyBypass: '.one',
+        }),
+        initializeRawHttpSession(server, {
+          proxyServer: 'http://two.example:8080',
+        }),
+      ]);
+
+      await expectProxyEnv(server, firstSessionId, {
+        server: 'http://one.example:8080',
+        bypass: '.one',
+      });
+      await expectProxyEnv(server, secondSessionId, {
+        server: 'http://two.example:8080',
+        bypass: null,
+      });
+    });
+  });
+
+  it('falls back to environment proxy configuration without runtime metadata', async () => {
+    await withFakeUpstream(async () => {
+      process.env.PLAYWRIGHT_MCP_PROXY_SERVER = 'http://env.example:8080';
+      process.env.PLAYWRIGHT_MCP_PROXY_BYPASS = '.env';
+      const server = await startHttpBridge();
+      const sessionId = await initializeRawHttpSession(server);
+
+      await expectProxyEnv(server, sessionId, {
+        server: 'http://env.example:8080',
+        bypass: '.env',
+      });
+    });
+  });
+
+  it('rejects invalid runtime proxy metadata before creating a session', async () => {
+    await withFakeUpstream(async () => {
+      const server = await startHttpBridge({ sessionMax: 1 });
+
+      const response = await postJsonRpc(server.url, createInitializeRequest({ proxyServer: ' ' }));
+      expect(response.status).toBe(HttpStatus.BadRequest);
+      expect(response.headers.get(MCP_SESSION_ID_HEADER)).toBeNull();
+
+      const ready = await fetchReady(server.url);
+      const body = (await ready.json()) as {
+        sessions: { active: number; pending: number; max: number; available: number };
+      };
+      expect(body.sessions).toMatchObject({
+        active: 0,
+        pending: 0,
+        max: 1,
+        available: 1,
+      });
     });
   });
 
@@ -221,6 +281,100 @@ async function connectHttpClient(
   return { client, transport };
 }
 
+async function initializeRawHttpSession(
+  server: StreamableHttpBridgeServer,
+  bridgeMeta?: Record<string, unknown>,
+): Promise<string> {
+  const response = await postJsonRpc(server.url, createInitializeRequest(bridgeMeta));
+  expect(response.status).toBe(HttpStatus.Ok);
+  const sessionId = response.headers.get(MCP_SESSION_ID_HEADER);
+  expect(sessionId).toBeTruthy();
+  await postJsonRpc(
+    server.url,
+    {
+      jsonrpc: JSON_RPC_VERSION,
+      method: 'notifications/initialized',
+    },
+    sessionId ?? undefined,
+  );
+  return sessionId ?? '';
+}
+
+async function expectProxyEnv(
+  server: StreamableHttpBridgeServer,
+  sessionId: string,
+  expected: { server: string; bypass: string | null },
+): Promise<void> {
+  const response = await postJsonRpc(
+    server.url,
+    {
+      jsonrpc: JSON_RPC_VERSION,
+      id: crypto.randomUUID(),
+      method: 'tools/call',
+      params: {
+        name: 'browser_navigate',
+        arguments: {
+          url: 'https://example.com',
+          includeProxyEnv: true,
+        },
+      },
+    },
+    sessionId,
+  );
+  expect(response.status).toBe(HttpStatus.Ok);
+  const body = (await readJsonRpcResponse(response)) as {
+    result?: { structuredContent?: { proxyEnv?: { server: string | null; bypass: string | null } } };
+  };
+  expect(body.result?.structuredContent?.proxyEnv).toEqual(expected);
+}
+
+function createInitializeRequest(bridgeMeta?: Record<string, unknown>): Record<string, unknown> {
+  return {
+    jsonrpc: JSON_RPC_VERSION,
+    id: crypto.randomUUID(),
+    method: 'initialize',
+    params: {
+      protocolVersion: '2025-06-18',
+      capabilities: {},
+      clientInfo: {
+        name: 'http-runtime-proxy-test-client',
+        version: '1.0.0',
+      },
+      ...(bridgeMeta === undefined
+        ? {}
+        : {
+            _meta: {
+              [BRIDGE_INITIALIZE_META_KEY]: bridgeMeta,
+            },
+          }),
+    },
+  };
+}
+
+async function postJsonRpc(url: string, body: unknown, sessionId?: string): Promise<Response> {
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json, text/event-stream',
+      'Content-Type': 'application/json',
+      ...(sessionId === undefined ? {} : { [MCP_SESSION_ID_HEADER]: sessionId }),
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+async function readJsonRpcResponse(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!response.headers.get('content-type')?.includes('text/event-stream'))
+    return JSON.parse(text) as unknown;
+  const data = text
+    .split(/\r?\n/u)
+    .find((line) => line.startsWith('data: '))
+    ?.slice('data: '.length);
+  if (data === undefined) throw new Error(`Expected SSE data in response: ${text}`);
+  return JSON.parse(data) as unknown;
+}
+
 async function withFakeUpstream(fn: () => Promise<void>): Promise<void> {
   const root = createTempRoot();
   const previous = {
@@ -228,6 +382,8 @@ async function withFakeUpstream(fn: () => Promise<void>): Promise<void> {
     engine: process.env.PLAYWRIGHT_MCP_BROWSER_ENGINE,
     outputDir: process.env.PLAYWRIGHT_MCP_OUTPUT_DIR,
     fallback: process.env.CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK,
+    proxyServer: process.env.PLAYWRIGHT_MCP_PROXY_SERVER,
+    proxyBypass: process.env.PLAYWRIGHT_MCP_PROXY_BYPASS,
   };
 
   process.env.PLAYWRIGHT_MCP_CLI_PATH = fileURLToPath(
@@ -244,6 +400,8 @@ async function withFakeUpstream(fn: () => Promise<void>): Promise<void> {
     restoreEnv('PLAYWRIGHT_MCP_BROWSER_ENGINE', previous.engine);
     restoreEnv('PLAYWRIGHT_MCP_OUTPUT_DIR', previous.outputDir);
     restoreEnv('CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK', previous.fallback);
+    restoreEnv('PLAYWRIGHT_MCP_PROXY_SERVER', previous.proxyServer);
+    restoreEnv('PLAYWRIGHT_MCP_PROXY_BYPASS', previous.proxyBypass);
   }
 }
 

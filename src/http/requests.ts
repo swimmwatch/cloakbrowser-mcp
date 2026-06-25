@@ -1,8 +1,9 @@
 import type { IncomingMessage } from 'node:http';
-import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
+import { isInitializeRequest, type InitializeRequest } from '@modelcontextprotocol/sdk/types.js';
+import type { BridgeRuntimeProxy, PrepareBridgeRuntimeOptions } from '#src/bridge/config';
 import { formatHost } from '#src/http/nodeServer';
 import { type StreamableHttpOptions } from '#src/http/options';
-import { JSON_CONTENT_TYPE } from '#src/protocol/constants';
+import { BRIDGE_INITIALIZE_META_KEY, JSON_CONTENT_TYPE } from '#src/protocol/constants';
 
 export function isEndpointRequest(
   req: IncomingMessage,
@@ -52,8 +53,36 @@ export async function readJsonBody(req: IncomingMessage, limitBytes: number): Pr
 }
 
 export function containsInitializeRequest(value: unknown): boolean {
-  const messages = Array.isArray(value) ? value : [value];
-  return messages.some((message) => isInitializeRequest(message));
+  return findInitializeRequest(value) !== undefined;
+}
+
+export type BridgeInitializeRuntimeOptions = Pick<PrepareBridgeRuntimeOptions, 'geoipProxyMatch' | 'proxy'>;
+
+export function readBridgeRuntimeOptionsFromInitialize(value: unknown): BridgeInitializeRuntimeOptions {
+  const request = findInitializeRequest(value);
+  if (!request) return {};
+
+  const meta = request.params._meta as Record<string, unknown> | undefined;
+  const bridgeMeta = meta?.[BRIDGE_INITIALIZE_META_KEY];
+  if (bridgeMeta === undefined) return {};
+  if (!isRecord(bridgeMeta)) {
+    throw new InvalidBridgeInitializeMetaError(
+      `${BRIDGE_INITIALIZE_META_KEY} initialize metadata must be an object`,
+    );
+  }
+
+  const proxyServer = readOptionalString(bridgeMeta, 'proxyServer');
+  const proxyBypass = readOptionalString(bridgeMeta, 'proxyBypass');
+  const geoipProxyMatch = readOptionalBoolean(bridgeMeta, 'geoipProxyMatch');
+  if (proxyBypass !== undefined && proxyServer === undefined) {
+    throw new InvalidBridgeInitializeMetaError('proxyBypass requires proxyServer');
+  }
+
+  const proxy = proxyServer === undefined ? undefined : createRuntimeProxy(proxyServer, proxyBypass);
+  return {
+    ...(geoipProxyMatch === undefined ? {} : { geoipProxyMatch }),
+    ...(proxy === undefined ? {} : { proxy }),
+  };
 }
 
 export function getSingleHeader(req: IncomingMessage, name: string): string | undefined {
@@ -63,6 +92,39 @@ export function getSingleHeader(req: IncomingMessage, name: string): string | un
 }
 
 export class RequestBodyTooLargeError extends Error {}
+
+export class InvalidBridgeInitializeMetaError extends Error {}
+
+function findInitializeRequest(value: unknown): InitializeRequest | undefined {
+  const messages = Array.isArray(value) ? value : [value];
+  return messages.find((message): message is InitializeRequest => isInitializeRequest(message));
+}
+
+function createRuntimeProxy(server: string, bypass: string | undefined): BridgeRuntimeProxy {
+  return bypass === undefined ? { server } : { server, bypass };
+}
+
+function readOptionalString(value: Record<string, unknown>, key: string): string | undefined {
+  if (!(key in value)) return undefined;
+  const raw = value[key];
+  if (typeof raw !== 'string' || raw.trim().length === 0) {
+    throw new InvalidBridgeInitializeMetaError(`${key} must be a non-empty string`);
+  }
+  return raw.trim();
+}
+
+function readOptionalBoolean(value: Record<string, unknown>, key: string): boolean | undefined {
+  if (!(key in value)) return undefined;
+  const raw = value[key];
+  if (typeof raw !== 'boolean') {
+    throw new InvalidBridgeInitializeMetaError(`${key} must be a boolean`);
+  }
+  return raw;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 
 function fallbackPathName(url: string | undefined): string {
   const pathName = (url ?? '/').split(/[?#]/u, 1)[0];

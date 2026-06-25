@@ -17,6 +17,17 @@ function createTempRoot(): string {
   return root;
 }
 
+function deferred(): { promise: Promise<void>; resolve: () => void } {
+  let resolvePromise: (() => void) | undefined;
+  const promise = new Promise<void>((resolve) => {
+    resolvePromise = resolve;
+  });
+  return {
+    promise,
+    resolve: () => resolvePromise?.(),
+  };
+}
+
 describe('bridge config generation', () => {
   it('creates a Cloak-backed Playwright MCP config and child env', async () => {
     const root = createTempRoot();
@@ -117,7 +128,7 @@ describe('bridge config generation', () => {
         PLAYWRIGHT_MCP_PROXY_BYPASS: '.internal',
         CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
         CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS: 'false',
-        CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS: '--lang=en-US,--alpha',
+        CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS: '--lang=en-US,--lang=fr-FR,--alpha,--fingerprint-locale=en-US',
       },
     });
 
@@ -125,11 +136,169 @@ describe('bridge config generation', () => {
       '--no-sandbox',
       '--lang=de-DE',
       '--alpha',
-      '--fingerprint-timezone=Europe/Berlin',
       '--fingerprint-locale=de-DE',
+      '--fingerprint-timezone=Europe/Berlin',
     ]);
 
     runtime.dispose();
+  });
+
+  it('passes runtime proxy options through the upstream child environment', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      proxy: {
+        server: 'http://runtime.example:8080',
+        bypass: '.runtime',
+      },
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_SERVER).toBe('http://runtime.example:8080');
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_BYPASS).toBe('.runtime');
+
+    runtime.dispose();
+  });
+
+  it('lets runtime proxy override env proxy and clear inherited bypass', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      proxy: {
+        server: 'http://runtime.example:8080',
+      },
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        PLAYWRIGHT_MCP_PROXY_SERVER: 'http://env.example:8080',
+        PLAYWRIGHT_MCP_PROXY_BYPASS: '.env',
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_SERVER).toBe('http://runtime.example:8080');
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_BYPASS).toBeUndefined();
+
+    runtime.dispose();
+  });
+
+  it('uses runtime proxy options for GeoIP proxy matching', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      geoipProxyMatch: true,
+      proxy: {
+        server: 'http://runtime.example:8080',
+        bypass: '.runtime',
+      },
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      buildCloakLaunchOptions: async (options) => {
+        if (!options) throw new Error('Expected Cloak launch options');
+        expect(options.proxy).toEqual({
+          server: 'http://runtime.example:8080',
+          bypass: '.runtime',
+        });
+        return {
+          executablePath: fakeCloakBinaryPath,
+          headless: true,
+          args: [...(options.args ?? []), '--fingerprint-timezone=Europe/Paris', '--lang=fr-FR'],
+        };
+      },
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        PLAYWRIGHT_MCP_PROXY_SERVER: 'http://env.example:8080',
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS: 'false',
+      },
+    });
+
+    expect(runtime.config.browser?.launchOptions?.args).toEqual([
+      '--no-sandbox',
+      '--fingerprint-timezone=Europe/Paris',
+      '--lang=fr-FR',
+    ]);
+
+    runtime.dispose();
+  });
+
+  it('allows an explicit runtime option to disable env-enabled GeoIP proxy matching', async () => {
+    const root = createTempRoot();
+    let called = false;
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      geoipProxyMatch: false,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      buildCloakLaunchOptions: async () => {
+        called = true;
+        return {};
+      },
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        PLAYWRIGHT_MCP_PROXY_SERVER: 'http://proxy.example:8080',
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH: 'true',
+      },
+    });
+
+    expect(called).toBe(false);
+
+    runtime.dispose();
+  });
+
+  it('restores stdout after overlapping Cloak stdout suppression', async () => {
+    const originalWrite = Reflect.get(process.stdout, 'write') as typeof process.stdout.write;
+    const firstEntered = deferred();
+    const secondEntered = deferred();
+    const firstRelease = deferred();
+    const secondRelease = deferred();
+    let firstRuntime: Awaited<ReturnType<typeof prepareBridgeRuntime>> | undefined;
+    let secondRuntime: Awaited<ReturnType<typeof prepareBridgeRuntime>> | undefined;
+
+    try {
+      const first = prepareBridgeRuntime({
+        tempRoot: createTempRoot(),
+        ensureCloakBinary: async () => {
+          firstEntered.resolve();
+          await firstRelease.promise;
+          return fakeCloakBinaryPath;
+        },
+        env: {
+          CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        },
+      });
+      await firstEntered.promise;
+
+      const second = prepareBridgeRuntime({
+        tempRoot: createTempRoot(),
+        ensureCloakBinary: async () => {
+          secondEntered.resolve();
+          await secondRelease.promise;
+          return fakeCloakBinaryPath;
+        },
+        env: {
+          CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        },
+      });
+      await secondEntered.promise;
+
+      firstRelease.resolve();
+      firstRuntime = await first;
+      expect(Reflect.get(process.stdout, 'write')).not.toBe(originalWrite);
+
+      secondRelease.resolve();
+      secondRuntime = await second;
+      expect(Reflect.get(process.stdout, 'write')).toBe(originalWrite);
+    } finally {
+      firstRelease.resolve();
+      secondRelease.resolve();
+      process.stdout.write = originalWrite;
+      firstRuntime?.dispose();
+      secondRuntime?.dispose();
+    }
   });
 
   it('does not resolve GeoIP proxy matching without a configured proxy', async () => {

@@ -55,6 +55,31 @@ only injects the resolved `--fingerprint-timezone`, `--lang`, and
 GeoIP matching uses CloakBrowser's offline GeoIP database support. The database is
 downloaded and cached by CloakBrowser on first use.
 
+## Streamable HTTP Runtime Proxy
+
+Streamable HTTP clients can choose a proxy per MCP session by adding
+bridge-specific metadata to the `initialize` request:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "proxyServer": "http://user:pass@proxy.example:8080",
+        "proxyBypass": ".internal,localhost",
+        "geoipProxyMatch": true
+      }
+    }
+  }
+}
+```
+
+`proxyServer` overrides `PLAYWRIGHT_MCP_PROXY_SERVER` for that HTTP session.
+`proxyBypass` overrides `PLAYWRIGHT_MCP_PROXY_BYPASS` only when `proxyServer` is
+present. `geoipProxyMatch` can enable or disable GeoIP matching for that session
+without restarting the MCP server. Existing sessions keep their startup proxy;
+create a new HTTP session to switch location.
+
 ## Upstream Options
 
 The bridge forwards `PLAYWRIGHT_MCP_*` settings to upstream Playwright MCP. That includes upstream options such as:

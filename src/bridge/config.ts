@@ -19,6 +19,11 @@ type CloakBuildLaunchOptions = typeof buildLaunchOptions;
 type CloakLaunchOptions = NonNullable<Parameters<CloakBuildLaunchOptions>[0]>;
 type CloakProxyOption = NonNullable<CloakLaunchOptions['proxy']>;
 
+export interface BridgeRuntimeProxy {
+  server: string;
+  bypass?: string;
+}
+
 export interface BridgeRuntime {
   browserEngine: BrowserEngine;
   configPath: string;
@@ -37,6 +42,7 @@ export interface PrepareBridgeRuntimeOptions {
   buildCloakLaunchOptions?: CloakBuildLaunchOptions;
   browserIsolated?: boolean;
   geoipProxyMatch?: boolean;
+  proxy?: BridgeRuntimeProxy;
 }
 
 export interface PlaywrightMcpBridgeConfig {
@@ -65,7 +71,7 @@ export async function prepareBridgeRuntime(
   mkdirSync(outputDir, { recursive: true });
 
   const browserEngine = parseBrowserEngine(envString(env, 'PLAYWRIGHT_MCP_BROWSER_ENGINE', 'cloak'));
-  const childEnv = createChildEnv(env, outputDir);
+  const childEnv = createChildEnv(env, outputDir, options.proxy);
   const useCloak = browserEngine === 'cloak';
   const headless = envBool(env, 'PLAYWRIGHT_MCP_HEADLESS', true);
   const chromiumSandbox = useCloak ? !envBool(env, 'CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX', true) : undefined;
@@ -99,6 +105,7 @@ export async function prepareBridgeRuntime(
         args: config.browser!.launchOptions!.args ?? [],
         headless,
         chromiumSandbox,
+        proxy: options.proxy,
         buildCloakLaunchOptions: options.buildCloakLaunchOptions ?? buildLaunchOptions,
       });
     }
@@ -149,13 +156,14 @@ interface ResolveGeoipProxyMatchingArgsOptions {
   args: string[];
   headless: boolean;
   chromiumSandbox: boolean | undefined;
+  proxy?: BridgeRuntimeProxy;
   buildCloakLaunchOptions: CloakBuildLaunchOptions;
 }
 
 async function resolveGeoipProxyMatchingArgs(
   options: ResolveGeoipProxyMatchingArgsOptions,
 ): Promise<string[]> {
-  const proxy = resolveConfiguredProxy(options.env, options.args);
+  const proxy = resolveConfiguredProxy(options.env, options.args, options.proxy);
   if (!proxy) return options.args;
 
   const launchOptions = await suppressStdout(() =>
@@ -173,10 +181,19 @@ async function resolveGeoipProxyMatchingArgs(
 }
 
 function shouldMatchProxyGeoip(env: EnvReader, explicit: boolean | undefined): boolean {
-  return explicit === true || envBool(env, 'CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH', false);
+  return explicit ?? envBool(env, 'CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH', false);
 }
 
-function resolveConfiguredProxy(env: EnvReader, args: readonly string[]): CloakProxyOption | undefined {
+function resolveConfiguredProxy(
+  env: EnvReader,
+  args: readonly string[],
+  runtimeProxy?: BridgeRuntimeProxy,
+): CloakProxyOption | undefined {
+  if (runtimeProxy)
+    return runtimeProxy.bypass
+      ? { server: runtimeProxy.server, bypass: runtimeProxy.bypass }
+      : runtimeProxy.server;
+
   const envProxyServer = optionalEnvString(env, 'PLAYWRIGHT_MCP_PROXY_SERVER');
   if (envProxyServer) {
     const bypass = optionalEnvString(env, 'PLAYWRIGHT_MCP_PROXY_BYPASS');
@@ -196,16 +213,26 @@ function extractGeoipMatchingArgs(args: readonly string[]): string[] {
 }
 
 function mergeLaunchArgs(args: readonly string[], replacements: readonly string[]): string[] {
-  const result = [...args];
-  const indexes = new Map(result.map((arg, index) => [launchArgKey(arg), index]));
+  const replacementByKey = new Map(
+    replacements.map((replacement) => [launchArgKey(replacement), replacement]),
+  );
+  const result: string[] = [];
+  const replacedKeys = new Set<string>();
+  for (const arg of args) {
+    const key = launchArgKey(arg);
+    const replacement = replacementByKey.get(key);
+    if (replacement === undefined) {
+      result.push(arg);
+    } else if (!replacedKeys.has(key)) {
+      result.push(replacement);
+      replacedKeys.add(key);
+    }
+  }
   for (const replacement of replacements) {
     const key = launchArgKey(replacement);
-    const index = indexes.get(key);
-    if (index === undefined) {
-      indexes.set(key, result.length);
+    if (!replacedKeys.has(key)) {
       result.push(replacement);
-    } else {
-      result[index] = replacement;
+      replacedKeys.add(key);
     }
   }
   return result;
@@ -225,7 +252,11 @@ function optionalEnvString(env: EnvReader, name: string): string | undefined {
   return value ? value : undefined;
 }
 
-export function createChildEnv(env: EnvReader, outputDir: string): Record<string, string> {
+export function createChildEnv(
+  env: EnvReader,
+  outputDir: string,
+  runtimeProxy?: BridgeRuntimeProxy,
+): Record<string, string> {
   const result: Record<string, string> = {};
   for (const [key, value] of Object.entries(env)) {
     if (typeof value === 'string') result[key] = value;
@@ -236,7 +267,14 @@ export function createChildEnv(env: EnvReader, outputDir: string): Record<string
   result.PLAYWRIGHT_MCP_TIMEOUT_ACTION = String(envInt(env, 'PLAYWRIGHT_MCP_TIMEOUT_ACTION', 5000));
   result.PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION = String(envInt(env, 'PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION', 60000));
   result.CLOAKBROWSER_AUTO_UPDATE = envString(env, 'CLOAKBROWSER_AUTO_UPDATE', 'false');
+  if (runtimeProxy) applyRuntimeProxyEnv(result, runtimeProxy);
   return result;
+}
+
+function applyRuntimeProxyEnv(env: Record<string, string>, proxy: BridgeRuntimeProxy): void {
+  env.PLAYWRIGHT_MCP_PROXY_SERVER = proxy.server;
+  if (proxy.bypass === undefined) delete env.PLAYWRIGHT_MCP_PROXY_BYPASS;
+  else env.PLAYWRIGHT_MCP_PROXY_BYPASS = proxy.bypass;
 }
 
 export function getCurrentCloakBinaryInfo(): ReturnType<typeof binaryInfo> {
@@ -250,11 +288,22 @@ function parseBrowserEngine(value: string): BrowserEngine {
 
 async function suppressStdout<T>(fn: () => Promise<T>): Promise<T> {
   const stdout = process.stdout;
-  const write = stdout.write.bind(stdout);
-  process.stdout.write = (() => true) as typeof process.stdout.write;
+  if (stdoutSuppressionDepth === 0) {
+    suppressedStdoutWrite = Reflect.get(stdout, 'write') as typeof process.stdout.write;
+    process.stdout.write = (() => true) as typeof process.stdout.write;
+  }
+  stdoutSuppressionDepth += 1;
   try {
     return await fn();
   } finally {
-    process.stdout.write = write;
+    stdoutSuppressionDepth -= 1;
+    if (stdoutSuppressionDepth === 0) {
+      const write = suppressedStdoutWrite;
+      suppressedStdoutWrite = undefined;
+      if (write) process.stdout.write = write;
+    }
   }
 }
+
+let stdoutSuppressionDepth = 0;
+let suppressedStdoutWrite: typeof process.stdout.write | undefined;

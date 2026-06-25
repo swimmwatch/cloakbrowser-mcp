@@ -191,6 +191,27 @@ Common variables:
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium launch arguments. |
 
+Streamable HTTP clients can override the proxy per MCP session by passing bridge
+metadata in the `initialize` request:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "proxyServer": "http://user:pass@proxy.example:8080",
+        "proxyBypass": ".internal,localhost",
+        "geoipProxyMatch": true
+      }
+    }
+  }
+}
+```
+
+Runtime proxy metadata overrides `PLAYWRIGHT_MCP_PROXY_SERVER` and
+`PLAYWRIGHT_MCP_PROXY_BYPASS` for that HTTP session only. Stdio keeps using
+process-level environment and CLI configuration.
+
 The old `CLOAKBROWSER_MCP_*` variables are not supported.
 
 ## Tools

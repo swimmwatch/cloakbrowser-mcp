@@ -34,6 +34,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     arguments: request.params.arguments ?? {},
   };
   if (request.params.arguments?.includePid === true) value.upstreamPid = process.pid;
+  if (request.params.arguments?.includeProxyEnv === true) {
+    value.proxyEnv = {
+      server: process.env.PLAYWRIGHT_MCP_PROXY_SERVER ?? null,
+      bypass: process.env.PLAYWRIGHT_MCP_PROXY_BYPASS ?? null,
+    };
+  }
   return {
     content: [{ type: 'text', text: JSON.stringify(value) }],
     structuredContent: value,

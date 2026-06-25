@@ -19,4 +19,23 @@ describe('bridge path resolution', () => {
       else process.env.CLOAK_PLAYWRIGHT_MCP_CORE_BUNDLE_PATH = previousBundle;
     }
   });
+
+  it('resolves bundled upstream paths when environment overrides are absent', () => {
+    const previousCli = process.env.PLAYWRIGHT_MCP_CLI_PATH;
+    const previousBundle = process.env.CLOAK_PLAYWRIGHT_MCP_CORE_BUNDLE_PATH;
+    delete process.env.PLAYWRIGHT_MCP_CLI_PATH;
+    delete process.env.CLOAK_PLAYWRIGHT_MCP_CORE_BUNDLE_PATH;
+
+    try {
+      expect(resolvePlaywrightMcpCliPath()).toMatch(/node_modules\/@playwright\/mcp\/cli\.js$/u);
+      expect(resolvePlaywrightCoreBundlePath()).toMatch(
+        /node_modules\/@playwright\/mcp\/node_modules\/playwright-core\/lib\/coreBundle(?:\.js)?$/u,
+      );
+    } finally {
+      if (previousCli === undefined) delete process.env.PLAYWRIGHT_MCP_CLI_PATH;
+      else process.env.PLAYWRIGHT_MCP_CLI_PATH = previousCli;
+      if (previousBundle === undefined) delete process.env.CLOAK_PLAYWRIGHT_MCP_CORE_BUNDLE_PATH;
+      else process.env.CLOAK_PLAYWRIGHT_MCP_CORE_BUNDLE_PATH = previousBundle;
+    }
+  });
 });
