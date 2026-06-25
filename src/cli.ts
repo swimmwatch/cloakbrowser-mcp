@@ -106,11 +106,14 @@ function cleanStaleSingletonLocks(): void {
     const pidMatch = /\d+$/.exec(target);
     if (!pidMatch) continue;
     const pid = Number(pidMatch[0]);
+    if (!Number.isSafeInteger(pid) || pid <= 0) continue;
     // kill(pid, 0) does NOT send a signal — it only checks existence.
     try {
       process.kill(pid, 0);
       continue; // process alive — skip
-    } catch {
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException | undefined)?.code;
+      if (code !== 'ESRCH') continue; // EPERM or unexpected error — don't delete locks
       // process dead — clean all lock files
     }
     for (const f of ['SingletonLock', 'SingletonCookie', 'SingletonSocket'] as const) {
