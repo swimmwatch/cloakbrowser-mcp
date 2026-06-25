@@ -116,6 +116,7 @@ describe('bridge config generation', () => {
         PLAYWRIGHT_MCP_PROXY_SERVER: 'http://user:pass@proxy.example:8080',
         PLAYWRIGHT_MCP_PROXY_BYPASS: '.internal',
         CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS: 'false',
         CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS: '--lang=en-US,--alpha',
       },
     });
