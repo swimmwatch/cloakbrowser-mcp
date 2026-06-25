@@ -13,6 +13,7 @@ GHCR image: https://github.com/swimmwatch/cloakbrowser-mcp/pkgs/container/cloakb
 - Getting Started: https://swimmwatch.github.io/cloakbrowser-mcp/getting-started/
 - Docker: https://swimmwatch.github.io/cloakbrowser-mcp/docker/
 - Configuration: https://swimmwatch.github.io/cloakbrowser-mcp/configuration/
+- GeoIP Proxy Matching: https://swimmwatch.github.io/cloakbrowser-mcp/geoip-proxy-matching/
 - CLI Reference: https://swimmwatch.github.io/cloakbrowser-mcp/generated/cli/
 - Tools: https://swimmwatch.github.io/cloakbrowser-mcp/tools/
 - Security: https://swimmwatch.github.io/cloakbrowser-mcp/security/
@@ -101,6 +102,14 @@ npx -y cloakbrowser-mcp@latest --transport streamable-http --http-protocol https
 ```
 
 Stdio mode does not emit routine operational logs to stdout, so MCP JSON-RPC remains protocol-clean. Streamable HTTP mode writes startup and request logs to stdout. For non-loopback exposure, use HTTPS plus auth or TLS/auth at a trusted reverse proxy. See Getting Started and Configuration for complete options.
+
+## GeoIP Proxy Matching
+
+Set `PLAYWRIGHT_MCP_PROXY_SERVER` and `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` to align CloakBrowser timezone, language, and locale fingerprint flags with the proxy location while leaving proxy routing delegated to upstream Playwright MCP.
+
+Streamable HTTP clients can override proxy settings per MCP session with `initialize.params._meta["io.github.swimmwatch/cloakbrowser-mcp"]`. Supported fields are `proxyServer`, `proxyBypass`, and `geoipProxyMatch`. Existing HTTP sessions keep their initialization proxy settings; create a new session to switch regions.
+
+Use GeoIP proxy matching for localization QA, regional landing page checks, commerce flows, support reproduction, and timezone-sensitive automation. It does not provide a proxy service, does not configure browser geolocation coordinates, and should not be treated as a bypass for access controls or regional policy checks.
 
 ## Tool Surface
 

@@ -23,7 +23,7 @@
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](docs/docker.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-`cloakbrowser-mcp` is a [Model Context Protocol](https://modelcontextprotocol.io/) browser automation server that runs upstream [`@playwright/mcp`](https://github.com/microsoft/playwright-mcp) with the [CloakBrowser](https://github.com/CloakHQ/CloakBrowser) Chromium binary. It provides Playwright MCP-compatible tools through a thin CloakBrowser bridge for npm and Docker users over stdio or Streamable HTTP.
+`cloakbrowser-mcp` is a [Model Context Protocol](https://modelcontextprotocol.io/) browser automation server that runs upstream [`@playwright/mcp`](https://github.com/microsoft/playwright-mcp) with the [CloakBrowser](https://github.com/CloakHQ/CloakBrowser) Chromium binary. It provides Playwright MCP-compatible tools through a thin CloakBrowser bridge for npm and Docker users over stdio or Streamable HTTP, including GeoIP-aware proxy matching for regional QA.
 
 Documentation: [swimmwatch.github.io/cloakbrowser-mcp](https://swimmwatch.github.io/cloakbrowser-mcp/)
 
@@ -163,6 +163,7 @@ The same tags are also published to `ghcr.io/swimmwatch/cloakbrowser-mcp`.
 
 Use upstream `PLAYWRIGHT_MCP_*` variables for browser, artifact, timeout, network, and tool capability settings. Cloak-specific bridge toggles use `CLOAK_PLAYWRIGHT_MCP_*`.
 CLI flags are documented in the generated [CLI Reference](https://swimmwatch.github.io/cloakbrowser-mcp/generated/cli/).
+GeoIP proxy matching and Streamable HTTP runtime proxy metadata are documented in [GeoIP Proxy Matching](docs/geoip-proxy-matching.md).
 
 Common variables:
 
@@ -182,6 +183,8 @@ Common variables:
 | `CLOAK_PLAYWRIGHT_MCP_HTTPS_PFX` | unset | TLS PFX/PKCS12 path for HTTPS Streamable HTTP. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTPS_PASSPHRASE` | unset | Passphrase for an encrypted HTTPS key or PFX. |
 | `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` | Streamable HTTP operational log level: `trace`, `debug`, `info`, `warn`, `error`, `fatal`, or `silent`. |
+| `PLAYWRIGHT_MCP_PROXY_SERVER` | unset | Upstream Playwright MCP proxy server. Used as the GeoIP source when matching is enabled. |
+| `PLAYWRIGHT_MCP_PROXY_BYPASS` | unset | Upstream proxy bypass list for hosts that should not use `PLAYWRIGHT_MCP_PROXY_SERVER`. |
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | Match CloakBrowser timezone and locale fingerprint flags to `PLAYWRIGHT_MCP_PROXY_SERVER` GeoIP. |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses CloakBrowser. `playwright` uses the upstream Playwright MCP browser runtime. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium headless. |
@@ -211,6 +214,11 @@ metadata in the `initialize` request:
 Runtime proxy metadata overrides `PLAYWRIGHT_MCP_PROXY_SERVER` and
 `PLAYWRIGHT_MCP_PROXY_BYPASS` for that HTTP session only. Stdio keeps using
 process-level environment and CLI configuration.
+
+Enable `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` to align CloakBrowser
+timezone, language, and locale fingerprint flags with the selected proxy
+location. Streamable HTTP clients can set `geoipProxyMatch` per session to run
+different regional QA scenarios from one server process.
 
 The old `CLOAKBROWSER_MCP_*` variables are not supported.
 

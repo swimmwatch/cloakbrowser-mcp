@@ -1,5 +1,5 @@
 ---
-description: Runtime configuration for the Playwright MCP bridge.
+description: Runtime configuration for the Playwright MCP bridge, including Streamable HTTP sessions and GeoIP-aware proxy matching.
 icon: material/tune
 tags:
   - Configuration
@@ -31,6 +31,8 @@ The generated [CLI Reference](generated/cli.md) is the authoritative list of bri
 | `CLOAK_PLAYWRIGHT_MCP_HTTPS_PFX` | unset | TLS PFX/PKCS12 path for HTTPS Streamable HTTP. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTPS_PASSPHRASE` | unset | Passphrase for an encrypted HTTPS key or PFX. |
 | `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` | Streamable HTTP operational log level: `trace`, `debug`, `info`, `warn`, `error`, `fatal`, or `silent`. |
+| `PLAYWRIGHT_MCP_PROXY_SERVER` | unset | Upstream Playwright MCP proxy server. Used as the GeoIP source when matching is enabled. |
+| `PLAYWRIGHT_MCP_PROXY_BYPASS` | unset | Upstream proxy bypass list for hosts that should not use `PLAYWRIGHT_MCP_PROXY_SERVER`. |
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | Resolves `PLAYWRIGHT_MCP_PROXY_SERVER` GeoIP and matches CloakBrowser timezone and locale fingerprint flags to that proxy location. |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
@@ -47,13 +49,13 @@ The generated [CLI Reference](generated/cli.md) is the authoritative list of bri
 ## GeoIP Proxy Matching
 
 Set `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` with `PLAYWRIGHT_MCP_PROXY_SERVER`
-to derive CloakBrowser timezone and locale fingerprint flags from the proxy
-location. The bridge keeps proxy routing delegated to upstream Playwright MCP and
-only injects the resolved `--fingerprint-timezone`, `--lang`, and
+to derive CloakBrowser timezone, language, and locale fingerprint flags from the
+proxy location. The bridge keeps proxy routing delegated to upstream Playwright
+MCP and only injects the resolved `--fingerprint-timezone`, `--lang`, and
 `--fingerprint-locale` launch flags.
 
-GeoIP matching uses CloakBrowser's offline GeoIP database support. The database is
-downloaded and cached by CloakBrowser on first use.
+See [GeoIP Proxy Matching](geoip-proxy-matching.md) for setup examples, runtime
+Streamable HTTP proxy metadata, use cases, precedence rules, and limitations.
 
 ## Streamable HTTP Runtime Proxy
 
@@ -79,6 +81,8 @@ bridge-specific metadata to the `initialize` request:
 present. `geoipProxyMatch` can enable or disable GeoIP matching for that session
 without restarting the MCP server. Existing sessions keep their startup proxy;
 create a new HTTP session to switch location.
+
+For multi-location QA patterns, see [GeoIP Proxy Matching](geoip-proxy-matching.md).
 
 ## Upstream Options
 
