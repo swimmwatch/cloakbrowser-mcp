@@ -1,6 +1,6 @@
 ---
 name: project-pull-request
-description: Use when creating, updating, or reviewing a cloakbrowser-mcp GitHub Pull Request. Defines branch, base/head, assignee, title, required PR body template, checklist, security review, test evidence, and post-create reporting rules.
+description: Use when creating, updating, or reviewing a cloakbrowser-mcp GitHub Pull Request. Defines branch, base/head, assignee, title, required PR body template, mandatory local checks before commit/push, checklist, security review, test evidence, and post-create reporting rules.
 ---
 
 # Project Pull Request
@@ -17,7 +17,14 @@ replace it with a second template.
 - Use `main` as the base branch unless the user explicitly gives another base.
 - Before creating a commit for the PR, open and scan
   `https://www.conventionalcommits.org/en/v1.0.0/`.
+- Run `npm run check` locally after the final edits and before creating a
+  commit. If it fails, fix the failure or report the blocker; do not commit.
+- If any file changes after `npm run check`, rerun `npm run check` before
+  committing.
 - Push the current feature branch to `origin` before creating the PR.
+- Run `npm run check` again on the committed branch before pushing. If it
+  fails, fix the failure or report the blocker; do not push or create/update
+  the PR.
 - Create PRs ready for review by default. Use draft only when the user
   explicitly asks for a draft PR.
 
@@ -50,6 +57,8 @@ Fill every section from `.github/PULL_REQUEST_TEMPLATE.md`:
   OIDC, and registry publishing when relevant.
 - `Test evidence`: list exact commands and outcomes. If a relevant check was
   skipped, state why.
+- Do not mark `npm run check` complete unless it passed locally on the branch
+  being pushed.
 
 Do not leave HTML comments or placeholder text in the submitted PR body.
 
