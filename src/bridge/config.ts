@@ -290,7 +290,7 @@ async function suppressStdout<T>(fn: () => Promise<T>): Promise<T> {
   const stdout = process.stdout;
   if (stdoutSuppressionDepth === 0) {
     suppressedStdoutWrite = Reflect.get(stdout, 'write') as typeof process.stdout.write;
-    process.stdout.write = (() => true) as typeof process.stdout.write;
+    process.stdout.write = suppressedProcessStdoutWrite as typeof process.stdout.write;
   }
   stdoutSuppressionDepth += 1;
   try {
@@ -307,3 +307,13 @@ async function suppressStdout<T>(fn: () => Promise<T>): Promise<T> {
 
 let stdoutSuppressionDepth = 0;
 let suppressedStdoutWrite: typeof process.stdout.write | undefined;
+
+function suppressedProcessStdoutWrite(
+  _chunk: string | Uint8Array,
+  encodingOrCallback?: BufferEncoding | ((error?: Error | null) => void),
+  callback?: (error?: Error | null) => void,
+): boolean {
+  const writeCallback = typeof encodingOrCallback === 'function' ? encodingOrCallback : callback;
+  writeCallback?.();
+  return true;
+}

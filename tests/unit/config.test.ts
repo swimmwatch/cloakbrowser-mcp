@@ -301,6 +301,28 @@ describe('bridge config generation', () => {
     }
   });
 
+  it('invokes stdout write callbacks while suppressing Cloak stdout', async () => {
+    const root = createTempRoot();
+    let callbackCalled = false;
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => {
+        process.stdout.write('hidden Cloak output', () => {
+          callbackCalled = true;
+        });
+        return fakeCloakBinaryPath;
+      },
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    expect(callbackCalled).toBe(true);
+
+    runtime.dispose();
+  });
+
   it('does not resolve GeoIP proxy matching without a configured proxy', async () => {
     const root = createTempRoot();
     let called = false;
