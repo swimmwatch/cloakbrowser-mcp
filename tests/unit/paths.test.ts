@@ -27,8 +27,8 @@ describe('bridge path resolution', () => {
     delete process.env.CLOAK_PLAYWRIGHT_MCP_CORE_BUNDLE_PATH;
 
     try {
-      expect(resolvePlaywrightMcpCliPath()).toMatch(/node_modules\/@playwright\/mcp\/cli\.js$/u);
-      expect(resolvePlaywrightCoreBundlePath()).toMatch(
+      expect(toPosixPath(resolvePlaywrightMcpCliPath())).toMatch(/node_modules\/@playwright\/mcp\/cli\.js$/u);
+      expect(toPosixPath(resolvePlaywrightCoreBundlePath())).toMatch(
         /node_modules\/@playwright\/mcp\/node_modules\/playwright-core\/lib\/coreBundle(?:\.js)?$/u,
       );
     } finally {
@@ -39,3 +39,7 @@ describe('bridge path resolution', () => {
     }
   });
 });
+
+function toPosixPath(value: string): string {
+  return value.replaceAll('\\', '/');
+}
