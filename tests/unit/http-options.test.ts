@@ -25,6 +25,7 @@ describe('Commander CLI options', () => {
       const options = parseCliOptions([]);
 
       expect(options.transport).toBe(BRIDGE_TRANSPORT_STDIO);
+      expect(options.bridge.geoipProxyMatch).toBe(false);
       expect(options.http).toMatchObject({
         protocol: HTTP_PROTOCOL_HTTP,
         host: defaultStreamableHttpOptions.host,
@@ -35,6 +36,13 @@ describe('Commander CLI options', () => {
         sessionIdleTtlMs: defaultStreamableHttpOptions.sessionIdleTtlMs,
         sessionMax: defaultStreamableHttpOptions.sessionMax,
       });
+    });
+  });
+
+  it('reads the GeoIP proxy match bridge option from env and CLI flags', () => {
+    withCliEnv({ CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH: 'true' }, () => {
+      expect(parseCliOptions([]).bridge.geoipProxyMatch).toBe(true);
+      expect(parseCliOptions(['--geoip-proxy-match']).bridge.geoipProxyMatch).toBe(true);
     });
   });
 
@@ -222,6 +230,7 @@ describe('Commander CLI options', () => {
 
     expect(help).toContain('Playwright MCP bridge backed by CloakBrowser');
     expect(help).toContain('--transport <mode>');
+    expect(help).toContain('--geoip-proxy-match');
     expect(help).toContain('doctor');
     expect(help).toContain('--http-protocol <protocol>');
     expect(help).toContain('--https-cert <path>');
@@ -229,6 +238,7 @@ describe('Commander CLI options', () => {
     expect(help).toContain('CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX');
     expect(reference).toContain('# CLI Reference');
     expect(reference).toContain('### `doctor`');
+    expect(reference).toContain('CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH');
     expect(reference).toContain('--json');
     expect(reference).toContain('| `--http-auth-token <token>` |');
     expect(reference).toContain('`streamable-http`');

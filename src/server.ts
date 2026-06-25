@@ -22,7 +22,7 @@ import { MCP_SERVER_INSTRUCTIONS, PROJECT_METADATA } from '#src/project/metadata
 
 export interface StartBridgeOptions {
   serverInfo?: Partial<Implementation>;
-  runtimeOptions?: Pick<PrepareBridgeRuntimeOptions, 'browserIsolated'>;
+  runtimeOptions?: Pick<PrepareBridgeRuntimeOptions, 'browserIsolated' | 'geoipProxyMatch'>;
 }
 
 export interface BridgeServerOptions extends StartBridgeOptions {

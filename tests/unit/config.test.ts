@@ -84,6 +84,75 @@ describe('bridge config generation', () => {
     runtime.dispose();
   });
 
+  it('adds GeoIP-derived timezone and locale launch args when proxy matching is enabled', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      geoipProxyMatch: true,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      buildCloakLaunchOptions: async (options) => {
+        if (!options) throw new Error('Expected Cloak launch options');
+        expect(options.proxy).toEqual({
+          server: 'http://user:pass@proxy.example:8080',
+          bypass: '.internal',
+        });
+        expect(options.geoip).toBe(true);
+        expect(options.stealthArgs).toBe(false);
+        return {
+          executablePath: fakeCloakBinaryPath,
+          headless: true,
+          args: [
+            ...(options.args ?? []),
+            '--proxy-server=http://proxy.example:8080',
+            '--fingerprint-timezone=Europe/Berlin',
+            '--lang=de-DE',
+            '--fingerprint-locale=de-DE',
+            '--fingerprint-webrtc-ip=203.0.113.10',
+          ],
+        };
+      },
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        PLAYWRIGHT_MCP_PROXY_SERVER: 'http://user:pass@proxy.example:8080',
+        PLAYWRIGHT_MCP_PROXY_BYPASS: '.internal',
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS: '--lang=en-US,--alpha',
+      },
+    });
+
+    expect(runtime.config.browser?.launchOptions?.args).toEqual([
+      '--no-sandbox',
+      '--lang=de-DE',
+      '--alpha',
+      '--fingerprint-timezone=Europe/Berlin',
+      '--fingerprint-locale=de-DE',
+    ]);
+
+    runtime.dispose();
+  });
+
+  it('does not resolve GeoIP proxy matching without a configured proxy', async () => {
+    const root = createTempRoot();
+    let called = false;
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      geoipProxyMatch: true,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      buildCloakLaunchOptions: async () => {
+        called = true;
+        return {};
+      },
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    expect(called).toBe(false);
+
+    runtime.dispose();
+  });
+
   it('does not apply Cloak-specific defaults in Playwright engine mode', async () => {
     const root = createTempRoot();
     const runtime = await prepareBridgeRuntime({

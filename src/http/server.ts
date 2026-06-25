@@ -37,11 +37,13 @@ import {
   requestPathName,
 } from '#src/http/requests';
 import { endResponse, writeJsonResponse, writeJsonRpcError } from '#src/http/responses';
+import type { PrepareBridgeRuntimeOptions } from '#src/bridge/config';
 
 const allowedMethods = 'GET, POST, DELETE';
 
 export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions {
   serverInfo?: Partial<Implementation>;
+  runtimeOptions?: Pick<PrepareBridgeRuntimeOptions, 'geoipProxyMatch'>;
   sessionStore?: SessionStore;
   logger?: BridgeLogger;
 }
@@ -279,7 +281,10 @@ class StreamableHttpBridgeController {
     try {
       const bridge = await createBridgeServer({
         serverInfo: this.#options.serverInfo,
-        runtimeOptions: { browserIsolated: true },
+        runtimeOptions: {
+          browserIsolated: true,
+          geoipProxyMatch: this.#options.runtimeOptions?.geoipProxyMatch,
+        },
       });
       this.#sessions.set(sessionId, { id: sessionId, bridge, transport });
       await bridge.start(transport);

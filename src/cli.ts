@@ -4,7 +4,7 @@ import process from 'node:process';
 import type { Implementation } from '@modelcontextprotocol/sdk/types.js';
 import { createDoctorReport, renderDoctorReport } from '#src/cli/doctor';
 import { createCliCommand, readCliOptions } from '#src/cli/options';
-import { BRIDGE_TRANSPORT_STREAMABLE_HTTP } from '#src/http/options';
+import { BRIDGE_TRANSPORT_STREAMABLE_HTTP, type BridgeOptions } from '#src/http/options';
 import { startStreamableHttpBridge } from '#src/http/server';
 import { createBridgeLogger } from '#src/logging/logger';
 import { PROJECT_METADATA } from '#src/project/metadata';
@@ -37,8 +37,12 @@ async function main(): Promise<void> {
 
     const running =
       options.transport === BRIDGE_TRANSPORT_STREAMABLE_HTTP
-        ? await startStreamableHttpCliBridge({ ...options.http, serverInfo })
-        : await startStdioBridge(serverInfo);
+        ? await startStreamableHttpCliBridge({
+            ...options.http,
+            serverInfo,
+            runtimeOptions: options.bridge,
+          })
+        : await startStdioBridge(serverInfo, options.bridge);
 
     for (const signal of ['SIGINT', 'SIGTERM'] as const) {
       process.once(signal, () => {
@@ -49,8 +53,11 @@ async function main(): Promise<void> {
   await command.parseAsync(process.argv);
 }
 
-async function startStdioBridge(serverInfo: Partial<Implementation>): Promise<{ close(): Promise<void> }> {
-  const bridge = await startBridge({ serverInfo });
+async function startStdioBridge(
+  serverInfo: Partial<Implementation>,
+  runtimeOptions: BridgeOptions,
+): Promise<{ close(): Promise<void> }> {
+  const bridge = await startBridge({ serverInfo, runtimeOptions });
   return {
     close: () => bridge.dispose(),
   };

@@ -31,6 +31,7 @@ The generated [CLI Reference](generated/cli.md) is the authoritative list of bri
 | `CLOAK_PLAYWRIGHT_MCP_HTTPS_PFX` | unset | TLS PFX/PKCS12 path for HTTPS Streamable HTTP. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTPS_PASSPHRASE` | unset | Passphrase for an encrypted HTTPS key or PFX. |
 | `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` | Streamable HTTP operational log level: `trace`, `debug`, `info`, `warn`, `error`, `fatal`, or `silent`. |
+| `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | Resolves `PLAYWRIGHT_MCP_PROXY_SERVER` GeoIP and matches CloakBrowser timezone and locale fingerprint flags to that proxy location. |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
@@ -42,6 +43,17 @@ The generated [CLI Reference](generated/cli.md) is the authoritative list of bri
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | Adds `--no-sandbox` and disables Chromium sandboxing. |
+
+## GeoIP Proxy Matching
+
+Set `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` with `PLAYWRIGHT_MCP_PROXY_SERVER`
+to derive CloakBrowser timezone and locale fingerprint flags from the proxy
+location. The bridge keeps proxy routing delegated to upstream Playwright MCP and
+only injects the resolved `--fingerprint-timezone`, `--lang`, and
+`--fingerprint-locale` launch flags.
+
+GeoIP matching uses CloakBrowser's offline GeoIP database support. The database is
+downloaded and cached by CloakBrowser on first use.
 
 ## Upstream Options
 

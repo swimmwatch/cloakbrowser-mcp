@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { binaryInfo, ensureBinary, getDefaultStealthArgs } from 'cloakbrowser';
+import { binaryInfo, buildLaunchOptions, ensureBinary, getDefaultStealthArgs } from 'cloakbrowser';
 import {
   appendNodeOption,
   envBool,
@@ -15,6 +15,9 @@ import { resolvePlaywrightCoreBundlePath } from '#src/bridge/paths';
 import { consoleFallbackInitScript, consoleFallbackPreloadScript } from '#src/runtime/consoleFallback';
 
 export type BrowserEngine = 'cloak' | 'playwright';
+type CloakBuildLaunchOptions = typeof buildLaunchOptions;
+type CloakLaunchOptions = NonNullable<Parameters<CloakBuildLaunchOptions>[0]>;
+type CloakProxyOption = NonNullable<CloakLaunchOptions['proxy']>;
 
 export interface BridgeRuntime {
   browserEngine: BrowserEngine;
@@ -31,7 +34,9 @@ export interface PrepareBridgeRuntimeOptions {
   env?: EnvReader;
   tempRoot?: string;
   ensureCloakBinary?: () => Promise<string>;
+  buildCloakLaunchOptions?: CloakBuildLaunchOptions;
   browserIsolated?: boolean;
+  geoipProxyMatch?: boolean;
 }
 
 export interface PlaywrightMcpBridgeConfig {
@@ -62,10 +67,12 @@ export async function prepareBridgeRuntime(
   const browserEngine = parseBrowserEngine(envString(env, 'PLAYWRIGHT_MCP_BROWSER_ENGINE', 'cloak'));
   const childEnv = createChildEnv(env, outputDir);
   const useCloak = browserEngine === 'cloak';
+  const headless = envBool(env, 'PLAYWRIGHT_MCP_HEADLESS', true);
+  const chromiumSandbox = useCloak ? !envBool(env, 'CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX', true) : undefined;
   const launchOptions = {
-    headless: envBool(env, 'PLAYWRIGHT_MCP_HEADLESS', true),
+    headless,
     args: useCloak ? createLaunchArgs(env) : envList(env, 'CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS'),
-    chromiumSandbox: useCloak ? !envBool(env, 'CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX', true) : undefined,
+    chromiumSandbox,
     ignoreDefaultArgs: useCloak ? ignoredAutomationArgs : undefined,
   };
   const config: PlaywrightMcpBridgeConfig = {
@@ -86,6 +93,15 @@ export async function prepareBridgeRuntime(
     config.browser!.launchOptions!.executablePath = cloakBinaryPath;
     childEnv.PLAYWRIGHT_MCP_EXECUTABLE_PATH = cloakBinaryPath;
     childEnv.CLOAKBROWSER_AUTO_UPDATE = childEnv.CLOAKBROWSER_AUTO_UPDATE ?? 'false';
+    if (shouldMatchProxyGeoip(env, options.geoipProxyMatch)) {
+      config.browser!.launchOptions!.args = await resolveGeoipProxyMatchingArgs({
+        env,
+        args: config.browser!.launchOptions!.args ?? [],
+        headless,
+        chromiumSandbox,
+        buildCloakLaunchOptions: options.buildCloakLaunchOptions ?? buildLaunchOptions,
+      });
+    }
   }
 
   if (useCloak && envBool(env, 'CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK', true)) {
@@ -126,6 +142,89 @@ export function createLaunchArgs(env: EnvReader): string[] {
   if (envBool(env, 'CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX', true)) args.add('--no-sandbox');
   for (const arg of envList(env, 'CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS')) args.add(arg);
   return [...args];
+}
+
+interface ResolveGeoipProxyMatchingArgsOptions {
+  env: EnvReader;
+  args: string[];
+  headless: boolean;
+  chromiumSandbox: boolean | undefined;
+  buildCloakLaunchOptions: CloakBuildLaunchOptions;
+}
+
+async function resolveGeoipProxyMatchingArgs(
+  options: ResolveGeoipProxyMatchingArgsOptions,
+): Promise<string[]> {
+  const proxy = resolveConfiguredProxy(options.env, options.args);
+  if (!proxy) return options.args;
+
+  const launchOptions = await suppressStdout(() =>
+    options.buildCloakLaunchOptions({
+      headless: options.headless,
+      stealthArgs: false,
+      args: options.args,
+      proxy,
+      geoip: true,
+      launchOptions:
+        options.chromiumSandbox === undefined
+          ? undefined
+          : { chromiumSandbox: options.chromiumSandbox },
+    }),
+  );
+  return mergeLaunchArgs(options.args, extractGeoipMatchingArgs(launchOptions.args ?? []));
+}
+
+function shouldMatchProxyGeoip(env: EnvReader, explicit: boolean | undefined): boolean {
+  return explicit === true || envBool(env, 'CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH', false);
+}
+
+function resolveConfiguredProxy(env: EnvReader, args: readonly string[]): CloakProxyOption | undefined {
+  const envProxyServer = optionalEnvString(env, 'PLAYWRIGHT_MCP_PROXY_SERVER');
+  if (envProxyServer) {
+    const bypass = optionalEnvString(env, 'PLAYWRIGHT_MCP_PROXY_BYPASS');
+    return bypass ? { server: envProxyServer, bypass } : envProxyServer;
+  }
+
+  const argProxyServer = findLaunchArgValue(args, '--proxy-server');
+  if (!argProxyServer) return undefined;
+  const bypass = findLaunchArgValue(args, '--proxy-bypass-list');
+  return bypass ? { server: argProxyServer, bypass } : argProxyServer;
+}
+
+function extractGeoipMatchingArgs(args: readonly string[]): string[] {
+  return args.filter((arg) =>
+    ['--fingerprint-timezone=', '--lang=', '--fingerprint-locale='].some((prefix) => arg.startsWith(prefix)),
+  );
+}
+
+function mergeLaunchArgs(args: readonly string[], replacements: readonly string[]): string[] {
+  const result = [...args];
+  const indexes = new Map(result.map((arg, index) => [launchArgKey(arg), index]));
+  for (const replacement of replacements) {
+    const key = launchArgKey(replacement);
+    const index = indexes.get(key);
+    if (index === undefined) {
+      indexes.set(key, result.length);
+      result.push(replacement);
+    } else {
+      result[index] = replacement;
+    }
+  }
+  return result;
+}
+
+function findLaunchArgValue(args: readonly string[], name: string): string | undefined {
+  const prefix = `${name}=`;
+  return args.find((arg) => arg.startsWith(prefix))?.slice(prefix.length);
+}
+
+function launchArgKey(arg: string): string {
+  return arg.split('=')[0] ?? arg;
+}
+
+function optionalEnvString(env: EnvReader, name: string): string | undefined {
+  const value = env[name]?.trim();
+  return value ? value : undefined;
 }
 
 export function createChildEnv(env: EnvReader, outputDir: string): Record<string, string> {
