@@ -13,9 +13,7 @@
     {
       "src": "https://swimmwatch.github.io/cloakbrowser-mcp/assets/brand/logo.svg",
       "mimeType": "image/svg+xml",
-      "sizes": [
-        "any"
-      ]
+      "sizes": ["any"]
     }
   ],
   "packages": [

@@ -166,9 +166,7 @@ async function resolveGeoipProxyMatchingArgs(
       proxy,
       geoip: true,
       launchOptions:
-        options.chromiumSandbox === undefined
-          ? undefined
-          : { chromiumSandbox: options.chromiumSandbox },
+        options.chromiumSandbox === undefined ? undefined : { chromiumSandbox: options.chromiumSandbox },
     }),
   );
   return mergeLaunchArgs(options.args, extractGeoipMatchingArgs(launchOptions.args ?? []));
