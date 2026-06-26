@@ -4,6 +4,7 @@ import process from 'node:process';
 import type { Implementation } from '@modelcontextprotocol/sdk/types.js';
 import { createDoctorReport, renderDoctorReport } from '#src/cli/doctor';
 import { createCliCommand, readCliOptions } from '#src/cli/options';
+import { cleanStaleSingletonLocks } from '#src/cli/singleton-lock-cleanup';
 import { BRIDGE_TRANSPORT_STREAMABLE_HTTP, type BridgeOptions } from '#src/http/options';
 import { startStreamableHttpBridge } from '#src/http/server';
 import { createBridgeLogger } from '#src/logging/logger';
@@ -53,10 +54,12 @@ async function main(): Promise<void> {
   await command.parseAsync(process.argv);
 }
 
+<<<<<<< HEAD
 async function startStdioBridge(
   serverInfo: Partial<Implementation>,
   runtimeOptions: BridgeOptions,
 ): Promise<{ close(): Promise<void> }> {
+  cleanStaleSingletonLocks();
   const bridge = await startBridge({ serverInfo, runtimeOptions });
   return {
     close: () => bridge.dispose(),
