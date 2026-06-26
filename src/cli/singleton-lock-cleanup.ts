@@ -25,7 +25,7 @@
  */
 import { existsSync, readFileSync, readdirSync, readlinkSync, unlinkSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path/posix';
+import { join as joinPosix } from 'node:path/posix';
 import { join as joinWin32 } from 'node:path/win32';
 
 const SINGLETON_LOCK_FILES = ['SingletonLock', 'SingletonCookie', 'SingletonSocket'] as const;
@@ -54,7 +54,7 @@ export function getCacheDir(platform: NodeJS.Platform): string {
     // path matches what the Windows Chromium process will resolve later.
     return joinWin32(base, CACHE_DIR_NAME);
   }
-  return join(homedir(), '.cache', CACHE_DIR_NAME);
+  return joinPosix(homedir(), '.cache', CACHE_DIR_NAME);
 }
 
 /**
@@ -99,10 +99,11 @@ function isProcessDead(pid: number): boolean {
   }
 }
 
-function removeSingletonFiles(profileDir: string): void {
+function removeSingletonFiles(profileDir: string, platform: NodeJS.Platform): void {
+  const joinPath = platform === 'win32' ? joinWin32 : joinPosix;
   for (const name of SINGLETON_LOCK_FILES) {
     try {
-      unlinkSync(join(profileDir, name));
+      unlinkSync(joinPath(profileDir, name));
     } catch {
       // File may not exist; cleanup is best-effort.
     }
@@ -141,15 +142,17 @@ export function cleanStaleSingletonLocks(options: CleanStaleSingletonLocksOption
     return;
   }
 
+  const joinPath = platform === 'win32' ? joinWin32 : joinPosix;
+
   for (const entry of entries) {
     if (!entry.startsWith(PROFILE_DIR_PREFIX)) continue;
-    const profileDir = join(cacheDir, entry);
-    const lockPath = join(profileDir, 'SingletonLock');
+    const profileDir = joinPath(cacheDir, entry);
+    const lockPath = joinPath(profileDir, 'SingletonLock');
 
     const pid = readLockPid(lockPath, platform);
     if (pid === null) continue;
     if (!isProcessDead(pid)) continue;
 
-    removeSingletonFiles(profileDir);
+    removeSingletonFiles(profileDir, platform);
   }
 }

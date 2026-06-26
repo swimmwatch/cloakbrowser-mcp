@@ -77,7 +77,7 @@ afterEach(() => {
   }
 });
 
-describe('cleanStaleSingletonLocks (posix)', () => {
+(process.platform === 'win32' ? describe.skip : describe)('cleanStaleSingletonLocks (posix)', () => {
   it('removes the three singleton files when the PID is dead', () => {
     const root = createTempRoot();
     const profile = createProfileDir(root, 'mcp-chromium-dead');
@@ -346,7 +346,7 @@ describe('getCacheDir', () => {
   });
 });
 
-describe('readLockPid (posix)', () => {
+(process.platform === 'win32' ? describe.skip : describe)('readLockPid (posix)', () => {
   it('parses PID from symlink target ending in digits', () => {
     const root = createTempRoot();
     const profile = createProfileDir(root, 'mcp-chromium-a');
@@ -407,8 +407,7 @@ describe('cleanStaleSingletonLocks (silent no-op on filesystem errors)', () => {
     // We re-import the module under a `vi.mock` of `node:fs` so the
     // mocked `readlinkSync` is observed by the production code.
     const root = createTempRoot();
-    const profile = createProfileDir(root, 'mcp-chromium-raced');
-    writePosixLock(profile, 2_000_000_010);
+    createProfileDir(root, 'mcp-chromium-raced');
     vi.doMock('node:fs', async (importOriginal) => {
       const actual = await importOriginal<typeof import('node:fs')>();
       return {
@@ -419,7 +418,7 @@ describe('cleanStaleSingletonLocks (silent no-op on filesystem errors)', () => {
       };
     });
     const { cleanStaleSingletonLocks: cleanup } = await import('@/cli/singleton-lock-cleanup.js');
-    expect(() => cleanup({ cacheDir: root })).not.toThrow();
+    expect(() => cleanup({ cacheDir: root, platform: 'linux' })).not.toThrow();
   });
 
   it('survives a readdirSync error on the cache directory', async () => {
