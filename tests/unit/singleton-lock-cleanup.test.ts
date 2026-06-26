@@ -249,62 +249,65 @@ afterEach(() => {
   });
 });
 
-describe('cleanStaleSingletonLocks (windows lock format)', () => {
-  it('removes a windows-format lock whose PID is dead', () => {
-    // Drive the win32 branch of `readLockPid` by passing
-    // `platform: 'win32'` explicitly. The cache directory is injected
-    // so we do not depend on the win32 cache-dir branch.
-    const root = createTempRoot();
-    const profile = createProfileDir(root, 'mcp-chromium-win');
-    const deadPid = 2_000_000_005;
-    writeWindowsLock(profile, deadPid);
-    writeExtraLockFiles(profile);
-    stubProcessKillOnce('dead');
+(process.platform === 'win32' ? describe : describe.skip)(
+  'cleanStaleSingletonLocks (windows lock format)',
+  () => {
+    it('removes a windows-format lock whose PID is dead', () => {
+      // Drive the win32 branch of `readLockPid` by passing
+      // `platform: 'win32'` explicitly. The cache directory is injected
+      // so we do not depend on the win32 cache-dir branch.
+      const root = createTempRoot();
+      const profile = createProfileDir(root, 'mcp-chromium-win');
+      const deadPid = 2_000_000_005;
+      writeWindowsLock(profile, deadPid);
+      writeExtraLockFiles(profile);
+      stubProcessKillOnce('dead');
 
-    cleanStaleSingletonLocks({ cacheDir: root, platform: 'win32' });
+      cleanStaleSingletonLocks({ cacheDir: root, platform: 'win32' });
 
-    expect(exists(profile, 'SingletonLock')).toBe(false);
-    expect(exists(profile, 'SingletonCookie')).toBe(false);
-    expect(exists(profile, 'SingletonSocket')).toBe(false);
-  });
+      expect(exists(profile, 'SingletonLock')).toBe(false);
+      expect(exists(profile, 'SingletonCookie')).toBe(false);
+      expect(exists(profile, 'SingletonSocket')).toBe(false);
+    });
 
-  it('keeps a windows-format lock whose PID is alive', () => {
-    const root = createTempRoot();
-    const profile = createProfileDir(root, 'mcp-chromium-win-alive');
-    writeWindowsLock(profile, 4242);
-    writeExtraLockFiles(profile);
-    stubProcessKillOnce('alive');
+    it('keeps a windows-format lock whose PID is alive', () => {
+      const root = createTempRoot();
+      const profile = createProfileDir(root, 'mcp-chromium-win-alive');
+      writeWindowsLock(profile, 4242);
+      writeExtraLockFiles(profile);
+      stubProcessKillOnce('alive');
 
-    cleanStaleSingletonLocks({ cacheDir: root, platform: 'win32' });
+      cleanStaleSingletonLocks({ cacheDir: root, platform: 'win32' });
 
-    expect(exists(profile, 'SingletonLock')).toBe(true);
-  });
+      expect(exists(profile, 'SingletonLock')).toBe(true);
+    });
 
-  it('keeps a windows-format lock whose PID status is unknown', () => {
-    const root = createTempRoot();
-    const profile = createProfileDir(root, 'mcp-chromium-win-eperm');
-    writeWindowsLock(profile, 4243);
-    writeExtraLockFiles(profile);
-    stubProcessKillOnce('eperm');
+    it('keeps a windows-format lock whose PID status is unknown', () => {
+      const root = createTempRoot();
+      const profile = createProfileDir(root, 'mcp-chromium-win-eperm');
+      writeWindowsLock(profile, 4243);
+      writeExtraLockFiles(profile);
+      stubProcessKillOnce('eperm');
 
-    cleanStaleSingletonLocks({ cacheDir: root, platform: 'win32' });
+      cleanStaleSingletonLocks({ cacheDir: root, platform: 'win32' });
 
-    expect(exists(profile, 'SingletonLock')).toBe(true);
-  });
+      expect(exists(profile, 'SingletonLock')).toBe(true);
+    });
 
-  it('skips a windows-format lock with a non-positive PID', () => {
-    const root = createTempRoot();
-    const profile = createProfileDir(root, 'mcp-chromium-win-bad');
-    writeWindowsLock(profile, 0);
-    writeExtraLockFiles(profile);
-    const killSpy = vi.spyOn(process, 'kill');
+    it('skips a windows-format lock with a non-positive PID', () => {
+      const root = createTempRoot();
+      const profile = createProfileDir(root, 'mcp-chromium-win-bad');
+      writeWindowsLock(profile, 0);
+      writeExtraLockFiles(profile);
+      const killSpy = vi.spyOn(process, 'kill');
 
-    cleanStaleSingletonLocks({ cacheDir: root, platform: 'win32' });
+      cleanStaleSingletonLocks({ cacheDir: root, platform: 'win32' });
 
-    expect(exists(profile, 'SingletonLock')).toBe(true);
-    expect(killSpy).not.toHaveBeenCalled();
-  });
-});
+      expect(exists(profile, 'SingletonLock')).toBe(true);
+      expect(killSpy).not.toHaveBeenCalled();
+    });
+  },
+);
 
 describe('getCacheDir', () => {
   const originalEnv = {
