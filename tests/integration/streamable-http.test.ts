@@ -129,6 +129,27 @@ describe('streamable HTTP bridge', () => {
     });
   });
 
+  it('applies authenticated runtime proxy metadata through generated config', async () => {
+    await withFakeUpstream(async () => {
+      const server = await startHttpBridge();
+      const sessionId = await initializeRawHttpSession(server, {
+        proxyServer: 'http://user:p%40ssword@secure.example:8080',
+        proxyBypass: '.secure',
+      });
+
+      await expectProxyEnv(server, sessionId, {
+        server: null,
+        bypass: null,
+      });
+      await expectProxyConfig(server, sessionId, {
+        server: 'http://secure.example:8080',
+        bypass: '.secure',
+        username: 'user',
+        password: 'p@ssword',
+      });
+    });
+  });
+
   it('falls back to environment proxy configuration without runtime metadata', async () => {
     await withFakeUpstream(async () => {
       process.env.PLAYWRIGHT_MCP_PROXY_SERVER = 'http://env.example:8080';
@@ -139,6 +160,26 @@ describe('streamable HTTP bridge', () => {
       await expectProxyEnv(server, sessionId, {
         server: 'http://env.example:8080',
         bypass: '.env',
+      });
+    });
+  });
+
+  it('falls back to authenticated environment proxy configuration through generated config', async () => {
+    await withFakeUpstream(async () => {
+      process.env.PLAYWRIGHT_MCP_PROXY_SERVER = 'http://env:p%40ssword@env.example:8080';
+      process.env.PLAYWRIGHT_MCP_PROXY_BYPASS = '.env';
+      const server = await startHttpBridge();
+      const sessionId = await initializeRawHttpSession(server);
+
+      await expectProxyEnv(server, sessionId, {
+        server: null,
+        bypass: null,
+      });
+      await expectProxyConfig(server, sessionId, {
+        server: 'http://env.example:8080',
+        bypass: '.env',
+        username: 'env',
+        password: 'p@ssword',
       });
     });
   });
@@ -303,7 +344,7 @@ async function initializeRawHttpSession(
 async function expectProxyEnv(
   server: StreamableHttpBridgeServer,
   sessionId: string,
-  expected: { server: string; bypass: string | null },
+  expected: { server: string | null; bypass: string | null },
 ): Promise<void> {
   const response = await postJsonRpc(
     server.url,
@@ -326,6 +367,34 @@ async function expectProxyEnv(
     result?: { structuredContent?: { proxyEnv?: { server: string | null; bypass: string | null } } };
   };
   expect(body.result?.structuredContent?.proxyEnv).toEqual(expected);
+}
+
+async function expectProxyConfig(
+  server: StreamableHttpBridgeServer,
+  sessionId: string,
+  expected: { server: string; bypass?: string; username?: string; password?: string },
+): Promise<void> {
+  const response = await postJsonRpc(
+    server.url,
+    {
+      jsonrpc: JSON_RPC_VERSION,
+      id: crypto.randomUUID(),
+      method: 'tools/call',
+      params: {
+        name: 'browser_navigate',
+        arguments: {
+          url: 'https://example.com',
+          includeProxyConfig: true,
+        },
+      },
+    },
+    sessionId,
+  );
+  expect(response.status).toBe(HttpStatus.Ok);
+  const body = (await readJsonRpcResponse(response)) as {
+    result?: { structuredContent?: { proxyConfig?: unknown } };
+  };
+  expect(body.result?.structuredContent?.proxyConfig).toEqual(expected);
 }
 
 function createInitializeRequest(bridgeMeta?: Record<string, unknown>): Record<string, unknown> {

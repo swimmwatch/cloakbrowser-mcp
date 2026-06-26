@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readFileSync } from 'node:fs';
 import process from 'node:process';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -40,6 +41,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       bypass: process.env.PLAYWRIGHT_MCP_PROXY_BYPASS ?? null,
     };
   }
+  if (request.params.arguments?.includeProxyConfig === true) {
+    value.proxyConfig = readProxyConfig();
+  }
   return {
     content: [{ type: 'text', text: JSON.stringify(value) }],
     structuredContent: value,
@@ -47,3 +51,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 await server.connect(new StdioServerTransport());
+
+function readProxyConfig() {
+  const configPath = process.env.PLAYWRIGHT_MCP_CONFIG;
+  if (!configPath) return null;
+  const config = JSON.parse(readFileSync(configPath, 'utf8'));
+  return config.browser?.launchOptions?.proxy ?? null;
+}

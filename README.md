@@ -215,6 +215,11 @@ Runtime proxy metadata overrides `PLAYWRIGHT_MCP_PROXY_SERVER` and
 `PLAYWRIGHT_MCP_PROXY_BYPASS` for that HTTP session only. Stdio keeps using
 process-level environment and CLI configuration.
 
+Authenticated HTTP proxies are supported with credentials embedded in
+`proxyServer`, for example `http://user:pass@proxy.example:8080`. Percent-encode
+credential characters that have URL meaning, such as `@`, `:`, `/`, `?`, `#`,
+and `%`.
+
 Enable `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` to align CloakBrowser
 timezone, language, and locale fingerprint flags with the selected proxy
 location. Streamable HTTP clients can set `geoipProxyMatch` per session to run

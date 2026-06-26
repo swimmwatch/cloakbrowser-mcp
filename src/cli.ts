@@ -54,7 +54,6 @@ async function main(): Promise<void> {
   await command.parseAsync(process.argv);
 }
 
-<<<<<<< HEAD
 async function startStdioBridge(
   serverInfo: Partial<Implementation>,
   runtimeOptions: BridgeOptions,

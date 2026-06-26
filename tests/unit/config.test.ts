@@ -104,8 +104,10 @@ describe('bridge config generation', () => {
       buildCloakLaunchOptions: async (options) => {
         if (!options) throw new Error('Expected Cloak launch options');
         expect(options.proxy).toEqual({
-          server: 'http://user:pass@proxy.example:8080',
+          server: 'http://proxy.example:8080',
           bypass: '.internal',
+          username: 'user',
+          password: 'pass',
         });
         expect(options.geoip).toBe(true);
         expect(options.stealthArgs).toBe(false);
@@ -139,6 +141,14 @@ describe('bridge config generation', () => {
       '--fingerprint-locale=de-DE',
       '--fingerprint-timezone=Europe/Berlin',
     ]);
+    expect(runtime.config.browser?.launchOptions?.proxy).toEqual({
+      server: 'http://proxy.example:8080',
+      bypass: '.internal',
+      username: 'user',
+      password: 'pass',
+    });
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_SERVER).toBeUndefined();
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_BYPASS).toBeUndefined();
 
     runtime.dispose();
   });
@@ -160,6 +170,10 @@ describe('bridge config generation', () => {
 
     expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_SERVER).toBe('http://runtime.example:8080');
     expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_BYPASS).toBe('.runtime');
+    expect(runtime.config.browser?.launchOptions?.proxy).toEqual({
+      server: 'http://runtime.example:8080',
+      bypass: '.runtime',
+    });
 
     runtime.dispose();
   });
@@ -181,6 +195,63 @@ describe('bridge config generation', () => {
     });
 
     expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_SERVER).toBe('http://runtime.example:8080');
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_BYPASS).toBeUndefined();
+    expect(runtime.config.browser?.launchOptions?.proxy).toEqual({
+      server: 'http://runtime.example:8080',
+    });
+
+    runtime.dispose();
+  });
+
+  it('writes authenticated environment proxy credentials into generated config only', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        PLAYWRIGHT_MCP_PROXY_SERVER: 'http://user:p%40ssword@proxy.example:8080',
+        PLAYWRIGHT_MCP_PROXY_BYPASS: '.internal',
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    expect(runtime.config.browser?.launchOptions?.proxy).toEqual({
+      server: 'http://proxy.example:8080',
+      bypass: '.internal',
+      username: 'user',
+      password: 'p@ssword',
+    });
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_SERVER).toBeUndefined();
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_BYPASS).toBeUndefined();
+
+    runtime.dispose();
+  });
+
+  it('writes authenticated runtime proxy credentials into generated config only', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      proxy: {
+        server: 'http://runtime:p%40ssword@runtime.example:8080',
+        bypass: '.runtime',
+      },
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        PLAYWRIGHT_MCP_PROXY_SERVER: 'http://env.example:8080',
+        PLAYWRIGHT_MCP_PROXY_BYPASS: '.env',
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    expect(runtime.config.browser?.launchOptions?.proxy).toEqual({
+      server: 'http://runtime.example:8080',
+      bypass: '.runtime',
+      username: 'runtime',
+      password: 'p@ssword',
+    });
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_SERVER).toBeUndefined();
     expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_BYPASS).toBeUndefined();
 
     runtime.dispose();

@@ -18,6 +18,12 @@ export type BrowserEngine = 'cloak' | 'playwright';
 type CloakBuildLaunchOptions = typeof buildLaunchOptions;
 type CloakLaunchOptions = NonNullable<Parameters<CloakBuildLaunchOptions>[0]>;
 type CloakProxyOption = NonNullable<CloakLaunchOptions['proxy']>;
+type PlaywrightProxyOption = {
+  server: string;
+  bypass?: string;
+  username?: string;
+  password?: string;
+};
 
 export interface BridgeRuntimeProxy {
   server: string;
@@ -55,6 +61,7 @@ export interface PlaywrightMcpBridgeConfig {
       args?: string[];
       chromiumSandbox?: boolean;
       ignoreDefaultArgs?: string[];
+      proxy?: PlaywrightProxyOption;
     };
     initScript?: string[];
   };
@@ -87,6 +94,10 @@ export async function prepareBridgeRuntime(
       launchOptions,
     },
   };
+  const configuredProxy = resolveConfiguredProxy(env, launchOptions.args ?? [], options.proxy);
+  if (configuredProxy && typeof configuredProxy !== 'string') {
+    config.browser!.launchOptions!.proxy = configuredProxy;
+  }
 
   if (options.browserIsolated === true) {
     config.browser!.isolated = true;
@@ -191,19 +202,53 @@ function resolveConfiguredProxy(
 ): CloakProxyOption | undefined {
   if (runtimeProxy)
     return runtimeProxy.bypass
-      ? { server: runtimeProxy.server, bypass: runtimeProxy.bypass }
-      : runtimeProxy.server;
+      ? parseProxyOption(runtimeProxy.server, runtimeProxy.bypass)
+      : parseProxyOption(runtimeProxy.server);
 
   const envProxyServer = optionalEnvString(env, 'PLAYWRIGHT_MCP_PROXY_SERVER');
   if (envProxyServer) {
     const bypass = optionalEnvString(env, 'PLAYWRIGHT_MCP_PROXY_BYPASS');
-    return bypass ? { server: envProxyServer, bypass } : envProxyServer;
+    return bypass ? parseProxyOption(envProxyServer, bypass) : parseProxyOption(envProxyServer);
   }
 
   const argProxyServer = findLaunchArgValue(args, '--proxy-server');
   if (!argProxyServer) return undefined;
   const bypass = findLaunchArgValue(args, '--proxy-bypass-list');
-  return bypass ? { server: argProxyServer, bypass } : argProxyServer;
+  return bypass ? parseProxyOption(argProxyServer, bypass) : parseProxyOption(argProxyServer);
+}
+
+function parseProxyOption(server: string, bypass?: string): PlaywrightProxyOption {
+  const parsed = parseProxyServer(server);
+  return bypass === undefined ? parsed : { ...parsed, bypass };
+}
+
+function parseProxyServer(server: string): PlaywrightProxyOption {
+  try {
+    const url = new URL(ensureProxyServerScheme(server));
+    const username = decodeUrlCredential(url.username);
+    const password = decodeUrlCredential(url.password);
+    if (username === undefined && password === undefined) return { server };
+    return {
+      server: `${url.protocol}//${url.host}`,
+      ...(username === undefined ? {} : { username }),
+      ...(password === undefined ? {} : { password }),
+    };
+  } catch {
+    return { server };
+  }
+}
+
+function ensureProxyServerScheme(server: string): string {
+  return /^[a-z][a-z0-9+.-]*:\/\//iu.test(server) ? server : `http://${server}`;
+}
+
+function decodeUrlCredential(value: string): string | undefined {
+  return value ? decodeURIComponent(value) : undefined;
+}
+
+function hasProxyCredentials(server: string): boolean {
+  const parsed = parseProxyServer(server);
+  return parsed.username !== undefined || parsed.password !== undefined;
 }
 
 function extractGeoipMatchingArgs(args: readonly string[]): string[] {
@@ -267,6 +312,10 @@ export function createChildEnv(
   result.PLAYWRIGHT_MCP_TIMEOUT_ACTION = String(envInt(env, 'PLAYWRIGHT_MCP_TIMEOUT_ACTION', 5000));
   result.PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION = String(envInt(env, 'PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION', 60000));
   result.CLOAKBROWSER_AUTO_UPDATE = envString(env, 'CLOAKBROWSER_AUTO_UPDATE', 'false');
+  const envProxyServer = optionalEnvString(env, 'PLAYWRIGHT_MCP_PROXY_SERVER');
+  if (runtimeProxy === undefined && envProxyServer !== undefined && hasProxyCredentials(envProxyServer)) {
+    removeProxyEnv(result);
+  }
   if (runtimeProxy) applyRuntimeProxyEnv(result, runtimeProxy);
   return result;
 }
@@ -275,6 +324,12 @@ function applyRuntimeProxyEnv(env: Record<string, string>, proxy: BridgeRuntimeP
   env.PLAYWRIGHT_MCP_PROXY_SERVER = proxy.server;
   if (proxy.bypass === undefined) delete env.PLAYWRIGHT_MCP_PROXY_BYPASS;
   else env.PLAYWRIGHT_MCP_PROXY_BYPASS = proxy.bypass;
+  if (hasProxyCredentials(proxy.server)) removeProxyEnv(env);
+}
+
+function removeProxyEnv(env: Record<string, string>): void {
+  delete env.PLAYWRIGHT_MCP_PROXY_SERVER;
+  delete env.PLAYWRIGHT_MCP_PROXY_BYPASS;
 }
 
 export function getCurrentCloakBinaryInfo(): ReturnType<typeof binaryInfo> {

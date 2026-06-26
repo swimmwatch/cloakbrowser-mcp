@@ -82,6 +82,10 @@ present. `geoipProxyMatch` can enable or disable GeoIP matching for that session
 without restarting the MCP server. Existing sessions keep their startup proxy;
 create a new HTTP session to switch location.
 
+Authenticated HTTP proxy credentials can be embedded in `proxyServer`, for
+example `http://user:pass@proxy.example:8080`. Percent-encode credential
+characters that have URL meaning, such as `@`, `:`, `/`, `?`, `#`, and `%`.
+
 For multi-location QA patterns, see [GeoIP Proxy Matching](geoip-proxy-matching.md).
 
 ## Upstream Options

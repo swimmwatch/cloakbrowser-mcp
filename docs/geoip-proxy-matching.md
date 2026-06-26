@@ -54,6 +54,10 @@ CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
 npx -y cloakbrowser-mcp@latest
 ```
 
+Authenticated HTTP proxies are supported by embedding credentials in
+`PLAYWRIGHT_MCP_PROXY_SERVER`. Percent-encode special characters in credentials,
+for example use `p%40ssword` for `p@ssword`.
+
 ## Docker Setup
 
 Pass the same variables to the container. Keep proxy credentials in your secret
@@ -112,6 +116,10 @@ even when the server was started with matching enabled.
 
 Existing HTTP sessions are immutable. Create another Streamable HTTP session to
 switch to a different proxy or location.
+
+If `proxyServer` contains credentials, keep them URL-encoded and pass the value
+through secrets or client runtime configuration rather than committing it to
+project files.
 
 ## Use Cases
 

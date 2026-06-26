@@ -67,6 +67,9 @@ docker run --rm --init -i \
   swimmwatch/cloakbrowser-mcp:latest
 ```
 
+For authenticated proxies, embed credentials in the proxy URL and percent-encode
+special characters in the username or password.
+
 When the container runs Streamable HTTP, clients can also choose different
 proxies per MCP session through `initialize` metadata. See
 [GeoIP Proxy Matching](geoip-proxy-matching.md) for runtime proxy metadata,
