@@ -35,13 +35,17 @@ import {
   isEndpointRequest,
   readJsonBody,
   requestPathName,
+  InvalidBridgeInitializeMetaError,
+  readBridgeRuntimeOptionsFromInitialize,
 } from '#src/http/requests';
 import { endResponse, writeJsonResponse, writeJsonRpcError } from '#src/http/responses';
+import type { PrepareBridgeRuntimeOptions } from '#src/bridge/config';
 
 const allowedMethods = 'GET, POST, DELETE';
 
 export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions {
   serverInfo?: Partial<Implementation>;
+  runtimeOptions?: Pick<PrepareBridgeRuntimeOptions, 'geoipProxyMatch' | 'proxy'>;
   sessionStore?: SessionStore;
   logger?: BridgeLogger;
 }
@@ -242,6 +246,17 @@ class StreamableHttpBridgeController {
     res: ServerResponse,
     parsedBody: unknown,
   ): Promise<void> {
+    let sessionRuntimeOptions: Pick<PrepareBridgeRuntimeOptions, 'geoipProxyMatch' | 'proxy'>;
+    try {
+      sessionRuntimeOptions = readBridgeRuntimeOptionsFromInitialize(parsedBody);
+    } catch (error) {
+      if (error instanceof InvalidBridgeInitializeMetaError) {
+        writeJsonRpcError(res, HttpStatus.BadRequest, JsonRpcErrorCode.ServerError, error.message);
+        return;
+      }
+      throw error;
+    }
+
     const now = Date.now();
     if (this.#sessions.size + this.#pendingSessionInitializations >= this.#options.sessionMax) {
       writeJsonRpcError(
@@ -279,7 +294,12 @@ class StreamableHttpBridgeController {
     try {
       const bridge = await createBridgeServer({
         serverInfo: this.#options.serverInfo,
-        runtimeOptions: { browserIsolated: true },
+        runtimeOptions: {
+          browserIsolated: true,
+          geoipProxyMatch:
+            sessionRuntimeOptions.geoipProxyMatch ?? this.#options.runtimeOptions?.geoipProxyMatch,
+          proxy: sessionRuntimeOptions.proxy ?? this.#options.runtimeOptions?.proxy,
+        },
       });
       this.#sessions.set(sessionId, { id: sessionId, bridge, transport });
       await bridge.start(transport);

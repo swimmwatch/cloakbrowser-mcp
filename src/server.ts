@@ -22,7 +22,8 @@ import { MCP_SERVER_INSTRUCTIONS, PROJECT_METADATA } from '#src/project/metadata
 
 export interface StartBridgeOptions {
   serverInfo?: Partial<Implementation>;
-  runtimeOptions?: Pick<PrepareBridgeRuntimeOptions, 'browserIsolated'>;
+  runtimeOptions?: Pick<PrepareBridgeRuntimeOptions, 'browserIsolated' | 'geoipProxyMatch' | 'proxy'>;
+  transport?: Transport;
 }
 
 export interface BridgeServerOptions extends StartBridgeOptions {
@@ -39,7 +40,7 @@ export interface BridgeServer {
 
 export async function startBridge(options: StartBridgeOptions = {}): Promise<BridgeServer> {
   const bridge = await createBridgeServer(options);
-  await bridge.start();
+  await bridge.start(options.transport);
   return bridge;
 }
 

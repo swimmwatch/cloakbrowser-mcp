@@ -1,7 +1,8 @@
-import type { IncomingMessage } from 'node:http';
+import { createServer, type IncomingMessage } from 'node:http';
 import { createConnection } from 'node:net';
 import { describe, expect, it } from 'vitest';
 import { BRIDGE_TRANSPORT_STREAMABLE_HTTP, defaultStreamableHttpOptions } from '@/http/options.js';
+import { closeHttpServer, listenHttpServer } from '@/http/nodeServer.js';
 import type { SessionStore } from '@/http/sessionStore.js';
 import { isAuthorizedRequest, isEndpointRequest, startStreamableHttpBridge } from '@/http/server.js';
 import { HttpStatus, JsonRpcErrorCode } from '@/http/status.js';
@@ -182,6 +183,92 @@ describe('HTTP server helpers', () => {
     }
   });
 
+  it('rejects malformed POST requests before session handling', async () => {
+    const server = await startStreamableHttpBridge({
+      ...defaultStreamableHttpOptions,
+      port: 0,
+    });
+
+    try {
+      const unsupported = await fetch(server.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: '{}',
+      });
+      expect(unsupported.status).toBe(HttpStatus.UnsupportedMediaType);
+
+      const invalidJson = await fetch(server.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{',
+      });
+      expect(invalidJson.status).toBe(HttpStatus.BadRequest);
+
+      const missingSession = await fetch(server.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/list',
+        }),
+      });
+      expect(missingSession.status).toBe(HttpStatus.BadRequest);
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('rejects invalid bridge initialize metadata before creating a session', async () => {
+    const server = await startStreamableHttpBridge({
+      ...defaultStreamableHttpOptions,
+      port: 0,
+      sessionMax: 1,
+    });
+
+    try {
+      const invalidMeta = await fetch(server.url, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json, text/event-stream',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'initialize',
+          params: {
+            protocolVersion: '2025-06-18',
+            capabilities: {},
+            clientInfo: {
+              name: 'invalid-meta-unit-test-client',
+              version: '1.0.0',
+            },
+            _meta: {
+              'io.github.swimmwatch/cloakbrowser-mcp': {
+                proxyBypass: '.internal',
+              },
+            },
+          },
+        }),
+      });
+      const ready = await fetchReady(server.url);
+      const readyBody = (await ready.json()) as {
+        sessions: { active: number; pending: number; max: number; available: number };
+      };
+
+      expect(invalidMeta.status).toBe(HttpStatus.BadRequest);
+      expect(readyBody.sessions).toMatchObject({
+        active: 0,
+        pending: 0,
+        max: 1,
+        available: 1,
+      });
+    } finally {
+      await server.close();
+    }
+  });
+
   it('logs a safe path when Host cannot be parsed as a URL base', async () => {
     const requestLogs: Array<Record<string, unknown>> = [];
     const logger = {
@@ -222,6 +309,24 @@ describe('HTTP server helpers', () => {
     expect(HttpStatus.NotFound).toBe(404);
     expect(JsonRpcErrorCode.SessionNotFound).toBe(-32001);
     expect(JsonRpcErrorCode.ParseError).toBe(-32700);
+  });
+
+  it('rejects listen failures and cleans up listeners', async () => {
+    const blocker = createServer();
+    const blocked = createServer();
+    await listenHttpServer(blocker, 0, '127.0.0.1');
+    const address = blocker.address();
+    if (typeof address !== 'object' || address === null) throw new Error('Expected TCP server address');
+
+    try {
+      await expect(listenHttpServer(blocked, address.port, '127.0.0.1')).rejects.toMatchObject({
+        code: 'EADDRINUSE',
+      });
+      expect(blocked.listenerCount('error')).toBe(0);
+      expect(blocked.listening).toBe(false);
+    } finally {
+      await Promise.allSettled([closeHttpServer(blocked), closeHttpServer(blocker)]);
+    }
   });
 });
 

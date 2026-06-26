@@ -6,6 +6,7 @@ import {
   READYZ_PATH,
   bridgeTransportModes,
   defaultStreamableHttpOptions,
+  defaultBridgeOptions,
   httpProtocols,
   httpSessionBackends,
   type BridgeTransportMode,
@@ -19,6 +20,7 @@ export const cliDescription = 'Playwright MCP bridge backed by CloakBrowser.';
 
 interface CommanderCliOptions {
   transport: BridgeTransportMode;
+  geoipProxyMatch: boolean;
   httpProtocol: HttpProtocol;
   httpHost: string;
   httpPort: number;
@@ -41,7 +43,7 @@ interface CreateCliCommandOptions {
   doctorAction?: (options: DoctorCliOptions) => Promise<void> | void;
 }
 
-type CliOptionValue = string | number;
+type CliOptionValue = string | number | boolean;
 
 interface CliOptionDefinition {
   name: keyof CommanderCliOptions;
@@ -63,6 +65,14 @@ export const cliOptionDefinitions: readonly CliOptionDefinition[] = [
     group: 'Transport',
     defaultValue: BRIDGE_TRANSPORT_STDIO,
     choices: bridgeTransportModes,
+  },
+  {
+    name: 'geoipProxyMatch',
+    flags: '--geoip-proxy-match',
+    description: 'Match CloakBrowser timezone and locale to the configured proxy GeoIP.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH',
+    group: 'Bridge',
+    defaultValue: defaultBridgeOptions.geoipProxyMatch,
   },
   {
     name: 'httpProtocol',
@@ -267,6 +277,9 @@ function toCliOptions(options: CommanderCliOptions): CliOptions {
   validateHttpProtocolOptions(options.httpProtocol, tls);
   return {
     transport: options.transport,
+    bridge: {
+      geoipProxyMatch: normalizeBoolean(options.geoipProxyMatch),
+    },
     http: {
       protocol: options.httpProtocol,
       host: options.httpHost,
@@ -280,6 +293,12 @@ function toCliOptions(options: CommanderCliOptions): CliOptions {
       bodyLimitBytes: defaultStreamableHttpOptions.bodyLimitBytes,
     },
   };
+}
+
+function normalizeBoolean(value: boolean | string | undefined): boolean {
+  if (typeof value === 'boolean') return value;
+  if (value === undefined) return false;
+  return ['1', 'true', 'yes', 'on'].includes(value.toLowerCase());
 }
 
 function normalizeTlsOptions(options: CommanderCliOptions): StreamableHttpTlsOptions {

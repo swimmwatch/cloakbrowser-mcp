@@ -78,7 +78,9 @@
     "@playwright/mcp": "^0.0.76",
     "cloakbrowser": "^0.3.32",
     "commander": "^15.0.0",
-    "pino": "^10.3.1"
+    "mmdb-lib": "^3.0.2",
+    "pino": "^10.3.1",
+    "socks-proxy-agent": "^10.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

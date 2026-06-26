@@ -53,6 +53,28 @@ The host-side `127.0.0.1:3000` bind keeps the endpoint local. If you publish Str
 Streamable HTTP exposes fixed `GET /healthz` and `GET /readyz` probes on the same host and port. If `--http-auth-token` or `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` is configured, the probes require the same `Authorization: Bearer ...` header as MCP requests.
 See the generated [CLI Reference](generated/cli.md) for all HTTP transport flags and environment variables.
 
+## GeoIP Proxy Matching
+
+Docker uses the same proxy and GeoIP environment variables as npm. Enable
+GeoIP proxy matching when regional QA needs CloakBrowser timezone, language, and
+locale fingerprints to follow the configured proxy location:
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
+  -e CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+For authenticated proxies, embed credentials in the proxy URL and percent-encode
+special characters in the username or password.
+
+When the container runs Streamable HTTP, clients can also choose different
+proxies per MCP session through `initialize` metadata. See
+[GeoIP Proxy Matching](geoip-proxy-matching.md) for runtime proxy metadata,
+multi-region use cases, and limitations.
+
 ## Defaults
 
 | Variable | Default |
@@ -71,6 +93,7 @@ See the generated [CLI Reference](generated/cli.md) for all HTTP transport flags
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_IDLE_TTL_MS` | `3600000` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` |
 | `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` |
+| `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` |

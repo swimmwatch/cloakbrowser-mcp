@@ -1,5 +1,5 @@
 ---
-description: Runtime configuration for the Playwright MCP bridge.
+description: Runtime configuration for the Playwright MCP bridge, including Streamable HTTP sessions and GeoIP-aware proxy matching.
 icon: material/tune
 tags:
   - Configuration
@@ -31,6 +31,9 @@ The generated [CLI Reference](generated/cli.md) is the authoritative list of bri
 | `CLOAK_PLAYWRIGHT_MCP_HTTPS_PFX` | unset | TLS PFX/PKCS12 path for HTTPS Streamable HTTP. |
 | `CLOAK_PLAYWRIGHT_MCP_HTTPS_PASSPHRASE` | unset | Passphrase for an encrypted HTTPS key or PFX. |
 | `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` | Streamable HTTP operational log level: `trace`, `debug`, `info`, `warn`, `error`, `fatal`, or `silent`. |
+| `PLAYWRIGHT_MCP_PROXY_SERVER` | unset | Upstream Playwright MCP proxy server. Used as the GeoIP source when matching is enabled. |
+| `PLAYWRIGHT_MCP_PROXY_BYPASS` | unset | Upstream proxy bypass list for hosts that should not use `PLAYWRIGHT_MCP_PROXY_SERVER`. |
+| `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | Resolves `PLAYWRIGHT_MCP_PROXY_SERVER` GeoIP and matches CloakBrowser timezone and locale fingerprint flags to that proxy location. |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
@@ -42,6 +45,48 @@ The generated [CLI Reference](generated/cli.md) is the authoritative list of bri
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | Adds `--no-sandbox` and disables Chromium sandboxing. |
+
+## GeoIP Proxy Matching
+
+Set `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` with `PLAYWRIGHT_MCP_PROXY_SERVER`
+to derive CloakBrowser timezone, language, and locale fingerprint flags from the
+proxy location. The bridge keeps proxy routing delegated to upstream Playwright
+MCP and only injects the resolved `--fingerprint-timezone`, `--lang`, and
+`--fingerprint-locale` launch flags.
+
+See [GeoIP Proxy Matching](geoip-proxy-matching.md) for setup examples, runtime
+Streamable HTTP proxy metadata, use cases, precedence rules, and limitations.
+
+## Streamable HTTP Runtime Proxy
+
+Streamable HTTP clients can choose a proxy per MCP session by adding
+bridge-specific metadata to the `initialize` request:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "proxyServer": "http://user:pass@proxy.example:8080",
+        "proxyBypass": ".internal,localhost",
+        "geoipProxyMatch": true
+      }
+    }
+  }
+}
+```
+
+`proxyServer` overrides `PLAYWRIGHT_MCP_PROXY_SERVER` for that HTTP session.
+`proxyBypass` overrides `PLAYWRIGHT_MCP_PROXY_BYPASS` only when `proxyServer` is
+present. `geoipProxyMatch` can enable or disable GeoIP matching for that session
+without restarting the MCP server. Existing sessions keep their startup proxy;
+create a new HTTP session to switch location.
+
+Authenticated HTTP proxy credentials can be embedded in `proxyServer`, for
+example `http://user:pass@proxy.example:8080`. Percent-encode credential
+characters that have URL meaning, such as `@`, `:`, `/`, `?`, `#`, and `%`.
+
+For multi-location QA patterns, see [GeoIP Proxy Matching](geoip-proxy-matching.md).
 
 ## Upstream Options
 

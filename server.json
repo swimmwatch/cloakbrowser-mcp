@@ -57,6 +57,12 @@
           "default": "true"
         },
         {
+          "name": "CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH",
+          "description": "Resolve proxy GeoIP and match CloakBrowser timezone/locale fingerprint flags when PLAYWRIGHT_MCP_PROXY_SERVER is set.",
+          "format": "boolean",
+          "default": "false"
+        },
+        {
           "name": "CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS",
           "description": "Comma-separated or JSON array of extra Chromium launch arguments.",
           "format": "string"
@@ -153,6 +159,12 @@
           "default": "true"
         },
         {
+          "name": "CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH",
+          "description": "Resolve proxy GeoIP and match CloakBrowser timezone/locale fingerprint flags when PLAYWRIGHT_MCP_PROXY_SERVER is set.",
+          "format": "boolean",
+          "default": "false"
+        },
+        {
           "name": "CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS",
           "description": "Comma-separated or JSON array of extra Chromium launch arguments.",
           "format": "string"
@@ -197,6 +209,12 @@
           "default": "true"
         },
         {
+          "name": "CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH",
+          "description": "Resolve proxy GeoIP and match CloakBrowser timezone/locale fingerprint flags when PLAYWRIGHT_MCP_PROXY_SERVER is set.",
+          "format": "boolean",
+          "default": "false"
+        },
+        {
           "name": "CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS",
           "description": "Comma-separated or JSON array of extra Chromium launch arguments.",
           "format": "string"
@@ -239,6 +257,12 @@
           "description": "Patch upstream console message collection for CloakBrowser compatibility.",
           "format": "boolean",
           "default": "true"
+        },
+        {
+          "name": "CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH",
+          "description": "Resolve proxy GeoIP and match CloakBrowser timezone/locale fingerprint flags when PLAYWRIGHT_MCP_PROXY_SERVER is set.",
+          "format": "boolean",
+          "default": "false"
         },
         {
           "name": "CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS",

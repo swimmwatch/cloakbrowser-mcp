@@ -43,10 +43,19 @@ export interface StreamableHttpOptions {
   bodyLimitBytes: number;
 }
 
+export interface BridgeOptions {
+  geoipProxyMatch: boolean;
+}
+
 export interface CliOptions {
   transport: BridgeTransportMode;
+  bridge: BridgeOptions;
   http: StreamableHttpOptions;
 }
+
+export const defaultBridgeOptions: BridgeOptions = {
+  geoipProxyMatch: false,
+};
 
 export const defaultStreamableHttpOptions: StreamableHttpOptions = {
   protocol: HTTP_PROTOCOL_HTTP,

@@ -1,3 +1,4 @@
+export const BRIDGE_INITIALIZE_META_KEY = 'io.github.swimmwatch/cloakbrowser-mcp' as const;
 export const JSON_CONTENT_TYPE = 'application/json' as const;
 export const JSON_RPC_VERSION = '2.0' as const;
 export const MCP_SESSION_ID_HEADER = 'mcp-session-id' as const;
