@@ -1,4 +1,5 @@
 import { Command, InvalidArgumentError, Option } from 'commander';
+import { humanPresets, type HumanPreset } from '#src/bridge/config';
 import {
   BRIDGE_TRANSPORT_STDIO,
   HEALTHZ_PATH,
@@ -21,6 +22,8 @@ export const cliDescription = 'Playwright MCP bridge backed by CloakBrowser.';
 interface CommanderCliOptions {
   transport: BridgeTransportMode;
   geoipProxyMatch: boolean;
+  humanize: boolean;
+  humanPreset: HumanPreset;
   httpProtocol: HttpProtocol;
   httpHost: string;
   httpPort: number;
@@ -73,6 +76,23 @@ export const cliOptionDefinitions: readonly CliOptionDefinition[] = [
     env: 'CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH',
     group: 'Bridge',
     defaultValue: defaultBridgeOptions.geoipProxyMatch,
+  },
+  {
+    name: 'humanize',
+    flags: '--humanize',
+    description: 'Enable CloakBrowser human-like mouse, keyboard, and scroll behavior.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HUMANIZE',
+    group: 'Bridge',
+    defaultValue: defaultBridgeOptions.humanize,
+  },
+  {
+    name: 'humanPreset',
+    flags: '--human-preset <preset>',
+    description: 'CloakBrowser human behavior preset. Used only when humanize is enabled.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET',
+    group: 'Bridge',
+    defaultValue: defaultBridgeOptions.humanPreset,
+    choices: humanPresets,
   },
   {
     name: 'httpProtocol',
@@ -279,6 +299,8 @@ function toCliOptions(options: CommanderCliOptions): CliOptions {
     transport: options.transport,
     bridge: {
       geoipProxyMatch: normalizeBoolean(options.geoipProxyMatch),
+      humanize: normalizeBoolean(options.humanize),
+      humanPreset: options.humanPreset,
     },
     http: {
       protocol: options.httpProtocol,

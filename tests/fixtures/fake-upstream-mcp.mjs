@@ -44,6 +44,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (request.params.arguments?.includeProxyConfig === true) {
     value.proxyConfig = readProxyConfig();
   }
+  if (request.params.arguments?.includeHumanizeConfig === true) {
+    value.humanizeConfig = readHumanizeConfig();
+  }
+  if (request.params.arguments?.includeHeadlessConfig === true) {
+    value.headlessConfig = readHeadlessConfig();
+  }
   return {
     content: [{ type: 'text', text: JSON.stringify(value) }],
     structuredContent: value,
@@ -53,8 +59,31 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 await server.connect(new StdioServerTransport());
 
 function readProxyConfig() {
+  const config = readConfig();
+  return config?.browser?.launchOptions?.proxy ?? null;
+}
+
+function readHumanizeConfig() {
+  const config = readConfig();
+  const initPage = config?.browser?.initPage;
+  if (!Array.isArray(initPage)) return { enabled: false, initPageCount: 0 };
+  return {
+    enabled: initPage.some((value) => String(value).includes('humanize-init-page.cjs')),
+    initPageCount: initPage.length,
+    preset: process.env.CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET ?? null,
+  };
+}
+
+function readHeadlessConfig() {
+  const config = readConfig();
+  return {
+    env: process.env.PLAYWRIGHT_MCP_HEADLESS ?? null,
+    config: config?.browser?.launchOptions?.headless ?? null,
+  };
+}
+
+function readConfig() {
   const configPath = process.env.PLAYWRIGHT_MCP_CONFIG;
   if (!configPath) return null;
-  const config = JSON.parse(readFileSync(configPath, 'utf8'));
-  return config.browser?.launchOptions?.proxy ?? null;
+  return JSON.parse(readFileSync(configPath, 'utf8'));
 }

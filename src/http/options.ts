@@ -1,3 +1,5 @@
+import type { HumanPreset } from '#src/bridge/config';
+
 export const BRIDGE_TRANSPORT_STDIO = 'stdio' as const;
 export const BRIDGE_TRANSPORT_STREAMABLE_HTTP = 'streamable-http' as const;
 export const HTTP_PROTOCOL_HTTP = 'http' as const;
@@ -45,6 +47,8 @@ export interface StreamableHttpOptions {
 
 export interface BridgeOptions {
   geoipProxyMatch: boolean;
+  humanize: boolean;
+  humanPreset: HumanPreset;
 }
 
 export interface CliOptions {
@@ -55,6 +59,8 @@ export interface CliOptions {
 
 export const defaultBridgeOptions: BridgeOptions = {
   geoipProxyMatch: false,
+  humanize: false,
+  humanPreset: 'default',
 };
 
 export const defaultStreamableHttpOptions: StreamableHttpOptions = {

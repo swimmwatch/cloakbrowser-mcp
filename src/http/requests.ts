@@ -1,6 +1,11 @@
 import type { IncomingMessage } from 'node:http';
 import { isInitializeRequest, type InitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import type { BridgeRuntimeProxy, PrepareBridgeRuntimeOptions } from '#src/bridge/config';
+import {
+  parseHumanPreset,
+  type BridgeRuntimeProxy,
+  type HumanPreset,
+  type PrepareBridgeRuntimeOptions,
+} from '#src/bridge/config';
 import { formatHost } from '#src/http/nodeServer';
 import { type StreamableHttpOptions } from '#src/http/options';
 import { BRIDGE_INITIALIZE_META_KEY, JSON_CONTENT_TYPE } from '#src/protocol/constants';
@@ -56,7 +61,10 @@ export function containsInitializeRequest(value: unknown): boolean {
   return findInitializeRequest(value) !== undefined;
 }
 
-export type BridgeInitializeRuntimeOptions = Pick<PrepareBridgeRuntimeOptions, 'geoipProxyMatch' | 'proxy'>;
+export type BridgeInitializeRuntimeOptions = Pick<
+  PrepareBridgeRuntimeOptions,
+  'geoipProxyMatch' | 'headless' | 'humanize' | 'humanPreset' | 'proxy'
+>;
 
 export function readBridgeRuntimeOptionsFromInitialize(value: unknown): BridgeInitializeRuntimeOptions {
   const request = findInitializeRequest(value);
@@ -74,6 +82,9 @@ export function readBridgeRuntimeOptionsFromInitialize(value: unknown): BridgeIn
   const proxyServer = readOptionalString(bridgeMeta, 'proxyServer');
   const proxyBypass = readOptionalString(bridgeMeta, 'proxyBypass');
   const geoipProxyMatch = readOptionalBoolean(bridgeMeta, 'geoipProxyMatch');
+  const headless = readOptionalBoolean(bridgeMeta, 'headless');
+  const humanize = readOptionalBoolean(bridgeMeta, 'humanize');
+  const humanPreset = readOptionalHumanPreset(bridgeMeta, 'humanPreset');
   if (proxyBypass !== undefined && proxyServer === undefined) {
     throw new InvalidBridgeInitializeMetaError('proxyBypass requires proxyServer');
   }
@@ -81,6 +92,9 @@ export function readBridgeRuntimeOptionsFromInitialize(value: unknown): BridgeIn
   const proxy = proxyServer === undefined ? undefined : createRuntimeProxy(proxyServer, proxyBypass);
   return {
     ...(geoipProxyMatch === undefined ? {} : { geoipProxyMatch }),
+    ...(headless === undefined ? {} : { headless }),
+    ...(humanize === undefined ? {} : { humanize }),
+    ...(humanPreset === undefined ? {} : { humanPreset }),
     ...(proxy === undefined ? {} : { proxy }),
   };
 }
@@ -120,6 +134,19 @@ function readOptionalBoolean(value: Record<string, unknown>, key: string): boole
     throw new InvalidBridgeInitializeMetaError(`${key} must be a boolean`);
   }
   return raw;
+}
+
+function readOptionalHumanPreset(value: Record<string, unknown>, key: string): HumanPreset | undefined {
+  if (!(key in value)) return undefined;
+  const raw = value[key];
+  if (typeof raw !== 'string') {
+    throw new InvalidBridgeInitializeMetaError(`${key} must be "default" or "careful"`);
+  }
+  try {
+    return parseHumanPreset(raw.trim());
+  } catch {
+    throw new InvalidBridgeInitializeMetaError(`${key} must be "default" or "careful"`);
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

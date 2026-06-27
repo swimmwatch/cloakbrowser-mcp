@@ -25,6 +25,7 @@ export default tseslint.config(
             '*.mjs',
             'scripts/*.mjs',
             'scripts/lib/*.mjs',
+            'src/runtime/*.cjs',
             'tests/fixtures/*.mjs',
           ],
         },
@@ -79,6 +80,15 @@ export default tseslint.config(
     rules: {
       'no-console': 'off',
       '@typescript-eslint/unbound-method': 'off',
+    },
+  },
+  {
+    files: ['src/runtime/*.cjs'],
+    languageOptions: {
+      globals: {
+        module: 'readonly',
+        process: 'readonly',
+      },
     },
   },
   {

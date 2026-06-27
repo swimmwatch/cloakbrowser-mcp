@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -150,6 +150,77 @@ describe('streamable HTTP bridge', () => {
     });
   });
 
+  it('applies independent runtime humanize metadata per HTTP session', async () => {
+    await withFakeUpstream(
+      async () => {
+        process.env.CLOAK_PLAYWRIGHT_MCP_HUMANIZE = 'true';
+        const server = await startHttpBridge({ sessionMax: 4 });
+        const disabledSessionId = await initializeRawHttpSession(server, { humanize: false });
+        const defaultSessionId = await initializeRawHttpSession(server);
+        const enabledSessionId = await initializeRawHttpSession(server, { humanize: true });
+
+        await expectHumanizeConfig(server, disabledSessionId, { enabled: false, initPageCount: 0 });
+        await expectHumanizeConfig(server, defaultSessionId, {
+          enabled: true,
+          initPageCount: 1,
+          preset: 'default',
+        });
+        await expectHumanizeConfig(server, enabledSessionId, {
+          enabled: true,
+          initPageCount: 1,
+          preset: 'default',
+        });
+      },
+      { browserEngine: 'cloak' },
+    );
+  });
+
+  it('applies independent runtime human preset metadata per HTTP session sequentially', async () => {
+    await withFakeUpstream(
+      async () => {
+        process.env.CLOAK_PLAYWRIGHT_MCP_HUMANIZE = 'true';
+        process.env.CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET = 'careful';
+        const server = await startHttpBridge({ sessionMax: 3 });
+
+        const defaultSessionId = await initializeRawHttpSession(server, { humanPreset: 'default' });
+        await expectHumanizeConfig(server, defaultSessionId, {
+          enabled: true,
+          initPageCount: 1,
+          preset: 'default',
+        });
+
+        const carefulSessionId = await initializeRawHttpSession(server, { humanPreset: 'careful' });
+        await expectHumanizeConfig(server, carefulSessionId, {
+          enabled: true,
+          initPageCount: 1,
+          preset: 'careful',
+        });
+
+        const inheritedSessionId = await initializeRawHttpSession(server);
+        await expectHumanizeConfig(server, inheritedSessionId, {
+          enabled: true,
+          initPageCount: 1,
+          preset: 'careful',
+        });
+      },
+      { browserEngine: 'cloak' },
+    );
+  });
+
+  it('applies independent runtime headless metadata per HTTP session', async () => {
+    await withFakeUpstream(async () => {
+      process.env.PLAYWRIGHT_MCP_HEADLESS = 'true';
+      const server = await startHttpBridge({ sessionMax: 3 });
+      const [headedSessionId, headlessSessionId] = await Promise.all([
+        initializeRawHttpSession(server, { headless: false }),
+        initializeRawHttpSession(server, { headless: true }),
+      ]);
+
+      await expectHeadlessConfig(server, headedSessionId, { env: 'false', config: false });
+      await expectHeadlessConfig(server, headlessSessionId, { env: 'true', config: true });
+    });
+  });
+
   it('falls back to environment proxy configuration without runtime metadata', async () => {
     await withFakeUpstream(async () => {
       process.env.PLAYWRIGHT_MCP_PROXY_SERVER = 'http://env.example:8080';
@@ -191,6 +262,17 @@ describe('streamable HTTP bridge', () => {
       const response = await postJsonRpc(server.url, createInitializeRequest({ proxyServer: ' ' }));
       expect(response.status).toBe(HttpStatus.BadRequest);
       expect(response.headers.get(MCP_SESSION_ID_HEADER)).toBeNull();
+
+      const headlessResponse = await postJsonRpc(server.url, createInitializeRequest({ headless: 'false' }));
+      expect(headlessResponse.status).toBe(HttpStatus.BadRequest);
+      expect(headlessResponse.headers.get(MCP_SESSION_ID_HEADER)).toBeNull();
+
+      const humanPresetResponse = await postJsonRpc(
+        server.url,
+        createInitializeRequest({ humanPreset: 'fast' }),
+      );
+      expect(humanPresetResponse.status).toBe(HttpStatus.BadRequest);
+      expect(humanPresetResponse.headers.get(MCP_SESSION_ID_HEADER)).toBeNull();
 
       const ready = await fetchReady(server.url);
       const body = (await ready.json()) as {
@@ -397,6 +479,62 @@ async function expectProxyConfig(
   expect(body.result?.structuredContent?.proxyConfig).toEqual(expected);
 }
 
+async function expectHumanizeConfig(
+  server: StreamableHttpBridgeServer,
+  sessionId: string,
+  expected: { enabled: boolean; initPageCount: number; preset?: string },
+): Promise<void> {
+  const response = await postJsonRpc(
+    server.url,
+    {
+      jsonrpc: JSON_RPC_VERSION,
+      id: crypto.randomUUID(),
+      method: 'tools/call',
+      params: {
+        name: 'browser_navigate',
+        arguments: {
+          url: 'https://example.com',
+          includeHumanizeConfig: true,
+        },
+      },
+    },
+    sessionId,
+  );
+  expect(response.status).toBe(HttpStatus.Ok);
+  const body = (await readJsonRpcResponse(response)) as {
+    result?: { structuredContent?: { humanizeConfig?: unknown } };
+  };
+  expect(body.result?.structuredContent?.humanizeConfig).toEqual(expected);
+}
+
+async function expectHeadlessConfig(
+  server: StreamableHttpBridgeServer,
+  sessionId: string,
+  expected: { env: string; config: boolean },
+): Promise<void> {
+  const response = await postJsonRpc(
+    server.url,
+    {
+      jsonrpc: JSON_RPC_VERSION,
+      id: crypto.randomUUID(),
+      method: 'tools/call',
+      params: {
+        name: 'browser_navigate',
+        arguments: {
+          url: 'https://example.com',
+          includeHeadlessConfig: true,
+        },
+      },
+    },
+    sessionId,
+  );
+  expect(response.status).toBe(HttpStatus.Ok);
+  const body = (await readJsonRpcResponse(response)) as {
+    result?: { structuredContent?: { headlessConfig?: unknown } };
+  };
+  expect(body.result?.structuredContent?.headlessConfig).toEqual(expected);
+}
+
 function createInitializeRequest(bridgeMeta?: Record<string, unknown>): Record<string, unknown> {
   return {
     jsonrpc: JSON_RPC_VERSION,
@@ -444,13 +582,20 @@ async function readJsonRpcResponse(response: Response): Promise<unknown> {
   return JSON.parse(data) as unknown;
 }
 
-async function withFakeUpstream(fn: () => Promise<void>): Promise<void> {
+async function withFakeUpstream(
+  fn: () => Promise<void>,
+  options: { browserEngine?: 'cloak' | 'playwright' } = {},
+): Promise<void> {
   const root = createTempRoot();
   const previous = {
     cli: process.env.PLAYWRIGHT_MCP_CLI_PATH,
     engine: process.env.PLAYWRIGHT_MCP_BROWSER_ENGINE,
     outputDir: process.env.PLAYWRIGHT_MCP_OUTPUT_DIR,
+    headless: process.env.PLAYWRIGHT_MCP_HEADLESS,
     fallback: process.env.CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK,
+    humanize: process.env.CLOAK_PLAYWRIGHT_MCP_HUMANIZE,
+    humanPreset: process.env.CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET,
+    binaryPath: process.env.CLOAKBROWSER_BINARY_PATH,
     proxyServer: process.env.PLAYWRIGHT_MCP_PROXY_SERVER,
     proxyBypass: process.env.PLAYWRIGHT_MCP_PROXY_BYPASS,
   };
@@ -458,9 +603,14 @@ async function withFakeUpstream(fn: () => Promise<void>): Promise<void> {
   process.env.PLAYWRIGHT_MCP_CLI_PATH = fileURLToPath(
     new URL('../fixtures/fake-upstream-mcp.mjs', import.meta.url),
   );
-  process.env.PLAYWRIGHT_MCP_BROWSER_ENGINE = 'playwright';
+  process.env.PLAYWRIGHT_MCP_BROWSER_ENGINE = options.browserEngine ?? 'playwright';
   process.env.PLAYWRIGHT_MCP_OUTPUT_DIR = path.join(root, 'out');
   process.env.CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK = 'false';
+  if (options.browserEngine === 'cloak') {
+    const fakeBinaryPath = path.join(root, process.platform === 'win32' ? 'fake-chrome.exe' : 'fake-chrome');
+    writeFileSync(fakeBinaryPath, '');
+    process.env.CLOAKBROWSER_BINARY_PATH = fakeBinaryPath;
+  }
 
   try {
     await fn();
@@ -468,7 +618,11 @@ async function withFakeUpstream(fn: () => Promise<void>): Promise<void> {
     restoreEnv('PLAYWRIGHT_MCP_CLI_PATH', previous.cli);
     restoreEnv('PLAYWRIGHT_MCP_BROWSER_ENGINE', previous.engine);
     restoreEnv('PLAYWRIGHT_MCP_OUTPUT_DIR', previous.outputDir);
+    restoreEnv('PLAYWRIGHT_MCP_HEADLESS', previous.headless);
     restoreEnv('CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK', previous.fallback);
+    restoreEnv('CLOAK_PLAYWRIGHT_MCP_HUMANIZE', previous.humanize);
+    restoreEnv('CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET', previous.humanPreset);
+    restoreEnv('CLOAKBROWSER_BINARY_PATH', previous.binaryPath);
     restoreEnv('PLAYWRIGHT_MCP_PROXY_SERVER', previous.proxyServer);
     restoreEnv('PLAYWRIGHT_MCP_PROXY_BYPASS', previous.proxyBypass);
   }

@@ -14,6 +14,7 @@ GHCR image: https://github.com/swimmwatch/cloakbrowser-mcp/pkgs/container/cloakb
 - Docker: https://swimmwatch.github.io/cloakbrowser-mcp/docker/
 - Configuration: https://swimmwatch.github.io/cloakbrowser-mcp/configuration/
 - GeoIP Proxy Matching: https://swimmwatch.github.io/cloakbrowser-mcp/geoip-proxy-matching/
+- Humanized Input Behavior: https://swimmwatch.github.io/cloakbrowser-mcp/humanized-input-behavior/
 - CLI Reference: https://swimmwatch.github.io/cloakbrowser-mcp/generated/cli/
 - Tools: https://swimmwatch.github.io/cloakbrowser-mcp/tools/
 - Security: https://swimmwatch.github.io/cloakbrowser-mcp/security/
@@ -107,9 +108,19 @@ Stdio mode does not emit routine operational logs to stdout, so MCP JSON-RPC rem
 
 Set `PLAYWRIGHT_MCP_PROXY_SERVER` and `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` to align CloakBrowser timezone, language, and locale fingerprint flags with the proxy location while leaving proxy routing delegated to upstream Playwright MCP.
 
-Streamable HTTP clients can override proxy settings per MCP session with `initialize.params._meta["io.github.swimmwatch/cloakbrowser-mcp"]`. Supported fields are `proxyServer`, `proxyBypass`, and `geoipProxyMatch`. Existing HTTP sessions keep their initialization proxy settings; create a new session to switch regions.
+Streamable HTTP clients can override selected settings per MCP session with `initialize.params._meta["io.github.swimmwatch/cloakbrowser-mcp"]`. Supported fields include `proxyServer`, `proxyBypass`, `geoipProxyMatch`, `headless`, `humanize`, and `humanPreset`. Existing HTTP sessions keep their initialization settings; create a new session to switch regions, headed/headless mode, or humanized behavior.
 
 Use GeoIP proxy matching for localization QA, regional landing page checks, commerce flows, support reproduction, and timezone-sensitive automation. It does not provide a proxy service, does not configure browser geolocation coordinates, and should not be treated as a bypass for access controls or regional policy checks.
+
+## Humanized Input Behavior
+
+Set `CLOAK_PLAYWRIGHT_MCP_HUMANIZE=true` or pass `humanize` in Streamable HTTP initialize metadata to enable CloakBrowser's human-like mouse, keyboard, and scroll behavior for page interactions. Set `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET=default|careful` or runtime `humanPreset` to select the preset; `humanPreset` does not enable humanized behavior by itself.
+
+Use humanized input behavior for form QA, checkout flows, interaction-sensitive UI tests, scroll-heavy pages, and demos where realistic pacing matters. It does not change upstream Playwright MCP tool schemas and is available only when the bridge runs with the CloakBrowser engine. Custom `humanConfig` objects are not supported yet because they need explicit schema validation.
+
+## Runtime Headless Mode
+
+Set `PLAYWRIGHT_MCP_HEADLESS` globally or pass `headless` in Streamable HTTP initialize metadata to choose headed or headless browser mode per session. Use `headless: false` only where a usable display environment is available, such as a local desktop session, Xvfb, or an equivalent container display setup.
 
 ## Tool Surface
 

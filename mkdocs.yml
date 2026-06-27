@@ -1,5 +1,5 @@
 site_name: CloakBrowser MCP
-site_description: CloakBrowser MCP is a Playwright MCP bridge for Model Context Protocol browser automation with CloakBrowser, Docker, Streamable HTTP, and GeoIP-aware proxy sessions.
+site_description: CloakBrowser MCP is a Playwright MCP bridge for Model Context Protocol browser automation with CloakBrowser, Docker, Streamable HTTP, GeoIP-aware proxy sessions, and humanized input behavior.
 site_url: https://swimmwatch.github.io/cloakbrowser-mcp/
 site_author: swimmwatch
 repo_url: https://github.com/swimmwatch/cloakbrowser-mcp
@@ -33,6 +33,7 @@ theme:
       docker: fontawesome/brands/docker
       config: material/tune
       geoip: material/map-marker-radius
+      humanize: material/gesture-tap
       proxy: material/lan-connect
       tools: material/tools
       security: material/shield-lock
@@ -127,6 +128,7 @@ nav:
       - Version Compatibility: version-compatibility.md
       - Configuration: configuration.md
       - GeoIP Proxy Matching: geoip-proxy-matching.md
+      - Humanized Input Behavior: humanized-input-behavior.md
       - CLI Reference: generated/cli.md
       - Tools: tools.md
       - Security: security.md
@@ -194,6 +196,7 @@ extra:
     Docker: docker
     Configuration: config
     GeoIP: geoip
+    Humanize: humanize
     Proxy: proxy
     Tools: tools
     Security: security
