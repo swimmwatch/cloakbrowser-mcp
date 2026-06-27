@@ -43,9 +43,6 @@ theme:
       release: material/tag-check
       docs: material/file-document-multiple
   features:
-    - navigation.instant
-    - navigation.instant.prefetch
-    - navigation.instant.progress
     - navigation.tracking
     - navigation.tabs
     - navigation.tabs.sticky
@@ -81,6 +78,256 @@ theme:
         name: Switch to light mode
 
 plugins:
+  - i18n:
+      docs_structure: suffix
+      fallback_to_default: true
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: en
+          name: English
+          build: true
+          default: true
+        - locale: ru
+          name: Русский
+          build: true
+          nav_translations:
+            Overview: Обзор
+            User Guide: Руководство пользователя
+            Getting Started: Начало работы
+            Docker: Docker
+            Version Compatibility: Совместимость версий
+            Configuration: Конфигурация
+            GeoIP Proxy Matching: Сопоставление GeoIP прокси
+            Humanized Input Behavior: Человекообразный ввод
+            CLI Reference: Справочник CLI
+            Tools: Инструменты
+            Security: Безопасность
+            FAQ: Вопросы и ответы
+            Tags: Теги
+            Project Internals: Устройство проекта
+            Contributor Guide: Руководство участника
+            Development: Разработка
+            Testing: Тестирование
+            Architecture: Архитектура
+            Release: Релиз
+            Contributing: Участие
+        - locale: be
+          name: Беларуская
+          build: true
+          nav_translations:
+            Overview: Агляд
+            User Guide: Кіраўніцтва карыстальніка
+            Getting Started: Пачатак працы
+            Docker: Docker
+            Version Compatibility: Сумяшчальнасць версій
+            Configuration: Канфігурацыя
+            GeoIP Proxy Matching: Супастаўленне GeoIP проксі
+            Humanized Input Behavior: Чалавекападобны ўвод
+            CLI Reference: Даведнік CLI
+            Tools: Інструменты
+            Security: Бяспека
+            FAQ: Пытанні і адказы
+            Tags: Тэгі
+            Project Internals: Унутраная будова праекта
+            Contributor Guide: Кіраўніцтва ўдзельніка
+            Development: Распрацоўка
+            Testing: Тэставанне
+            Architecture: Архітэктура
+            Release: Выпуск
+            Contributing: Удзел
+        - locale: uk
+          name: Українська
+          build: true
+          nav_translations:
+            Overview: Огляд
+            User Guide: Посібник користувача
+            Getting Started: Початок роботи
+            Docker: Docker
+            Version Compatibility: Сумісність версій
+            Configuration: Конфігурація
+            GeoIP Proxy Matching: Зіставлення GeoIP проксі
+            Humanized Input Behavior: Людиноподібне введення
+            CLI Reference: Довідник CLI
+            Tools: Інструменти
+            Security: Безпека
+            FAQ: Запитання й відповіді
+            Tags: Теги
+            Project Internals: Внутрішня будова проєкту
+            Contributor Guide: Посібник учасника
+            Development: Розробка
+            Testing: Тестування
+            Architecture: Архітектура
+            Release: Реліз
+            Contributing: Участь
+        - locale: es
+          name: Español
+          build: true
+          nav_translations:
+            Overview: Resumen
+            User Guide: Guía de usuario
+            Getting Started: Primeros pasos
+            Docker: Docker
+            Version Compatibility: Compatibilidad de versiones
+            Configuration: Configuración
+            GeoIP Proxy Matching: Correspondencia GeoIP del proxy
+            Humanized Input Behavior: Entrada humanizada
+            CLI Reference: Referencia CLI
+            Tools: Herramientas
+            Security: Seguridad
+            FAQ: Preguntas frecuentes
+            Tags: Etiquetas
+            Project Internals: Internos del proyecto
+            Contributor Guide: Guía para colaboradores
+            Development: Desarrollo
+            Testing: Pruebas
+            Architecture: Arquitectura
+            Release: Lanzamiento
+            Contributing: Contribuir
+        - locale: pt-BR
+          name: Português (Brasil)
+          build: true
+          nav_translations:
+            Overview: Visão geral
+            User Guide: Guia do usuário
+            Getting Started: Primeiros passos
+            Docker: Docker
+            Version Compatibility: Compatibilidade de versões
+            Configuration: Configuração
+            GeoIP Proxy Matching: Correspondência GeoIP do proxy
+            Humanized Input Behavior: Entrada humanizada
+            CLI Reference: Referência da CLI
+            Tools: Ferramentas
+            Security: Segurança
+            FAQ: Perguntas frequentes
+            Tags: Tags
+            Project Internals: Internos do projeto
+            Contributor Guide: Guia para colaboradores
+            Development: Desenvolvimento
+            Testing: Testes
+            Architecture: Arquitetura
+            Release: Lançamento
+            Contributing: Contribuição
+        - locale: zh
+          name: 简体中文
+          build: true
+          nav_translations:
+            Overview: 概览
+            User Guide: 用户指南
+            Getting Started: 快速开始
+            Docker: Docker
+            Version Compatibility: 版本兼容性
+            Configuration: 配置
+            GeoIP Proxy Matching: GeoIP 代理匹配
+            Humanized Input Behavior: 人性化输入行为
+            CLI Reference: CLI 参考
+            Tools: 工具
+            Security: 安全
+            FAQ: 常见问题
+            Tags: 标签
+            Project Internals: 项目内部
+            Contributor Guide: 贡献者指南
+            Development: 开发
+            Testing: 测试
+            Architecture: 架构
+            Release: 发布
+            Contributing: 贡献
+        - locale: ja
+          name: 日本語
+          build: true
+          nav_translations:
+            Overview: 概要
+            User Guide: ユーザーガイド
+            Getting Started: はじめに
+            Docker: Docker
+            Version Compatibility: バージョン互換性
+            Configuration: 設定
+            GeoIP Proxy Matching: GeoIP プロキシ照合
+            Humanized Input Behavior: 人間らしい入力動作
+            CLI Reference: CLI リファレンス
+            Tools: ツール
+            Security: セキュリティ
+            FAQ: よくある質問
+            Tags: タグ
+            Project Internals: プロジェクト内部
+            Contributor Guide: コントリビューターガイド
+            Development: 開発
+            Testing: テスト
+            Architecture: アーキテクチャ
+            Release: リリース
+            Contributing: コントリビュート
+        - locale: de
+          name: Deutsch
+          build: true
+          nav_translations:
+            Overview: Überblick
+            User Guide: Benutzerhandbuch
+            Getting Started: Erste Schritte
+            Docker: Docker
+            Version Compatibility: Versionskompatibilität
+            Configuration: Konfiguration
+            GeoIP Proxy Matching: GeoIP-Proxy-Abgleich
+            Humanized Input Behavior: Humanisiertes Eingabeverhalten
+            CLI Reference: CLI-Referenz
+            Tools: Werkzeuge
+            Security: Sicherheit
+            FAQ: FAQ
+            Tags: Tags
+            Project Internals: Projektinternes
+            Contributor Guide: Leitfaden für Mitwirkende
+            Development: Entwicklung
+            Testing: Tests
+            Architecture: Architektur
+            Release: Release
+            Contributing: Mitwirken
+        - locale: fr
+          name: Français
+          build: true
+          nav_translations:
+            Overview: Vue d'ensemble
+            User Guide: Guide utilisateur
+            Getting Started: Premiers pas
+            Docker: Docker
+            Version Compatibility: Compatibilité des versions
+            Configuration: Configuration
+            GeoIP Proxy Matching: Correspondance GeoIP du proxy
+            Humanized Input Behavior: Saisie humanisée
+            CLI Reference: Référence CLI
+            Tools: Outils
+            Security: Sécurité
+            FAQ: FAQ
+            Tags: Tags
+            Project Internals: Internes du projet
+            Contributor Guide: Guide de contribution
+            Development: Développement
+            Testing: Tests
+            Architecture: Architecture
+            Release: Publication
+            Contributing: Contribuer
+        - locale: hi
+          name: हिन्दी
+          build: true
+          nav_translations:
+            Overview: अवलोकन
+            User Guide: उपयोगकर्ता मार्गदर्शिका
+            Getting Started: शुरुआत करें
+            Docker: Docker
+            Version Compatibility: संस्करण संगतता
+            Configuration: कॉन्फ़िगरेशन
+            GeoIP Proxy Matching: GeoIP प्रॉक्सी मिलान
+            Humanized Input Behavior: मानवीय इनपुट व्यवहार
+            CLI Reference: CLI संदर्भ
+            Tools: टूल
+            Security: सुरक्षा
+            FAQ: सामान्य प्रश्न
+            Tags: टैग
+            Project Internals: परियोजना आंतरिक
+            Contributor Guide: योगदानकर्ता मार्गदर्शिका
+            Development: विकास
+            Testing: परीक्षण
+            Architecture: आर्किटेक्चर
+            Release: रिलीज़
+            Contributing: योगदान
   - meta
   - search:
       lang: en

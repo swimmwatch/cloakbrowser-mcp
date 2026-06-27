@@ -1,0 +1,131 @@
+---
+description: Запустите образ CloakBrowser MCP в Docker для воспроизводимой автоматизации браузера Playwright MCP с помощью CloakBrowser.
+icon: fontawesome/brands/docker
+tags:
+  - Docker
+  - User Guide
+---
+
+# Docker
+
+Опубликованный образ представляет собой рекомендуемую среду выполнения для стабильного использования MCP.
+
+## Запустить
+
+```bash
+docker run --rm --init -i \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Артефакты записываются в `/data` в контейнере. Подключите этот путь, чтобы сохранять скриншоты, моментальные снимки, загруженные файлы и сетевые выводы.
+
+`--init` рекомендуется к использованию, поскольку при автоматизации работы браузера могут создаваться кратковременные дочерние процессы. Процесс инициализации Docker аккуратно завершает работу этих дочерних процессов.
+
+Те же самые теги версий публикуются на Docker Hub как `swimmwatch/cloakbrowser-mcp`, а на GHCR — как `ghcr.io/swimmwatch/cloakbrowser-mcp`.
+
+## HTTP с возможностью потоковой передачи
+
+Для локального использования Streamable по протоколу HTTP необходимо открыть доступ к порту контейнера через loopback:
+
+```bash
+docker run --rm --init -p 127.0.0.1:3000:3000 \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http --http-host 0.0.0.0 --http-port 3000
+
+curl http://127.0.0.1:3000/healthz
+curl http://127.0.0.1:3000/readyz
+```
+
+Для прямого подключения по HTTPS из контейнера смонтируйте файлы сертификатов и выберите HTTPS:
+
+```bash
+docker run --rm --init -p 127.0.0.1:3000:3000 \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/certs:/certs:ro" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http --http-host 0.0.0.0 --http-port 3000 \
+  --http-protocol https --https-cert /certs/cert.pem --https-key /certs/key.pem
+```
+
+Привязка `127.0.0.1:3000` на стороне хоста обеспечивает локальность конечной точки. Если вы публикуете Streamable HTTP на интерфейсе, отличном от loopback, используйте HTTPS с аутентификацией или разместите сервер за доверенным обратным прокси-сервером с терминацией TLS, аутентификацией и средствами управления сетью.
+Streamable HTTP предоставляет фиксированные пробы `GET /healthz` и `GET /readyz` на одном и том же хосте и порту. Если настроены `--http-auth-token` или `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN`, пробы должны использовать тот же заголовок `Authorization: Bearer ...`, что и запросы MCP.
+См. сгенерированное [Руководство по CLI](generated/cli.md) для ознакомления со всеми флагами HTTP-транспорта и переменными среды.
+
+## Сопоставление прокси-серверов по GeoIP
+
+Docker использует те же переменные среды прокси и GeoIP, что и npm. Включите
+сопоставление прокси по GeoIP, если региональному отделу контроля качества требуется, чтобы отпечатки часового пояса, языка и
+локали CloakBrowser соответствовали настроенному местоположению прокси:
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
+  -e CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Для прокси-серверов, требующих аутентификации, встройте учетные данные в URL-адрес прокси и закодируйте специальные символы в имени пользователя или пароле с помощью кодировки «процент»
+.
+
+Когда контейнер запускает Streamable HTTP, клиенты также могут выбирать различные
+прокси для каждого сеанса MCP с помощью метаданных `initialize`. См.
+[Сопоставление прокси по GeoIP](geoip-proxy-matching.md) для получения информации о метаданных прокси во время выполнения,
+сценариях использования в нескольких регионах и ограничениях.
+
+## Значения по умолчанию
+
+| Variable | Default |
+| --- | --- |
+| `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` |
+| `PLAYWRIGHT_MCP_HEADLESS` | `true` |
+| `PLAYWRIGHT_MCP_OUTPUT_DIR` | `/data` |
+| `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` |
+| `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_PORT` | `3000` |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_ENDPOINT` | `/mcp` |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` | unset |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_BACKEND` | `memory` |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_IDLE_TTL_MS` | `3600000` |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` |
+| `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` |
+| `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` |
+| `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` |
+| `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` |
+| `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` |
+
+## Настройки клиента MCP
+
+```json
+{
+  "mcpServers": {
+    "cloakbrowser": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "--init",
+        "-i",
+        "-v",
+        "/tmp/cloakbrowser-artifacts:/data",
+        "swimmwatch/cloakbrowser-mcp:latest"
+      ]
+    }
+  }
+}
+```
+
+## Сборка локально
+
+```bash
+npm run docker:build
+npm run docker:smoke
+```
+
+Файл Dockerfile использует зафиксированный официальный образ Playwright MCP в качестве базы для среды выполнения, применяет доступные обновления безопасности Debian во время сборки, удаляет неиспользуемые глобальные компоненты npm из образа среды выполнения и устанавливает мост под именем `/opt/cloakbrowser-mcp`.
+
+В рамках рабочего процесса выпуска публикуются SBOM и сертификаты происхождения, добавляются метки OCI, содержащие информацию об источнике, ревизии, версии, лицензии, названии базового образа и хеше базового образа, а также перед публикацией выполняется сканирование скомпилированного образа с помощью Trivy.

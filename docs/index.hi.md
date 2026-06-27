@@ -1,0 +1,93 @@
+---
+description: CloakBrowser MCP, CloakBrowser, Docker, Streamable HTTP, GeoIP-aware प्रॉक्सी सत्रों, और मानवीकृत इनपुट व्यवहार के साथ ब्राउज़र ऑटोमेशन के लिए एक Playwright MCP ब्रिज है।
+icon: material/home
+tags:
+  - User Guide
+---
+
+<p class="clb-hero-logo" align="center">
+  <img src="/cloakbrowser-mcp/assets/brand/logo-wordmark.svg" alt="CloakBrowser MCP" width="620" />
+</p>
+
+<p class="clb-hero-actions" align="center">
+  <a class="md-button md-button--primary" href="getting-started/">शुरू करें</a>
+  <a class="md-button" href="tools/">टूल</a>
+  <a class="md-button" href="docker/">Docker</a>
+</p>
+
+# क्लोकब्राउज़र एमसीपी सर्वर
+
+`cloakbrowser-mcp` एक Model Context Protocol browser automation server है, जो CloakBrowser Chromium binary के साथ upstream `@playwright/mcp` चलाता है। इसका उपयोग तब करें जब आपको Playwright MCP-compatible browser tools, CloakBrowser चलाना, npm installation, Docker इमेज, Streamable HTTP sessions, regional QA के लिए GeoIP-aware proxy मिलान या interaction-sensitive flows के लिए मानवीय input behavior चाहिए।
+
+वर्तमान संस्करण: <!-- project-version -->v1.4.0<!-- /project-version -->.
+
+## संस्करण अनुकूलता
+
+<!-- compatibility-table:start -->
+
+| cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base                 | CloakBrowser | Transport              | Parity         |
+| ---------------- | --------------- | ------------------------------------------ | ------------ | ---------------------- | -------------- |
+| `1.4.0`          | `^0.0.76`       | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.3.32`    | stdio, Streamable HTTP | CI में तुलना की गई |
+| `1.3.0`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.31`    | stdio, Streamable HTTP | CI में तुलना की गई |
+| `1.2.7`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio, Streamable HTTP | CI में तुलना की गई |
+| `1.2.6`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio, Streamable HTTP | CI में तुलना की गई |
+| `1.2.5`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio, Streamable HTTP | CI में तुलना की गई |
+| `1.2.3`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio, Streamable HTTP | CI में तुलना की गई |
+| `1.2.2`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio, Streamable HTTP | CI में तुलना की गई |
+| `1.2.1`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio, Streamable HTTP | CI में तुलना की गई |
+| `1.2.0`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio, Streamable HTTP | CI में तुलना की गई |
+| `1.1.0`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio, Streamable HTTP | CI में तुलना की गई |
+| `1.0.2`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio                  | CI में तुलना की गई |
+| `1.0.1`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio                  | CI में तुलना की गई |
+| `1.0.0`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio                  | CI में तुलना की गई |
+
+<!-- compatibility-table:end -->
+
+इस प्रोजेक्ट की SemVer रिलीज़ों और अपस्ट्रीम Playwright MCP वर्ज़नों के बीच बनाए गए मैपिंग के लिए [संस्करण अनुकूलता](version-compatibility.md) देखें।
+
+## यह क्या है
+
+<div class="grid cards" markdown>
+
+- :material-connection: **ब्रिज रनटाइम**
+
+  upstream Playwright MCP को child process के रूप में शुरू करता है और browser tool calls को बिना बदले आगे भेजता है।
+
+- :material-incognito: **CloakBrowser निष्पादन**
+
+  `launchOptions.executablePath` को CloakBrowser पर सेट करके Playwright MCP configuration बनाता है।
+
+- :fontawesome-brands-node-js: **npm CLI**
+
+  stdio और Streamable HTTP MCP clients के लिए हल्के Node.js CLI package के रूप में प्रकाशित है।
+
+- :fontawesome-brands-docker: **Docker इमेज**
+
+  आधिकारिक Playwright MCP image पर आधारित है और CloakBrowser binary cache को पहले से load करता है।
+
+- :material-map-marker-radius: **GeoIP प्रॉक्सी मिलान**
+
+  CloakBrowser के timezone, language और locale fingerprint flags को configured proxy location से मिलाता है।
+
+- :material-gesture-tap: **मानवीय इनपुट व्यवहार**
+
+  Page interactions को CloakBrowser की human-like mouse, keyboard और scroll layer से गुजारता है।
+
+</div>
+
+## टूल सतह
+
+अपस्ट्रीम Playwright MCP टूल कॉन्ट्रैक्ट्स प्रामाणिक हैं। यह प्रोजेक्ट केवल दो स्थानीय अंतर्दृष्टि टूल्स जोड़ता है:
+
+- `cloakbrowser_binary_info`
+- `cloakbrowser_bridge_info`
+
+अगले कदम
+
+- npm, Docker, और MCP क्लाइंट कॉन्फ़िगरेशन के लिए [शुरुआत करना](getting-started.md).
+- समर्थित पर्यावरण चर के लिए [कॉन्फ़िगरेशन](configuration.md).
+- [GeoIP प्रॉक्सी मिलान](geoip-proxy-matching.md) क्षेत्रीय QA, रनटाइम प्रॉक्सी मेटाडेटा, और बहु-स्थान स्ट्रीम करने योग्य HTTP सत्रों के लिए।
+- [मानवीकृत इनपुट व्यवहार](humanized-input-behavior.md) इंटरैक्शन यथार्थवाद, सेटअप, और उपयोग के मामलों के लिए।
+- [टूल्स](tools.md) टूल-सर्फेस अपेक्षाओं और अपस्ट्रीम समता के लिए।
+- [FAQ](faq.md) सामान्य इंस्टॉलेशन, डॉकर, पेरिटी और सुरक्षा प्रश्नों के लिए।
+- [योगदानकर्ता गाइड](contributor-guide.md) विकास, परीक्षण, वास्तुकला, और रिलीज़ विवरण के लिए।

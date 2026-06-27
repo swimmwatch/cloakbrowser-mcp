@@ -70,8 +70,10 @@
     "docker:smoke": "docker run --rm --init cloakbrowser-mcp:dev --help",
     "bridge:compare": "node scripts/compare-playwright-mcp-bridge.mjs",
     "upstream:check": "node scripts/check-playwright-mcp-updates.mjs",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm run docs:compatibility:check && npm run server:validate && npm run build && npm test && npm run test:e2e:run",
-    "check:ci": "npm run check && npm run audit:prod && npm run test:coverage"
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run docs:compatibility:check && npm run docs:translations:check && npm run server:validate && npm run build && npm test && npm run test:e2e:run",
+    "check:ci": "npm run check && npm run audit:prod && npm run test:coverage",
+    "docs:translations": "node scripts/update-doc-translations.mjs",
+    "docs:translations:check": "node scripts/update-doc-translations.mjs --check"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.0",

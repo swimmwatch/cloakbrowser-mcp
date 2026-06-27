@@ -6,7 +6,7 @@ tags:
 ---
 
 <p class="clb-hero-logo" align="center">
-  <img src="assets/brand/logo-wordmark.svg" alt="CloakBrowser MCP" width="620" />
+  <img src="/cloakbrowser-mcp/assets/brand/logo-wordmark.svg" alt="CloakBrowser MCP" width="620" />
 </p>
 
 <p class="clb-hero-actions" align="center">

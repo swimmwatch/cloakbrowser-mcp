@@ -7,9 +7,22 @@
   {% set raw_page_title = page.meta.title if page.meta and page.meta.title else page.title | striptags %}
   {% set seo_description = page.meta.description if page.meta and page.meta.description else config.site_description %}
   {% set canonical_url = page.canonical_url or config.site_url %}
+  {% set page_language = i18n_page_locale if i18n_page_locale is defined else config.theme.language | default('en') %}
 
   <link rel="apple-touch-icon" sizes="180x180" href="{{ 'assets/brand/apple-touch-icon.png' | url }}" />
   <link rel="manifest" href="{{ 'site.webmanifest' | url }}" />
+  <link rel="sitemap" type="application/xml" href="{{ config.site_url }}sitemap.xml" />
+  <script>
+    /*
+     * mkdocs-static-i18n emits page-level hreflang alternates, while Material for
+     * MkDocs treats every exact rel="alternate" link as an alternate version root
+     * and probes sitemap.xml below it. Keep hreflang metadata in the static HTML,
+     * but avoid the runtime selector that causes localized page sitemap 404s.
+     */
+    document.querySelectorAll('link[rel="alternate"][hreflang]').forEach((link) => {
+      link.rel = "alternate i18n"
+    })
+  </script>
   <link rel="mask-icon" href="{{ 'assets/brand/mask-icon.svg' | url }}" color="#0f766e" />
   <meta name="theme-color" content="#0f766e" />
   <meta name="robots" content="{{ page.meta.robots if page.meta and page.meta.robots else 'index, follow' }}" />
@@ -38,7 +51,7 @@
         "name": config.site_name,
         "url": config.site_url,
         "description": config.site_description,
-        "inLanguage": "en",
+        "inLanguage": page_language,
         "publisher": {
           "@type": "Person",
           "name": config.site_author
@@ -59,6 +72,7 @@
           "operatingSystem": "Linux, macOS, Windows",
           "description": config.site_description,
           "url": config.site_url,
+          "inLanguage": page_language,
           "codeRepository": config.repo_url,
           "license": "https://github.com/swimmwatch/cloakbrowser-mcp/blob/main/LICENSE",
           "softwareRequirements": "Node.js >=22.12",
@@ -91,7 +105,7 @@
           "headline": raw_page_title,
           "description": seo_description,
           "url": canonical_url,
-          "inLanguage": "en",
+          "inLanguage": page_language,
           "author": {
             "@type": "Person",
             "name": config.site_author
