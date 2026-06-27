@@ -19,7 +19,7 @@ tags:
 
 `cloakbrowser-mcp` es un servidor de automatización de navegadores basado en el Protocolo de Contexto de Modelo (MCP) que se ejecuta en la fase previa a `@playwright/mcp` con el binario de CloakBrowser para Chromium. Úsalo cuando necesites herramientas de navegador compatibles con Playwright MCP, ejecución de CloakBrowser, instalación de npm, imágenes de Docker, sesiones HTTP transmitibles, asignación de proxies con reconocimiento de GeoIP para el control de calidad regional o un comportamiento de entrada humanizado para flujos sensibles a la interacción.
 
-Versión actual: <!-- project-version -->v1.4.0<!-- /project-version -->.
+Versión actual: {{ project.version_tag }}.
 
 ## Compatibilidad entre versiones
 

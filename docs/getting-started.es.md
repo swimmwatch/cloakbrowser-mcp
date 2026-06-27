@@ -27,7 +27,7 @@ npx -y cloakbrowser-mcp@latest --transport streamable-http --http-protocol https
 Marca una versión cuando la reproducibilidad sea importante:
 
 ```bash
-npx -y cloakbrowser-mcp@1.4.0
+npx -y {{ project.npm_pin }}
 ```
 
 El paquete npm requiere Node.js 22.12 o una versión posterior. CloakBrowser descarga su binario de Chromium la primera vez que se utiliza, a menos que ya esté almacenado en la caché.
@@ -77,10 +77,10 @@ El modo HTTP «Streamable» escribe la URL del punto final MCP en escucha y los 
 Marca una versión cuando la reproducibilidad sea importante:
 
 ```bash
-docker pull swimmwatch/cloakbrowser-mcp:1.4.0
+docker pull {{ project.docker_image }}
 docker run --rm --init -i \
   -v "$PWD/artifacts:/data" \
-  swimmwatch/cloakbrowser-mcp:1.4.0
+  {{ project.docker_image }}
 ```
 
 ## Configuración del cliente MCP

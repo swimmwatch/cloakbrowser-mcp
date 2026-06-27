@@ -22,7 +22,7 @@ function readJson<T>(root: string, relativePath: string): T {
 }
 
 describe('release version script', () => {
-  it('applies GitHub release tags to package, server metadata, docs, and workflow outputs', () => {
+  it('applies GitHub release tags to package, server metadata, and workflow outputs', () => {
     const root = createTempRoot();
     mkdirSync(path.join(root, 'docs'), { recursive: true });
 
@@ -53,16 +53,13 @@ describe('release version script', () => {
         2,
       )}\n`,
     );
-    writeFileSync(
-      path.join(root, 'docs/index.md'),
-      'Current version: <!-- project-version -->v0.0.0<!-- /project-version -->.\n',
-    );
+    writeFileSync(path.join(root, 'docs/index.md'), 'Current version: {{ project.version_tag }}.\n');
     writeFileSync(
       path.join(root, 'docs/getting-started.md'),
       [
-        'npx -y cloakbrowser-mcp@0.0.0',
-        'docker pull swimmwatch/cloakbrowser-mcp:0.0.0',
-        'docker pull ghcr.io/swimmwatch/cloakbrowser-mcp:0.0.0',
+        'npx -y {{ project.npm_pin }}',
+        'docker pull {{ project.docker_image }}',
+        'docker pull {{ project.ghcr_image }}',
       ].join('\n'),
     );
 
@@ -96,15 +93,15 @@ describe('release version script', () => {
     expect(serverJson.packages[2]?.identifier).toBe(
       'docker.io/swimmwatch/cloakbrowser-mcp:2.3.4-beta.1-build',
     );
-    expect(readFileSync(path.join(root, 'docs/index.md'), 'utf8')).toContain('v2.3.4-beta.1+build');
-    expect(readFileSync(path.join(root, 'docs/getting-started.md'), 'utf8')).toContain(
-      'cloakbrowser-mcp@2.3.4-beta.1+build',
+    expect(readFileSync(path.join(root, 'docs/index.md'), 'utf8')).toBe(
+      'Current version: {{ project.version_tag }}.\n',
     );
-    expect(readFileSync(path.join(root, 'docs/getting-started.md'), 'utf8')).toContain(
-      'ghcr.io/swimmwatch/cloakbrowser-mcp:2.3.4-beta.1-build',
-    );
-    expect(readFileSync(path.join(root, 'docs/getting-started.md'), 'utf8')).toContain(
-      'swimmwatch/cloakbrowser-mcp:2.3.4-beta.1-build',
+    expect(readFileSync(path.join(root, 'docs/getting-started.md'), 'utf8')).toBe(
+      [
+        'npx -y {{ project.npm_pin }}',
+        'docker pull {{ project.docker_image }}',
+        'docker pull {{ project.ghcr_image }}',
+      ].join('\n'),
     );
     expect(outputs).toEqual({
       docker_major_minor: '2.3',

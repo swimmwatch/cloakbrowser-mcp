@@ -27,7 +27,7 @@ npx -y cloakbrowser-mcp@latest --transport streamable-http --http-protocol https
 जब पुनरुत्पादनशीलता मायने रखती है, तो रिलीज़ को पिन करें:
 
 ```bash
-npx -y cloakbrowser-mcp@1.4.0
+npx -y {{ project.npm_pin }}
 ```
 
 इस npm पैकेज के लिए Node.js 22.12 या उससे नया संस्करण आवश्यक है। CloakBrowser पहली बार उपयोग करने पर अपना Chromium बाइनरी डाउनलोड करता है, जब तक कि वह पहले से कैश न किया गया हो।
@@ -77,10 +77,10 @@ Streamable HTTP मोड सुनने वाले MCP एंडपॉइं
 जब पुनरुत्पादनशीलता मायने रखती है, तो रिलीज़ को पिन करें:
 
 ```bash
-docker pull swimmwatch/cloakbrowser-mcp:1.4.0
+docker pull {{ project.docker_image }}
 docker run --rm --init -i \
   -v "$PWD/artifacts:/data" \
-  swimmwatch/cloakbrowser-mcp:1.4.0
+  {{ project.docker_image }}
 ```
 
 ## एमसीपी क्लाइंट कॉन्फ़िग

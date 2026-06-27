@@ -794,6 +794,7 @@ function protectBody(text, protect) {
     .replace(/```[\s\S]*?```/gu, (value) => protect(value))
     .replace(/~~~[\s\S]*?~~~/gu, (value) => protect(value))
     .replace(/<!--[\s\S]*?-->/gu, (value) => protect(value))
+    .replace(/\{\{\s*[^{}\n]+\s*\}\}/gu, (value) => protect(value))
     .replace(/^(?:\|.*\|\n?){2,}/gmu, (value) => protect(value))
     .replace(/<p\b[\s\S]*?<\/p>/giu, (value) => protect(value))
     .replace(/<div\b[\s\S]*?<\/div>/giu, (value) => protect(value))
