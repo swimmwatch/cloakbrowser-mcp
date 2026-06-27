@@ -9,6 +9,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { prepareBridgeRuntime } from '@/bridge/config.js';
 import { LOCAL_TOOL_BINARY_INFO, LOCAL_TOOL_BRIDGE_INFO } from '@/bridge/tools.js';
 import { createBridgeServer, type BridgeServer } from '@/server.js';
+import { fakeUpstreamToolNames } from '@tests/fixtures/fake-upstream-tools.js';
 import { fakeCloakBinaryPath } from '@tests/helpers/paths.js';
 
 const tempRoots: string[] = [];
@@ -86,8 +87,7 @@ describe('bridge proxy', () => {
 
     const tools = await outerClient.listTools();
     expect(tools.tools.map((tool) => tool.name)).toEqual([
-      'browser_snapshot',
-      'browser_navigate',
+      ...fakeUpstreamToolNames,
       LOCAL_TOOL_BINARY_INFO,
       LOCAL_TOOL_BRIDGE_INFO,
     ]);

@@ -1,6 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { binaryInfo, buildLaunchOptions, ensureBinary, getDefaultStealthArgs } from 'cloakbrowser';
 import {
   appendNodeOption,
@@ -15,6 +16,8 @@ import { resolvePlaywrightCoreBundlePath } from '#src/bridge/paths';
 import { consoleFallbackInitScript, consoleFallbackPreloadScript } from '#src/runtime/consoleFallback';
 
 export type BrowserEngine = 'cloak' | 'playwright';
+export const humanPresets = ['default', 'careful'] as const;
+export type HumanPreset = (typeof humanPresets)[number];
 type CloakBuildLaunchOptions = typeof buildLaunchOptions;
 type CloakLaunchOptions = NonNullable<Parameters<CloakBuildLaunchOptions>[0]>;
 type CloakProxyOption = NonNullable<CloakLaunchOptions['proxy']>;
@@ -48,6 +51,9 @@ export interface PrepareBridgeRuntimeOptions {
   buildCloakLaunchOptions?: CloakBuildLaunchOptions;
   browserIsolated?: boolean;
   geoipProxyMatch?: boolean;
+  headless?: boolean;
+  humanize?: boolean;
+  humanPreset?: HumanPreset;
   proxy?: BridgeRuntimeProxy;
 }
 
@@ -63,6 +69,7 @@ export interface PlaywrightMcpBridgeConfig {
       ignoreDefaultArgs?: string[];
       proxy?: PlaywrightProxyOption;
     };
+    initPage?: string[];
     initScript?: string[];
   };
 }
@@ -78,9 +85,11 @@ export async function prepareBridgeRuntime(
   mkdirSync(outputDir, { recursive: true });
 
   const browserEngine = parseBrowserEngine(envString(env, 'PLAYWRIGHT_MCP_BROWSER_ENGINE', 'cloak'));
-  const childEnv = createChildEnv(env, outputDir, options.proxy);
   const useCloak = browserEngine === 'cloak';
-  const headless = envBool(env, 'PLAYWRIGHT_MCP_HEADLESS', true);
+  const headless = options.headless ?? envBool(env, 'PLAYWRIGHT_MCP_HEADLESS', true);
+  const humanPreset =
+    options.humanPreset ?? parseHumanPreset(envString(env, 'CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET', 'default'));
+  const childEnv = createChildEnv(env, outputDir, options.proxy, headless, humanPreset);
   const chromiumSandbox = useCloak ? !envBool(env, 'CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX', true) : undefined;
   const launchOptions = {
     headless,
@@ -119,6 +128,9 @@ export async function prepareBridgeRuntime(
         proxy: options.proxy,
         buildCloakLaunchOptions: options.buildCloakLaunchOptions ?? buildLaunchOptions,
       });
+    }
+    if (shouldHumanize(env, options.humanize)) {
+      config.browser!.initPage = [...(config.browser!.initPage ?? []), resolveHumanizeInitPagePath()];
     }
   }
 
@@ -193,6 +205,23 @@ async function resolveGeoipProxyMatchingArgs(
 
 function shouldMatchProxyGeoip(env: EnvReader, explicit: boolean | undefined): boolean {
   return explicit ?? envBool(env, 'CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH', false);
+}
+
+function shouldHumanize(env: EnvReader, explicit: boolean | undefined): boolean {
+  return explicit ?? envBool(env, 'CLOAK_PLAYWRIGHT_MCP_HUMANIZE', false);
+}
+
+export function parseHumanPreset(value: string): HumanPreset {
+  if (isHumanPreset(value)) return value;
+  throw new Error(`CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET must be "default" or "careful", got "${value}"`);
+}
+
+function isHumanPreset(value: string): value is HumanPreset {
+  return humanPresets.includes(value as HumanPreset);
+}
+
+function resolveHumanizeInitPagePath(): string {
+  return fileURLToPath(new URL('../runtime/humanize-init-page.cjs', import.meta.url));
 }
 
 function resolveConfiguredProxy(
@@ -301,12 +330,15 @@ export function createChildEnv(
   env: EnvReader,
   outputDir: string,
   runtimeProxy?: BridgeRuntimeProxy,
+  headless = envBool(env, 'PLAYWRIGHT_MCP_HEADLESS', true),
+  humanPreset = parseHumanPreset(envString(env, 'CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET', 'default')),
 ): Record<string, string> {
   const result: Record<string, string> = {};
   for (const [key, value] of Object.entries(env)) {
     if (typeof value === 'string') result[key] = value;
   }
-  result.PLAYWRIGHT_MCP_HEADLESS = envString(env, 'PLAYWRIGHT_MCP_HEADLESS', 'true');
+  result.PLAYWRIGHT_MCP_HEADLESS = String(headless);
+  result.CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET = humanPreset;
   result.PLAYWRIGHT_MCP_OUTPUT_DIR = outputDir;
   result.PLAYWRIGHT_MCP_OUTPUT_MODE = envString(env, 'PLAYWRIGHT_MCP_OUTPUT_MODE', 'stdout');
   result.PLAYWRIGHT_MCP_TIMEOUT_ACTION = String(envInt(env, 'PLAYWRIGHT_MCP_TIMEOUT_ACTION', 5000));

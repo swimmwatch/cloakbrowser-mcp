@@ -36,7 +36,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-runtime-assets.mjs",
     "typecheck": "tsc --noEmit",
     "clean": "node -e \"const fs=require('node:fs');fs.rmSync('dist',{recursive:true,force:true});fs.rmSync('coverage',{recursive:true,force:true})\"",
     "test": "vitest run",
@@ -45,6 +45,9 @@
     "test:integration": "vitest run tests/integration",
     "test:e2e": "npm run build && npm run test:e2e:run",
     "test:e2e:run": "vitest run --config vitest.e2e.config.ts",
+    "test:e2e:npm-package": "npm run build && vitest run --config vitest.distribution-e2e.config.mjs tests/e2e/npm-package.manual.ts",
+    "test:e2e:docker": "npm run docker:build && vitest run --config vitest.distribution-e2e.config.mjs tests/e2e/docker-image.manual.ts",
+    "test:e2e:distributions": "npm run test:e2e:npm-package && npm run test:e2e:docker",
     "test:coverage": "vitest run --coverage",
     "start": "node dist/cli.js",
     "dev": "node --conditions development --import tsx src/cli.ts",
@@ -70,8 +73,10 @@
     "docker:smoke": "docker run --rm --init cloakbrowser-mcp:dev --help",
     "bridge:compare": "node scripts/compare-playwright-mcp-bridge.mjs",
     "upstream:check": "node scripts/check-playwright-mcp-updates.mjs",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm run docs:compatibility:check && npm run server:validate && npm run build && npm test && npm run test:e2e:run",
-    "check:ci": "npm run check && npm run audit:prod && npm run test:coverage"
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run docs:compatibility:check && npm run docs:translations:check && npm run server:validate && npm run build && npm test && npm run test:e2e:run",
+    "check:ci": "npm run check && npm run audit:prod && npm run test:coverage",
+    "docs:translations": "node scripts/update-doc-translations.mjs",
+    "docs:translations:check": "node scripts/update-doc-translations.mjs --check"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.0",

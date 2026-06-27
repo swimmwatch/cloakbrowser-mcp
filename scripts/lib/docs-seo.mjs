@@ -117,6 +117,8 @@ export function validateBuiltDocsSeo(siteDir, siteUrl) {
   for (const filePath of htmlFiles) {
     const label = relative(siteDir, filePath);
     const html = readText(filePath);
+    const locale = readLocaleFromBuiltPath(label);
+    const minimumDescriptionLength = locale ? minimumLocalizedDescriptionLength(locale) : 40;
     const canonical = extractAttribute(html, 'link', 'rel', 'canonical', 'href');
     const description = extractAttribute(html, 'meta', 'name', 'description', 'content');
     const robots = extractAttribute(html, 'meta', 'name', 'robots', 'content');
@@ -132,7 +134,7 @@ export function validateBuiltDocsSeo(siteDir, siteUrl) {
       errors.push(`${label}: missing title`);
     }
 
-    if (!description || description.length < 40) {
+    if (!description || description.length < minimumDescriptionLength) {
       errors.push(`${label}: missing or too-short meta description`);
     }
 
@@ -204,4 +206,14 @@ function readAttribute(tag, attribute) {
 
 function isSearchVerificationFile(fileName) {
   return /^google[a-z0-9]+\.html$/i.test(fileName);
+}
+
+function readLocaleFromBuiltPath(label) {
+  const segment = label.split('/')[0];
+  const locales = new Set(['ru', 'be', 'uk', 'es', 'pt-BR', 'zh', 'ja', 'de', 'fr', 'hi']);
+  return locales.has(segment) ? segment : undefined;
+}
+
+function minimumLocalizedDescriptionLength(locale) {
+  return locale === 'zh' || locale === 'ja' ? 12 : 20;
 }

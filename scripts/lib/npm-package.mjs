@@ -6,6 +6,7 @@ export const requiredPackageFiles = [
   'dist/index.js',
   'dist/index.d.ts',
   'dist/cli.js',
+  'dist/runtime/humanize-init-page.cjs',
 ];
 
 export const forbiddenPackageFilePatterns = [

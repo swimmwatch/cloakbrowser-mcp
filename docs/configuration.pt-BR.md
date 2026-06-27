@@ -1,0 +1,163 @@
+---
+description: Configuração de tempo de execução para a ponte Playwright MCP, incluindo sessões HTTP streamáveis, correspondência de proxy com reconhecimento de GeoIP e comportamento de entrada humanizado.
+icon: material/tune
+tags:
+  - Configuration
+  - User Guide
+---
+
+# Configuração
+
+Utilize as variáveis `PLAYWRIGHT_MCP_*` do upstream para o comportamento do MCP do Playwright. Use `CLOAK_PLAYWRIGHT_MCP_*` apenas para o comportamento da ponte específico do Cloak.
+
+As antigas variáveis `CLOAKBROWSER_MCP_*` não são mais suportadas.
+A [Referência da CLI](generated/cli.md) gerada é a lista oficial dos sinalizadores da CLI da ponte e suas variáveis de ambiente correspondentes.
+
+## Opções de ponte
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` | Bridge transport: `stdio` or `streamable-http`. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` | Streamable HTTP listener protocol: `http` or `https`. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` | Streamable HTTP bind host. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_PORT` | `3000` | Streamable HTTP bind port. Use `0` for an ephemeral port in tests. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_ENDPOINT` | `/mcp` | Streamable HTTP endpoint path. `/healthz` and `/readyz` are reserved for probes. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` | unset | Optional Bearer token required on Streamable HTTP requests. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_BACKEND` | `memory` | Session metadata backend. Only `memory` is implemented in this release. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_IDLE_TTL_MS` | `3600000` | Idle TTL for Streamable HTTP sessions. Expired sessions dispose their bridge and upstream child process. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` | Maximum active Streamable HTTP sessions in one process. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_CERT` | unset | TLS certificate PEM path for HTTPS Streamable HTTP. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_KEY` | unset | TLS private key PEM path for HTTPS Streamable HTTP. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_PFX` | unset | TLS PFX/PKCS12 path for HTTPS Streamable HTTP. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_PASSPHRASE` | unset | Passphrase for an encrypted HTTPS key or PFX. |
+| `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` | Streamable HTTP operational log level: `trace`, `debug`, `info`, `warn`, `error`, `fatal`, or `silent`. |
+| `PLAYWRIGHT_MCP_PROXY_SERVER` | unset | Upstream Playwright MCP proxy server. Used as the GeoIP source when matching is enabled. |
+| `PLAYWRIGHT_MCP_PROXY_BYPASS` | unset | Upstream proxy bypass list for hosts that should not use `PLAYWRIGHT_MCP_PROXY_SERVER`. |
+| `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | Resolves `PLAYWRIGHT_MCP_PROXY_SERVER` GeoIP and matches CloakBrowser timezone and locale fingerprint flags to that proxy location. |
+| `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Enables CloakBrowser human-like mouse, keyboard, and scroll behavior. |
+| `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
+| `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
+| `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
+| `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
+| `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` | Upstream output mode, either `stdout` or `file`. |
+| `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | Default action timeout in milliseconds. |
+| `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
+| `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |
+| `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | Enables the console message compatibility patch. |
+| `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
+| `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
+| `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | Adds `--no-sandbox` and disables Chromium sandboxing. |
+
+## Correspondência de proxy GeoIP
+
+Defina `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` com `PLAYWRIGHT_MCP_PROXY_SERVER`
+para derivar os sinalizadores de fuso horário, idioma e localidade do CloakBrowser a partir da
+localização do proxy. A ponte mantém o roteamento do proxy delegado ao MCP do Playwright
+MCP e injeta apenas os sinalizadores de inicialização resolvidos `--fingerprint-timezone`, `--lang` e
+`--fingerprint-locale` resolvidos.
+
+Consulte [Correspondência de proxy GeoIP](geoip-proxy-matching.md) para exemplos de configuração, metadados de proxy HTTP
+transmissíveis em tempo de execução, casos de uso, regras de precedência e limitações.
+
+## Comportamento humanizado de entrada
+
+Defina `CLOAK_PLAYWRIGHT_MCP_HUMANIZE=true` para ativar a camada de interação com o mouse,
+teclado e rolagem do CloakBrowser, que simula o comportamento humano, para interações com a página. A ponte aplica isso
+por meio do gancho de inicialização de página do Playwright MCP, de modo que os esquemas das ferramentas de navegador
+originais permanecem inalterados.
+
+Consulte [Comportamento de Entrada Humanizado](humanized-input-behavior.md) para exemplos de configuração,
+metadados HTTP do Streamable em tempo de execução, casos de uso e limitações.
+
+## Metadados de tempo de execução HTTP transmitíveis
+
+Os clientes HTTP compatíveis com stream podem selecionar opções de tempo de execução específicas para cada sessão MCP, adicionando
+metadados específicos da ponte à solicitação `initialize`:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "proxyServer": "http://user:pass@proxy.example:8080",
+        "proxyBypass": ".internal,localhost",
+        "geoipProxyMatch": true,
+        "headless": false,
+        "humanize": true,
+        "humanPreset": "careful"
+      }
+    }
+  }
+}
+```
+
+`proxyServer` substitui `PLAYWRIGHT_MCP_PROXY_SERVER` para essa sessão HTTP.
+`proxyBypass` substitui `PLAYWRIGHT_MCP_PROXY_BYPASS` somente quando `proxyServer` estiver
+presente. `geoipProxyMatch` pode ativar ou desativar a correspondência por GeoIP para essa sessão
+sem reiniciar o servidor MCP. As sessões existentes mantêm seu proxy de inicialização;
+crie uma nova sessão HTTP para alterar a localização.
+
+`humanize` pode ativar ou desativar o comportamento de entrada humanizado para essa sessão
+sem alterar outras sessões. `humanPreset` pode selecionar `default` ou `careful`
+para essa sessão, mas não habilita o comportamento humanizado por si só. As
+sessões existentes mantêm o comportamento capturado durante `initialize`.
+
+`headless` pode ativar ou desativar o modo de navegador sem interface gráfica para essa sessão. Configurar
+`headless` para `false` requer um ambiente de exibição funcional, especialmente em
+implantações no Docker ou em servidores Linux.
+
+As credenciais autenticadas do proxy HTTP podem ser incorporadas em `proxyServer`, por
+exemplo `http://user:pass@proxy.example:8080`. Codifique em formato percentual os caracteres de credenciais
+que tenham significado em URLs, como `@`, `:`, `/`, `?`, `#`, e `%`.
+
+Para padrões de controle de qualidade (QA) em múltiplas localizações, consulte [Correspondência de proxy GeoIP](geoip-proxy-matching.md).
+Para padrões de realismo de interação, consulte [Comportamento de Entrada Humanizado](humanized-input-behavior.md).
+
+## Opções de upstream
+
+A ponte encaminha as configurações de `PLAYWRIGHT_MCP_*` para o Playwright MCP a montante. Isso inclui opções a montante, tais como:
+
+- `PLAYWRIGHT_MCP_ALLOWED_ORIGINS`
+- `PLAYWRIGHT_MCP_BLOCKED_ORIGINS`
+- `PLAYWRIGHT_MCP_ALLOW_UNRESTRICTED_FILE_ACCESS`
+- `PLAYWRIGHT_MCP_CAPS`
+- `PLAYWRIGHT_MCP_CONSOLE_LEVEL`
+- `PLAYWRIGHT_MCP_IMAGE_RESPONSES`
+- `PLAYWRIGHT_MCP_SNAPSHOT_MODE`
+- `PLAYWRIGHT_MCP_STORAGE_STATE`
+- `PLAYWRIGHT_MCP_USER_DATA_DIR`
+
+Consulte a documentação do Playwright MCP do projeto original para conhecer todas as opções disponíveis.
+
+## Registro
+
+O modo HTTP streamable grava logs de inicialização e de solicitações legíveis por humanos no stdout. O modo stdio não emite logs operacionais de rotina, de modo que o stdout do MCP JSON-RPC permanece livre de detalhes do protocolo. Falhas fatais na inicialização da CLI continuam sendo gravadas no stderr.
+
+## HTTPS
+
+O Streamable HTTP usa HTTP local por padrão. Selecione TLS direto com `--http-protocol https` ou `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL=https` e, em seguida, forneça um par de certificado/chave ou um arquivo PFX:
+
+```bash
+cloakbrowser-mcp --transport streamable-http \
+  --http-protocol https \
+  --https-cert ./cert.pem \
+  --https-key ./key.pem
+```
+
+Para exposição externa ou sem loopback, utilize HTTPS junto com `--http-auth-token`, ou termine a conexão TLS em um proxy reverso confiável que também imponha autenticação e controles de acesso à rede.
+
+## Sessões HTTP transmitíveis
+
+Cada sessão do Streamable HTTP MCP possui seu próprio ambiente de execução de ponte e um processo filho do Playwright MCP a montante. As sessões HTTP executam o Playwright MCP a montante com um perfil de navegador isolado, de modo que usuários simultâneos não disputem o mesmo perfil persistente do Chromium. O backend de sessão integrado `memory` armazena apenas metadados, como ID da sessão, carimbos de data/hora, validade e status. O estado do navegador permanece no processo filho ativo a montante, e os artefatos continuam sendo controlados pelo `PLAYWRIGHT_MCP_OUTPUT_DIR`.
+
+Para escalonamento horizontal, execute várias réplicas de servidor atrás de um balanceador de carga com sessões fixas identificadas pelo cabeçalho `mcp-session-id`. Futuros back-ends como Redis, Postgres ou SQLite poderão coordenar metadados e bloqueios, mas não poderão restaurar uma sessão ativa do navegador após o encerramento do processo responsável por ela.
+
+## Sondas HTTP com transmissão contínua
+
+Quando a ponte opera com `--transport streamable-http`, ela expõe pontos de extremidade de sonda fixos no mesmo host e na mesma porta que o ponto de extremidade do MCP:
+
+- `GET /healthz` retorna metadados sobre o estado do processo: `status`, `version`, `transport` e `uptimeMs`.
+- `GET /readyz` retorna metadados de prontidão e capacidade de sessão: `sessions.active`, `sessions.pending`, `sessions.max` e `sessions.available`.
+
+A disponibilidade retorna HTTP `200` enquanto houver capacidade de sessão disponível e HTTP `503` quando `active + pending >= max`.
+Se `--http-auth-token` ou `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` estiverem configurados, ambas as sondas exigem o mesmo cabeçalho `Authorization: Bearer ...` que as solicitações MCP. Sem um token de autenticação, as sondas ficam abertas no endereço de ligação HTTP configurado.

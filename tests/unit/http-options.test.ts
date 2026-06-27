@@ -26,6 +26,8 @@ describe('Commander CLI options', () => {
 
       expect(options.transport).toBe(BRIDGE_TRANSPORT_STDIO);
       expect(options.bridge.geoipProxyMatch).toBe(false);
+      expect(options.bridge.humanize).toBe(false);
+      expect(options.bridge.humanPreset).toBe('default');
       expect(options.http).toMatchObject({
         protocol: HTTP_PROTOCOL_HTTP,
         host: defaultStreamableHttpOptions.host,
@@ -43,6 +45,20 @@ describe('Commander CLI options', () => {
     withCliEnv({ CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH: 'true' }, () => {
       expect(parseCliOptions([]).bridge.geoipProxyMatch).toBe(true);
       expect(parseCliOptions(['--geoip-proxy-match']).bridge.geoipProxyMatch).toBe(true);
+    });
+  });
+
+  it('reads the humanize bridge option from env and CLI flags', () => {
+    withCliEnv({ CLOAK_PLAYWRIGHT_MCP_HUMANIZE: 'true' }, () => {
+      expect(parseCliOptions([]).bridge.humanize).toBe(true);
+      expect(parseCliOptions(['--humanize']).bridge.humanize).toBe(true);
+    });
+  });
+
+  it('reads the human preset bridge option from env and CLI flags', () => {
+    withCliEnv({ CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET: 'careful' }, () => {
+      expect(parseCliOptions([]).bridge.humanPreset).toBe('careful');
+      expect(parseCliOptions(['--human-preset', 'default']).bridge.humanPreset).toBe('default');
     });
   });
 
@@ -98,6 +114,9 @@ describe('Commander CLI options', () => {
     });
     withCliEnv({ CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL: 'ftp' }, () => {
       expect(() => parseCliOptions([])).toThrow('Allowed choices are http, https');
+    });
+    withCliEnv({ CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET: 'fast' }, () => {
+      expect(() => parseCliOptions([])).toThrow('Allowed choices are default, careful');
     });
   });
 

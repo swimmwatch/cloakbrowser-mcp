@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Added a bridge option to match CloakBrowser timezone and locale fingerprint
   flags to the configured proxy's GeoIP location.
+- Added a bridge option for CloakBrowser human-like mouse, keyboard, and scroll
+  behavior with global and per-session Streamable HTTP configuration, including
+  `default` and `careful` human presets.
 - Auto-cleanup of stale Chromium `SingletonLock` files on stdio startup to prevent
   "Browser is already in use" errors after an unclean shutdown (SIGKILL/crash).
   Covers Linux, macOS, and Windows profile paths and lock formats, and skips

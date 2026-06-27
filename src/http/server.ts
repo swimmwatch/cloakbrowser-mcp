@@ -45,7 +45,10 @@ const allowedMethods = 'GET, POST, DELETE';
 
 export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions {
   serverInfo?: Partial<Implementation>;
-  runtimeOptions?: Pick<PrepareBridgeRuntimeOptions, 'geoipProxyMatch' | 'proxy'>;
+  runtimeOptions?: Pick<
+    PrepareBridgeRuntimeOptions,
+    'geoipProxyMatch' | 'headless' | 'humanize' | 'humanPreset' | 'proxy'
+  >;
   sessionStore?: SessionStore;
   logger?: BridgeLogger;
 }
@@ -246,7 +249,10 @@ class StreamableHttpBridgeController {
     res: ServerResponse,
     parsedBody: unknown,
   ): Promise<void> {
-    let sessionRuntimeOptions: Pick<PrepareBridgeRuntimeOptions, 'geoipProxyMatch' | 'proxy'>;
+    let sessionRuntimeOptions: Pick<
+      PrepareBridgeRuntimeOptions,
+      'geoipProxyMatch' | 'headless' | 'humanize' | 'humanPreset' | 'proxy'
+    >;
     try {
       sessionRuntimeOptions = readBridgeRuntimeOptionsFromInitialize(parsedBody);
     } catch (error) {
@@ -298,6 +304,9 @@ class StreamableHttpBridgeController {
           browserIsolated: true,
           geoipProxyMatch:
             sessionRuntimeOptions.geoipProxyMatch ?? this.#options.runtimeOptions?.geoipProxyMatch,
+          headless: sessionRuntimeOptions.headless ?? this.#options.runtimeOptions?.headless,
+          humanize: sessionRuntimeOptions.humanize ?? this.#options.runtimeOptions?.humanize,
+          humanPreset: sessionRuntimeOptions.humanPreset ?? this.#options.runtimeOptions?.humanPreset,
           proxy: sessionRuntimeOptions.proxy ?? this.#options.runtimeOptions?.proxy,
         },
       });

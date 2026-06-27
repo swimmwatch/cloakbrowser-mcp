@@ -9,6 +9,7 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { afterEach, describe, expect, it } from 'vitest';
 import { LOCAL_TOOL_BINARY_INFO, LOCAL_TOOL_BRIDGE_INFO } from '@/bridge/tools.js';
 import { BRIDGE_TRANSPORT_STREAMABLE_HTTP } from '@/http/options.js';
+import { fakeUpstreamToolNames } from '@tests/fixtures/fake-upstream-tools.js';
 import { fetchHealth, fetchReady, healthUrl, postInitialize } from '@tests/helpers/http.js';
 import { fetchWithTestTls, tlsCertPath, tlsKeyPath } from '@tests/helpers/tls.js';
 
@@ -40,8 +41,7 @@ describe('packaged CLI end-to-end', () => {
 
     const tools = await client.listTools();
     expect(tools.tools.map((tool) => tool.name)).toEqual([
-      'browser_snapshot',
-      'browser_navigate',
+      ...fakeUpstreamToolNames,
       LOCAL_TOOL_BINARY_INFO,
       LOCAL_TOOL_BRIDGE_INFO,
     ]);
@@ -97,8 +97,7 @@ describe('packaged CLI end-to-end', () => {
     const { client } = await connectHttpClient(endpointUrl);
     const tools = await client.listTools();
     expect(tools.tools.map((tool) => tool.name)).toEqual([
-      'browser_snapshot',
-      'browser_navigate',
+      ...fakeUpstreamToolNames,
       LOCAL_TOOL_BINARY_INFO,
       LOCAL_TOOL_BRIDGE_INFO,
     ]);
@@ -231,8 +230,7 @@ describe('packaged CLI end-to-end', () => {
     const { client } = await connectHttpClient(endpointUrl, {}, fetchWithTestTls);
     const tools = await client.listTools();
     expect(tools.tools.map((tool) => tool.name)).toEqual([
-      'browser_snapshot',
-      'browser_navigate',
+      ...fakeUpstreamToolNames,
       LOCAL_TOOL_BINARY_INFO,
       LOCAL_TOOL_BRIDGE_INFO,
     ]);

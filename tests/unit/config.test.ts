@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -91,6 +91,43 @@ describe('bridge config generation', () => {
 
     expect(runtime.config.browser?.isolated).toBe(true);
     expect(runtime.childEnv.PLAYWRIGHT_MCP_ISOLATED).toBe('true');
+
+    runtime.dispose();
+  });
+
+  it('lets runtime headless override the default and child environment', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      headless: false,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    expect(runtime.config.browser?.launchOptions?.headless).toBe(false);
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_HEADLESS).toBe('false');
+
+    runtime.dispose();
+  });
+
+  it('lets runtime headless override an environment value', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      headless: true,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        PLAYWRIGHT_MCP_HEADLESS: 'false',
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    expect(runtime.config.browser?.launchOptions?.headless).toBe(true);
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_HEADLESS).toBe('true');
 
     runtime.dispose();
   });
@@ -320,6 +357,79 @@ describe('bridge config generation', () => {
     runtime.dispose();
   });
 
+  it('adds the humanize init page when enabled in Cloak mode', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      humanize: true,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    expect(runtime.config.browser?.initPage).toHaveLength(1);
+    expect(path.basename(runtime.config.browser!.initPage![0]!)).toBe('humanize-init-page.cjs');
+    expect(runtime.childEnv.CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET).toBe('default');
+    const initPageSource = readFileSync(runtime.config.browser!.initPage![0]!, 'utf8');
+    expect(initPageSource).toContain("import('cloakbrowser/human')");
+    expect(initPageSource).toContain('CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET');
+    expect(runtime.config.browser!.initPage![0]!).not.toContain(runtime.tempDir);
+
+    runtime.dispose();
+  });
+
+  it('passes human preset options through the upstream child environment', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      humanize: true,
+      humanPreset: 'careful',
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET: 'default',
+      },
+    });
+
+    expect(runtime.config.browser?.initPage).toHaveLength(1);
+    expect(runtime.childEnv.CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET).toBe('careful');
+
+    runtime.dispose();
+  });
+
+  it('rejects unsupported human presets', async () => {
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: createTempRoot(),
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
+        env: {
+          CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET: 'fast',
+        },
+      }),
+    ).rejects.toThrow('CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET');
+  });
+
+  it('allows an explicit runtime option to disable env-enabled humanize behavior', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      humanize: false,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        CLOAK_PLAYWRIGHT_MCP_HUMANIZE: 'true',
+      },
+    });
+
+    expect(runtime.config.browser?.initPage).toBeUndefined();
+
+    runtime.dispose();
+  });
+
   it('restores stdout after overlapping Cloak stdout suppression', async () => {
     const originalWrite = Reflect.get(process.stdout, 'write') as typeof process.stdout.write;
     const firstEntered = deferred();
@@ -424,6 +534,7 @@ describe('bridge config generation', () => {
       env: {
         PLAYWRIGHT_MCP_BROWSER_ENGINE: 'playwright',
         PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_HUMANIZE: 'true',
       },
     });
 
@@ -431,6 +542,7 @@ describe('bridge config generation', () => {
     expect(runtime.childEnv.PLAYWRIGHT_MCP_EXECUTABLE_PATH).toBeUndefined();
     expect(runtime.childEnv.PLAYWRIGHT_MCP_ISOLATED).toBeUndefined();
     expect(runtime.config.browser?.isolated).toBeUndefined();
+    expect(runtime.config.browser?.initPage).toBeUndefined();
     expect(runtime.childEnv.NODE_OPTIONS).toBeUndefined();
     expect(runtime.config.browser?.launchOptions?.args).toEqual([]);
     expect(runtime.config.browser?.launchOptions?.chromiumSandbox).toBeUndefined();

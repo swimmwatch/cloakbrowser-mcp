@@ -1,13 +1,13 @@
 ---
-description: CloakBrowser MCP is a Playwright MCP bridge for browser automation with CloakBrowser, Docker, Streamable HTTP, and GeoIP-aware proxy sessions.
+description: CloakBrowser MCP is a Playwright MCP bridge for browser automation with CloakBrowser, Docker, Streamable HTTP, GeoIP-aware proxy sessions, and humanized input behavior.
 icon: material/home
 tags:
   - User Guide
 ---
 
-<p class="clb-hero-logo" align="center">
-  <img src="assets/brand/logo-wordmark.svg" alt="CloakBrowser MCP" width="620" />
-</p>
+<div class="clb-hero-logo" align="center" markdown>
+![CloakBrowser MCP](assets/brand/logo-wordmark.svg){ width="620" }
+</div>
 
 <p class="clb-hero-actions" align="center">
   <a class="md-button md-button--primary" href="getting-started/">Get started</a>
@@ -17,7 +17,7 @@ tags:
 
 # CloakBrowser MCP Server
 
-`cloakbrowser-mcp` is a Model Context Protocol browser automation server that runs upstream `@playwright/mcp` with the CloakBrowser Chromium binary. Use it when you want Playwright MCP-compatible browser tools, CloakBrowser execution, npm installation, Docker images, Streamable HTTP sessions, or GeoIP-aware proxy matching for regional QA.
+`cloakbrowser-mcp` is a Model Context Protocol browser automation server that runs upstream `@playwright/mcp` with the CloakBrowser Chromium binary. Use it when you want Playwright MCP-compatible browser tools, CloakBrowser execution, npm installation, Docker images, Streamable HTTP sessions, GeoIP-aware proxy matching for regional QA, or humanized input behavior for interaction-sensitive flows.
 
 Current version: <!-- project-version -->v1.4.0<!-- /project-version -->.
 
@@ -69,6 +69,10 @@ See [Version Compatibility](version-compatibility.md) for the maintained mapping
 
   Aligns CloakBrowser timezone, language, and locale fingerprint flags with a configured proxy location.
 
+- :material-gesture-tap: **Humanized input behavior**
+
+  Routes page interactions through CloakBrowser's human-like mouse, keyboard, and scroll layer.
+
 </div>
 
 ## Tool Surface
@@ -83,6 +87,7 @@ The upstream Playwright MCP tool contracts are authoritative. This project adds 
 - [Getting Started](getting-started.md) for npm, Docker, and MCP client configuration.
 - [Configuration](configuration.md) for supported environment variables.
 - [GeoIP Proxy Matching](geoip-proxy-matching.md) for regional QA, runtime proxy metadata, and multi-location Streamable HTTP sessions.
+- [Humanized Input Behavior](humanized-input-behavior.md) for interaction realism, setup, and use cases.
 - [Tools](tools.md) for tool-surface expectations and upstream parity.
 - [FAQ](faq.md) for common installation, Docker, parity, and security questions.
 - [Contributor Guide](contributor-guide.md) for development, testing, architecture, and release details.

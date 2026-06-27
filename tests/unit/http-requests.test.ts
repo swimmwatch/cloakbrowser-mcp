@@ -49,6 +49,9 @@ describe('HTTP request helpers', () => {
           proxyServer: ' http://proxy.example:8080 ',
           proxyBypass: ' .internal ',
           geoipProxyMatch: true,
+          headless: false,
+          humanize: true,
+          humanPreset: 'careful',
         }),
       ),
     ).toEqual({
@@ -57,6 +60,9 @@ describe('HTTP request helpers', () => {
         bypass: '.internal',
       },
       geoipProxyMatch: true,
+      headless: false,
+      humanize: true,
+      humanPreset: 'careful',
     });
 
     expect(readBridgeRuntimeOptionsFromInitialize(createInitializeRequest())).toEqual({});
@@ -78,6 +84,18 @@ describe('HTTP request helpers', () => {
         createInitializeRequest({ proxyServer: 'http://proxy.example:8080', geoipProxyMatch: 'true' }),
       ),
     ).toThrow('geoipProxyMatch must be a boolean');
+    expect(() =>
+      readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ humanize: 'true' })),
+    ).toThrow('humanize must be a boolean');
+    expect(() =>
+      readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ headless: 'false' })),
+    ).toThrow('headless must be a boolean');
+    expect(() =>
+      readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ humanPreset: true })),
+    ).toThrow('humanPreset must be "default" or "careful"');
+    expect(() =>
+      readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ humanPreset: 'fast' })),
+    ).toThrow('humanPreset must be "default" or "careful"');
   });
 });
 
