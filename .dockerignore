@@ -24,6 +24,8 @@ site/
 docs/
 tests/
 scripts/
+!scripts/
+!scripts/copy-runtime-assets.mjs
 logs/
 *.log
 *.tgz

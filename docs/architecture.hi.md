@@ -25,7 +25,7 @@ tags:
 
 ## डॉकर
 
-Docker इमेज बेस इमेज के रूप में पिन किए गए आधिकारिक Playwright MCP इमेज का उपयोग करती है। ब्रिज `/opt/cloakbrowser-mcp` के अंतर्गत स्थापित है, जबकि अपस्ट्रीम Playwright MCP `/app/cli.js`.
+Docker इमेज बेस इमेज के रूप में पिन किए गए आधिकारिक Playwright MCP इमेज का उपयोग करती है। ब्रिज `/opt/cloakbrowser-mcp` के अंतर्गत स्थापित है, जबकि अपस्ट्रीम Playwright MCP `/app/cli.js` पर उपलब्ध रहता है।
 
 ## विन्यास
 
@@ -39,4 +39,4 @@ stdio के लिए, एक बाहरी सर्वर एक अपस�
 
 सत्र बैकएंड केवल मेटाडेटा संग्रहीत करता है। बिल्ट-इन बैकएंड `memory` है; भविष्य के Redis, Postgres, या SQLite एडॉप्टर मेटाडेटा और लॉक का समन्वय कर सकते हैं, लेकिन वे स्वामित्व वाली सर्वर प्रक्रिया के बाहर निकलने के बाद लाइव अपस्ट्रीम ब्राउज़र प्रक्रिया को पुनर्स्थापित नहीं कर सकते। हॉरिज़ॉन्टल स्केलिंग में `mcp-session-id` द्वारा की गई स्टिकी सेशंस का उपयोग किया जाना चाहिए।
 
-ब्रिज Streamable HTTP के लिए MCP SDK `StreamableHTTPServerTransport` का उपयोग करता है। यह अप्रचलित MCP `SSEServerTransport` या एक लीगेसी `/sse` एंडपॉइंट।
+ब्रिज Streamable HTTP के लिए MCP SDK `StreamableHTTPServerTransport` का उपयोग करता है। यह अप्रचलित MCP `SSEServerTransport` या legacy `/sse` endpoint को एक्सपोज़ नहीं करता।

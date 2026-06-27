@@ -5,9 +5,9 @@ tags:
   - User Guide
 ---
 
-<p class="clb-hero-logo" align="center">
-  <img src="/cloakbrowser-mcp/assets/brand/logo-wordmark.svg" alt="CloakBrowser MCP" width="620" />
-</p>
+<div class="clb-hero-logo" align="center" markdown>
+![CloakBrowser MCP](assets/brand/logo-wordmark.svg){ width="620" }
+</div>
 
 <p class="clb-hero-actions" align="center">
   <a class="md-button md-button--primary" href="getting-started/">Начать</a>

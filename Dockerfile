@@ -14,6 +14,7 @@ RUN --mount=type=cache,target=/root/.npm,sharing=locked \
 FROM deps AS build
 COPY tsconfig.json tsconfig.build.json ./
 COPY src ./src
+COPY scripts/copy-runtime-assets.mjs ./scripts/copy-runtime-assets.mjs
 RUN npm run build
 
 FROM deps AS prod-deps

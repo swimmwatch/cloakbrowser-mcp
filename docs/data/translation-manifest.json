@@ -113,7 +113,7 @@
         "hi": {
           "path": "architecture.hi.md",
           "sourceHash": "978e708dcf23b63f0844e62463d7817b7a8e4fc4574143dca6aece7c80c3d99f",
-          "translationHash": "6af75d4054667d7c2b83c4e6ecf3fb63a8e86f64f1e445e73f1eb63cd885ff2d",
+          "translationHash": "fe81ca66625ccd4b443e5eed6a17e3657585d0e86d86c7ac46ab47a3a5dc4605",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:11:14.587Z"
         }
@@ -795,75 +795,75 @@
       }
     },
     "index.md": {
-      "sourceHash": "9336d3f180e19d1b2038238e710ac4ef4ca110454965736b37cd50f814a5931d",
+      "sourceHash": "d78d44fff6e1a179187f5b6bb37b80ace744bb27e66e0ea3976002e3b085d002",
       "translations": {
         "ru": {
           "path": "index.ru.md",
-          "sourceHash": "9336d3f180e19d1b2038238e710ac4ef4ca110454965736b37cd50f814a5931d",
-          "translationHash": "de837c882ed4cc4dc409eaebec193e8ab81358297ac91215b50bdfbe00eb59a0",
+          "sourceHash": "d78d44fff6e1a179187f5b6bb37b80ace744bb27e66e0ea3976002e3b085d002",
+          "translationHash": "505323e6cfbca2f6e645f6dbb27b46b38f674a0e585497984ffc9c6417e54eb5",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:27:26.550Z"
         },
         "be": {
           "path": "index.be.md",
-          "sourceHash": "9336d3f180e19d1b2038238e710ac4ef4ca110454965736b37cd50f814a5931d",
-          "translationHash": "3ab105a7ef2d855aebd81f708808d4a4792e808354779140f146022f0a56994d",
+          "sourceHash": "d78d44fff6e1a179187f5b6bb37b80ace744bb27e66e0ea3976002e3b085d002",
+          "translationHash": "d91763128d52aa43850043ed5fd8820c0c2cb6c99118cf83e60c7b6087cc57f2",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:27:32.205Z"
         },
         "uk": {
           "path": "index.uk.md",
-          "sourceHash": "9336d3f180e19d1b2038238e710ac4ef4ca110454965736b37cd50f814a5931d",
-          "translationHash": "2eb338832a0c00335c92e468644013b310b9e8e249b0dd6b5c53f7060abd5201",
+          "sourceHash": "d78d44fff6e1a179187f5b6bb37b80ace744bb27e66e0ea3976002e3b085d002",
+          "translationHash": "7adf4d4dcc33f41f4f8b13f1948d6b93eb207f9f3ebb1098e0b5ab035ebca7c1",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:27:37.154Z"
         },
         "es": {
           "path": "index.es.md",
-          "sourceHash": "9336d3f180e19d1b2038238e710ac4ef4ca110454965736b37cd50f814a5931d",
-          "translationHash": "fb1d6ae1ff16a5b38cf1735f747f7e14f00c60419ec7e0cc16446f6ef2590d69",
+          "sourceHash": "d78d44fff6e1a179187f5b6bb37b80ace744bb27e66e0ea3976002e3b085d002",
+          "translationHash": "920ad7226bfdf63d6cabf3611796748a550f4b7b4e079d505f2a131a2703e053",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:27:41.464Z"
         },
         "pt-BR": {
           "path": "index.pt-BR.md",
-          "sourceHash": "9336d3f180e19d1b2038238e710ac4ef4ca110454965736b37cd50f814a5931d",
-          "translationHash": "231a7d2848e4e3ceb2d4f273e96c7f0631994289e43054e1e47e55e658efe187",
+          "sourceHash": "d78d44fff6e1a179187f5b6bb37b80ace744bb27e66e0ea3976002e3b085d002",
+          "translationHash": "994f8eaa180b865c2164640169fe44e8db3621bba65796d5178d11254f5bf739",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:27:46.888Z"
         },
         "zh": {
           "path": "index.zh.md",
-          "sourceHash": "9336d3f180e19d1b2038238e710ac4ef4ca110454965736b37cd50f814a5931d",
-          "translationHash": "175e46338074cc32009a654ad18a89dc73d1db3580182a2f48de64657bd7f048",
+          "sourceHash": "d78d44fff6e1a179187f5b6bb37b80ace744bb27e66e0ea3976002e3b085d002",
+          "translationHash": "d831dc24e23ec46b22a4528f86cd205ef481adcfb215d80fbeeb72e261c45373",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:27:52.155Z"
         },
         "ja": {
           "path": "index.ja.md",
-          "sourceHash": "9336d3f180e19d1b2038238e710ac4ef4ca110454965736b37cd50f814a5931d",
-          "translationHash": "24afec70eaa10ed5b865f7656d9e545cae854345034ffcbd1dfebe0ce827dbef",
+          "sourceHash": "d78d44fff6e1a179187f5b6bb37b80ace744bb27e66e0ea3976002e3b085d002",
+          "translationHash": "1719bc6afb4dd5b21aa5d41f895d8ad3fbe14451579ba980f3dc25e3ed0253ea",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:27:57.482Z"
         },
         "de": {
           "path": "index.de.md",
-          "sourceHash": "9336d3f180e19d1b2038238e710ac4ef4ca110454965736b37cd50f814a5931d",
-          "translationHash": "609d0f19fb23a610e2d472a71b85c340d7186410c7a5a7cc1e898ef3d1f9d3ec",
+          "sourceHash": "d78d44fff6e1a179187f5b6bb37b80ace744bb27e66e0ea3976002e3b085d002",
+          "translationHash": "b4baa8a34418350d8f586f58e7d31027642a70579d79802d8830c2810e5f8c56",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:28:02.816Z"
         },
         "fr": {
           "path": "index.fr.md",
-          "sourceHash": "9336d3f180e19d1b2038238e710ac4ef4ca110454965736b37cd50f814a5931d",
-          "translationHash": "6132d9b0fd2da43087fbec69cd883ea51cede30b63e67a080b05141cf86b8952",
+          "sourceHash": "d78d44fff6e1a179187f5b6bb37b80ace744bb27e66e0ea3976002e3b085d002",
+          "translationHash": "07abf7087cae764cb14ddbcfde243b4710d98236cccd78a3e3efac8c2fbdfb48",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:28:07.425Z"
         },
         "hi": {
           "path": "index.hi.md",
-          "sourceHash": "9336d3f180e19d1b2038238e710ac4ef4ca110454965736b37cd50f814a5931d",
-          "translationHash": "5848f7f178aa9cdaead6298471777979b4eb3aa9bc62b7d229eb14ab01d810b9",
+          "sourceHash": "d78d44fff6e1a179187f5b6bb37b80ace744bb27e66e0ea3976002e3b085d002",
+          "translationHash": "59e75533de7d3589e4aa124d48c2349d68ada8bed5d4b64cd188b0be04bf3877",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:28:13.481Z"
         }
