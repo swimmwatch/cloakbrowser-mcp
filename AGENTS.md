@@ -119,6 +119,19 @@ python3 -m pipx run zizmor --min-severity high .
 
 Update `README.md`, `docs/getting-started.md`, `docs/configuration.md`, `docs/docker.md`, or `docs/tools.md` when public CLI, Docker, environment, or tool-surface behavior changes.
 
+English documentation is the source of truth for localized MkDocs pages. When
+changing human-authored Markdown under `docs/`, update every localized suffix
+file (`*.ru.md`, `*.be.md`, `*.uk.md`, `*.es.md`, `*.pt-BR.md`, `*.zh.md`,
+`*.ja.md`, `*.de.md`, `*.fr.md`, and `*.hi.md`) or explicitly document why a
+locale is deferred. Use DeepL MCP for translation generation and updates. Do
+not blindly retranslate unchanged pages; run `npm run docs:translations:check`
+first and translate only missing or stale targets. Preserve Markdown structure,
+frontmatter keys, code blocks, inline code, URLs, environment variables, CLI
+flags, JSON keys, tool names, and Material icon tokens. Run
+`npm run docs:build`, `npm run docs:seo:validate`,
+`npm run docs:translations:check`, and `npm run check` before committing
+documentation changes.
+
 Compatibility tables are generated from `docs/data/version-compatibility.json`. For release work, add the new compatibility row there, run `npm run docs:compatibility`, and verify both the full table in `docs/version-compatibility.md` and the compact compatibility table in `README.md` are updated. Run `npm run docs:compatibility:check` before finishing so the generated tables in `README.md`, `docs/index.md`, and `docs/version-compatibility.md` cannot drift.
 
 For release preparation, publishing, verification, or recovery requests, read and follow `.agents/skills/project-release/SKILL.md`.
