@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-06-27
+
 ### Added
 
 - Added a bridge option to match CloakBrowser timezone and locale fingerprint
@@ -214,7 +216,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.7...v1.3.0
 [1.2.7]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.6...v1.2.7

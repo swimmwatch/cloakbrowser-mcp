@@ -8,9 +8,7 @@ import {
   toDockerMajorMinor,
   toDockerTag,
   updatePackageJsonVersion,
-  updatePinnedInstallCommands,
   updateServerJsonVersion,
-  updateVersionMarkers,
 } from '#scripts/lib/release-version';
 
 const rawVersion =
@@ -28,19 +26,11 @@ const versionTag = `v${version}`;
 const dockerTag = toDockerTag(versionTag);
 const dockerVersion = toDockerTag(version);
 const dockerMajorMinor = toDockerMajorMinor(version);
-const releaseFiles = [
-  'package.json',
-  'package-lock.json',
-  'server.json',
-  'docs/index.md',
-  'docs/getting-started.md',
-];
+const releaseFiles = ['package.json', 'package-lock.json', 'server.json'];
 
 updatePackageJsonVersion('package.json', version);
 updatePackageJsonVersion('package-lock.json', version);
 updateServerJsonVersion('server.json', version, dockerVersion);
-updateVersionMarkers(['docs/index.md'], versionTag);
-updatePinnedInstallCommands('docs/getting-started.md', version, dockerVersion);
 
 for (const filePath of releaseFiles) {
   writeText(filePath, await format(readText(filePath), { filepath: filePath }));

@@ -27,7 +27,7 @@ npx -y cloakbrowser-mcp@latest --transport streamable-http --http-protocol https
 Закрепите релиз, если важна воспроизводимость:
 
 ```bash
-npx -y cloakbrowser-mcp@1.4.0
+npx -y {{ project.npm_pin }}
 ```
 
 Для работы этого пакета npm требуется Node.js версии 22.12 или более поздней. При первом запуске CloakBrowser загружает бинарный файл Chromium, если он ещё не находится в кэше.
@@ -77,10 +77,10 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
 Закрепите релиз, если важна воспроизводимость:
 
 ```bash
-docker pull swimmwatch/cloakbrowser-mcp:1.4.0
+docker pull {{ project.docker_image }}
 docker run --rm --init -i \
   -v "$PWD/artifacts:/data" \
-  swimmwatch/cloakbrowser-mcp:1.4.0
+  {{ project.docker_image }}
 ```
 
 ## Настройки клиента MCP

@@ -27,7 +27,7 @@ npx -y cloakbrowser-mcp@latest --transport streamable-http --http-protocol https
 Прышпіліць рэліз, калі важная паўтаральнасць:
 
 ```bash
-npx -y cloakbrowser-mcp@1.4.0
+npx -y {{ project.npm_pin }}
 ```
 
 Пакет npm патрабуе Node.js 22.12 або больш новага. CloakBrowser спампоўвае свой бінарнік Chromium пры першым выкарыстанні, калі ён яшчэ не кэшаваны.
@@ -77,10 +77,10 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
 Прышпіліць рэліз, калі важная паўтаральнасць:
 
 ```bash
-docker pull swimmwatch/cloakbrowser-mcp:1.4.0
+docker pull {{ project.docker_image }}
 docker run --rm --init -i \
   -v "$PWD/artifacts:/data" \
-  swimmwatch/cloakbrowser-mcp:1.4.0
+  {{ project.docker_image }}
 ```
 
 ## Канфігурацыя кліента MCP

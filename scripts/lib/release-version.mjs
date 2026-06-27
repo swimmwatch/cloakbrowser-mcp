@@ -1,8 +1,4 @@
-import { readJson, readText, writeJson, writeText } from '#scripts/lib/files';
-
-const markerPattern = /<!-- project-version -->(.*?)<!-- \/project-version -->/gs;
-const packageVersionPattern = String.raw`\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?`;
-const dockerVersionPattern = String.raw`\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:-[0-9A-Za-z.-]+)?`;
+import { readJson, writeJson } from '#scripts/lib/files';
 
 export function normalizeReleaseVersion(value) {
   const stripped = value
@@ -57,43 +53,4 @@ export function updateServerJsonVersion(filePath, nextVersion, nextDockerVersion
   }
 
   writeJson(filePath, data);
-}
-
-export function updateVersionMarkers(filePaths, nextVersionTag) {
-  for (const filePath of filePaths) {
-    const original = readText(filePath);
-
-    if (!markerPattern.test(original)) {
-      throw new Error(`${filePath} does not contain a project-version marker`);
-    }
-
-    markerPattern.lastIndex = 0;
-    writeText(
-      filePath,
-      original.replace(markerPattern, `<!-- project-version -->${nextVersionTag}<!-- /project-version -->`),
-    );
-  }
-}
-
-export function updatePinnedInstallCommands(filePath, nextVersion, nextDockerVersion) {
-  const original = readText(filePath);
-  const updated = original
-    .replace(
-      new RegExp(`npx -y cloakbrowser-mcp@${packageVersionPattern}`, 'g'),
-      `npx -y cloakbrowser-mcp@${nextVersion}`,
-    )
-    .replace(
-      new RegExp(`ghcr\\.io/swimmwatch/cloakbrowser-mcp:${dockerVersionPattern}`, 'g'),
-      `ghcr.io/swimmwatch/cloakbrowser-mcp:${nextDockerVersion}`,
-    )
-    .replace(
-      new RegExp(`docker\\.io/swimmwatch/cloakbrowser-mcp:${dockerVersionPattern}`, 'g'),
-      `docker.io/swimmwatch/cloakbrowser-mcp:${nextDockerVersion}`,
-    )
-    .replace(
-      new RegExp(`(^|[\\s"'])swimmwatch/cloakbrowser-mcp:${dockerVersionPattern}`, 'g'),
-      `$1swimmwatch/cloakbrowser-mcp:${nextDockerVersion}`,
-    );
-
-  writeText(filePath, updated);
 }

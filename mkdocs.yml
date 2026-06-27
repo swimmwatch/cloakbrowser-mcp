@@ -328,6 +328,10 @@ plugins:
             Architecture: आर्किटेक्चर
             Release: रिलीज़
             Contributing: योगदान
+  - macros:
+      module_name: docs_macros
+      on_error_fail: true
+      on_undefined: strict
   - meta
   - search:
       lang: en

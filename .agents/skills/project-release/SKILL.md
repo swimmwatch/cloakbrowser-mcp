@@ -68,8 +68,10 @@ The script updates:
 - `package.json`
 - `package-lock.json`
 - `server.json`
-- the project-version marker in `docs/index.md`
-- pinned npm and Docker install commands in `docs/getting-started.md`
+
+Documentation release tags and pinned install examples are rendered at MkDocs
+build time from `package.json` through `docs_macros.py`; do not manually rewrite
+those values in Markdown sources.
 
 Manual release updates still required:
 
