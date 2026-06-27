@@ -10,6 +10,7 @@ import { defaultStreamableHttpOptions } from '@/http/options.js';
 import { startStreamableHttpBridge, type StreamableHttpBridgeServer } from '@/http/server.js';
 import { HttpStatus } from '@/http/status.js';
 import { BRIDGE_INITIALIZE_META_KEY, JSON_RPC_VERSION, MCP_SESSION_ID_HEADER } from '@/protocol/constants.js';
+import { fakeUpstreamToolNames } from '@tests/fixtures/fake-upstream-tools.js';
 import { fetchHealth, fetchReady, postToolsList } from '@tests/helpers/http.js';
 import { fetchWithTestTls, tlsConfig } from '@tests/helpers/tls.js';
 
@@ -38,8 +39,7 @@ describe('streamable HTTP bridge', () => {
       const tools = await client.listTools();
       expect(transport.sessionId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
       expect(tools.tools.map((tool) => tool.name)).toEqual([
-        'browser_snapshot',
-        'browser_navigate',
+        ...fakeUpstreamToolNames,
         LOCAL_TOOL_BINARY_INFO,
         LOCAL_TOOL_BRIDGE_INFO,
       ]);

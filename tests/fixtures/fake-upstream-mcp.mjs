@@ -1,30 +1,19 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
 import process from 'node:process';
+import { URL } from 'node:url';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 
 const server = new Server({ name: 'fake-playwright-mcp', version: '1.0.0' }, { capabilities: { tools: {} } });
-
-const tools = [
-  {
-    name: 'browser_snapshot',
-    title: 'Page snapshot',
-    description: 'Capture accessibility snapshot.',
-    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
-  },
-  {
-    name: 'browser_navigate',
-    title: 'Navigate',
-    description: 'Navigate to a URL.',
-    inputSchema: {
-      type: 'object',
-      properties: { url: { type: 'string' } },
-      required: ['url'],
-    },
-  },
-];
+const toolNames = JSON.parse(readFileSync(new URL('./fake-upstream-tools.json', import.meta.url), 'utf8'));
+const tools = toolNames.map((name) => ({
+  name,
+  title: formatToolTitle(name),
+  description: `Fake upstream implementation for ${name}.`,
+  inputSchema: { type: 'object', properties: {}, additionalProperties: true },
+}));
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools }));
 
@@ -86,4 +75,12 @@ function readConfig() {
   const configPath = process.env.PLAYWRIGHT_MCP_CONFIG;
   if (!configPath) return null;
   return JSON.parse(readFileSync(configPath, 'utf8'));
+}
+
+function formatToolTitle(name) {
+  return name
+    .replace(/^browser_/u, '')
+    .split('_')
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(' ');
 }
