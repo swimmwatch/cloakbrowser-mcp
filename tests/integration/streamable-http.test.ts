@@ -238,6 +238,7 @@ describe('streamable HTTP bridge', () => {
         mkdirSync(extensionDir, { recursive: true });
         const server = await startHttpBridge({ sessionMax: 2 });
         const sessionId = await initializeRawHttpSession(server, {
+          humanize: true,
           userDataDir: profileDir,
           contextOptions: {
             viewport: { width: 1280, height: 720 },
@@ -257,6 +258,11 @@ describe('streamable HTTP bridge', () => {
             colorScheme: 'dark',
           },
           extensionDir: canonicalDirectory(extensionDir),
+        });
+        await expectHumanizeConfig(server, sessionId, {
+          enabled: true,
+          initPageCount: 1,
+          preset: 'default',
         });
       },
       { browserEngine: 'cloak' },

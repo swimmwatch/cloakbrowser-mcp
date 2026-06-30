@@ -288,8 +288,17 @@ describe('bridge config generation', () => {
           username: 'user',
           password: 'pass',
         });
+        expect(options.headless).toBe(true);
         expect(options.geoip).toBe(true);
         expect(options.stealthArgs).toBe(false);
+        expect(options.args).toEqual([
+          '--no-sandbox',
+          '--lang=en-US',
+          '--lang=fr-FR',
+          '--alpha',
+          '--fingerprint-locale=en-US',
+        ]);
+        expect(options.launchOptions).toEqual({ chromiumSandbox: false });
         return {
           executablePath: fakeCloakBinaryPath,
           headless: true,
@@ -344,7 +353,11 @@ describe('bridge config generation', () => {
       ensureCloakBinary: async () => fakeCloakBinaryPath,
       buildCloakLaunchOptions: async (options) => {
         if (!options) throw new Error('Expected Cloak launch options');
+        expect(options.headless).toBe(true);
+        expect(options.stealthArgs).toBe(false);
+        expect(options.args).toEqual(['--no-sandbox']);
         expect(options.extensionPaths).toEqual([canonicalDirectory(extensionDir)]);
+        expect(options.launchOptions).toEqual({ chromiumSandbox: false });
         return {
           executablePath: fakeCloakBinaryPath,
           headless: true,
@@ -618,7 +631,9 @@ describe('bridge config generation', () => {
     expect(path.basename(runtime.config.browser!.initPage![0]!)).toBe('humanize-init-page.cjs');
     expect(runtime.childEnv.CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET).toBe('default');
     const initPageSource = readFileSync(runtime.config.browser!.initPage![0]!, 'utf8');
+    expect(initPageSource).toContain("import('cloakbrowser')");
     expect(initPageSource).toContain("import('cloakbrowser/human')");
+    expect(initPageSource).toContain('humanizeBrowser');
     expect(initPageSource).toContain('CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET');
     expect(runtime.config.browser!.initPage![0]!).not.toContain(runtime.tempDir);
 
@@ -773,9 +788,14 @@ describe('bridge config generation', () => {
 
   it('does not apply Cloak-specific defaults in Playwright engine mode', async () => {
     const root = createTempRoot();
+    let called = false;
     const runtime = await prepareBridgeRuntime({
       tempRoot: root,
       ensureCloakBinary: async () => fakeCloakBinaryPath,
+      buildCloakLaunchOptions: async () => {
+        called = true;
+        return {};
+      },
       env: {
         PLAYWRIGHT_MCP_BROWSER_ENGINE: 'playwright',
         PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
@@ -791,6 +811,7 @@ describe('bridge config generation', () => {
     expect(runtime.childEnv.NODE_OPTIONS).toBeUndefined();
     expect(runtime.config.browser?.launchOptions?.args).toEqual([]);
     expect(runtime.config.browser?.launchOptions?.chromiumSandbox).toBeUndefined();
+    expect(called).toBe(false);
 
     runtime.dispose();
   });

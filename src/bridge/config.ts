@@ -265,7 +265,17 @@ async function resolveCloakLaunchArgs(options: ResolveCloakLaunchArgsOptions): P
   const geoip = options.geoip && proxy !== undefined;
   if (!geoip && options.extensionPaths.length === 0) return options.args;
 
-  const cloakOptions: CloakLaunchOptionsWithExtensions = {
+  const cloakOptions = createCloakLaunchOptions(options, proxy, geoip);
+  const launchOptions = await suppressStdout(() => options.buildCloakLaunchOptions(cloakOptions));
+  return mergeLaunchArgs(options.args, extractCloakGeneratedArgs(launchOptions.args ?? []));
+}
+
+function createCloakLaunchOptions(
+  options: ResolveCloakLaunchArgsOptions,
+  proxy: CloakProxyOption | undefined,
+  geoip: boolean,
+): CloakLaunchOptionsWithExtensions {
+  return {
     headless: options.headless,
     stealthArgs: false,
     args: options.args,
@@ -275,8 +285,6 @@ async function resolveCloakLaunchArgs(options: ResolveCloakLaunchArgsOptions): P
     launchOptions:
       options.chromiumSandbox === undefined ? undefined : { chromiumSandbox: options.chromiumSandbox },
   };
-  const launchOptions = await suppressStdout(() => options.buildCloakLaunchOptions(cloakOptions));
-  return mergeLaunchArgs(options.args, extractCloakGeneratedArgs(launchOptions.args ?? []));
 }
 
 function resolveConfiguredUserDataDir(
