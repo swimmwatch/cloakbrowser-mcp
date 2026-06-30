@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-06-30
+
+### Added
+
+- Added persistent browser profile support through `PLAYWRIGHT_MCP_USER_DATA_DIR`
+  and Streamable HTTP session metadata, including writable directory validation
+  and in-process duplicate profile protection.
+- Added validated context option support through
+  `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` and Streamable HTTP session metadata.
+- Added extension path support through `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`
+  and Streamable HTTP session metadata, backed by CloakBrowser launch argument
+  generation and persistent profile requirements.
+- Added a CloakBrowser upstream monitor job and helper script alongside the
+  Playwright MCP upstream monitor.
+- Added Docker and extension documentation for persistent `/data` profiles,
+  mounted extension directories, and cross-platform path handling.
+- Added code-assistant E2E runbook coverage for single-subagent full tool
+  sweeps and parallel multisession checks against one shared Streamable HTTP
+  MCP server.
+
 ### Changed
 
 - Updated the upstream Playwright MCP dependency and Docker baseline to
@@ -16,6 +36,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   helper surface while keeping the generated Playwright MCP config flow intact.
 - Derived the Playwright MCP package tag used by the Tools documentation from
   the MkDocs project macro metadata.
+- Simplified the release workflow so release publishing no longer repeats PR
+  CI release checks or Docker smoke, and documentation deployment waits for
+  npm, Docker, and MCP Registry publishing to succeed.
+
+### Fixed
+
+- Clarified Streamable HTTP metadata validation and normalized profile path
+  assertions for cross-platform CI behavior.
 
 ## [1.5.0] - 2026-06-27
 
@@ -227,7 +255,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.2.7...v1.3.0
