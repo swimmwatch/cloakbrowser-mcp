@@ -1,5 +1,5 @@
 ---
-description: Playwright MCP ब्रिज के लिए रनटाइम कॉन्फ़िगरेशन, जिसमें स्ट्रीमएबल HTTP सत्र, GeoIP-अवेयर प्रॉक्सी मिलान, और मानवीकृत इनपुट व्यवहार शामिल हैं।
+description: Playwright MCP ब्रिज के लिए runtime configuration, जिसमें Streamable HTTP sessions, persistent profiles, validated context options, extension paths, GeoIP प्रॉक्सी मिलान, और humanized input शामिल हैं।
 icon: material/tune
 tags:
   - Configuration

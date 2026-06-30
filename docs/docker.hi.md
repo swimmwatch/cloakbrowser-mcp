@@ -1,5 +1,5 @@
 ---
-description: CloakBrowser के साथ दोहराने योग्य Playwright MCP ब्राउज़र ऑटोमेशन के लिए CloakBrowser MCP Docker इमेज चलाएँ।
+description: persistent /data profiles, extension mounts, और CloakBrowser के साथ repeatable Playwright MCP browser automation के लिए CloakBrowser MCP Docker इमेज चलाएँ।
 icon: fontawesome/brands/docker
 tags:
   - Docker

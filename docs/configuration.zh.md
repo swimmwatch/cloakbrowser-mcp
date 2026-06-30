@@ -1,5 +1,5 @@
 ---
-description: Playwright MCP 桥接器的运行时配置，包括可流式传输的 HTTP 会话、支持 GeoIP 的代理匹配以及人性化的输入行为。
+description: Playwright MCP 桥接器的运行时配置，包括 Streamable HTTP 会话、持久化配置文件、经过验证的上下文选项、扩展路径、GeoIP 代理匹配和拟人化输入。
 icon: material/tune
 tags:
   - Configuration

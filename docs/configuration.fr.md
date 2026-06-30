@@ -1,5 +1,5 @@
 ---
-description: Configuration d'exécution pour le pont Playwright MCP, incluant les sessions HTTP streamables, la mise en correspondance de proxys tenant compte de l'adresse IP géographique et un comportement d'entrée humanisé.
+description: Configuration d'exécution du pont Playwright MCP, incluant les sessions Streamable HTTP, les profils persistants, les options de contexte validées, les chemins d'extensions, la correspondance de proxy GeoIP et la saisie humanisée.
 icon: material/tune
 tags:
   - Configuration

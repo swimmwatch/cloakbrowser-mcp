@@ -1,5 +1,5 @@
 ---
-description: Run the CloakBrowser MCP Docker image for repeatable Playwright MCP browser automation with CloakBrowser.
+description: Run the CloakBrowser MCP Docker image for repeatable Playwright MCP browser automation with persistent /data profiles, extension mounts, and CloakBrowser.
 icon: fontawesome/brands/docker
 tags:
   - Docker

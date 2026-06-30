@@ -1,5 +1,5 @@
 ---
-description: Runtime configuration for the Playwright MCP bridge, including Streamable HTTP sessions, GeoIP-aware proxy matching, and humanized input behavior.
+description: Runtime configuration for the Playwright MCP bridge, including Streamable HTTP sessions, persistent profiles, validated context options, extension paths, GeoIP proxy matching, and humanized input.
 icon: material/tune
 tags:
   - Configuration

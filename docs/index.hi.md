@@ -1,5 +1,5 @@
 ---
-description: CloakBrowser MCP, CloakBrowser, Docker, Streamable HTTP, GeoIP-aware प्रॉक्सी सत्रों, और मानवीकृत इनपुट व्यवहार के साथ ब्राउज़र ऑटोमेशन के लिए एक Playwright MCP ब्रिज है।
+description: CloakBrowser ब्राउज़र ऑटोमेशन के लिए Playwright MCP ब्रिज, जिसमें Docker, Streamable HTTP, persistent profiles, validated context options, extension loading, GeoIP प्रॉक्सी मिलान, और humanized input शामिल हैं।
 icon: material/home
 tags:
   - User Guide

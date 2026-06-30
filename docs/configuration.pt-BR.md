@@ -1,5 +1,5 @@
 ---
-description: Configuração de tempo de execução para a ponte Playwright MCP, incluindo sessões HTTP streamáveis, correspondência de proxy com reconhecimento de GeoIP e comportamento de entrada humanizado.
+description: Configuração de tempo de execução para a ponte Playwright MCP, incluindo sessões Streamable HTTP, perfis persistentes, opções de contexto validadas, caminhos de extensões, correspondência de proxy por GeoIP e entrada humanizada.
 icon: material/tune
 tags:
   - Configuration

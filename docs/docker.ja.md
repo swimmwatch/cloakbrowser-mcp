@@ -1,5 +1,5 @@
 ---
-description: CloakBrowser MCP Docker イメージを実行して、CloakBrowser を使用した再現性のある Playwright MCP ブラウザ自動化を実現します。
+description: CloakBrowser MCP Docker イメージを実行し、永続的な /data プロファイル、拡張機能マウント、CloakBrowser による再現性のある Playwright MCP ブラウザー自動化を実現します。
 icon: fontawesome/brands/docker
 tags:
   - Docker

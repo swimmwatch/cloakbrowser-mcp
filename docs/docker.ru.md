@@ -1,5 +1,5 @@
 ---
-description: Запустите образ CloakBrowser MCP в Docker для воспроизводимой автоматизации браузера Playwright MCP с помощью CloakBrowser.
+description: Запустите Docker-образ CloakBrowser MCP для воспроизводимой автоматизации браузера Playwright MCP с постоянными профилями /data, монтированием расширений и CloakBrowser.
 icon: fontawesome/brands/docker
 tags:
   - Docker

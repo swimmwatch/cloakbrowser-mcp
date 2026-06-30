@@ -1,5 +1,5 @@
 ---
-description: Playwright MCPブリッジのランタイム設定。これには、ストリーム可能なHTTPセッション、GeoIP対応のプロキシマッチング、および人間らしい入力挙動が含まれます。
+description: Playwright MCP ブリッジのランタイム設定。Streamable HTTP セッション、永続プロファイル、検証済みコンテキストオプション、拡張機能パス、GeoIP プロキシ照合、人間らしい入力を含みます。
 icon: material/tune
 tags:
   - Configuration

@@ -1,5 +1,5 @@
 ---
-description: CloakBrowser MCP 是一款基于 Playwright 的 MCP 桥接工具，用于浏览器自动化，支持 CloakBrowser、Docker、Streamable HTTP、支持 GeoIP 的代理会话以及拟人化的输入行为。
+description: 用于 CloakBrowser 浏览器自动化的 Playwright MCP 桥接器，支持 Docker、Streamable HTTP、持久化配置文件、经过验证的上下文选项、扩展加载、GeoIP 代理匹配和拟人化输入。
 icon: material/home
 tags:
   - User Guide

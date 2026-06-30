@@ -1,5 +1,5 @@
 ---
-description: Laufzeitkonfiguration für die Playwright-MCP-Brücke, einschließlich streamfähiger HTTP-Sitzungen, GeoIP-basierter Proxy-Zuordnung und humanisiertem Eingabeverhalten.
+description: Laufzeitkonfiguration für die Playwright-MCP-Brücke, einschließlich Streamable-HTTP-Sitzungen, persistenten Profilen, validierten Kontextoptionen, Erweiterungspfaden, GeoIP-Proxy-Zuordnung und humanisierter Eingabe.
 icon: material/tune
 tags:
   - Configuration

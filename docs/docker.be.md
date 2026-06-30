@@ -1,5 +1,5 @@
 ---
-description: Запусціце Docker-абraz CLB000000 для паўтаральнай аўтаматызацыі браўзера MCP з дапамогай Playwright і CloakBrowser.
+description: Запусціце Docker-вобраз CloakBrowser MCP для паўтаральнай аўтаматызацыі браўзера Playwright MCP з пастаяннымі профілямі /data, мантаваннем пашырэнняў і CloakBrowser.
 icon: fontawesome/brands/docker
 tags:
   - Docker

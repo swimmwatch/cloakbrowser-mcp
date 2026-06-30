@@ -1,5 +1,5 @@
 ---
-description: Exécutez l'image Docker CloakBrowser MCP pour une automatisation reproductible du navigateur Playwright MCP avec CloakBrowser.
+description: Exécutez l'image Docker CloakBrowser MCP pour une automatisation reproductible du navigateur Playwright MCP avec des profils /data persistants, des montages d'extensions et CloakBrowser.
 icon: fontawesome/brands/docker
 tags:
   - Docker

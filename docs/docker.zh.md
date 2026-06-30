@@ -1,5 +1,5 @@
 ---
-description: 运行 CloakBrowser MCP Docker 镜像，通过 CloakBrowser 实现可重复的 Playwright MCP 浏览器自动化。
+description: 运行 CloakBrowser MCP Docker 镜像，通过持久化 /data 配置文件、扩展挂载和 CloakBrowser 实现可重复的 Playwright MCP 浏览器自动化。
 icon: fontawesome/brands/docker
 tags:
   - Docker

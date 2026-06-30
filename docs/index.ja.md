@@ -1,5 +1,5 @@
 ---
-description: CloakBrowser MCPは、CloakBrowser、Docker、Streamable HTTP、GeoIP対応のプロキシセッション、および人間らしい入力動作を備えた、ブラウザ自動化のためのPlaywright MCPブリッジです。
+description: CloakBrowser のブラウザー自動化向け Playwright MCP ブリッジ。Docker、Streamable HTTP、永続プロファイル、検証済みコンテキストオプション、拡張機能の読み込み、GeoIP プロキシ照合、人間らしい入力に対応します。
 icon: material/home
 tags:
   - User Guide

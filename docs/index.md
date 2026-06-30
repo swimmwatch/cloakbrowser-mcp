@@ -1,5 +1,5 @@
 ---
-description: CloakBrowser MCP is a Playwright MCP bridge for browser automation with CloakBrowser, Docker, Streamable HTTP, GeoIP-aware proxy sessions, and humanized input behavior.
+description: Playwright MCP bridge for CloakBrowser browser automation with Docker, Streamable HTTP, persistent profiles, validated context options, extension loading, GeoIP proxy matching, and humanized input.
 icon: material/home
 tags:
   - User Guide
