@@ -1,6 +1,6 @@
 {
   "name": "cloakbrowser-mcp",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Playwright MCP-compatible browser automation bridge for CloakBrowser Chromium.",
   "mcpName": "io.github.swimmwatch/cloakbrowser-mcp",
   "type": "module",
