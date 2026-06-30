@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -15,6 +15,14 @@ function createTempRoot(): string {
   const root = mkdtempSync(path.join(tmpdir(), 'cloakbrowser-mcp-test-'));
   tempRoots.push(root);
   return root;
+}
+
+function canonicalDirectory(directory: string): string {
+  try {
+    return path.normalize(realpathSync.native(directory));
+  } catch {
+    return path.resolve(path.normalize(directory));
+  }
 }
 
 function deferred(): { promise: Promise<void>; resolve: () => void } {
@@ -109,9 +117,10 @@ describe('bridge config generation', () => {
       },
     });
 
-    expect(runtime.config.browser?.userDataDir).toBe(path.resolve(profileDir));
+    const expectedProfileDir = canonicalDirectory(profileDir);
+    expect(runtime.config.browser?.userDataDir).toBe(expectedProfileDir);
     expect(runtime.config.browser?.isolated).toBeUndefined();
-    expect(runtime.childEnv.PLAYWRIGHT_MCP_USER_DATA_DIR).toBe(path.resolve(profileDir));
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_USER_DATA_DIR).toBe(expectedProfileDir);
     expect(runtime.childEnv.PLAYWRIGHT_MCP_ISOLATED).toBeUndefined();
 
     runtime.dispose();
@@ -126,7 +135,7 @@ describe('bridge config generation', () => {
         CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
       },
     });
-    expect(afterDispose.config.browser?.userDataDir).toBe(path.resolve(profileDir));
+    expect(afterDispose.config.browser?.userDataDir).toBe(expectedProfileDir);
     afterDispose.dispose();
   });
 
@@ -335,7 +344,7 @@ describe('bridge config generation', () => {
       ensureCloakBinary: async () => fakeCloakBinaryPath,
       buildCloakLaunchOptions: async (options) => {
         if (!options) throw new Error('Expected Cloak launch options');
-        expect(options.extensionPaths).toEqual([path.resolve(extensionDir)]);
+        expect(options.extensionPaths).toEqual([canonicalDirectory(extensionDir)]);
         return {
           executablePath: fakeCloakBinaryPath,
           headless: true,
@@ -357,8 +366,8 @@ describe('bridge config generation', () => {
 
     expect(runtime.config.browser?.launchOptions?.args).toEqual([
       '--no-sandbox',
-      `--load-extension=${path.resolve(extensionDir)}`,
-      `--disable-extensions-except=${path.resolve(extensionDir)}`,
+      `--load-extension=${canonicalDirectory(extensionDir)}`,
+      `--disable-extensions-except=${canonicalDirectory(extensionDir)}`,
     ]);
 
     runtime.dispose();

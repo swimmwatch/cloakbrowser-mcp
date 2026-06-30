@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,6 +28,14 @@ function createTempRoot(): string {
   const root = mkdtempSync(path.join(tmpdir(), 'cloakbrowser-mcp-http-test-'));
   tempRoots.push(root);
   return root;
+}
+
+function canonicalDirectory(directory: string): string {
+  try {
+    return path.normalize(realpathSync.native(directory));
+  } catch {
+    return path.resolve(path.normalize(directory));
+  }
 }
 
 describe('streamable HTTP bridge', () => {
@@ -241,14 +249,14 @@ describe('streamable HTTP bridge', () => {
         });
 
         await expectBrowserConfig(server, sessionId, {
-          userDataDir: path.resolve(profileDir),
+          userDataDir: canonicalDirectory(profileDir),
           contextOptions: {
             viewport: { width: 1280, height: 720 },
             locale: 'en-US',
             timezoneId: 'America/New_York',
             colorScheme: 'dark',
           },
-          extensionDir: path.resolve(extensionDir),
+          extensionDir: canonicalDirectory(extensionDir),
         });
       },
       { browserEngine: 'cloak' },
