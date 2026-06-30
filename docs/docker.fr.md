@@ -45,8 +45,12 @@ le répertoire de profil s'il manque, vérifie qu'il est accessible en écriture
 rejette les répertoires de profil actifs en double dans un même processus
 serveur.
 
+## Extensions Chrome
+
 Les extensions Chrome nécessitent un profil persistant et doivent être montées
-séparément. Le montage de l'extension peut être en lecture seule :
+séparément. Utilisez des chemins de conteneur dans les variables
+d'environnement, pas des chemins hôte. Le montage de l'extension peut être en
+lecture seule :
 
 ```bash
 docker run --rm --init -i \
@@ -58,9 +62,9 @@ docker run --rm --init -i \
 ```
 
 Utilisez un tableau JSON pour `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` lorsqu'un
-chemin contient des virgules. Pour l'utilisation de npm sous Windows, les
-tableaux JSON sont également la méthode la plus sûre pour transmettre des
-chemins avec lettres de lecteur.
+chemin contient des virgules ou lors du passage de plusieurs répertoires
+d'extensions. Redémarrez le conteneur après avoir modifié des fichiers ou
+chemins d'extensions.
 
 ## HTTP en continu
 

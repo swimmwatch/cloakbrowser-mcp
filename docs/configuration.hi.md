@@ -66,6 +66,39 @@ MCP और केवल रिज़ॉल्व किए गए `--fingerprint
 
 सेटअप उदाहरणों, रनटाइम स्ट्रीमएबल HTTP मेटाडेटा, उपयोग के मामलों और सीमाओं के लिए [Humanized Input Behavior](humanized-input-behavior.md) देखें।
 
+## Chrome एक्सटेंशन
+
+Chrome एक्सटेंशन ब्राउज़र शुरू होने पर लोड होते हैं, इसलिए ब्रिज शुरू करने से
+पहले या Streamable HTTP सत्र बनाने से पहले उन्हें कॉन्फ़िगर करें। एक्सटेंशन
+अनपैक की गई निर्देशिकाएँ होने चाहिए और इनके लिए स्थायी प्रोफ़ाइल आवश्यक है:
+
+```bash
+PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
+  CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS='["/absolute/path/to/my-extension"]' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+Streamable HTTP के लिए, `initialize` मेटाडेटा में प्रोफ़ाइल और एक्सटेंशन
+निर्देशिकाएँ पास करें:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "userDataDir": "/absolute/path/to/profile",
+        "extensionPaths": ["/absolute/path/to/my-extension"]
+      }
+    }
+  }
+}
+```
+
+एक्सटेंशन फ़ाइलें या एक्सटेंशन पथ बदलने के बाद ब्रिज फिर से शुरू करें या नया
+HTTP सत्र बनाएँ। जब पथों में कॉमा हों, कई एक्सटेंशन पास करने हों, या Windows
+ड्राइव-लेटर पथों का उपयोग करना हो, तो
+`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` के लिए JSON ऐरे का उपयोग करें।
+
 ## स्ट्रीम करने योग्य HTTP रनटाइम मेटाडेटा
 
 स्ट्रीमएबल HTTP क्लाइंट `initialize` अनुरोध में ब्रिज-विशिष्ट मेटाडेटा जोड़कर प्रति MCP सत्र के लिए चयनित रनटाइम विकल्प चुन सकते हैं:

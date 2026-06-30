@@ -72,6 +72,39 @@ schemas stay unchanged.
 See [Humanized Input Behavior](humanized-input-behavior.md) for setup examples,
 runtime Streamable HTTP metadata, use cases, and limitations.
 
+## Chrome Extensions
+
+Chrome extensions are loaded when the browser starts, so configure them before
+starting the bridge or before creating a Streamable HTTP session. Extensions
+must be unpacked directories and require a persistent profile:
+
+```bash
+PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
+  CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS='["/absolute/path/to/my-extension"]' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+For Streamable HTTP, pass the profile and extension directories in initialize
+metadata:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "userDataDir": "/absolute/path/to/profile",
+        "extensionPaths": ["/absolute/path/to/my-extension"]
+      }
+    }
+  }
+}
+```
+
+Restart the bridge or create a new HTTP session after changing extension files
+or extension paths. Use a JSON array for `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`
+when paths contain commas, when passing multiple extensions, or when using
+Windows drive-letter paths.
+
 ## Streamable HTTP Runtime Metadata
 
 Streamable HTTP clients can choose selected runtime options per MCP session by adding

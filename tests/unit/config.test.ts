@@ -407,6 +407,34 @@ describe('bridge config generation', () => {
     ).rejects.toThrow('must point to an existing directory');
   });
 
+  it('labels runtime profile and extension path validation errors by metadata field', async () => {
+    const root = createTempRoot();
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: root,
+        userDataDir: ' ',
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
+        env: {
+          PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+          CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        },
+      }),
+    ).rejects.toThrow('userDataDir must be a non-empty path');
+
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: root,
+        userDataDir: path.join(root, 'profiles', 'default'),
+        extensionPaths: [path.join(root, 'missing-extension')],
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
+        env: {
+          PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+          CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        },
+      }),
+    ).rejects.toThrow('extensionPaths[0] must point to an existing directory');
+  });
+
   it('passes runtime proxy options through the upstream child environment', async () => {
     const root = createTempRoot();
     const runtime = await prepareBridgeRuntime({

@@ -72,6 +72,38 @@ Playwright MCP 的页面初始化钩子应用此设置，因此上游浏览器�
 有关配置示例、
 运行时可流式传输的 HTTP 元数据、用例及限制，请参阅 [人性化输入行为](humanized-input-behavior.md)。
 
+## Chrome 扩展
+
+Chrome 扩展会在浏览器启动时加载，因此请在启动桥接器之前，或在创建
+Streamable HTTP 会话之前完成配置。扩展必须是已解压的目录，并且需要
+持久化配置文件：
+
+```bash
+PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
+  CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS='["/absolute/path/to/my-extension"]' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+对于 Streamable HTTP，请在 `initialize` 元数据中传入配置文件目录和扩展
+目录：
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "userDataDir": "/absolute/path/to/profile",
+        "extensionPaths": ["/absolute/path/to/my-extension"]
+      }
+    }
+  }
+}
+```
+
+更改扩展文件或扩展路径后，请重启桥接器或创建新的 HTTP 会话。当路径包含
+逗号、传入多个扩展，或使用带盘符的 Windows 路径时，请为
+`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` 使用 JSON 数组。
+
 ## 可流式传输的 HTTP 运行时元数据
 
 支持流式传输的 HTTP 客户端可以通过在 `initialize` 请求中添加

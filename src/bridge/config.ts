@@ -283,18 +283,30 @@ function resolveConfiguredUserDataDir(
   env: EnvReader,
   runtimeUserDataDir: string | undefined,
 ): string | undefined {
-  const raw = runtimeUserDataDir ?? optionalEnvString(env, 'PLAYWRIGHT_MCP_USER_DATA_DIR');
-  if (raw === undefined) return undefined;
-  return resolveDirectory(raw, 'PLAYWRIGHT_MCP_USER_DATA_DIR', { create: true, writable: true });
+  if (runtimeUserDataDir !== undefined) {
+    return resolveDirectory(runtimeUserDataDir, 'userDataDir', { create: true, writable: true });
+  }
+  const envUserDataDir = optionalEnvString(env, 'PLAYWRIGHT_MCP_USER_DATA_DIR');
+  if (envUserDataDir === undefined) return undefined;
+  return resolveDirectory(envUserDataDir, 'PLAYWRIGHT_MCP_USER_DATA_DIR', {
+    create: true,
+    writable: true,
+  });
 }
 
 function resolveConfiguredExtensionPaths(
   env: EnvReader,
   runtimeExtensionPaths: string[] | undefined,
 ): string[] {
-  const rawPaths = runtimeExtensionPaths ?? envList(env, 'CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS');
-  return rawPaths.map((extensionPath, index) =>
-    resolveDirectory(extensionPath, `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS[${index}]`, {
+  const source =
+    runtimeExtensionPaths === undefined
+      ? {
+          paths: envList(env, 'CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS'),
+          label: 'CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS',
+        }
+      : { paths: runtimeExtensionPaths, label: 'extensionPaths' };
+  return source.paths.map((extensionPath, index) =>
+    resolveDirectory(extensionPath, `${source.label}[${index}]`, {
       create: false,
       writable: false,
     }),

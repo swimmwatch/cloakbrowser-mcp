@@ -43,8 +43,11 @@ Profilverzeichnis bei Bedarf, prüft die Schreibbarkeit, schreibt den
 Containerpfad in die generierte Playwright-MCP-Konfiguration und weist doppelte
 aktive Profilverzeichnisse innerhalb eines Serverprozesses zurück.
 
+## Chrome-Erweiterungen
+
 Chrome-Erweiterungen erfordern ein persistentes Profil und müssen separat
-gemountet werden. Der Erweiterungs-Mount kann schreibgeschützt sein:
+gemountet werden. Verwenden Sie Containerpfade in Umgebungsvariablen, keine
+Hostpfade. Der Erweiterungs-Mount kann schreibgeschützt sein:
 
 ```bash
 docker run --rm --init -i \
@@ -56,8 +59,9 @@ docker run --rm --init -i \
 ```
 
 Verwenden Sie ein JSON-Array für `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`, wenn ein
-Pfad Kommas enthält. Für die npm-Nutzung unter Windows sind JSON-Arrays auch der
-sicherste Weg, Pfade mit Laufwerksbuchstaben zu übergeben.
+Pfad Kommas enthält oder wenn mehrere Erweiterungsverzeichnisse übergeben
+werden. Starten Sie den Container neu, nachdem Sie Erweiterungsdateien oder
+Erweiterungspfade geändert haben.
 
 ## Streamable HTTP
 

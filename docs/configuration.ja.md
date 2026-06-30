@@ -72,6 +72,39 @@ Playwright MCPのページ初期化フックを通じて適用されるため、
 設定例、
 実行時の Streamable HTTP メタデータ、ユースケース、および制限事項については、[Humanized Input Behavior](humanized-input-behavior.md) を参照してください。
 
+## Chrome 拡張機能
+
+Chrome 拡張機能はブラウザ起動時に読み込まれるため、ブリッジを起動する前、
+または Streamable HTTP セッションを作成する前に設定してください。拡張機能は
+展開済みディレクトリである必要があり、永続プロファイルが必要です:
+
+```bash
+PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
+  CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS='["/absolute/path/to/my-extension"]' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+Streamable HTTP では、`initialize` メタデータでプロファイルディレクトリと
+拡張機能ディレクトリを渡します:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "userDataDir": "/absolute/path/to/profile",
+        "extensionPaths": ["/absolute/path/to/my-extension"]
+      }
+    }
+  }
+}
+```
+
+拡張機能ファイルまたは拡張機能パスを変更した後は、ブリッジを再起動するか、
+新しい HTTP セッションを作成してください。パスにカンマが含まれる場合、複数の
+拡張機能を渡す場合、または Windows のドライブ文字付きパスを使用する場合は、
+`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` に JSON 配列を使用してください。
+
 ## ストリーミング可能なHTTPランタイムメタデータ
 
 ストリーミング対応のHTTPクライアントは、`initialize` リクエストにブリッジ固有のメタデータを追加することで、MCPセッションごとに特定のランタイムオプションを選択できます：

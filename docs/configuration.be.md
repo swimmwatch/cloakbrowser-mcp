@@ -67,6 +67,40 @@ MCP і ўстаўляе толькі разблакіраваныя `--fingerpri
 
 Глядзіце [Humanized Input Behavior](humanized-input-behavior.md) для прыкладаў наладкі, метаданых HTTP Streamable у часе выканання, выпадкаў выкарыстання і абмежаванняў.
 
+## Пашырэнні Chrome
+
+Пашырэнні Chrome загружаюцца пры запуску браўзера, таму наладзьце іх да запуску
+моста або да стварэння сеанса Streamable HTTP. Пашырэнні павінны быць
+распакаванымі каталогамі і патрабуюць пастаяннага профілю:
+
+```bash
+PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
+  CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS='["/absolute/path/to/my-extension"]' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+Для Streamable HTTP перадайце каталогі профілю і пашырэння ў метаданых
+`initialize`:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "userDataDir": "/absolute/path/to/profile",
+        "extensionPaths": ["/absolute/path/to/my-extension"]
+      }
+    }
+  }
+}
+```
+
+Перазапусціце мост або стварыце новы HTTP-сеанс пасля змены файлаў пашырэнняў
+або шляхоў пашырэнняў. Выкарыстоўвайце JSON-масіў для
+`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`, калі шляхі змяшчаюць коскі, пры
+перадачы некалькіх пашырэнняў або пры выкарыстанні шляхоў Windows з літарамі
+дыскаў.
+
 Метаданыя выканання HTTP для струменевага перадавання
 
 Стрымеблыя HTTP-кліенты могуць выбраць пэўныя опцыі выканання для кожнай MCP-сесіі, дадаючы метаданыя, спецыфічныя для брыджа, у запыт `initialize`:

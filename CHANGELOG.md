@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Updated the upstream Playwright MCP dependency and Docker baseline to
   `@playwright/mcp` `^0.0.77` and
   `mcr.microsoft.com/playwright/mcp:v0.0.77`.
+- Updated the CloakBrowser dependency to `^0.4.5`.
 - Derived the Playwright MCP package tag used by the Tools documentation from
   the MkDocs project macro metadata.
 

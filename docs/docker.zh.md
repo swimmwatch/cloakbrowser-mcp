@@ -40,7 +40,10 @@ Docker 内部的环境变量必须使用容器路径，例如 `/data/profiles/de
 而不是主机路径。桥接器会在配置文件目录缺失时创建它，验证其可写，将容器路径写入
 生成的 Playwright MCP 配置，并拒绝同一服务器进程内重复的活动配置文件目录。
 
-Chrome 扩展需要持久化配置文件，并且必须单独挂载。扩展挂载可以是只读的：
+## Chrome 扩展
+
+Chrome 扩展需要持久化配置文件，并且必须单独挂载。请在环境变量中使用容器路径，
+而不是主机路径。扩展挂载可以是只读的：
 
 ```bash
 docker run --rm --init -i \
@@ -51,8 +54,9 @@ docker run --rm --init -i \
   swimmwatch/cloakbrowser-mcp:latest
 ```
 
-当路径包含逗号时，请为 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` 使用 JSON 数组。
-在 Windows 上使用 npm 时，JSON 数组也是传递带盘符路径的最安全方式。
+当路径包含逗号或传入多个扩展目录时，请为
+`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` 使用 JSON 数组。更改扩展文件或扩展
+路径后，请重启容器。
 
 ## 可流式传输的 HTTP
 

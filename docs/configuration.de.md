@@ -72,6 +72,41 @@ unverändert bleiben.
 Beispiele für die Einrichtung,
 Streamable-HTTP-Metadaten zur Laufzeit, Anwendungsfälle und Einschränkungen finden Sie unter [Humanized Input Behavior](humanized-input-behavior.md).
 
+## Chrome-Erweiterungen
+
+Chrome-Erweiterungen werden beim Start des Browsers geladen. Konfigurieren Sie
+sie daher vor dem Start der Bridge oder vor dem Erstellen einer
+Streamable-HTTP-Sitzung. Erweiterungen müssen entpackte Verzeichnisse sein und
+erfordern ein persistentes Profil:
+
+```bash
+PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
+  CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS='["/absolute/path/to/my-extension"]' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+Für Streamable HTTP übergeben Sie die Profil- und Erweiterungsverzeichnisse in
+den `initialize`-Metadaten:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "userDataDir": "/absolute/path/to/profile",
+        "extensionPaths": ["/absolute/path/to/my-extension"]
+      }
+    }
+  }
+}
+```
+
+Starten Sie die Bridge neu oder erstellen Sie eine neue HTTP-Sitzung, nachdem
+Sie Erweiterungsdateien oder Erweiterungspfade geändert haben. Verwenden Sie ein
+JSON-Array für `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`, wenn Pfade Kommas
+enthalten, wenn mehrere Erweiterungen übergeben werden oder wenn Windows-Pfade
+mit Laufwerksbuchstaben verwendet werden.
+
 ## Streamfähige HTTP-Laufzeit-Metadaten
 
 Streamable-HTTP-Clients können pro MCP-Sitzung bestimmte Laufzeitoptionen auswählen, indem sie

@@ -72,6 +72,40 @@ HTTP-проксі-серверів, що підтримують потокову
 Див. [«Гуманізована поведінка введення даних»](humanized-input-behavior.md) для ознайомлення з прикладами налаштування,
 метаданими Streamable HTTP під час виконання, сценаріями використання та обмеженнями.
 
+## Розширення Chrome
+
+Розширення Chrome завантажуються під час запуску браузера, тому налаштуйте їх
+до запуску мосту або до створення сеансу Streamable HTTP. Розширення мають бути
+розпакованими каталогами та потребують постійного профілю:
+
+```bash
+PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
+  CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS='["/absolute/path/to/my-extension"]' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+Для Streamable HTTP передайте каталоги профілю та розширення в метаданих
+`initialize`:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "userDataDir": "/absolute/path/to/profile",
+        "extensionPaths": ["/absolute/path/to/my-extension"]
+      }
+    }
+  }
+}
+```
+
+Перезапустіть міст або створіть новий HTTP-сеанс після зміни файлів розширень
+або шляхів розширень. Використовуйте JSON-масив для
+`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`, коли шляхи містять коми, під час
+передавання кількох розширень або під час використання шляхів Windows із
+літерами дисків.
+
 ## Метадані середовища виконання Streamable HTTP
 
 HTTP-клієнти з підтримкою потокової передачі можуть вибирати певні параметри виконання для кожного сеансу MCP, додаючи

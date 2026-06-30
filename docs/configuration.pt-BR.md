@@ -72,6 +72,39 @@ originais permanecem inalterados.
 Consulte [Comportamento de Entrada Humanizado](humanized-input-behavior.md) para exemplos de configuração,
 metadados HTTP do Streamable em tempo de execução, casos de uso e limitações.
 
+## Extensões do Chrome
+
+Extensões do Chrome são carregadas quando o navegador inicia, então configure-as
+antes de iniciar a ponte ou antes de criar uma sessão Streamable HTTP. As
+extensões devem ser diretórios descompactados e exigem um perfil persistente:
+
+```bash
+PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
+  CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS='["/absolute/path/to/my-extension"]' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+Para Streamable HTTP, passe os diretórios do perfil e da extensão nos metadados
+de `initialize`:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "userDataDir": "/absolute/path/to/profile",
+        "extensionPaths": ["/absolute/path/to/my-extension"]
+      }
+    }
+  }
+}
+```
+
+Reinicie a ponte ou crie uma nova sessão HTTP depois de alterar arquivos ou
+caminhos de extensões. Use uma matriz JSON para
+`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` quando os caminhos contiverem vírgulas,
+ao passar várias extensões ou ao usar caminhos do Windows com letras de unidade.
+
 ## Metadados de tempo de execução HTTP transmitíveis
 
 Os clientes HTTP compatíveis com stream podem selecionar opções de tempo de execução específicas para cada sessão MCP, adicionando

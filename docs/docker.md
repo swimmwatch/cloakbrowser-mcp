@@ -43,8 +43,11 @@ directory if it is missing, verifies it is writable, writes the container path
 to generated Playwright MCP config, and rejects duplicate active profile
 directories inside one server process.
 
+## Chrome Extensions
+
 Chrome extensions require a persistent profile and must be mounted separately.
-The extension mount can be read-only:
+Use container paths in environment variables, not host paths. The extension
+mount can be read-only:
 
 ```bash
 docker run --rm --init -i \
@@ -56,8 +59,8 @@ docker run --rm --init -i \
 ```
 
 Use a JSON array for `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` when a path contains
-commas. For npm usage on Windows, JSON arrays are also the safest way to pass
-drive-letter paths.
+commas or when passing multiple extension directories. Restart the container
+after changing extension files or extension paths.
 
 ## Streamable HTTP
 

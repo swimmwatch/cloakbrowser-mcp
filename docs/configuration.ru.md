@@ -72,6 +72,40 @@ MCP и вставляет только разрешенные флаги зап�
 См. раздел [«Поведение гуманизированного ввода»](humanized-input-behavior.md) для ознакомления с примерами настройки,
 метаданными Streamable HTTP во время выполнения, сценариями использования и ограничениями.
 
+## Расширения Chrome
+
+Расширения Chrome загружаются при запуске браузера, поэтому настройте их до
+запуска моста или до создания сеанса Streamable HTTP. Расширения должны быть
+распакованными каталогами и требуют постоянного профиля:
+
+```bash
+PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
+  CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS='["/absolute/path/to/my-extension"]' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+Для Streamable HTTP передайте каталоги профиля и расширения в метаданных
+`initialize`:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "userDataDir": "/absolute/path/to/profile",
+        "extensionPaths": ["/absolute/path/to/my-extension"]
+      }
+    }
+  }
+}
+```
+
+Перезапустите мост или создайте новый HTTP-сеанс после изменения файлов
+расширений или путей расширений. Используйте JSON-массив для
+`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`, если пути содержат запятые, при
+передаче нескольких расширений или при использовании путей Windows с буквами
+дисков.
+
 ## Метаданные среды выполнения Streamable HTTP
 
 HTTP-клиенты с поддержкой потоковой передачи данных могут выбирать определенные параметры выполнения для каждого сеанса MCP, добавляя

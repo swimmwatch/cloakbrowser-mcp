@@ -72,6 +72,41 @@ restent inchangés.
 Consultez la section [Comportement d'entrée humanisé](humanized-input-behavior.md) pour découvrir des exemples de configuration,
 les métadonnées HTTP Streamable en exécution, les cas d'utilisation et les limitations.
 
+## Extensions Chrome
+
+Les extensions Chrome sont chargées au démarrage du navigateur. Configurez-les
+donc avant de démarrer le pont ou avant de créer une session Streamable HTTP.
+Les extensions doivent être des répertoires décompressés et nécessitent un
+profil persistant :
+
+```bash
+PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
+  CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS='["/absolute/path/to/my-extension"]' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+Pour Streamable HTTP, transmettez les répertoires du profil et de l'extension
+dans les métadonnées `initialize` :
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "userDataDir": "/absolute/path/to/profile",
+        "extensionPaths": ["/absolute/path/to/my-extension"]
+      }
+    }
+  }
+}
+```
+
+Redémarrez le pont ou créez une nouvelle session HTTP après avoir modifié des
+fichiers ou chemins d'extensions. Utilisez un tableau JSON pour
+`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` lorsque les chemins contiennent des
+virgules, lors du passage de plusieurs extensions ou lors de l'utilisation de
+chemins Windows avec lettres de lecteur.
+
 ## Métadonnées d'exécution HTTP diffusables en continu
 
 Les clients HTTP prenant en charge le streaming peuvent choisir certaines options d'exécution pour chaque session MCP en ajoutant

@@ -44,8 +44,11 @@ perfil se ele estiver ausente, verifica se é gravável, grava o caminho do
 contêiner na configuração gerada do Playwright MCP e rejeita diretórios de perfil
 ativos duplicados dentro de um mesmo processo do servidor.
 
+## Extensões do Chrome
+
 Extensões do Chrome exigem um perfil persistente e devem ser montadas
-separadamente. A montagem da extensão pode ser somente leitura:
+separadamente. Use caminhos do contêiner nas variáveis de ambiente, não caminhos
+do host. A montagem da extensão pode ser somente leitura:
 
 ```bash
 docker run --rm --init -i \
@@ -57,8 +60,8 @@ docker run --rm --init -i \
 ```
 
 Use uma matriz JSON para `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` quando um caminho
-contiver vírgulas. Para uso de npm no Windows, matrizes JSON também são a forma
-mais segura de passar caminhos com letras de unidade.
+contiver vírgulas ou ao passar vários diretórios de extensões. Reinicie o
+contêiner depois de alterar arquivos ou caminhos de extensões.
 
 ## HTTP com transmissão contínua
 

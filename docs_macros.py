@@ -25,7 +25,12 @@ def _read_project_metadata() -> dict[str, str]:
 
 def _read_playwright_mcp_metadata(root: Path, project_version: str) -> dict[str, str]:
     compatibility = _read_json(root / "docs" / "data" / "version-compatibility.json")
-    row = next((item for item in compatibility if item["version"] == project_version), compatibility[0])
+    row = next((item for item in compatibility if item["version"] == project_version), None)
+    if row is None:
+        raise ValueError(
+            "docs/data/version-compatibility.json must contain an entry for "
+            f"package version {project_version!r}"
+        )
     dependency = row["playwrightMcp"]
     version = _extract_version(dependency)
 

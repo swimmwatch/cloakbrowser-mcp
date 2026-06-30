@@ -320,6 +320,33 @@ describe('streamable HTTP bridge', () => {
     );
   });
 
+  it('uses initialize metadata labels in runtime configuration errors', async () => {
+    await withFakeUpstream(
+      async () => {
+        const root = createTempRoot();
+        const server = await startHttpBridge({ sessionMax: 1 });
+
+        const profileResponse = await postJsonRpc(server.url, createInitializeRequest({ userDataDir: ' ' }));
+        expect(profileResponse.status).toBe(HttpStatus.BadRequest);
+        await expectJsonRpcErrorMessage(profileResponse, 'userDataDir must be a non-empty string');
+
+        const extensionResponse = await postJsonRpc(
+          server.url,
+          createInitializeRequest({
+            userDataDir: path.join(root, 'profiles', 'default'),
+            extensionPaths: [path.join(root, 'missing-extension')],
+          }),
+        );
+        expect(extensionResponse.status).toBe(HttpStatus.BadRequest);
+        await expectJsonRpcErrorMessage(
+          extensionResponse,
+          'extensionPaths[0] must point to an existing directory',
+        );
+      },
+      { browserEngine: 'cloak' },
+    );
+  });
+
   it('falls back to environment proxy configuration without runtime metadata', async () => {
     await withFakeUpstream(async () => {
       process.env.PLAYWRIGHT_MCP_PROXY_SERVER = 'http://env.example:8080';
@@ -725,6 +752,11 @@ async function readJsonRpcResponse(response: Response): Promise<unknown> {
     ?.slice('data: '.length);
   if (data === undefined) throw new Error(`Expected SSE data in response: ${text}`);
   return JSON.parse(data) as unknown;
+}
+
+async function expectJsonRpcErrorMessage(response: Response, expected: string): Promise<void> {
+  const body = (await readJsonRpcResponse(response)) as { error?: { message?: string } };
+  expect(body.error?.message).toContain(expected);
 }
 
 async function withFakeUpstream(

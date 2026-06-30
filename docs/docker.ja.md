@@ -42,7 +42,10 @@ Docker 内の環境変数には、ホストパスではなく `/data/profiles/de
 作成し、書き込み可能であることを確認し、コンテナパスを生成済みの Playwright MCP
 設定に書き込み、1 つのサーバープロセス内で重複するアクティブなプロファイルディレクトリを拒否します。
 
+## Chrome 拡張機能
+
 Chrome 拡張機能には永続プロファイルが必要で、個別にマウントする必要があります。
+環境変数にはホストパスではなくコンテナパスを使用してください。
 拡張機能のマウントは読み取り専用にできます：
 
 ```bash
@@ -54,8 +57,9 @@ docker run --rm --init -i \
   swimmwatch/cloakbrowser-mcp:latest
 ```
 
-パスにカンマが含まれる場合は、`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` に JSON 配列を
-使用してください。Windows で npm を使用する場合も、ドライブ文字付きパスを渡すには JSON 配列が最も安全です。
+パスにカンマが含まれる場合、または複数の拡張機能ディレクトリを渡す場合は、
+`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` に JSON 配列を使用してください。
+拡張機能ファイルまたは拡張機能パスを変更した後は、コンテナを再起動してください。
 
 ## ストリーム可能なHTTP
 
