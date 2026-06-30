@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Updated the upstream Playwright MCP dependency and Docker baseline to
+  `@playwright/mcp` `^0.0.77` and
+  `mcr.microsoft.com/playwright/mcp:v0.0.77`.
+- Derived the Playwright MCP package tag used by the Tools documentation from
+  the MkDocs project macro metadata.
+
 ## [1.5.0] - 2026-06-27
 
 ### Added
