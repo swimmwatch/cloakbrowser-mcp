@@ -87,19 +87,23 @@ docker.io/swimmwatch/cloakbrowser-mcp
 Docker Hub は、この GitHub Actions リリースフローに対して、ルート `README.md` を自動的にプルしません。 Docker Hub 専用の概要は
 `docs/dockerhub-readme.md` で管理されています。
 
-リリースイメージをデプロイする前のワークフロー：
+release PR をマージする前に、CI は次を検証します：
+
+- TypeScript、リンティング、フォーマット、ビルド、テスト、およびカバレッジチェックを実行します。
+- npm パッケージのメタデータと内容を検証します。
+- `linux/amd64` と `linux/arm64` 向けの Docker イメージをビルドします。
+- Docker `--help` のスモークチェックを実行します。
+- ブリッジパリティスクリプトを使用して、`linux/amd64` イメージをアップストリームの Playwright MCP と比較します。
+- Trivy を使用して、Docker イメージ内の OS およびライブラリに関する高リスクおよび重大な脆弱性をスキャンします。
+
+リリース公開中、Docker ワークフローは次を実行します：
 
 - リリースバージョンを適用します。
-- TypeScript、リンティング、フォーマット、ビルド、テスト、およびカバレッジチェックを実行します。
-- ローカルのリリース用スモークイメージをビルドします。
 - Docker ビルド中に、ピン留めされた Playwright MCP
   ベースイメージに対して、利用可能な Debian セキュリティアップデートを適用します。
-- ランタイムイメージから未使用のグローバル npm ペイロードを削除します；
-- イメージ内で `--help` を実行します；
-- ブリッジパリティスクリプトを使用して、イメージをアップストリームの Playwright MCP と比較します；
-  ;
-- JSON形式のブリッジ・パリティレポートをワークフローのアーティファクトとしてアップロードします；
-- Trivyを使用して、イメージ内のOSおよびライブラリに関する高リスクおよび重大な脆弱性をスキャンします。
+- ランタイムイメージから未使用のグローバル npm ペイロードを削除します。
+- マルチプラットフォームイメージを公開します。
+- イメージのプッシュが成功した後、Docker Hub の概要を更新します。
 
 Docker ビルドには、`RELEASE_VERSION`、`RELEASE_VERSION_TAG`、および
 `VCS_REF`というビルド引数を受け取ります。 また、このワークフローは、アップストリームの Playwright
@@ -118,8 +122,8 @@ SARIFの結果はGitHubコードスキャンにアップロードされます。
 リポジトリにリンクされていることを確認し、Docker Hub リポジトリが公開されていることも確認してください。
 
 Dockerは、`linux/amd64`および
-`linux/arm64` 向けのマルチプラットフォーム・マニフェストを公開しました。 リリースワークフローでは、公開前に両プラットフォームのスモークテストを実施し、
-`linux/amd64` におけるブラウザ間の互換性比較を維持します。
+`linux/arm64` 向けのマルチプラットフォーム・マニフェストを公開します。PR CI はマージ前に両プラットフォームのスモークチェックを実施し、
+`linux/amd64` におけるブラウザーツールのパリティ比較を維持します。
 
 ## MCPレジストリの公開
 
@@ -147,7 +151,7 @@ https://registry.modelcontextprotocol.io
 
 MCPレジストリのジョブは、npm、Docker、
 およびドキュメントの公開と同じGitHubリリースイベントから開始されます。このジョブでは `needs: [npm, docker]` を宣言しているため、レジストリへの公開が開始される前に、npmおよび
-GHCRへの公開が完了します。 この複合
+Dockerへの公開が完了します。ドキュメントのデプロイは `needs: [docs-build, npm, docker, mcp-registry]` を宣言しているため、GitHub Pages は npm、Docker、公式 MCP Registry の公開が成功した後にのみ更新されます。 この複合
 アクションは意図的にレジストリに焦点を当てています。ローカルで `server.json` を検証し、
 `mcp-publisher` を使用して検証し、正確なレジストリバージョンが
 すでに公開されているかどうかを確認し、`mcp-publisher login github-oidc` を使用して認証を行い、
@@ -211,7 +215,7 @@ Glamaの必須チェックリスト項目に課金が必要とされる場合、
 | `OpenSSF Scorecard` | OpenSSF Scorecard | push, weekly, manual | Enable code scanning to view SARIF results. |
 | `Zizmor` | zizmor | workflow changes, manual | No external account or token. |
 | `CI` / `Release` | Trivy | Docker build and release | Enable code scanning to view SARIF results. |
-| `CI` / releases | `npm audit --omit=dev --audit-level=high` | CI and release checks | No external account or token. |
+| `CI` / npm release | `npm audit --omit=dev --audit-level=high` | PR CI and npm publish job | No external account or token. |
 
 アクションのSHA固定については、今後の強化作業の一環として追跡されます。現在のワークフローでは
 バージョン管理されたアクション参照を使用しているため、リリース
@@ -225,7 +229,7 @@ Glamaの必須チェックリスト項目に課金が必要とされる場合、
 
 このワークフローは、厳格モードでドキュメントを生成し、生成された `site/`
 ディレクトリに`actions/upload-pages-artifact`と共にアップロードし、
-`actions/deploy-pages` として `github-pages` 環境にデプロイします。
+`actions/deploy-pages` として、npm、Docker、MCP Registry の公開が成功した後にのみ `github-pages` 環境にデプロイします。
 
 ドキュメントの公開では、MkDocsのビルド後にSEOバリデータも実行されます。
 オプションのウェブマスター認証トークンは、公式の無料ウェブマスターツールを使用しており、

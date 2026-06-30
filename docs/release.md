@@ -88,19 +88,25 @@ image push. Docker Hub does not pull the root `README.md` automatically for
 this GitHub Actions release flow; the Docker Hub-specific overview is
 maintained in `docs/dockerhub-readme.md`.
 
-Before pushing the release image, the workflow:
+Before merging a release PR, CI validates:
+
+- runs the TypeScript, lint, format, build, test, and coverage checks;
+- verifies npm package metadata and package contents;
+- builds Docker images for `linux/amd64` and `linux/arm64`;
+- runs Docker `--help` smoke checks;
+- compares the `linux/amd64` image against upstream Playwright MCP with the
+  bridge parity script;
+- scans Docker images with Trivy for high and critical OS/library
+  vulnerabilities.
+
+During release publishing, the Docker workflow:
 
 - applies the release version;
-- runs the TypeScript, lint, format, build, test, and coverage checks;
-- builds a local release smoke image;
 - applies available Debian security updates on top of the pinned Playwright MCP
   base image during the Docker build;
 - removes the unused global npm payload from the runtime image;
-- runs `--help` in the image;
-- compares the image against upstream Playwright MCP with the bridge parity
-  script;
-- uploads the JSON bridge parity report as a workflow artifact;
-- scans the image with Trivy for high and critical OS/library vulnerabilities.
+- publishes the multi-platform image;
+- updates the Docker Hub overview after the image push succeeds.
 
 The Docker build receives `RELEASE_VERSION`, `RELEASE_VERSION_TAG`, and
 `VCS_REF` build arguments. The workflow also resolves the upstream Playwright
@@ -119,8 +125,8 @@ After the first publish, confirm the GHCR package is public and linked to this
 repository, and confirm the Docker Hub repository is public.
 
 Docker publishes a multi-platform manifest for `linux/amd64` and
-`linux/arm64`. The release workflow smoke-tests both platforms before publish
-and keeps browser parity comparison on `linux/amd64`.
+`linux/arm64`. PR CI smoke-tests both platforms before merge and keeps browser
+parity comparison on `linux/amd64`.
 
 ## MCP Registry Publishing
 
@@ -148,11 +154,14 @@ long-lived registry secrets. It uses:
 
 The MCP Registry job starts from the same GitHub Release event as npm, Docker,
 and documentation publishing. It declares `needs: [npm, docker]`, so npm and
-GHCR publication complete before registry publishing starts. The composite
-action is intentionally registry-focused: it validates `server.json` locally,
-validates it with `mcp-publisher`, checks whether the exact registry version is
-already visible, authenticates with `mcp-publisher login github-oidc`, publishes
-the server metadata, and verifies the final registry entry.
+Docker publication complete before registry publishing starts. Documentation
+deployment declares `needs: [docs-build, npm, docker, mcp-registry]`, so GitHub
+Pages is updated only after npm, Docker, and the official MCP Registry are
+published successfully. The composite action is intentionally registry-focused:
+it validates `server.json` locally, validates it with `mcp-publisher`, checks
+whether the exact registry version is already visible, authenticates with
+`mcp-publisher login github-oidc`, publishes the server metadata, and verifies
+the final registry entry.
 
 If a transient registry failure happens, rerun the failed `mcp-registry` job in
 the original release run after the npm and Docker jobs are green. The manual
@@ -213,7 +222,7 @@ The repository uses free security tooling:
 | `OpenSSF Scorecard` | OpenSSF Scorecard | push, weekly, manual | Enable code scanning to view SARIF results. |
 | `Zizmor` | zizmor | workflow changes, manual | No external account or token. |
 | `CI` / `Release` | Trivy | Docker build and release | Enable code scanning to view SARIF results. |
-| `CI` / releases | `npm audit --omit=dev --audit-level=high` | CI and release checks | No external account or token. |
+| `CI` / npm release | `npm audit --omit=dev --audit-level=high` | PR CI and npm publish job | No external account or token. |
 
 Action SHA pinning is tracked as a future hardening pass. Current workflows use
 versioned action references so updates stay manageable while the release
@@ -221,13 +230,14 @@ infrastructure is still young.
 
 ## Documentation Publishing
 
-The `docs-build` and `docs-deploy` jobs deploy MkDocs with the native GitHub Pages Actions
-deployment flow. Repository Pages settings must use `GitHub Actions` as the
-source.
+The `docs-build` and `docs-deploy` jobs deploy MkDocs with the native GitHub
+Pages Actions deployment flow. Repository Pages settings must use
+`GitHub Actions` as the source.
 
 The workflow builds documentation in strict mode, uploads the generated `site/`
 directory with `actions/upload-pages-artifact`, and deploys it with
-`actions/deploy-pages` to the `github-pages` environment.
+`actions/deploy-pages` to the `github-pages` environment only after npm,
+Docker, and MCP Registry publishing have succeeded.
 
 Documentation publishing also runs the SEO validator after the MkDocs build.
 Optional webmaster verification tokens use official free webmaster tools and can
