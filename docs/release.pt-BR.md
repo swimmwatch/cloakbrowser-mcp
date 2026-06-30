@@ -87,19 +87,24 @@ envio bem-sucedido da imagem. O Docker Hub não baixa automaticamente a raiz `RE
 esse fluxo de lançamento do GitHub Actions; a visão geral específica do Docker Hub é
 mantida em `docs/dockerhub-readme.md`.
 
-Antes de enviar a imagem de lançamento, o fluxo de trabalho é o seguinte:
+Antes de fazer merge de uma release PR, o CI valida:
+
+- executa as verificações de TypeScript, lint, formatação, compilação, teste e cobertura;
+- verifica os metadados e o conteúdo do pacote npm;
+- compila imagens Docker para `linux/amd64` e `linux/arm64`;
+- executa verificações smoke Docker `--help`;
+- compara a imagem `linux/amd64` com o Playwright MCP upstream usando o script de paridade
+  da ponte;
+- verifica as imagens Docker com o Trivy em busca de vulnerabilidades graves e críticas no sistema operacional e nas bibliotecas.
+
+Durante a publicação da versão, o fluxo de trabalho Docker:
 
 - aplica a versão de lançamento;
-- executa as verificações de TypeScript, lint, formatação, compilação, teste e cobertura;
-- compila uma imagem local de teste de lançamento;
 - aplica as atualizações de segurança do Debian disponíveis sobre a imagem base fixada do Playwright MCP
   durante a compilação do Docker;
 - remove a carga global do npm não utilizada da imagem de tempo de execução;
-- executa `--help` na imagem;
-- compara a imagem com o Playwright MCP upstream usando o script de paridade
-  da ponte;
-- envia o relatório de paridade da ponte em JSON como um artefato do fluxo de trabalho;
-- verifica a imagem com o Trivy em busca de vulnerabilidades graves e críticas no sistema operacional e nas bibliotecas.
+- publica a imagem multiplataforma;
+- atualiza a visão geral do Docker Hub após o envio bem-sucedido da imagem.
 
 A compilação do Docker recebe `RELEASE_VERSION`, `RELEASE_VERSION_TAG` e
 `VCS_REF`. O fluxo de trabalho também resolve o resumo da imagem base do Playwright
@@ -118,8 +123,8 @@ Após a primeira publicação, verifique se o pacote GHCR está público e vincu
 repositório, e verifique se o repositório do Docker Hub está público.
 
 A Docker publica um manifesto multiplataforma para `linux/amd64` e
-`linux/arm64`. O fluxo de trabalho de lançamento realiza testes de verificação em ambas as plataformas antes da publicação
-e mantém a comparação de compatibilidade entre navegadores no `linux/amd64`.
+`linux/arm64`. O CI de PR executa verificações smoke em ambas as plataformas antes do merge
+e mantém a comparação de paridade das ferramentas do navegador no `linux/amd64`.
 
 ## Publicação no Registro MCP
 
@@ -147,7 +152,9 @@ segredos de registro de longa duração. Ele utiliza:
 
 A tarefa do Registro MCP é iniciada a partir do mesmo evento de lançamento do GitHub que o npm, o Docker
 e a publicação da documentação. Ela declara `needs: [npm, docker]`, de modo que a publicação do npm e
-do GHCR seja concluída antes do início da publicação no registro. A ação composta
+do Docker seja concluída antes do início da publicação no registro. A implantação da documentação declara
+`needs: [docs-build, npm, docker, mcp-registry]`, de modo que o GitHub Pages só seja atualizado
+depois que npm, Docker e o MCP Registry oficial forem publicados com sucesso. A ação composta
 é intencionalmente focada no registro: ela valida `server.json` localmente,
 valida-a com `mcp-publisher`, verifica se a versão exata do registro já está
 visível, autentica com `mcp-publisher login github-oidc`, publica
@@ -212,7 +219,7 @@ O repositório utiliza ferramentas de segurança gratuitas:
 | `OpenSSF Scorecard` | OpenSSF Scorecard | push, weekly, manual | Enable code scanning to view SARIF results. |
 | `Zizmor` | zizmor | workflow changes, manual | No external account or token. |
 | `CI` / `Release` | Trivy | Docker build and release | Enable code scanning to view SARIF results. |
-| `CI` / releases | `npm audit --omit=dev --audit-level=high` | CI and release checks | No external account or token. |
+| `CI` / npm release | `npm audit --omit=dev --audit-level=high` | PR CI and npm publish job | No external account or token. |
 
 O fixação do SHA da ação é monitorada como uma etapa futura de fortalecimento. Os fluxos de trabalho atuais utilizam
 referências de ação versionadas para que as atualizações permaneçam gerenciáveis enquanto a infraestrutura de lançamento
@@ -220,13 +227,14 @@ ainda estiver em fase inicial.
 
 ## Publicação de documentação
 
-As tarefas `docs-build` e `docs-deploy` implantam o MkDocs usando o fluxo de implantação nativo do GitHub Pages Actions
-. As configurações das Páginas do repositório devem usar `GitHub Actions` como
+As tarefas `docs-build` e `docs-deploy` implantam o MkDocs usando o fluxo de implantação nativo do GitHub Pages Actions.
+As configurações das Páginas do repositório devem usar `GitHub Actions` como
 fonte.
 
 O fluxo de trabalho gera a documentação no modo estrito, envia o diretório gerado `site/`
 com o `actions/upload-pages-artifact` e o implanta com
-`actions/deploy-pages` no ambiente `github-pages`.
+`actions/deploy-pages` no ambiente `github-pages` somente depois que a publicação do npm,
+Docker e MCP Registry for concluída com sucesso.
 
 A publicação da documentação também executa o validador de SEO após a compilação do MkDocs.
 Os tokens opcionais de verificação para webmasters utilizam ferramentas oficiais e gratuitas para webmasters e podem

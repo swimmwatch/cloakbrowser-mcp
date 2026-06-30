@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,6 +28,14 @@ function createTempRoot(): string {
   const root = mkdtempSync(path.join(tmpdir(), 'cloakbrowser-mcp-http-test-'));
   tempRoots.push(root);
   return root;
+}
+
+function canonicalDirectory(directory: string): string {
+  try {
+    return path.normalize(realpathSync.native(directory));
+  } catch {
+    return path.resolve(path.normalize(directory));
+  }
 }
 
 describe('streamable HTTP bridge', () => {
@@ -219,6 +227,130 @@ describe('streamable HTTP bridge', () => {
       await expectHeadlessConfig(server, headedSessionId, { env: 'false', config: false });
       await expectHeadlessConfig(server, headlessSessionId, { env: 'true', config: true });
     });
+  });
+
+  it('applies profile, context, and extension metadata through generated config', async () => {
+    await withFakeUpstream(
+      async () => {
+        const root = createTempRoot();
+        const profileDir = path.join(root, 'profiles', 'default');
+        const extensionDir = path.join(root, 'extensions', 'my-extension');
+        mkdirSync(extensionDir, { recursive: true });
+        const server = await startHttpBridge({ sessionMax: 2 });
+        const sessionId = await initializeRawHttpSession(server, {
+          humanize: true,
+          userDataDir: profileDir,
+          contextOptions: {
+            viewport: { width: 1280, height: 720 },
+            locale: 'en-US',
+            timezoneId: 'America/New_York',
+            colorScheme: 'dark',
+          },
+          extensionPaths: [extensionDir],
+        });
+
+        await expectBrowserConfig(server, sessionId, {
+          userDataDir: canonicalDirectory(profileDir),
+          contextOptions: {
+            viewport: { width: 1280, height: 720 },
+            locale: 'en-US',
+            timezoneId: 'America/New_York',
+            colorScheme: 'dark',
+          },
+          extensionDir: canonicalDirectory(extensionDir),
+        });
+        await expectHumanizeConfig(server, sessionId, {
+          enabled: true,
+          initPageCount: 1,
+          preset: 'default',
+        });
+      },
+      { browserEngine: 'cloak' },
+    );
+  });
+
+  it('rejects duplicate profile sessions without leaking session capacity', async () => {
+    await withFakeUpstream(
+      async () => {
+        const root = createTempRoot();
+        const profileDir = path.join(root, 'profiles', 'default');
+        const server = await startHttpBridge({ sessionMax: 2 });
+        await initializeRawHttpSession(server, { userDataDir: profileDir });
+
+        const duplicate = await postJsonRpc(server.url, createInitializeRequest({ userDataDir: profileDir }));
+        expect(duplicate.status).toBe(HttpStatus.BadRequest);
+        expect(duplicate.headers.get(MCP_SESSION_ID_HEADER)).toBeNull();
+
+        const ready = await fetchReady(server.url);
+        const body = (await ready.json()) as {
+          sessions: { active: number; pending: number; max: number; available: number };
+        };
+        expect(body.sessions).toMatchObject({
+          active: 1,
+          pending: 0,
+          max: 2,
+          available: 1,
+        });
+      },
+      { browserEngine: 'cloak' },
+    );
+  });
+
+  it('rejects extension metadata without a persistent profile before creating a session', async () => {
+    await withFakeUpstream(
+      async () => {
+        const root = createTempRoot();
+        const extensionDir = path.join(root, 'extensions', 'my-extension');
+        mkdirSync(extensionDir, { recursive: true });
+        const server = await startHttpBridge({ sessionMax: 1 });
+
+        const response = await postJsonRpc(
+          server.url,
+          createInitializeRequest({ extensionPaths: [extensionDir] }),
+        );
+        expect(response.status).toBe(HttpStatus.BadRequest);
+        expect(response.headers.get(MCP_SESSION_ID_HEADER)).toBeNull();
+
+        const ready = await fetchReady(server.url);
+        const body = (await ready.json()) as {
+          sessions: { active: number; pending: number; max: number; available: number };
+        };
+        expect(body.sessions).toMatchObject({
+          active: 0,
+          pending: 0,
+          max: 1,
+          available: 1,
+        });
+      },
+      { browserEngine: 'cloak' },
+    );
+  });
+
+  it('uses initialize metadata labels in runtime configuration errors', async () => {
+    await withFakeUpstream(
+      async () => {
+        const root = createTempRoot();
+        const server = await startHttpBridge({ sessionMax: 1 });
+
+        const profileResponse = await postJsonRpc(server.url, createInitializeRequest({ userDataDir: ' ' }));
+        expect(profileResponse.status).toBe(HttpStatus.BadRequest);
+        await expectJsonRpcErrorMessage(profileResponse, 'userDataDir must be a non-empty string');
+
+        const extensionResponse = await postJsonRpc(
+          server.url,
+          createInitializeRequest({
+            userDataDir: path.join(root, 'profiles', 'default'),
+            extensionPaths: [path.join(root, 'missing-extension')],
+          }),
+        );
+        expect(extensionResponse.status).toBe(HttpStatus.BadRequest);
+        await expectJsonRpcErrorMessage(
+          extensionResponse,
+          'extensionPaths[0] must point to an existing directory',
+        );
+      },
+      { browserEngine: 'cloak' },
+    );
   });
 
   it('falls back to environment proxy configuration without runtime metadata', async () => {
@@ -535,6 +667,52 @@ async function expectHeadlessConfig(
   expect(body.result?.structuredContent?.headlessConfig).toEqual(expected);
 }
 
+async function expectBrowserConfig(
+  server: StreamableHttpBridgeServer,
+  sessionId: string,
+  expected: { userDataDir: string; contextOptions: unknown; extensionDir: string },
+): Promise<void> {
+  const response = await postJsonRpc(
+    server.url,
+    {
+      jsonrpc: JSON_RPC_VERSION,
+      id: crypto.randomUUID(),
+      method: 'tools/call',
+      params: {
+        name: 'browser_navigate',
+        arguments: {
+          url: 'https://example.com',
+          includeBrowserConfig: true,
+        },
+      },
+    },
+    sessionId,
+  );
+  expect(response.status).toBe(HttpStatus.Ok);
+  const body = (await readJsonRpcResponse(response)) as {
+    result?: {
+      structuredContent?: {
+        browserConfig?: {
+          isolated?: boolean;
+          userDataDir?: string;
+          contextOptions?: unknown;
+          launchOptions?: { args?: string[] };
+        };
+      };
+    };
+  };
+  const browserConfig = body.result?.structuredContent?.browserConfig;
+  expect(browserConfig?.isolated).toBeUndefined();
+  expect(browserConfig?.userDataDir).toBe(expected.userDataDir);
+  expect(browserConfig?.contextOptions).toEqual(expected.contextOptions);
+  expect(browserConfig?.launchOptions?.args).toEqual(
+    expect.arrayContaining([
+      `--load-extension=${expected.extensionDir}`,
+      `--disable-extensions-except=${expected.extensionDir}`,
+    ]),
+  );
+}
+
 function createInitializeRequest(bridgeMeta?: Record<string, unknown>): Record<string, unknown> {
   return {
     jsonrpc: JSON_RPC_VERSION,
@@ -582,6 +760,11 @@ async function readJsonRpcResponse(response: Response): Promise<unknown> {
   return JSON.parse(data) as unknown;
 }
 
+async function expectJsonRpcErrorMessage(response: Response, expected: string): Promise<void> {
+  const body = (await readJsonRpcResponse(response)) as { error?: { message?: string } };
+  expect(body.error?.message).toContain(expected);
+}
+
 async function withFakeUpstream(
   fn: () => Promise<void>,
   options: { browserEngine?: 'cloak' | 'playwright' } = {},
@@ -598,6 +781,9 @@ async function withFakeUpstream(
     binaryPath: process.env.CLOAKBROWSER_BINARY_PATH,
     proxyServer: process.env.PLAYWRIGHT_MCP_PROXY_SERVER,
     proxyBypass: process.env.PLAYWRIGHT_MCP_PROXY_BYPASS,
+    userDataDir: process.env.PLAYWRIGHT_MCP_USER_DATA_DIR,
+    contextOptions: process.env.CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS,
+    extensionPaths: process.env.CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS,
   };
 
   process.env.PLAYWRIGHT_MCP_CLI_PATH = fileURLToPath(
@@ -625,6 +811,9 @@ async function withFakeUpstream(
     restoreEnv('CLOAKBROWSER_BINARY_PATH', previous.binaryPath);
     restoreEnv('PLAYWRIGHT_MCP_PROXY_SERVER', previous.proxyServer);
     restoreEnv('PLAYWRIGHT_MCP_PROXY_BYPASS', previous.proxyBypass);
+    restoreEnv('PLAYWRIGHT_MCP_USER_DATA_DIR', previous.userDataDir);
+    restoreEnv('CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS', previous.contextOptions);
+    restoreEnv('CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS', previous.extensionPaths);
   }
 }
 

@@ -1,5 +1,5 @@
 ---
-description: Runtime configuration for the Playwright MCP bridge, including Streamable HTTP sessions, GeoIP-aware proxy matching, and humanized input behavior.
+description: Runtime configuration for the Playwright MCP bridge, including Streamable HTTP sessions, persistent profiles, validated context options, extension paths, GeoIP proxy matching, and humanized input.
 icon: material/tune
 tags:
   - Configuration
@@ -43,6 +43,9 @@ The generated [CLI Reference](generated/cli.md) is the authoritative list of bri
 | `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | Default action timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset | Persistent Chromium profile directory. The bridge resolves it to an absolute path, creates it if missing, verifies it is writable, and writes it to generated `browser.userDataDir`. |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset | JSON object with validated context options. Supported fields are listed below. |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset | JSON array or comma-separated list of existing Chrome extension directories. Requires `PLAYWRIGHT_MCP_USER_DATA_DIR`. Use JSON arrays for Windows paths or paths containing commas. |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | Enables the console message compatibility patch. |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
@@ -69,6 +72,39 @@ schemas stay unchanged.
 See [Humanized Input Behavior](humanized-input-behavior.md) for setup examples,
 runtime Streamable HTTP metadata, use cases, and limitations.
 
+## Chrome Extensions
+
+Chrome extensions are loaded when the browser starts, so configure them before
+starting the bridge or before creating a Streamable HTTP session. Extensions
+must be unpacked directories and require a persistent profile:
+
+```bash
+PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
+  CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS='["/absolute/path/to/my-extension"]' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+For Streamable HTTP, pass the profile and extension directories in initialize
+metadata:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "userDataDir": "/absolute/path/to/profile",
+        "extensionPaths": ["/absolute/path/to/my-extension"]
+      }
+    }
+  }
+}
+```
+
+Restart the bridge or create a new HTTP session after changing extension files
+or extension paths. Use a JSON array for `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`
+when paths contain commas, when passing multiple extensions, or when using
+Windows drive-letter paths.
+
 ## Streamable HTTP Runtime Metadata
 
 Streamable HTTP clients can choose selected runtime options per MCP session by adding
@@ -84,7 +120,14 @@ bridge-specific metadata to the `initialize` request:
         "geoipProxyMatch": true,
         "headless": false,
         "humanize": true,
-        "humanPreset": "careful"
+        "humanPreset": "careful",
+        "userDataDir": "/absolute/path/to/profile",
+        "contextOptions": {
+          "viewport": { "width": 1280, "height": 720 },
+          "locale": "en-US",
+          "timezoneId": "America/New_York"
+        },
+        "extensionPaths": ["/absolute/path/to/extension"]
       }
     }
   }
@@ -106,6 +149,28 @@ sessions keep the behavior captured during `initialize`.
 `headless` to `false` requires a usable display environment, especially in
 Docker or Linux server deployments.
 
+`userDataDir` enables a persistent Chromium profile for that session and
+overrides `PLAYWRIGHT_MCP_USER_DATA_DIR`. The bridge resolves the directory to
+an absolute platform-native path, creates it if missing, verifies it is writable,
+and writes it to generated `browser.userDataDir`. A persistent profile disables
+the default Streamable HTTP isolated profile for that session. The bridge
+rejects duplicate active profile directories inside one process; cross-process
+profile conflicts remain Chromium/Playwright errors.
+
+`contextOptions` are validated and shallow-merged over
+`CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS`; nested objects replace whole values.
+Supported fields are `userAgent`, `viewport`, `locale`, `timezoneId`,
+`colorScheme`, `permissions`, `geolocation`, `extraHTTPHeaders`,
+`httpCredentials`, `ignoreHTTPSErrors`, `offline`, `deviceScaleFactor`,
+`isMobile`, and `hasTouch`. Arbitrary `BrowserContextOptions` passthrough is not
+supported in this release.
+
+`extensionPaths` must point to existing directories and require a persistent
+`userDataDir`. The bridge resolves extension paths to absolute platform-native
+paths, passes them to CloakBrowser, and writes the generated
+`--load-extension` and `--disable-extensions-except` Chromium arguments into the
+generated Playwright MCP config.
+
 Authenticated HTTP proxy credentials can be embedded in `proxyServer`, for
 example `http://user:pass@proxy.example:8080`. Percent-encode credential
 characters that have URL meaning, such as `@`, `:`, `/`, `?`, `#`, and `%`.
@@ -125,7 +190,6 @@ The bridge forwards `PLAYWRIGHT_MCP_*` settings to upstream Playwright MCP. That
 - `PLAYWRIGHT_MCP_IMAGE_RESPONSES`
 - `PLAYWRIGHT_MCP_SNAPSHOT_MODE`
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
-- `PLAYWRIGHT_MCP_USER_DATA_DIR`
 
 Refer to the upstream Playwright MCP documentation for the full upstream option surface.
 

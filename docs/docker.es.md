@@ -1,5 +1,5 @@
 ---
-description: Ejecuta la imagen de Docker de CloakBrowser MCP para una automatización repetible del navegador Playwright MCP con CloakBrowser.
+description: Ejecuta la imagen de Docker de CloakBrowser MCP para una automatización repetible del navegador Playwright MCP con perfiles persistentes en /data, montajes de extensiones y CloakBrowser.
 icon: fontawesome/brands/docker
 tags:
   - Docker
@@ -23,6 +23,45 @@ Los artefactos se guardan en `/data` dentro del contenedor. Monta esa ruta para 
 Se recomienda utilizar `--init`, ya que la automatización del navegador puede crear procesos secundarios de corta duración. El proceso de inicialización de Docker elimina esos procesos secundarios de forma limpia.
 
 Las mismas etiquetas de versión se publican en Docker Hub como `swimmwatch/cloakbrowser-mcp` y en GHCR como `ghcr.io/swimmwatch/cloakbrowser-mcp`.
+
+## Perfiles persistentes
+
+Docker no habilita un perfil de navegador persistente de forma predeterminada.
+Usa el volumen existente `/data` como raíz de persistencia cuando quieras que las
+cookies, el almacenamiento local, la caché o el estado de las extensiones
+sobrevivan a los reinicios del contenedor:
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Las variables de entorno dentro de Docker deben usar rutas del contenedor, como
+`/data/profiles/default`, no rutas del host. El puente crea el directorio de
+perfil si falta, comprueba que se pueda escribir, escribe la ruta del contenedor
+en la configuración generada de Playwright MCP y rechaza directorios de perfil
+activos duplicados dentro de un mismo proceso del servidor.
+
+## Extensiones de Chrome
+
+Las extensiones de Chrome requieren un perfil persistente y deben montarse por
+separado. Usa rutas del contenedor en las variables de entorno, no rutas del
+host. El montaje de la extensión puede ser de solo lectura:
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/extensions/my-extension:/extensions/my-extension:ro" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Usa una matriz JSON para `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` cuando una ruta
+contenga comas o al pasar varios directorios de extensiones. Reinicia el
+contenedor después de cambiar archivos o rutas de extensiones.
 
 ## HTTP con transmisión continua
 
@@ -83,6 +122,7 @@ casos de uso multirregión y limitaciones.
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `/data` |
 | `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` |
@@ -94,6 +134,8 @@ casos de uso multirregión y limitaciones.
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` |
 | `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` |
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` |

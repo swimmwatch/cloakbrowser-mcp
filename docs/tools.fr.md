@@ -14,7 +14,7 @@ tags:
 
 La surface d'outils navigateur upstream par défaut doit correspondre à la dépendance Playwright MCP fixée. Elle inclut les outils principaux comme la navigation, les snapshots, les clics, la saisie, les captures d'écran, les onglets, les messages console, l'inspection réseau, l'envoi de fichiers, les dialogues et les outils d'évaluation non sûrs.
 
-Pour une référence upstream stable, consultez le test de capacités Playwright MCP `@playwright/mcp@0.0.76` fixé au commit exact du paquet : [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/b301c372ec741289eff1cf6aab9d3bec553f31e2/tests/capabilities.spec.ts#L19-L77).
+Pour une référence upstream stable, consultez le test de capacités Playwright MCP `{{ project.playwright_mcp_package_tag }}` fixé au commit exact du paquet : [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/36ec986b8b1fc6b4d11f2b6971147755e1b0bc84/tests/capabilities.spec.ts#L19-L77).
 
 Ce projet considère upstream Playwright MCP comme source faisant autorité et ne maintient pas de référence de schéma copiée.
 

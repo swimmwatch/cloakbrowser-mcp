@@ -1,5 +1,5 @@
 ---
-description: Playwright MCP 桥接器的运行时配置，包括可流式传输的 HTTP 会话、支持 GeoIP 的代理匹配以及人性化的输入行为。
+description: Playwright MCP 桥接器的运行时配置，包括 Streamable HTTP 会话、持久化配置文件、经过验证的上下文选项、扩展路径、GeoIP 代理匹配和拟人化输入。
 icon: material/tune
 tags:
   - Configuration
@@ -43,6 +43,9 @@ tags:
 | `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | Default action timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset | 持久化 Chromium 配置文件目录。桥接器会将其解析为绝对路径，在缺失时创建它，验证其可写，并写入生成的 `browser.userDataDir`。 |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset | 包含已验证上下文选项的 JSON 对象。支持的字段列在下方。 |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset | 现有 Chrome 扩展目录的 JSON 数组或逗号分隔列表。需要 `PLAYWRIGHT_MCP_USER_DATA_DIR`。对于 Windows 路径或包含逗号的路径，请使用 JSON 数组。 |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | Enables the console message compatibility patch. |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
@@ -69,6 +72,38 @@ Playwright MCP 的页面初始化钩子应用此设置，因此上游浏览器�
 有关配置示例、
 运行时可流式传输的 HTTP 元数据、用例及限制，请参阅 [人性化输入行为](humanized-input-behavior.md)。
 
+## Chrome 扩展
+
+Chrome 扩展会在浏览器启动时加载，因此请在启动桥接器之前，或在创建
+Streamable HTTP 会话之前完成配置。扩展必须是已解压的目录，并且需要
+持久化配置文件：
+
+```bash
+PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
+  CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS='["/absolute/path/to/my-extension"]' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+对于 Streamable HTTP，请在 `initialize` 元数据中传入配置文件目录和扩展
+目录：
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "userDataDir": "/absolute/path/to/profile",
+        "extensionPaths": ["/absolute/path/to/my-extension"]
+      }
+    }
+  }
+}
+```
+
+更改扩展文件或扩展路径后，请重启桥接器或创建新的 HTTP 会话。当路径包含
+逗号、传入多个扩展，或使用带盘符的 Windows 路径时，请为
+`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` 使用 JSON 数组。
+
 ## 可流式传输的 HTTP 运行时元数据
 
 支持流式传输的 HTTP 客户端可以通过在 `initialize` 请求中添加
@@ -84,7 +119,14 @@ Playwright MCP 的页面初始化钩子应用此设置，因此上游浏览器�
         "geoipProxyMatch": true,
         "headless": false,
         "humanize": true,
-        "humanPreset": "careful"
+        "humanPreset": "careful",
+        "userDataDir": "/absolute/path/to/profile",
+        "contextOptions": {
+          "viewport": { "width": 1280, "height": 720 },
+          "locale": "en-US",
+          "timezoneId": "America/New_York"
+        },
+        "extensionPaths": ["/absolute/path/to/extension"]
       }
     }
   }
@@ -106,6 +148,25 @@ Playwright MCP 的页面初始化钩子应用此设置，因此上游浏览器�
 `headless` 设置为 `false` 需要可用的显示环境，特别是在
 Docker 或 Linux 服务器部署中。
 
+`userDataDir` 为该会话启用持久化 Chromium 配置文件，并覆盖
+`PLAYWRIGHT_MCP_USER_DATA_DIR`。桥接器会将目录解析为平台原生绝对路径，
+在缺失时创建它，验证其可写，并写入生成的 `browser.userDataDir`。
+持久化配置文件会禁用该会话默认的 Streamable HTTP 隔离配置文件。桥接器会
+拒绝同一进程内重复的活动配置文件目录；跨进程配置文件冲突仍由
+Chromium/Playwright 报错。
+
+`contextOptions` 会经过验证，并在 `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS`
+之上进行浅合并；嵌套对象会整体替换。支持的字段为 `userAgent`、
+`viewport`、`locale`、`timezoneId`、`colorScheme`、`permissions`、
+`geolocation`、`extraHTTPHeaders`、`httpCredentials`、`ignoreHTTPSErrors`、
+`offline`、`deviceScaleFactor`、`isMobile` 和 `hasTouch`。本版本不支持任意
+传递 `BrowserContextOptions`。
+
+`extensionPaths` 必须指向现有目录，并且需要持久化的 `userDataDir`。
+桥接器会将扩展路径解析为平台原生绝对路径，传给 CloakBrowser，并把生成的
+Chromium 参数 `--load-extension` 和 `--disable-extensions-except` 写入生成的
+Playwright MCP 配置。
+
 经过身份验证的 HTTP 代理凭据可以嵌入到 `proxyServer` 中，例如
 `http://user:pass@proxy.example:8080`。对具有 URL 含义的凭据
 字符进行百分比编码，例如 `@`、 `:`、`/`、 `?`、 `#`，以及 `%`。
@@ -125,7 +186,6 @@ Docker 或 Linux 服务器部署中。
 - `PLAYWRIGHT_MCP_IMAGE_RESPONSES`
 - `PLAYWRIGHT_MCP_SNAPSHOT_MODE`
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
-- `PLAYWRIGHT_MCP_USER_DATA_DIR`
 
 有关完整的上游选项列表，请参阅上游 Playwright MCP 文档。
 

@@ -15,12 +15,14 @@ env:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   playwright-mcp:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -70,3 +72,59 @@ jobs:
       - name: Report no upstream update
         if: steps.upstream.outputs.update_available != 'true'
         run: echo "No new Playwright MCP npm package or Docker image version was detected."
+
+  cloakbrowser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          package-manager-cache: false
+
+      - id: upstream
+        name: Check upstream CloakBrowser version
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          UPSTREAM_MONITOR_ASSIGNEE: ${{ env.UPSTREAM_MONITOR_ASSIGNEE }}
+        run: node scripts/check-cloakbrowser-updates.mjs
+
+      - id: existing
+        name: Check for an existing CloakBrowser update issue
+        if: steps.upstream.outputs.update_available == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_TITLE: ${{ steps.upstream.outputs.issue_title }}
+        run: |
+          count="$(gh issue list \
+            --state open \
+            --search "$ISSUE_TITLE in:title" \
+            --json number \
+            --jq 'length')"
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+
+      - name: Create CloakBrowser update issue
+        if: steps.upstream.outputs.update_available == 'true' && steps.existing.outputs.count == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_TITLE: ${{ steps.upstream.outputs.issue_title }}
+          ISSUE_BODY_PATH: ${{ steps.upstream.outputs.issue_body_path }}
+          ISSUE_ASSIGNEE: ${{ steps.upstream.outputs.issue_assignee }}
+        run: |
+          gh issue create \
+            --title "$ISSUE_TITLE" \
+            --body-file "$ISSUE_BODY_PATH" \
+            --assignee "$ISSUE_ASSIGNEE"
+
+      - name: Report existing CloakBrowser update issue
+        if: steps.upstream.outputs.update_available == 'true' && steps.existing.outputs.count != '0'
+        run: echo "An open CloakBrowser update issue already exists for ${{ steps.upstream.outputs.issue_title }}."
+
+      - name: Report no CloakBrowser update
+        if: steps.upstream.outputs.update_available != 'true'
+        run: echo "No new CloakBrowser npm package version was detected."

@@ -1,5 +1,5 @@
 ---
-description: CloakBrowser के साथ दोहराने योग्य Playwright MCP ब्राउज़र ऑटोमेशन के लिए CloakBrowser MCP Docker इमेज चलाएँ।
+description: persistent /data profiles, extension mounts, और CloakBrowser के साथ repeatable Playwright MCP browser automation के लिए CloakBrowser MCP Docker इमेज चलाएँ।
 icon: fontawesome/brands/docker
 tags:
   - Docker
@@ -23,6 +23,45 @@ docker run --rm --init -i \
 `--init` की अनुशंसा इसलिए की जाती है क्योंकि ब्राउज़र ऑटोमेशन अल्पकालिक चाइल्ड प्रक्रियाएँ उत्पन्न कर सकता है। Docker की init प्रक्रिया उन चाइल्ड प्रक्रियाओं को स्वच्छ रूप से समाप्त कर देती है।
 
 उसी रिलीज़ टैग्स को Docker Hub पर `swimmwatch/cloakbrowser-mcp` और GHCR पर `ghcr.io/swimmwatch/cloakbrowser-mcp` के रूप में प्रकाशित किए जाते हैं।
+
+## स्थायी प्रोफ़ाइलें
+
+Docker डिफ़ॉल्ट रूप से स्थायी ब्राउज़र प्रोफ़ाइल सक्षम नहीं करता। जब आप चाहते
+हैं कि cookies, local storage, cache या एक्सटेंशन स्थिति कंटेनर रीस्टार्ट के
+बाद भी बनी रहे, तो मौजूदा `/data` वॉल्यूम को स्थायीकरण रूट के रूप में उपयोग
+करें:
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Docker के अंदर पर्यावरण चर को `/data/profiles/default` जैसे कंटेनर पथों का
+उपयोग करना चाहिए, होस्ट पथों का नहीं। ब्रिज प्रोफ़ाइल निर्देशिका अनुपस्थित
+होने पर बनाता है, लिखने योग्य होने की पुष्टि करता है, कंटेनर पथ को जेनरेट की
+गई Playwright MCP कॉन्फ़िग में लिखता है, और एक ही सर्वर प्रक्रिया में
+डुप्लिकेट सक्रिय प्रोफ़ाइल निर्देशिकाओं को अस्वीकार करता है।
+
+## Chrome एक्सटेंशन
+
+Chrome एक्सटेंशन के लिए स्थायी प्रोफ़ाइल आवश्यक है और उन्हें अलग से माउंट करना
+चाहिए। पर्यावरण चर में होस्ट पथों के बजाय कंटेनर पथों का उपयोग करें।
+एक्सटेंशन माउंट read-only हो सकता है:
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/extensions/my-extension:/extensions/my-extension:ro" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+जब किसी पथ में कॉमा हों या कई एक्सटेंशन निर्देशिकाएँ पास करनी हों, तो
+`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` के लिए JSON ऐरे का उपयोग करें।
+एक्सटेंशन फ़ाइलें या एक्सटेंशन पथ बदलने के बाद कंटेनर फिर से शुरू करें।
 
 ## स्ट्रीम करने योग्य HTTP
 
@@ -78,6 +117,7 @@ docker run --rm --init -i \
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `/data` |
 | `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` |
@@ -89,6 +129,8 @@ docker run --rm --init -i \
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` |
 | `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` |
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` |

@@ -51,6 +51,21 @@
           "default": "stdout"
         },
         {
+          "name": "PLAYWRIGHT_MCP_USER_DATA_DIR",
+          "description": "Persistent Chromium profile directory. The bridge resolves it to an absolute path and writes it to generated Playwright MCP config.",
+          "format": "filepath"
+        },
+        {
+          "name": "CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS",
+          "description": "JSON object with validated Playwright context options such as viewport, locale, timezoneId, permissions, geolocation, and headers.",
+          "format": "string"
+        },
+        {
+          "name": "CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS",
+          "description": "JSON array or comma-separated list of Chrome extension directories. Requires PLAYWRIGHT_MCP_USER_DATA_DIR.",
+          "format": "string"
+        },
+        {
           "name": "CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK",
           "description": "Patch upstream console message collection for CloakBrowser compatibility.",
           "format": "boolean",
@@ -153,6 +168,21 @@
           "default": "stdout"
         },
         {
+          "name": "PLAYWRIGHT_MCP_USER_DATA_DIR",
+          "description": "Persistent Chromium profile directory. The bridge resolves it to an absolute path and writes it to generated Playwright MCP config.",
+          "format": "filepath"
+        },
+        {
+          "name": "CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS",
+          "description": "JSON object with validated Playwright context options such as viewport, locale, timezoneId, permissions, geolocation, and headers.",
+          "format": "string"
+        },
+        {
+          "name": "CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS",
+          "description": "JSON array or comma-separated list of Chrome extension directories. Requires PLAYWRIGHT_MCP_USER_DATA_DIR.",
+          "format": "string"
+        },
+        {
           "name": "CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK",
           "description": "Patch upstream console message collection for CloakBrowser compatibility.",
           "format": "boolean",
@@ -203,6 +233,21 @@
           "default": "stdout"
         },
         {
+          "name": "PLAYWRIGHT_MCP_USER_DATA_DIR",
+          "description": "Persistent Chromium profile directory inside the container. Use /data/profiles/... with the existing /data volume.",
+          "format": "filepath"
+        },
+        {
+          "name": "CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS",
+          "description": "JSON object with validated Playwright context options such as viewport, locale, timezoneId, permissions, geolocation, and headers.",
+          "format": "string"
+        },
+        {
+          "name": "CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS",
+          "description": "JSON array or comma-separated list of Chrome extension directories inside the container. Requires PLAYWRIGHT_MCP_USER_DATA_DIR.",
+          "format": "string"
+        },
+        {
           "name": "CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK",
           "description": "Patch upstream console message collection for CloakBrowser compatibility.",
           "format": "boolean",
@@ -251,6 +296,21 @@
           "description": "Return snapshots, console logs, and network logs through stdout or files.",
           "format": "string",
           "default": "stdout"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_USER_DATA_DIR",
+          "description": "Persistent Chromium profile directory inside the container. Use /data/profiles/... with the existing /data volume.",
+          "format": "filepath"
+        },
+        {
+          "name": "CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS",
+          "description": "JSON object with validated Playwright context options such as viewport, locale, timezoneId, permissions, geolocation, and headers.",
+          "format": "string"
+        },
+        {
+          "name": "CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS",
+          "description": "JSON array or comma-separated list of Chrome extension directories inside the container. Requires PLAYWRIGHT_MCP_USER_DATA_DIR.",
+          "format": "string"
         },
         {
           "name": "CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK",

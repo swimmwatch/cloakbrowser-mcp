@@ -133,7 +133,8 @@ the smallest release-relevant cause and rerun the relevant command.
 ## Post-Release Verification
 
 Watch the unified `Release` workflow until `metadata`, `npm`, `docker`,
-`docs-build`, `docs-deploy`, and `mcp-registry` complete.
+`mcp-registry`, `docs-build`, and `docs-deploy` complete. `docs-deploy`
+must run only after npm, Docker, and MCP Registry publishing have succeeded.
 
 Then verify:
 

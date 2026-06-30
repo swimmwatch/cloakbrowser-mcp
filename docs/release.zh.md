@@ -87,19 +87,23 @@ docker.io/swimmwatch/cloakbrowser-mcp
 推送后更新 Docker Hub 仓库概览。对于此 GitHub Actions 发布流程，Docker Hub 不会自动拉取根镜像 `README.md`； Docker Hub 专用的概览由
 `docs/dockerhub-readme.md` 维护。
 
-在发布镜像之前，工作流程如下：
+在合并 release PR 之前，CI 会验证：
+
+- 运行 TypeScript、代码检查、格式化、构建、测试及代码覆盖率检查；
+- 验证 npm 包元数据和包内容；
+- 为 `linux/amd64` 和 `linux/arm64` 构建 Docker 镜像；
+- 运行 Docker `--help` 烟雾检查；
+- 使用桥接一致性脚本将 `linux/amd64` 镜像与上游 Playwright MCP 进行比对；
+- 使用 Trivy 扫描 Docker 镜像，以检测操作系统和库中的高危及关键漏洞。
+
+在发布版本期间，Docker 工作流会：
 
 - 应用发布版本；
-- 运行 TypeScript、代码检查、格式化、构建、测试及代码覆盖率检查；
-- 构建本地发布烟雾测试镜像；
 - 在 Docker 构建过程中，在已固定的 Playwright MCP
   基础镜像上应用可用的 Debian 安全更新；
 - 从运行时镜像中移除未使用的全局 npm 有效载荷；
-- 在镜像中运行 `--help`；
-- 使用桥接一致性
-  脚本将镜像与上游 Playwright MCP 进行比对；
-- 将 JSON 桥接一致性报告上传为工作流工件；
-- 使用 Trivy 对镜像进行扫描，以检测操作系统和库中的高危及关键漏洞。
+- 发布多平台镜像；
+- 在镜像推送成功后更新 Docker Hub 概览。
 
 Docker 构建接收了 `RELEASE_VERSION`、`RELEASE_VERSION_TAG` 以及
 `VCS_REF` 这三个构建参数。 该工作流还会解析上游 Playwright
@@ -118,8 +122,8 @@ Trivy 是免费的开源软件，进行公共
 仓库，同时确认 Docker Hub 仓库已设为公开。
 
 Docker 发布了针对 `linux/amd64` 的多平台清单，以及
-`linux/arm64` 发布了多平台清单。 发布工作流会在发布前对两个平台进行烟雾测试，
-并保持 `linux/amd64` 上的浏览器兼容性对比。
+`linux/arm64` 的多平台清单。PR CI 会在合并前对两个平台进行烟雾检查，
+并保持 `linux/amd64` 上的浏览器工具一致性对比。
 
 ## MCP 注册表发布
 
@@ -147,7 +151,7 @@ https://registry.modelcontextprotocol.io
 
 MCP 注册表任务与 npm、Docker
 以及文档发布使用相同的 GitHub 发布事件触发。该任务声明了 `needs: [npm, docker]`，因此 npm 和
-GHCR 的发布会在注册表发布开始之前完成。 该复合
+Docker 的发布会在注册表发布开始之前完成。文档部署声明了 `needs: [docs-build, npm, docker, mcp-registry]`，因此 GitHub Pages 只会在 npm、Docker 和官方 MCP Registry 成功发布后更新。该复合
 操作有意侧重于注册表：它会在本地验证 `server.json`，
 并使用 `mcp-publisher`进行验证，检查该注册表的精确版本是否
 已可见，使用`mcp-publisher login github-oidc` 进行身份验证，发布
@@ -212,7 +216,7 @@ Glama 目录评分与 GitHub 发布以及官方 MCP
 | `OpenSSF Scorecard` | OpenSSF Scorecard | push, weekly, manual | Enable code scanning to view SARIF results. |
 | `Zizmor` | zizmor | workflow changes, manual | No external account or token. |
 | `CI` / `Release` | Trivy | Docker build and release | Enable code scanning to view SARIF results. |
-| `CI` / releases | `npm audit --omit=dev --audit-level=high` | CI and release checks | No external account or token. |
+| `CI` / npm release | `npm audit --omit=dev --audit-level=high` | PR CI and npm publish job | No external account or token. |
 
 操作 SHA 固定功能将作为未来的一次强化迭代进行跟踪。当前的工作流采用
 带版本号的操作引用，因此在发布
@@ -226,7 +230,7 @@ Glama 目录评分与 GitHub 发布以及官方 MCP
 
 该工作流以严格模式生成文档，将生成的 `site/`
 目录中，并将其与`actions/upload-pages-artifact`一起部署，最后通过
-`actions/deploy-pages` 部署到 `github-pages` 环境中。
+`actions/deploy-pages` 仅在 npm、Docker 和 MCP Registry 成功发布后部署到 `github-pages` 环境中。
 
 文档发布过程还会在 MkDocs 构建完成后运行 SEO 验证工具。
 可选的网站管理员验证令牌使用官方免费的网站管理员工具，并可

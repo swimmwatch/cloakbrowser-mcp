@@ -1,5 +1,5 @@
 ---
-description: Playwright MCP ब्रिज के लिए रनटाइम कॉन्फ़िगरेशन, जिसमें स्ट्रीमएबल HTTP सत्र, GeoIP-अवेयर प्रॉक्सी मिलान, और मानवीकृत इनपुट व्यवहार शामिल हैं।
+description: Playwright MCP ब्रिज के लिए runtime configuration, जिसमें Streamable HTTP sessions, persistent profiles, validated context options, extension paths, GeoIP प्रॉक्सी मिलान, और humanized input शामिल हैं।
 icon: material/tune
 tags:
   - Configuration
@@ -43,6 +43,9 @@ Playwright MCP व्यवहार के लिए अपस्ट्री�
 | `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | Default action timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset | स्थायी Chromium प्रोफ़ाइल निर्देशिका। ब्रिज इसे पूर्ण पथ में बदलता है, अनुपस्थित होने पर बनाता है, लिखने योग्य होने की पुष्टि करता है, और जेनरेट किए गए `browser.userDataDir` में लिखता है। |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset | सत्यापित संदर्भ विकल्पों वाला JSON ऑब्जेक्ट। समर्थित फ़ील्ड नीचे सूचीबद्ध हैं। |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset | मौजूदा Chrome एक्सटेंशन निर्देशिकाओं की JSON ऐरे या कॉमा-सेपरेटेड सूची। `PLAYWRIGHT_MCP_USER_DATA_DIR` आवश्यक है। Windows पथों या कॉमा वाले पथों के लिए JSON ऐरे का उपयोग करें। |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | Enables the console message compatibility patch. |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
@@ -63,6 +66,39 @@ MCP और केवल रिज़ॉल्व किए गए `--fingerprint
 
 सेटअप उदाहरणों, रनटाइम स्ट्रीमएबल HTTP मेटाडेटा, उपयोग के मामलों और सीमाओं के लिए [Humanized Input Behavior](humanized-input-behavior.md) देखें।
 
+## Chrome एक्सटेंशन
+
+Chrome एक्सटेंशन ब्राउज़र शुरू होने पर लोड होते हैं, इसलिए ब्रिज शुरू करने से
+पहले या Streamable HTTP सत्र बनाने से पहले उन्हें कॉन्फ़िगर करें। एक्सटेंशन
+अनपैक की गई निर्देशिकाएँ होने चाहिए और इनके लिए स्थायी प्रोफ़ाइल आवश्यक है:
+
+```bash
+PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
+  CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS='["/absolute/path/to/my-extension"]' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+Streamable HTTP के लिए, `initialize` मेटाडेटा में प्रोफ़ाइल और एक्सटेंशन
+निर्देशिकाएँ पास करें:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "userDataDir": "/absolute/path/to/profile",
+        "extensionPaths": ["/absolute/path/to/my-extension"]
+      }
+    }
+  }
+}
+```
+
+एक्सटेंशन फ़ाइलें या एक्सटेंशन पथ बदलने के बाद ब्रिज फिर से शुरू करें या नया
+HTTP सत्र बनाएँ। जब पथों में कॉमा हों, कई एक्सटेंशन पास करने हों, या Windows
+ड्राइव-लेटर पथों का उपयोग करना हो, तो
+`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` के लिए JSON ऐरे का उपयोग करें।
+
 ## स्ट्रीम करने योग्य HTTP रनटाइम मेटाडेटा
 
 स्ट्रीमएबल HTTP क्लाइंट `initialize` अनुरोध में ब्रिज-विशिष्ट मेटाडेटा जोड़कर प्रति MCP सत्र के लिए चयनित रनटाइम विकल्प चुन सकते हैं:
@@ -77,7 +113,14 @@ MCP और केवल रिज़ॉल्व किए गए `--fingerprint
         "geoipProxyMatch": true,
         "headless": false,
         "humanize": true,
-        "humanPreset": "careful"
+        "humanPreset": "careful",
+        "userDataDir": "/absolute/path/to/profile",
+        "contextOptions": {
+          "viewport": { "width": 1280, "height": 720 },
+          "locale": "en-US",
+          "timezoneId": "America/New_York"
+        },
+        "extensionPaths": ["/absolute/path/to/extension"]
       }
     }
   }
@@ -94,6 +137,29 @@ MCP और केवल रिज़ॉल्व किए गए `--fingerprint
 
 `headless` उस सत्र के लिए हेडलेस ब्राउज़र मोड को सक्षम या अक्षम कर सकता है। `headless` को `false` पर सेट करने के लिए एक उपयोग योग्य डिस्प्ले वातावरण की आवश्यकता होती है, विशेष रूप से
 Docker या Linux सर्वर डिप्लॉयमेंट्स में।
+
+`userDataDir` उस सत्र के लिए स्थायी Chromium प्रोफ़ाइल सक्षम करता है और
+`PLAYWRIGHT_MCP_USER_DATA_DIR` को ओवरराइड करता है। ब्रिज निर्देशिका को
+प्लेटफ़ॉर्म-नेटिव पूर्ण पथ में बदलता है, अनुपस्थित होने पर बनाता है, लिखने
+योग्य होने की पुष्टि करता है, और जेनरेट किए गए `browser.userDataDir` में
+लिखता है। स्थायी प्रोफ़ाइल उस सत्र की डिफ़ॉल्ट Streamable HTTP पृथक प्रोफ़ाइल
+को अक्षम करती है। ब्रिज एक ही प्रक्रिया में डुप्लिकेट सक्रिय प्रोफ़ाइल
+निर्देशिकाओं को अस्वीकार करता है; क्रॉस-प्रोसेस प्रोफ़ाइल टकराव
+Chromium/Playwright त्रुटियाँ ही रहते हैं।
+
+`contextOptions` सत्यापित किए जाते हैं और
+`CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` पर शैलो-मर्ज किए जाते हैं; नेस्टेड
+ऑब्जेक्ट पूरे मानों को बदलते हैं। समर्थित फ़ील्ड हैं `userAgent`, `viewport`,
+`locale`, `timezoneId`, `colorScheme`, `permissions`, `geolocation`,
+`extraHTTPHeaders`, `httpCredentials`, `ignoreHTTPSErrors`, `offline`,
+`deviceScaleFactor`, `isMobile`, और `hasTouch`। इस रिलीज़ में मनमाना
+`BrowserContextOptions` पासथ्रू समर्थित नहीं है।
+
+`extensionPaths` मौजूदा निर्देशिकाओं की ओर इशारा करने चाहिए और इनके लिए
+स्थायी `userDataDir` आवश्यक है। ब्रिज एक्सटेंशन पथों को प्लेटफ़ॉर्म-नेटिव
+पूर्ण पथों में बदलता है, उन्हें CloakBrowser को पास करता है, और जेनरेट किए गए
+Chromium आर्ग्युमेंट `--load-extension` और `--disable-extensions-except` को
+जेनरेट की गई Playwright MCP कॉन्फ़िग में लिखता है।
 
 प्रमाणित HTTP प्रॉक्सी क्रेडेंशियल को `proxyServer` में एम्बेड किया जा सकता है, उदाहरण के लिए `http://user:pass@proxy.example:8080`. प्रतिशत-एनकोड क्रेडेंशियल
 अक्षरों को जो URL का अर्थ रखते हैं, जैसे कि `@`, `:`, `/`, `?`, `#`, और `%`.
@@ -113,7 +179,6 @@ Docker या Linux सर्वर डिप्लॉयमेंट्स म�
 - `PLAYWRIGHT_MCP_IMAGE_RESPONSES`
 - `PLAYWRIGHT_MCP_SNAPSHOT_MODE`
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
-- `PLAYWRIGHT_MCP_USER_DATA_DIR`
 
 पूर्ण अपस्ट्रीम विकल्पों की जानकारी के लिए अपस्ट्रीम Playwright MCP दस्तावेज़ीकरण देखें।
 

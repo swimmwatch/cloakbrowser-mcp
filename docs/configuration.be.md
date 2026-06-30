@@ -1,5 +1,5 @@
 ---
-description: Канфігурацыя асяроддзя выканання для маста Playwright MCP, уключаючы струменевыя HTTP-сесіі, падпарту праксі-сервераў з улікам GeoIP і гуманізаванае паводзін пры ўваходзе.
+description: Канфігурацыя асяроддзя выканання для моста Playwright MCP, уключаючы Streamable HTTP-сеансы, пастаянныя профілі, правераныя параметры кантэксту, шляхі пашырэнняў, супастаўленне проксі па GeoIP і чалавекападобны ўвод.
 icon: material/tune
 tags:
   - Configuration
@@ -43,6 +43,9 @@ tags:
 | `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | Default action timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset | Каталог пастаяннага профілю Chromium. Мост пераўтварае яго ў абсалютны шлях, стварае пры адсутнасці, правярае доступ на запіс і запісвае ў згенераванае `browser.userDataDir`. |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset | JSON-аб'ект з праверанымі параметрамі кантэксту. Падтрыманыя палі пералічаны ніжэй. |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset | JSON-масіў або спіс праз коску з існуючымі каталогамі пашырэнняў Chrome. Патрабуе `PLAYWRIGHT_MCP_USER_DATA_DIR`. Выкарыстоўвайце JSON-масівы для шляхоў Windows або шляхоў з коскамі. |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | Enables the console message compatibility patch. |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
@@ -64,6 +67,40 @@ MCP і ўстаўляе толькі разблакіраваныя `--fingerpri
 
 Глядзіце [Humanized Input Behavior](humanized-input-behavior.md) для прыкладаў наладкі, метаданых HTTP Streamable у часе выканання, выпадкаў выкарыстання і абмежаванняў.
 
+## Пашырэнні Chrome
+
+Пашырэнні Chrome загружаюцца пры запуску браўзера, таму наладзьце іх да запуску
+моста або да стварэння сеанса Streamable HTTP. Пашырэнні павінны быць
+распакаванымі каталогамі і патрабуюць пастаяннага профілю:
+
+```bash
+PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
+  CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS='["/absolute/path/to/my-extension"]' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+Для Streamable HTTP перадайце каталогі профілю і пашырэння ў метаданых
+`initialize`:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "userDataDir": "/absolute/path/to/profile",
+        "extensionPaths": ["/absolute/path/to/my-extension"]
+      }
+    }
+  }
+}
+```
+
+Перазапусціце мост або стварыце новы HTTP-сеанс пасля змены файлаў пашырэнняў
+або шляхоў пашырэнняў. Выкарыстоўвайце JSON-масіў для
+`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`, калі шляхі змяшчаюць коскі, пры
+перадачы некалькіх пашырэнняў або пры выкарыстанні шляхоў Windows з літарамі
+дыскаў.
+
 Метаданыя выканання HTTP для струменевага перадавання
 
 Стрымеблыя HTTP-кліенты могуць выбраць пэўныя опцыі выканання для кожнай MCP-сесіі, дадаючы метаданыя, спецыфічныя для брыджа, у запыт `initialize`:
@@ -78,7 +115,14 @@ MCP і ўстаўляе толькі разблакіраваныя `--fingerpri
         "geoipProxyMatch": true,
         "headless": false,
         "humanize": true,
-        "humanPreset": "careful"
+        "humanPreset": "careful",
+        "userDataDir": "/absolute/path/to/profile",
+        "contextOptions": {
+          "viewport": { "width": 1280, "height": 720 },
+          "locale": "en-US",
+          "timezoneId": "America/New_York"
+        },
+        "extensionPaths": ["/absolute/path/to/extension"]
       }
     }
   }
@@ -93,6 +137,29 @@ MCP і ўстаўляе толькі разблакіраваныя `--fingerpri
 
 `headless` можа ўключыць або выключыць рэжым бяздысплейнага браўзера для гэтай сесіі. Усталяванне `headless` на `false` патрабуе прыдатнага асяроддзя адлюстравання, асабліва ў
 разгортваннях Docker або сервераў Linux.
+
+`userDataDir` уключае пастаянны профіль Chromium для гэтай сесіі і
+перавызначае `PLAYWRIGHT_MCP_USER_DATA_DIR`. Мост пераўтварае каталог у
+абсалютны шлях у фармаце бягучай платформы, стварае яго пры адсутнасці,
+правярае доступ на запіс і запісвае ў згенераванае `browser.userDataDir`.
+Пастаянны профіль адключае стандартны ізаляваны профіль Streamable HTTP для
+гэтай сесіі. Мост адхіляе дубліраваныя актыўныя каталогі профілю ўнутры аднаго
+працэсу; канфлікты профіляў паміж працэсамі застаюцца памылкамі
+Chromium/Playwright.
+
+`contextOptions` правяраюцца і павярхоўна аб'ядноўваюцца з
+`CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS`; укладзеныя аб'екты замяняюцца цалкам.
+Падтрыманыя палі: `userAgent`, `viewport`, `locale`, `timezoneId`,
+`colorScheme`, `permissions`, `geolocation`, `extraHTTPHeaders`,
+`httpCredentials`, `ignoreHTTPSErrors`, `offline`, `deviceScaleFactor`,
+`isMobile` і `hasTouch`. Адвольная перадача `BrowserContextOptions` у гэтым
+рэлізе не падтрымліваецца.
+
+`extensionPaths` павінны паказваць на існуючыя каталогі і патрабуюць пастаянны
+`userDataDir`. Мост пераўтварае шляхі пашырэнняў у абсалютныя шляхі бягучай
+платформы, перадае іх у CloakBrowser і запісвае згенераваныя аргументы Chromium
+`--load-extension` і `--disable-extensions-except` у згенераваную канфігурацыю
+Playwright MCP.
 
 Пацверджаныя крэдэнцыялы HTTP-праксі-сервера можна ўбудаваць у `proxyServer`, напрыклад `http://user:pass@proxy.example:8080`. Працэнтны код для сімвалаў пароля, якія маюць URL-значэнне, такіх як `@`, `:`, `/`, `?`, `#`, і `%`.
 
@@ -111,7 +178,6 @@ MCP і ўстаўляе толькі разблакіраваныя `--fingerpri
 - `PLAYWRIGHT_MCP_IMAGE_RESPONSES`
 - `PLAYWRIGHT_MCP_SNAPSHOT_MODE`
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
-- `PLAYWRIGHT_MCP_USER_DATA_DIR`
 
 Звярніцеся да дакументацыі арыгінальнага MCP Playwright, каб атрымаць поўны спіс опцый.
 

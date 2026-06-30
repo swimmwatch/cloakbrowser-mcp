@@ -1,5 +1,5 @@
 ---
-description: CloakBrowser MCP — це міст Playwright MCP для автоматизації браузера за допомогою CloakBrowser, Docker, Streamable HTTP, проксі-сесій з підтримкою GeoIP та імітації поведінки користувача при введенні даних.
+description: Міст Playwright MCP для автоматизації браузера з CloakBrowser, Docker, Streamable HTTP, постійними профілями, перевіреними параметрами контексту, завантаженням розширень, зіставленням проксі за GeoIP та гуманізованим введенням.
 icon: material/home
 tags:
   - User Guide
@@ -27,6 +27,7 @@ tags:
 
 | cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base                 | CloakBrowser | Transport              | Parity         |
 | ---------------- | --------------- | ------------------------------------------ | ------------ | ---------------------- | -------------- |
+| `1.5.0`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.5`     | stdio, Streamable HTTP | Порівнюється в CI |
 | `1.4.0`          | `^0.0.76`       | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.3.32`    | stdio, Streamable HTTP | Порівнюється в CI |
 | `1.3.0`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.31`    | stdio, Streamable HTTP | Порівнюється в CI |
 | `1.2.7`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio, Streamable HTTP | Порівнюється в CI |

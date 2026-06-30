@@ -1,5 +1,5 @@
 ---
-description: Run the CloakBrowser MCP Docker image for repeatable Playwright MCP browser automation with CloakBrowser.
+description: Run the CloakBrowser MCP Docker image for repeatable Playwright MCP browser automation with persistent /data profiles, extension mounts, and CloakBrowser.
 icon: fontawesome/brands/docker
 tags:
   - Docker
@@ -23,6 +23,44 @@ Artifacts are written to `/data` in the container. Mount that path to keep scree
 `--init` is recommended because browser automation can create short-lived child processes. Docker's init process reaps those children cleanly.
 
 The same release tags are published to Docker Hub as `swimmwatch/cloakbrowser-mcp` and to GHCR as `ghcr.io/swimmwatch/cloakbrowser-mcp`.
+
+## Persistent Profiles
+
+Docker does not enable a persistent browser profile by default. Use the existing
+`/data` volume as the persistence root when you want cookies, local storage,
+cache, or extension state to survive container restarts:
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Environment variables inside Docker must use container paths such as
+`/data/profiles/default`, not host paths. The bridge creates the profile
+directory if it is missing, verifies it is writable, writes the container path
+to generated Playwright MCP config, and rejects duplicate active profile
+directories inside one server process.
+
+## Chrome Extensions
+
+Chrome extensions require a persistent profile and must be mounted separately.
+Use container paths in environment variables, not host paths. The extension
+mount can be read-only:
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/extensions/my-extension:/extensions/my-extension:ro" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Use a JSON array for `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` when a path contains
+commas or when passing multiple extension directories. Restart the container
+after changing extension files or extension paths.
 
 ## Streamable HTTP
 
@@ -83,6 +121,7 @@ multi-region use cases, and limitations.
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `/data` |
 | `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` |
@@ -94,6 +133,8 @@ multi-region use cases, and limitations.
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` |
 | `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` |
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` |

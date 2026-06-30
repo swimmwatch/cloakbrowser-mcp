@@ -16,7 +16,7 @@ export default tseslint.config(
         // Auto-discover the closest tsconfig for each linted file. Avoids the
         // "file not in project" error for top-level config files.
         projectService: {
-          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 32,
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 40,
           allowDefaultProject: [
             'eslint.config.js',
             'vitest.config.ts',

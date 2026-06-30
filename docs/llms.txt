@@ -1,6 +1,6 @@
 # CloakBrowser MCP
 
-> CloakBrowser MCP is a stdio and Streamable HTTP Model Context Protocol server that runs upstream Playwright MCP browser tools with the CloakBrowser Chromium binary.
+> CloakBrowser MCP is a stdio and Streamable HTTP Model Context Protocol server that runs upstream Playwright MCP browser tools with the CloakBrowser Chromium binary. It keeps upstream tool contracts unchanged while adding bridge configuration for persistent profiles, validated context options, Chrome extension paths, GeoIP-aware proxy matching, and humanized input behavior.
 
 Documentation: https://swimmwatch.github.io/cloakbrowser-mcp/
 Repository: https://github.com/swimmwatch/cloakbrowser-mcp
@@ -8,10 +8,19 @@ npm package: https://www.npmjs.com/package/cloakbrowser-mcp
 Docker Hub image: https://hub.docker.com/r/swimmwatch/cloakbrowser-mcp
 GHCR image: https://github.com/swimmwatch/cloakbrowser-mcp/pkgs/container/cloakbrowser-mcp
 
+## Current Compatibility
+
+- cloakbrowser-mcp: 1.5.0
+- @playwright/mcp: ^0.0.77
+- Playwright MCP Docker base: mcr.microsoft.com/playwright/mcp:v0.0.77
+- CloakBrowser: ^0.4.5
+- Transports: stdio and Streamable HTTP
+
 ## Key Pages
 
 - Getting Started: https://swimmwatch.github.io/cloakbrowser-mcp/getting-started/
 - Docker: https://swimmwatch.github.io/cloakbrowser-mcp/docker/
+- Version Compatibility: https://swimmwatch.github.io/cloakbrowser-mcp/version-compatibility/
 - Configuration: https://swimmwatch.github.io/cloakbrowser-mcp/configuration/
 - GeoIP Proxy Matching: https://swimmwatch.github.io/cloakbrowser-mcp/geoip-proxy-matching/
 - Humanized Input Behavior: https://swimmwatch.github.io/cloakbrowser-mcp/humanized-input-behavior/
@@ -104,11 +113,21 @@ npx -y cloakbrowser-mcp@latest --transport streamable-http --http-protocol https
 
 Stdio mode does not emit routine operational logs to stdout, so MCP JSON-RPC remains protocol-clean. Streamable HTTP mode writes startup and request logs to stdout. For non-loopback exposure, use HTTPS plus auth or TLS/auth at a trusted reverse proxy. See Getting Started and Configuration for complete options.
 
+## Persistent Profiles, Context Options, And Extensions
+
+Persistent Chromium profiles are opt-in. Set `PLAYWRIGHT_MCP_USER_DATA_DIR` for stdio or pass `userDataDir` in Streamable HTTP initialize metadata. The bridge resolves the directory to an absolute platform-native path, creates it if missing, verifies it is writable, writes it to generated `browser.userDataDir`, and avoids isolated mode when a persistent profile is configured.
+
+Context options are validated before they reach generated Playwright MCP config. Set `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` to a JSON object or pass `contextOptions` in Streamable HTTP initialize metadata. Supported fields are `userAgent`, `viewport`, `locale`, `timezoneId`, `colorScheme`, `permissions`, `geolocation`, `extraHTTPHeaders`, `httpCredentials`, `ignoreHTTPSErrors`, `offline`, `deviceScaleFactor`, `isMobile`, and `hasTouch`.
+
+Chrome extension paths are opt-in through `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` or Streamable HTTP `extensionPaths`. Paths must point to existing directories and require a persistent `userDataDir`. The bridge resolves extension paths to absolute platform-native paths and asks CloakBrowser to generate the `--load-extension` and `--disable-extensions-except` launch arguments.
+
+In Docker, use the existing `/data` volume as the persistence root. Set `PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default` and mount artifacts with `-v "$PWD/artifacts:/data"`. Extension directories should be mounted separately, for example `-v "$PWD/extensions/my-extension:/extensions/my-extension:ro"` with `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension`. Docker environment variables should use container paths, not host paths.
+
 ## GeoIP Proxy Matching
 
 Set `PLAYWRIGHT_MCP_PROXY_SERVER` and `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` to align CloakBrowser timezone, language, and locale fingerprint flags with the proxy location while leaving proxy routing delegated to upstream Playwright MCP.
 
-Streamable HTTP clients can override selected settings per MCP session with `initialize.params._meta["io.github.swimmwatch/cloakbrowser-mcp"]`. Supported fields include `proxyServer`, `proxyBypass`, `geoipProxyMatch`, `headless`, `humanize`, and `humanPreset`. Existing HTTP sessions keep their initialization settings; create a new session to switch regions, headed/headless mode, or humanized behavior.
+Streamable HTTP clients can override selected settings per MCP session with `initialize.params._meta["io.github.swimmwatch/cloakbrowser-mcp"]`. Supported fields include `proxyServer`, `proxyBypass`, `geoipProxyMatch`, `headless`, `humanize`, `humanPreset`, `userDataDir`, `contextOptions`, and `extensionPaths`. Session metadata overrides environment values. `contextOptions` are shallow-merged with environment options first and session options second. Existing HTTP sessions keep their initialization settings; create a new session to switch regions, headed/headless mode, persistent profile, context options, extensions, or humanized behavior.
 
 Use GeoIP proxy matching for localization QA, regional landing page checks, commerce flows, support reproduction, and timezone-sensitive automation. It does not provide a proxy service, does not configure browser geolocation coordinates, and should not be treated as a bypass for access controls or regional policy checks.
 

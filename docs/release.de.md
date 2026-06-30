@@ -88,19 +88,24 @@ Image-Push. Docker Hub ruft das Stamm-Image `README.md` für
 diesen GitHub-Actions-Release-Ablauf nicht automatisch ab; die Docker-Hub-spezifische Übersicht wird
 in `docs/dockerhub-readme.md` gepflegt.
 
-Vor der Veröffentlichung des Release-Images sieht der Arbeitsablauf wie folgt aus:
+Vor dem Mergen eines Release-PR validiert CI:
+
+- führt die TypeScript-, Lint-, Format-, Build-, Test- und Coverage-Prüfungen durch;
+- überprüft die Metadaten und Inhalte des npm-Pakets;
+- baut Docker-Images für `linux/amd64` und `linux/arm64`;
+- führt Docker-`--help`-Smoke-Prüfungen aus;
+- vergleicht das `linux/amd64`-Image mithilfe des Bridge-Parity-Skripts
+  mit dem Upstream-Playwright-MCP;
+- scannt Docker-Images mit Trivy auf schwerwiegende und kritische Schwachstellen im Betriebssystem und in Bibliotheken.
+
+Während der Release-Veröffentlichung führt der Docker-Workflow Folgendes aus:
 
 - wendet die Release-Version an;
-- führt die TypeScript-, Lint-, Format-, Build-, Test- und Coverage-Prüfungen durch;
-- erstellt ein lokales Release-Smoke-Image;
 - wendet während des Docker-Builds die verfügbaren Debian-Sicherheitsupdates auf das festgelegte Playwright-MCP-
   Basis-Image an;
 - entfernt die ungenutzte globale npm-Nutzlast aus dem Laufzeit-Image;
-- führt `--help` im Image aus;
-- vergleicht das Image mithilfe des Bridge-Parity-Skripts
-  mit dem Upstream-Playwright-MCP;
-- lädt den JSON-Bridge-Parity-Bericht als Workflow-Artefakt hoch;
-- scannt das Image mit Trivy auf schwerwiegende und kritische Schwachstellen im Betriebssystem und in Bibliotheken.
+- veröffentlicht das Multi-Plattform-Image;
+- aktualisiert die Docker-Hub-Übersicht nach erfolgreichem Push des Images.
 
 Der Docker-Build erhält die Build-Argumente `RELEASE_VERSION`, `RELEASE_VERSION_TAG` und
 `VCS_REF` als Build-Argumente. Der Workflow ermittelt außerdem den Digest des Upstream-Playwright-
@@ -119,8 +124,8 @@ Vergewissern Sie sich nach der ersten Veröffentlichung, dass das GHCR-Paket öf
 Repository verknüpft ist, und stellen Sie sicher, dass das Docker-Hub-Repository öffentlich ist.
 
 Docker veröffentlicht ein plattformübergreifendes Manifest für `linux/amd64` und
-`linux/arm64`. Der Release-Workflow führt vor der Veröffentlichung Smoke-Tests auf beiden Plattformen durch
-und sorgt für die Browser-Paritätsvergleich auf `linux/amd64`.
+`linux/arm64`. PR CI führt vor dem Merge Smoke-Prüfungen auf beiden Plattformen durch
+und behält den Browser-Tool-Paritätsvergleich auf `linux/amd64` bei.
 
 ## Veröffentlichung im MCP-Register
 
@@ -148,7 +153,9 @@ langfristige Registry-Geheimnisse erforderlich. Er nutzt:
 
 Der MCP-Registry-Job startet mit demselben GitHub-Release-Ereignis wie npm, Docker
 und die Veröffentlichung der Dokumentation. Er deklariert `needs: [npm, docker]`, sodass die Veröffentlichung über npm und
-GHCR abgeschlossen ist, bevor die Veröffentlichung in der Registry beginnt. Die zusammengesetzte
+Docker abgeschlossen ist, bevor die Veröffentlichung in der Registry beginnt. Die Dokumentationsbereitstellung deklariert
+`needs: [docs-build, npm, docker, mcp-registry]`, sodass GitHub Pages erst aktualisiert wird,
+nachdem npm, Docker und die offizielle MCP Registry erfolgreich veröffentlicht wurden. Die zusammengesetzte
 Aktion ist bewusst auf die Registry ausgerichtet: Sie validiert `server.json` lokal,
 validiert sie mit `mcp-publisher`, prüft, ob die exakte Registrierungsversion
 bereits sichtbar ist, authentifiziert sich mit `mcp-publisher login github-oidc`, veröffentlicht
@@ -212,7 +219,7 @@ Das Repository nutzt kostenlose Sicherheitstools:
 | `OpenSSF Scorecard` | OpenSSF Scorecard | push, weekly, manual | Enable code scanning to view SARIF results. |
 | `Zizmor` | zizmor | workflow changes, manual | No external account or token. |
 | `CI` / `Release` | Trivy | Docker build and release | Enable code scanning to view SARIF results. |
-| `CI` / releases | `npm audit --omit=dev --audit-level=high` | CI and release checks | No external account or token. |
+| `CI` / npm release | `npm audit --omit=dev --audit-level=high` | PR CI and npm publish job | No external account or token. |
 
 Die SHA-Fixierung von Aktionen wird als zukünftiger Sicherheitsoptimierungsschritt verfolgt. Aktuelle Workflows verwenden
 versionsverwaltete Aktionsverweise, damit Updates überschaubar bleiben, solange die Release-Infrastruktur
@@ -221,12 +228,12 @@ noch in den Kinderschuhen steckt.
 ## Veröffentlichung von Dokumentationen
 
 Die Jobs `docs-build` und `docs-deploy` stellen MkDocs über den nativen GitHub Pages Actions-Bereitstellungsablauf bereit.
-In den Einstellungen der Repository-Seiten muss als Quelle `GitHub Actions` verwendet werden. In den Repository-Seiten-Einstellungen muss `GitHub Actions` als
-Quelle angegeben werden.
+In den Pages-Einstellungen des Repositorys muss `GitHub Actions` als Quelle angegeben werden.
 
 Der Workflow erstellt die Dokumentation im strengen Modus, lädt das generierte `site/`
 Verzeichnis mit `actions/upload-pages-artifact` hoch und stellt es mit
-`actions/deploy-pages` in die `github-pages`-Umgebung.
+`actions/deploy-pages` erst nach erfolgreicher npm-, Docker- und MCP-Registry-Veröffentlichung
+in der `github-pages`-Umgebung bereit.
 
 Bei der Veröffentlichung der Dokumentation wird nach dem MkDocs-Build außerdem der SEO-Validator ausgeführt.
 Optionale Webmaster-Verifizierungstoken nutzen offizielle, kostenlose Webmaster-Tools und können

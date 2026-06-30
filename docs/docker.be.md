@@ -1,5 +1,5 @@
 ---
-description: Запусціце Docker-абraz CLB000000 для паўтаральнай аўтаматызацыі браўзера MCP з дапамогай Playwright і CloakBrowser.
+description: Запусціце Docker-вобраз CloakBrowser MCP для паўтаральнай аўтаматызацыі браўзера Playwright MCP з пастаяннымі профілямі /data, мантаваннем пашырэнняў і CloakBrowser.
 icon: fontawesome/brands/docker
 tags:
   - Docker
@@ -23,6 +23,44 @@ docker run --rm --init -i \
 `--init` рэкамендуецца, таму што аўтаматызацыя браўзера можа ствараць кароткачасовыя даччыныя працэсы. Працэс init у Docker акуратна прыбірае гэтыя даччыныя працэсы.
 
 Тыя ж тэгі рэлізу публікуюцца на Docker Hub як `swimmwatch/cloakbrowser-mcp` і на GHCR як `ghcr.io/swimmwatch/cloakbrowser-mcp`.
+
+## Пастаянныя профілі
+
+Docker не ўключае пастаянны профіль браўзера па змаўчанні. Выкарыстоўвайце
+існуючы том `/data` як корань захавання, калі хочаце, каб cookie, лакальнае
+сховішча, кэш або стан пашырэнняў захоўваліся пасля перазапускаў кантэйнера:
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Пераменныя асяроддзя ў Docker павінны выкарыстоўваць шляхі кантэйнера, такія як
+`/data/profiles/default`, а не шляхі хоста. Мост стварае каталог профілю пры
+адсутнасці, правярае доступ на запіс, запісвае шлях кантэйнера ў згенераваную
+канфігурацыю Playwright MCP і адхіляе дубліраваныя актыўныя каталогі профілю
+ўнутры аднаго сервернага працэсу.
+
+## Пашырэнні Chrome
+
+Пашырэнні Chrome патрабуюць пастаяннага профілю і павінны манціравацца асобна.
+Выкарыстоўвайце шляхі кантэйнера ў пераменных асяроддзя, а не шляхі хоста.
+Мантаванне пашырэння можа быць толькі для чытання:
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/extensions/my-extension:/extensions/my-extension:ro" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Выкарыстоўвайце JSON-масіў для `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`, калі шлях
+змяшчае коскі або пры перадачы некалькіх каталогаў пашырэнняў. Перазапусціце
+кантэйнер пасля змены файлаў пашырэнняў або шляхоў пашырэнняў.
 
 ## HTTP для струменевага перадавання
 
@@ -78,6 +116,7 @@ docker run --rm --init -i \
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `/data` |
 | `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` |
@@ -89,6 +128,8 @@ docker run --rm --init -i \
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` |
 | `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` |
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` |

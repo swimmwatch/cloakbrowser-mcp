@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Allow: /llms.txt
+Allow: /site.webmanifest
+Allow: /assets/
 
 Sitemap: https://swimmwatch.github.io/cloakbrowser-mcp/sitemap.xml

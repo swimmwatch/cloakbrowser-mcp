@@ -2,9 +2,12 @@ import type { IncomingMessage } from 'node:http';
 import { isInitializeRequest, type InitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import {
   parseHumanPreset,
+  parseBridgeContextOptions,
+  type BridgeContextOptions,
   type BridgeRuntimeProxy,
   type HumanPreset,
   type PrepareBridgeRuntimeOptions,
+  BridgeRuntimeConfigurationError,
 } from '#src/bridge/config';
 import { formatHost } from '#src/http/nodeServer';
 import { type StreamableHttpOptions } from '#src/http/options';
@@ -63,7 +66,14 @@ export function containsInitializeRequest(value: unknown): boolean {
 
 export type BridgeInitializeRuntimeOptions = Pick<
   PrepareBridgeRuntimeOptions,
-  'geoipProxyMatch' | 'headless' | 'humanize' | 'humanPreset' | 'proxy'
+  | 'contextOptions'
+  | 'extensionPaths'
+  | 'geoipProxyMatch'
+  | 'headless'
+  | 'humanize'
+  | 'humanPreset'
+  | 'proxy'
+  | 'userDataDir'
 >;
 
 export function readBridgeRuntimeOptionsFromInitialize(value: unknown): BridgeInitializeRuntimeOptions {
@@ -85,6 +95,9 @@ export function readBridgeRuntimeOptionsFromInitialize(value: unknown): BridgeIn
   const headless = readOptionalBoolean(bridgeMeta, 'headless');
   const humanize = readOptionalBoolean(bridgeMeta, 'humanize');
   const humanPreset = readOptionalHumanPreset(bridgeMeta, 'humanPreset');
+  const userDataDir = readOptionalString(bridgeMeta, 'userDataDir');
+  const contextOptions = readOptionalContextOptions(bridgeMeta, 'contextOptions');
+  const extensionPaths = readOptionalStringArray(bridgeMeta, 'extensionPaths');
   if (proxyBypass !== undefined && proxyServer === undefined) {
     throw new InvalidBridgeInitializeMetaError('proxyBypass requires proxyServer');
   }
@@ -95,6 +108,9 @@ export function readBridgeRuntimeOptionsFromInitialize(value: unknown): BridgeIn
     ...(headless === undefined ? {} : { headless }),
     ...(humanize === undefined ? {} : { humanize }),
     ...(humanPreset === undefined ? {} : { humanPreset }),
+    ...(userDataDir === undefined ? {} : { userDataDir }),
+    ...(contextOptions === undefined ? {} : { contextOptions }),
+    ...(extensionPaths === undefined ? {} : { extensionPaths }),
     ...(proxy === undefined ? {} : { proxy }),
   };
 }
@@ -147,6 +163,35 @@ function readOptionalHumanPreset(value: Record<string, unknown>, key: string): H
   } catch {
     throw new InvalidBridgeInitializeMetaError(`${key} must be "default" or "careful"`);
   }
+}
+
+function readOptionalContextOptions(
+  value: Record<string, unknown>,
+  key: string,
+): BridgeContextOptions | undefined {
+  if (!(key in value)) return undefined;
+  try {
+    return parseBridgeContextOptions(value[key], key);
+  } catch (error) {
+    if (error instanceof BridgeRuntimeConfigurationError) {
+      throw new InvalidBridgeInitializeMetaError(error.message);
+    }
+    throw error;
+  }
+}
+
+function readOptionalStringArray(value: Record<string, unknown>, key: string): string[] | undefined {
+  if (!(key in value)) return undefined;
+  const raw = value[key];
+  if (!Array.isArray(raw)) {
+    throw new InvalidBridgeInitializeMetaError(`${key} must be a string array`);
+  }
+  return raw.map((item, index) => {
+    if (typeof item !== 'string' || item.trim().length === 0) {
+      throw new InvalidBridgeInitializeMetaError(`${key}[${index}] must be a non-empty string`);
+    }
+    return item.trim();
+  });
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

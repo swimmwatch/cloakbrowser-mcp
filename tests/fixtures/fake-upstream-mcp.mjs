@@ -39,6 +39,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (request.params.arguments?.includeHeadlessConfig === true) {
     value.headlessConfig = readHeadlessConfig();
   }
+  if (request.params.arguments?.includeBrowserConfig === true) {
+    value.browserConfig = readBrowserConfig();
+  }
   return {
     content: [{ type: 'text', text: JSON.stringify(value) }],
     structuredContent: value,
@@ -69,6 +72,11 @@ function readHeadlessConfig() {
     env: process.env.PLAYWRIGHT_MCP_HEADLESS ?? null,
     config: config?.browser?.launchOptions?.headless ?? null,
   };
+}
+
+function readBrowserConfig() {
+  const config = readConfig();
+  return config?.browser ?? null;
 }
 
 function readConfig() {

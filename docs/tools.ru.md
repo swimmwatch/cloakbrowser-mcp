@@ -14,7 +14,7 @@ tags:
 
 Ожидается, что стандартная поверхность upstream-инструментов браузера соответствует закрепленной зависимости Playwright MCP. Она включает основные браузерные инструменты: навигацию, snapshot, клики, ввод текста, скриншоты, вкладки, сообщения консоли, проверку сети, загрузку файлов, диалоги и небезопасные инструменты выполнения.
 
-Для стабильной upstream-ссылки см. capability test Playwright MCP `@playwright/mcp@0.0.76`, закрепленный на точном коммите пакета: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/b301c372ec741289eff1cf6aab9d3bec553f31e2/tests/capabilities.spec.ts#L19-L77).
+Для стабильной upstream-ссылки см. capability test Playwright MCP `{{ project.playwright_mcp_package_tag }}`, закрепленный на точном коммите пакета: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/36ec986b8b1fc6b4d11f2b6971147755e1b0bc84/tests/capabilities.spec.ts#L19-L77).
 
 Этот проект считает upstream Playwright MCP авторитетным источником и не поддерживает копию справочника схем.
 

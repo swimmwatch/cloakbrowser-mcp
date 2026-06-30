@@ -24,7 +24,15 @@ export interface StartBridgeOptions {
   serverInfo?: Partial<Implementation>;
   runtimeOptions?: Pick<
     PrepareBridgeRuntimeOptions,
-    'browserIsolated' | 'geoipProxyMatch' | 'headless' | 'humanize' | 'humanPreset' | 'proxy'
+    | 'browserIsolated'
+    | 'contextOptions'
+    | 'extensionPaths'
+    | 'geoipProxyMatch'
+    | 'headless'
+    | 'humanize'
+    | 'humanPreset'
+    | 'proxy'
+    | 'userDataDir'
   >;
   transport?: Transport;
 }

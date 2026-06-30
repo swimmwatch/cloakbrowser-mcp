@@ -16,7 +16,7 @@ env:
   DOCKER_CACHE_SCOPE: cloakbrowser-mcp-docker
   NODE_CHECK_VERSIONS: '["22", "23", "24", "25", "26"]'
   NODE_IMAGE_REF: node:22-bookworm-slim@sha256:7af03b14a13c8cdd38e45058fd957bf00a72bbe17feac43b1c15a689c029c732
-  PLAYWRIGHT_MCP_IMAGE: mcr.microsoft.com/playwright/mcp:v0.0.76@sha256:3108dac789720d5236ee1869ad65c8f32fbbfe9d7eea8a5eb89920ab35a665d6
+  PLAYWRIGHT_MCP_IMAGE: mcr.microsoft.com/playwright/mcp:v0.0.77@sha256:dd64332608905c527ff0b34494e7671711693057191ea8ee10e674e4d621f23b
 
 jobs:
   node-versions:

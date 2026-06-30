@@ -26,6 +26,9 @@ export interface DistributionCommand {
   command: string;
   args?: string[];
   env: Record<string, string>;
+  expectedBrowserConfig?: {
+    userDataDir?: string;
+  };
 }
 
 export function createTempRoot(prefix: string): string {
@@ -102,10 +105,15 @@ export function createDockerDistributionCommand(): DistributionCommand {
       '-e',
       'PLAYWRIGHT_MCP_OUTPUT_DIR=/data',
       '-e',
+      'PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default',
+      '-e',
       'CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK=false',
       dockerImageTag,
     ],
     env: process.env as Record<string, string>,
+    expectedBrowserConfig: {
+      userDataDir: '/data/profiles/default',
+    },
   };
 }
 
@@ -136,6 +144,17 @@ export async function expectDistributionStdioBridge(command: DistributionCommand
         forwarded: true,
         name,
         arguments: args,
+      });
+    }
+
+    if (command.expectedBrowserConfig) {
+      const result = await client.callTool({
+        name: fakeUpstreamToolNames[0] ?? 'browser_navigate',
+        arguments: { includeBrowserConfig: true },
+      });
+      expect(result.isError).not.toBe(true);
+      expect(result.structuredContent).toMatchObject({
+        browserConfig: command.expectedBrowserConfig,
       });
     }
 

@@ -1,5 +1,5 @@
 ---
-description: CloakBrowser MCPは、CloakBrowser、Docker、Streamable HTTP、GeoIP対応のプロキシセッション、および人間らしい入力動作を備えた、ブラウザ自動化のためのPlaywright MCPブリッジです。
+description: CloakBrowser のブラウザー自動化向け Playwright MCP ブリッジ。Docker、Streamable HTTP、永続プロファイル、検証済みコンテキストオプション、拡張機能の読み込み、GeoIP プロキシ照合、人間らしい入力に対応します。
 icon: material/home
 tags:
   - User Guide
@@ -27,6 +27,7 @@ tags:
 
 | cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base                 | CloakBrowser | Transport              | Parity         |
 | ---------------- | --------------- | ------------------------------------------ | ------------ | ---------------------- | -------------- |
+| `1.5.0`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.5`     | stdio, Streamable HTTP | CI で比較済み |
 | `1.4.0`          | `^0.0.76`       | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.3.32`    | stdio, Streamable HTTP | CI で比較済み |
 | `1.3.0`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.31`    | stdio, Streamable HTTP | CI で比較済み |
 | `1.2.7`          | `^0.0.75`       | `mcr.microsoft.com/playwright/mcp:v0.0.75` | `^0.3.30`    | stdio, Streamable HTTP | CI で比較済み |

@@ -1,5 +1,5 @@
 ---
-description: Configuração de tempo de execução para a ponte Playwright MCP, incluindo sessões HTTP streamáveis, correspondência de proxy com reconhecimento de GeoIP e comportamento de entrada humanizado.
+description: Configuração de tempo de execução para a ponte Playwright MCP, incluindo sessões Streamable HTTP, perfis persistentes, opções de contexto validadas, caminhos de extensões, correspondência de proxy por GeoIP e entrada humanizada.
 icon: material/tune
 tags:
   - Configuration
@@ -43,6 +43,9 @@ A [Referência da CLI](generated/cli.md) gerada é a lista oficial dos sinalizad
 | `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | Default action timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset | Diretório de perfil persistente do Chromium. A ponte resolve para um caminho absoluto, cria se estiver ausente, verifica se é gravável e grava no `browser.userDataDir` gerado. |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset | Objeto JSON com opções de contexto validadas. Os campos compatíveis estão listados abaixo. |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset | Matriz JSON ou lista separada por vírgulas de diretórios existentes de extensões do Chrome. Requer `PLAYWRIGHT_MCP_USER_DATA_DIR`. Use matrizes JSON para caminhos do Windows ou caminhos que contenham vírgulas. |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | Enables the console message compatibility patch. |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
@@ -69,6 +72,39 @@ originais permanecem inalterados.
 Consulte [Comportamento de Entrada Humanizado](humanized-input-behavior.md) para exemplos de configuração,
 metadados HTTP do Streamable em tempo de execução, casos de uso e limitações.
 
+## Extensões do Chrome
+
+Extensões do Chrome são carregadas quando o navegador inicia, então configure-as
+antes de iniciar a ponte ou antes de criar uma sessão Streamable HTTP. As
+extensões devem ser diretórios descompactados e exigem um perfil persistente:
+
+```bash
+PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
+  CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS='["/absolute/path/to/my-extension"]' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+Para Streamable HTTP, passe os diretórios do perfil e da extensão nos metadados
+de `initialize`:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "userDataDir": "/absolute/path/to/profile",
+        "extensionPaths": ["/absolute/path/to/my-extension"]
+      }
+    }
+  }
+}
+```
+
+Reinicie a ponte ou crie uma nova sessão HTTP depois de alterar arquivos ou
+caminhos de extensões. Use uma matriz JSON para
+`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` quando os caminhos contiverem vírgulas,
+ao passar várias extensões ou ao usar caminhos do Windows com letras de unidade.
+
 ## Metadados de tempo de execução HTTP transmitíveis
 
 Os clientes HTTP compatíveis com stream podem selecionar opções de tempo de execução específicas para cada sessão MCP, adicionando
@@ -84,7 +120,14 @@ metadados específicos da ponte à solicitação `initialize`:
         "geoipProxyMatch": true,
         "headless": false,
         "humanize": true,
-        "humanPreset": "careful"
+        "humanPreset": "careful",
+        "userDataDir": "/absolute/path/to/profile",
+        "contextOptions": {
+          "viewport": { "width": 1280, "height": 720 },
+          "locale": "en-US",
+          "timezoneId": "America/New_York"
+        },
+        "extensionPaths": ["/absolute/path/to/extension"]
       }
     }
   }
@@ -106,6 +149,28 @@ sessões existentes mantêm o comportamento capturado durante `initialize`.
 `headless` para `false` requer um ambiente de exibição funcional, especialmente em
 implantações no Docker ou em servidores Linux.
 
+`userDataDir` habilita um perfil persistente do Chromium para essa sessão e
+substitui `PLAYWRIGHT_MCP_USER_DATA_DIR`. A ponte resolve o diretório como um
+caminho absoluto nativo da plataforma, cria se estiver ausente, verifica se é
+gravável e grava no `browser.userDataDir` gerado. Um perfil persistente
+desabilita o perfil isolado padrão do Streamable HTTP para essa sessão. A ponte
+rejeita diretórios de perfil ativos duplicados dentro de um mesmo processo;
+conflitos de perfil entre processos continuam sendo erros do Chromium/Playwright.
+
+`contextOptions` são validadas e mescladas superficialmente sobre
+`CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS`; objetos aninhados substituem valores
+inteiros. Os campos compatíveis são `userAgent`, `viewport`, `locale`,
+`timezoneId`, `colorScheme`, `permissions`, `geolocation`, `extraHTTPHeaders`,
+`httpCredentials`, `ignoreHTTPSErrors`, `offline`, `deviceScaleFactor`,
+`isMobile` e `hasTouch`. A passagem arbitrária de `BrowserContextOptions` não é
+compatível nesta versão.
+
+`extensionPaths` devem apontar para diretórios existentes e exigem um
+`userDataDir` persistente. A ponte resolve os caminhos das extensões como
+caminhos absolutos nativos da plataforma, passa-os para o CloakBrowser e grava
+os argumentos Chromium gerados `--load-extension` e
+`--disable-extensions-except` na configuração gerada do Playwright MCP.
+
 As credenciais autenticadas do proxy HTTP podem ser incorporadas em `proxyServer`, por
 exemplo `http://user:pass@proxy.example:8080`. Codifique em formato percentual os caracteres de credenciais
 que tenham significado em URLs, como `@`, `:`, `/`, `?`, `#`, e `%`.
@@ -125,7 +190,6 @@ A ponte encaminha as configurações de `PLAYWRIGHT_MCP_*` para o Playwright MCP
 - `PLAYWRIGHT_MCP_IMAGE_RESPONSES`
 - `PLAYWRIGHT_MCP_SNAPSHOT_MODE`
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
-- `PLAYWRIGHT_MCP_USER_DATA_DIR`
 
 Consulte a documentação do Playwright MCP do projeto original para conhecer todas as opções disponíveis.
 
