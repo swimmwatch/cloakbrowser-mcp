@@ -12,14 +12,20 @@
 [![OpenSSF Scorecard](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/scorecard.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/scorecard.yml)
 [![Zizmor](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/zizmor.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/zizmor.yml)
 [![Release](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/swimmwatch/cloakbrowser-mcp/actions/workflows/release.yml)
+[![GitHub Release](https://img.shields.io/github/v/release/swimmwatch/cloakbrowser-mcp?logo=github&label=GitHub%20release)](https://github.com/swimmwatch/cloakbrowser-mcp/releases)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-published-2E8555)](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.swimmwatch%2Fcloakbrowser-mcp)
 [![cloakbrowser-mcp MCP server](https://glama.ai/mcp/servers/swimmwatch/cloakbrowser-mcp/badges/score.svg)](https://glama.ai/mcp/servers/swimmwatch/cloakbrowser-mcp)
+[![Awesome MCP Servers](https://img.shields.io/badge/Awesome%20MCP%20Servers-listed-2E8555)](https://github.com/punkpeye/awesome-mcp-servers)
 [![npm](https://img.shields.io/npm/v/cloakbrowser-mcp.svg?logo=npm)](https://www.npmjs.com/package/cloakbrowser-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/cloakbrowser-mcp.svg?logo=npm&label=npm%20downloads)](https://www.npmjs.com/package/cloakbrowser-mcp)
 [![Docker Hub pulls](https://img.shields.io/docker/pulls/swimmwatch/cloakbrowser-mcp?logo=docker&label=Docker%20Hub)](https://hub.docker.com/r/swimmwatch/cloakbrowser-mcp)
+[![Docker image](https://img.shields.io/docker/v/swimmwatch/cloakbrowser-mcp?sort=semver&logo=docker&label=Docker%20image)](https://hub.docker.com/r/swimmwatch/cloakbrowser-mcp/tags)
 [![Node.js >=22.12](https://img.shields.io/badge/Node.js-%3E%3D22.12-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![TypeScript strict](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
 [![Cross-platform](https://img.shields.io/badge/Cross--platform-Linux%20%7C%20macOS%20%7C%20Windows-2563eb)](docs/version-compatibility.md)
 [![Available on CodeGuilds](https://img.shields.io/badge/Available_on-CodeGuilds-6366f1)](https://codeguilds.dev/packages/cloakbrowser-mcp)
 [![MCP Server](https://img.shields.io/badge/MCP-server-000000)](https://modelcontextprotocol.io/)
+[![MCP transports](https://img.shields.io/badge/MCP%20transports-stdio%20%7C%20Streamable%20HTTP-7C3AED)](docs/configuration.md)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](docs/docker.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -193,6 +199,9 @@ Common variables:
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium headless. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm usage. Docker defaults to `/data`. |
 | `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` | Upstream output mode, either `stdout` or `file`. |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset | Persistent Chromium profile directory. The bridge resolves it to an absolute path, creates it if missing, and writes it to generated `browser.userDataDir`. |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset | JSON object with validated Playwright context options such as `viewport`, `locale`, `timezoneId`, `permissions`, `geolocation`, and `extraHTTPHeaders`. |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset | JSON array or comma-separated list of Chrome extension directories. Requires `PLAYWRIGHT_MCP_USER_DATA_DIR`. Use JSON arrays for Windows paths or paths containing commas. |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | Enables the compatibility patch for console messages. |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium launch arguments. |
@@ -210,7 +219,14 @@ metadata in the `initialize` request:
         "geoipProxyMatch": true,
         "headless": false,
         "humanize": true,
-        "humanPreset": "careful"
+        "humanPreset": "careful",
+        "userDataDir": "/absolute/path/to/profile",
+        "contextOptions": {
+          "viewport": { "width": 1280, "height": 720 },
+          "locale": "en-US",
+          "timezoneId": "America/New_York"
+        },
+        "extensionPaths": ["/absolute/path/to/extension"]
       }
     }
   }
@@ -224,6 +240,23 @@ process-level environment and CLI configuration.
 `headless` overrides `PLAYWRIGHT_MCP_HEADLESS` for that HTTP session only. Use
 `headless: false` only where the runtime has a usable display environment, such
 as a local desktop session, Xvfb, or an equivalent container display setup.
+
+`userDataDir` enables a persistent Chromium profile for that HTTP session and
+overrides `PLAYWRIGHT_MCP_USER_DATA_DIR`. The bridge creates the directory,
+writes it to generated Playwright MCP config, and rejects duplicate active
+profile directories inside the same process. Persistent profiles disable the
+bridge's HTTP isolated-profile default for that session.
+
+`contextOptions` are validated and shallow-merged over
+`CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS`; nested objects replace whole values.
+Supported fields are `userAgent`, `viewport`, `locale`, `timezoneId`,
+`colorScheme`, `permissions`, `geolocation`, `extraHTTPHeaders`,
+`httpCredentials`, `ignoreHTTPSErrors`, `offline`, `deviceScaleFactor`,
+`isMobile`, and `hasTouch`.
+
+`extensionPaths` must point to existing directories and require a persistent
+`userDataDir`. The bridge resolves extension paths to absolute platform-native
+paths and passes them through CloakBrowser-generated Chromium launch args.
 
 Authenticated HTTP proxies are supported with credentials embedded in
 `proxyServer`, for example `http://user:pass@proxy.example:8080`. Percent-encode

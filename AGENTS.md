@@ -123,14 +123,23 @@ English documentation is the source of truth for localized MkDocs pages. When
 changing human-authored Markdown under `docs/`, update every localized suffix
 file (`*.ru.md`, `*.be.md`, `*.uk.md`, `*.es.md`, `*.pt-BR.md`, `*.zh.md`,
 `*.ja.md`, `*.de.md`, `*.fr.md`, and `*.hi.md`) or explicitly document why a
-locale is deferred. Use DeepL MCP for translation generation and updates. Do
-not blindly retranslate unchanged pages; run `npm run docs:translations:check`
-first and translate only missing or stale targets. Preserve Markdown structure,
-frontmatter keys, code blocks, inline code, URLs, environment variables, CLI
-flags, JSON keys, tool names, and Material icon tokens. Run
-`npm run docs:build`, `npm run docs:seo:validate`,
-`npm run docs:translations:check`, and `npm run check` before committing
-documentation changes.
+locale is deferred. Do not use `npm run docs:translations` or
+`scripts/update-doc-translations.mjs` to bulk-regenerate localized pages unless
+the maintainer explicitly asks for that script. Instead, inspect the English
+`git diff`, identify only the changed human-readable fragments, translate those
+fragments with DeepL MCP `translate_text`, and patch the corresponding localized
+files surgically. Translate changed headings, prose, list items, and table prose;
+remove localized text when the English source removes it. Preserve Markdown
+structure, frontmatter keys, code blocks, inline code, URLs, environment
+variables, CLI flags, JSON keys, tool names, package names, image paths, and
+Material icon tokens exactly. For Markdown tables, translate only prose cells
+that changed; do not reformat the table or translate identifiers/default values.
+After localized files are truly updated, refresh only the relevant entries in
+`docs/data/translation-manifest.json` so the touched source file hashes and
+translation hashes match the actual files; never update the manifest to hide
+stale or untranslated content. Run `npm run docs:build`,
+`npm run docs:seo:validate`, `npm run docs:translations:check`, and
+`npm run check` before committing documentation changes.
 
 Compatibility tables are generated from `docs/data/version-compatibility.json`. For release work, add the new compatibility row there, run `npm run docs:compatibility`, and verify both the full table in `docs/version-compatibility.md` and the compact compatibility table in `README.md` are updated. Run `npm run docs:compatibility:check` before finishing so the generated tables in `README.md`, `docs/index.md`, and `docs/version-compatibility.md` cannot drift.
 

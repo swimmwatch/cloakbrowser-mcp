@@ -24,6 +24,36 @@ docker run --rm --init -i \
 
 相同的发布标签已发布到 Docker Hub，标签为 `swimmwatch/cloakbrowser-mcp`，并在 GHCR 上发布为 `ghcr.io/swimmwatch/cloakbrowser-mcp`。
 
+## 持久化配置文件
+
+Docker 默认不会启用持久化浏览器配置文件。当你希望 cookie、本地存储、缓存或扩展状态在
+容器重启后保留时，请使用现有的 `/data` 卷作为持久化根目录：
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Docker 内部的环境变量必须使用容器路径，例如 `/data/profiles/default`，
+而不是主机路径。桥接器会在配置文件目录缺失时创建它，验证其可写，将容器路径写入
+生成的 Playwright MCP 配置，并拒绝同一服务器进程内重复的活动配置文件目录。
+
+Chrome 扩展需要持久化配置文件，并且必须单独挂载。扩展挂载可以是只读的：
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/extensions/my-extension:/extensions/my-extension:ro" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+当路径包含逗号时，请为 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` 使用 JSON 数组。
+在 Windows 上使用 npm 时，JSON 数组也是传递带盘符路径的最安全方式。
+
 ## 可流式传输的 HTTP
 
 若要在本地使用 Streamable HTTP，请将容器端口发布到回环地址：
@@ -82,6 +112,7 @@ docker run --rm --init -i \
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `/data` |
 | `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` |
@@ -93,6 +124,8 @@ docker run --rm --init -i \
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` |
 | `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` |
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` |

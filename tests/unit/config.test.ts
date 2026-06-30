@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -95,6 +95,139 @@ describe('bridge config generation', () => {
     runtime.dispose();
   });
 
+  it('writes persistent profiles to generated config and skips isolated mode', async () => {
+    const root = createTempRoot();
+    const profileDir = path.join(root, 'profiles', 'default');
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      browserIsolated: true,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        PLAYWRIGHT_MCP_USER_DATA_DIR: profileDir,
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    expect(runtime.config.browser?.userDataDir).toBe(path.resolve(profileDir));
+    expect(runtime.config.browser?.isolated).toBeUndefined();
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_USER_DATA_DIR).toBe(path.resolve(profileDir));
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_ISOLATED).toBeUndefined();
+
+    runtime.dispose();
+
+    const afterDispose = await prepareBridgeRuntime({
+      tempRoot: root,
+      browserIsolated: true,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        PLAYWRIGHT_MCP_USER_DATA_DIR: profileDir,
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+    expect(afterDispose.config.browser?.userDataDir).toBe(path.resolve(profileDir));
+    afterDispose.dispose();
+  });
+
+  it('rejects duplicate active persistent profile directories', async () => {
+    const root = createTempRoot();
+    const profileDir = path.join(root, 'profiles', 'default');
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        PLAYWRIGHT_MCP_USER_DATA_DIR: profileDir,
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: root,
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
+        env: {
+          PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+          PLAYWRIGHT_MCP_USER_DATA_DIR: profileDir,
+          CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        },
+      }),
+    ).rejects.toThrow('already active');
+
+    runtime.dispose();
+  });
+
+  it('writes validated context options and shallow-merges runtime values over env values', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      contextOptions: {
+        viewport: { width: 1024, height: 768 },
+        timezoneId: 'Europe/Berlin',
+      },
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS: JSON.stringify({
+          viewport: { width: 1280, height: 720 },
+          locale: 'en-US',
+          colorScheme: 'dark',
+          permissions: ['geolocation', 'clipboard-read'],
+          geolocation: { longitude: 13.405, latitude: 52.52, accuracy: 15 },
+          extraHTTPHeaders: { 'x-test': 'ok' },
+          httpCredentials: { username: 'user', password: 'pass', send: 'unauthorized' },
+          ignoreHTTPSErrors: true,
+          offline: false,
+          deviceScaleFactor: 2,
+          isMobile: false,
+          hasTouch: true,
+        }),
+      },
+    });
+
+    expect(runtime.config.browser?.contextOptions).toEqual({
+      viewport: { width: 1024, height: 768 },
+      locale: 'en-US',
+      timezoneId: 'Europe/Berlin',
+      colorScheme: 'dark',
+      permissions: ['geolocation', 'clipboard-read'],
+      geolocation: { longitude: 13.405, latitude: 52.52, accuracy: 15 },
+      extraHTTPHeaders: { 'x-test': 'ok' },
+      httpCredentials: { username: 'user', password: 'pass', send: 'unauthorized' },
+      ignoreHTTPSErrors: true,
+      offline: false,
+      deviceScaleFactor: 2,
+      isMobile: false,
+      hasTouch: true,
+    });
+
+    runtime.dispose();
+  });
+
+  it('rejects unsupported or invalid context options', async () => {
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: createTempRoot(),
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
+        env: {
+          CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS: JSON.stringify({ storageState: 'state.json' }),
+        },
+      }),
+    ).rejects.toThrow('storageState is not supported');
+
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: createTempRoot(),
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
+        env: {
+          CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS: JSON.stringify({ viewport: { width: 0, height: 720 } }),
+        },
+      }),
+    ).rejects.toThrow('viewport.width');
+  });
+
   it('lets runtime headless override the default and child environment', async () => {
     const root = createTempRoot();
     const runtime = await prepareBridgeRuntime({
@@ -188,6 +321,81 @@ describe('bridge config generation', () => {
     expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_BYPASS).toBeUndefined();
 
     runtime.dispose();
+  });
+
+  it('generates extension launch args through CloakBrowser launch options', async () => {
+    const root = createTempRoot();
+    const profileDir = path.join(root, 'profiles', 'default');
+    const extensionDir = path.join(root, 'extensions', 'my-extension');
+    mkdirSync(extensionDir, { recursive: true });
+    const relativeExtensionDir = path.relative(process.cwd(), extensionDir);
+
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      buildCloakLaunchOptions: async (options) => {
+        if (!options) throw new Error('Expected Cloak launch options');
+        expect(options.extensionPaths).toEqual([path.resolve(extensionDir)]);
+        return {
+          executablePath: fakeCloakBinaryPath,
+          headless: true,
+          args: [
+            ...(options.args ?? []),
+            `--load-extension=${options.extensionPaths?.join(',')}`,
+            `--disable-extensions-except=${options.extensionPaths?.join(',')}`,
+          ],
+        };
+      },
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        PLAYWRIGHT_MCP_USER_DATA_DIR: profileDir,
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS: 'false',
+        CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS: JSON.stringify([relativeExtensionDir]),
+      },
+    });
+
+    expect(runtime.config.browser?.launchOptions?.args).toEqual([
+      '--no-sandbox',
+      `--load-extension=${path.resolve(extensionDir)}`,
+      `--disable-extensions-except=${path.resolve(extensionDir)}`,
+    ]);
+
+    runtime.dispose();
+  });
+
+  it('rejects extension paths without a persistent profile', async () => {
+    const root = createTempRoot();
+    const extensionDir = path.join(root, 'extensions', 'my-extension');
+    mkdirSync(extensionDir, { recursive: true });
+
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: root,
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
+        env: {
+          PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+          CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+          CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS: extensionDir,
+        },
+      }),
+    ).rejects.toThrow('requires PLAYWRIGHT_MCP_USER_DATA_DIR');
+  });
+
+  it('rejects extension paths that are not existing directories', async () => {
+    const root = createTempRoot();
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: root,
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
+        env: {
+          PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+          PLAYWRIGHT_MCP_USER_DATA_DIR: path.join(root, 'profiles', 'default'),
+          CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+          CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS: path.join(root, 'missing-extension'),
+        },
+      }),
+    ).rejects.toThrow('must point to an existing directory');
   });
 
   it('passes runtime proxy options through the upstream child environment', async () => {

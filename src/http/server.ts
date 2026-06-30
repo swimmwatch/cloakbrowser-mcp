@@ -39,7 +39,7 @@ import {
   readBridgeRuntimeOptionsFromInitialize,
 } from '#src/http/requests';
 import { endResponse, writeJsonResponse, writeJsonRpcError } from '#src/http/responses';
-import type { PrepareBridgeRuntimeOptions } from '#src/bridge/config';
+import { BridgeRuntimeConfigurationError, type PrepareBridgeRuntimeOptions } from '#src/bridge/config';
 
 const allowedMethods = 'GET, POST, DELETE';
 
@@ -47,7 +47,14 @@ export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions 
   serverInfo?: Partial<Implementation>;
   runtimeOptions?: Pick<
     PrepareBridgeRuntimeOptions,
-    'geoipProxyMatch' | 'headless' | 'humanize' | 'humanPreset' | 'proxy'
+    | 'contextOptions'
+    | 'extensionPaths'
+    | 'geoipProxyMatch'
+    | 'headless'
+    | 'humanize'
+    | 'humanPreset'
+    | 'proxy'
+    | 'userDataDir'
   >;
   sessionStore?: SessionStore;
   logger?: BridgeLogger;
@@ -251,7 +258,14 @@ class StreamableHttpBridgeController {
   ): Promise<void> {
     let sessionRuntimeOptions: Pick<
       PrepareBridgeRuntimeOptions,
-      'geoipProxyMatch' | 'headless' | 'humanize' | 'humanPreset' | 'proxy'
+      | 'contextOptions'
+      | 'extensionPaths'
+      | 'geoipProxyMatch'
+      | 'headless'
+      | 'humanize'
+      | 'humanPreset'
+      | 'proxy'
+      | 'userDataDir'
     >;
     try {
       sessionRuntimeOptions = readBridgeRuntimeOptionsFromInitialize(parsedBody);
@@ -307,6 +321,13 @@ class StreamableHttpBridgeController {
           headless: sessionRuntimeOptions.headless ?? this.#options.runtimeOptions?.headless,
           humanize: sessionRuntimeOptions.humanize ?? this.#options.runtimeOptions?.humanize,
           humanPreset: sessionRuntimeOptions.humanPreset ?? this.#options.runtimeOptions?.humanPreset,
+          userDataDir: sessionRuntimeOptions.userDataDir ?? this.#options.runtimeOptions?.userDataDir,
+          contextOptions: mergeContextOptions(
+            this.#options.runtimeOptions?.contextOptions,
+            sessionRuntimeOptions.contextOptions,
+          ),
+          extensionPaths:
+            sessionRuntimeOptions.extensionPaths ?? this.#options.runtimeOptions?.extensionPaths,
           proxy: sessionRuntimeOptions.proxy ?? this.#options.runtimeOptions?.proxy,
         },
       });
@@ -315,6 +336,10 @@ class StreamableHttpBridgeController {
       await transport.handleRequest(req, res, parsedBody);
     } catch (error) {
       await this.#closeSession(sessionId);
+      if (error instanceof BridgeRuntimeConfigurationError) {
+        writeJsonRpcError(res, HttpStatus.BadRequest, JsonRpcErrorCode.ServerError, error.message);
+        return;
+      }
       throw error;
     } finally {
       this.#pendingSessionInitializations -= 1;
@@ -463,6 +488,15 @@ class StreamableHttpBridgeController {
       );
     });
   }
+}
+
+function mergeContextOptions(
+  envContextOptions: PrepareBridgeRuntimeOptions['contextOptions'],
+  sessionContextOptions: PrepareBridgeRuntimeOptions['contextOptions'],
+): PrepareBridgeRuntimeOptions['contextOptions'] {
+  if (envContextOptions === undefined) return sessionContextOptions;
+  if (sessionContextOptions === undefined) return envContextOptions;
+  return { ...envContextOptions, ...sessionContextOptions };
 }
 
 function timingSafeStringEqual(actual: string, expected: string): boolean {

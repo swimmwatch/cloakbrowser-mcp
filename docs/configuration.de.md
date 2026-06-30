@@ -43,6 +43,9 @@ Die generierte [CLI-Referenz](generated/cli.md) ist die maßgebliche Liste der B
 | `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | Default action timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset | Verzeichnis für ein persistentes Chromium-Profil. Die Bridge löst es zu einem absoluten Pfad auf, erstellt es bei Bedarf, prüft die Schreibbarkeit und schreibt es in das generierte `browser.userDataDir`. |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset | JSON-Objekt mit validierten Kontextoptionen. Die unterstützten Felder sind unten aufgeführt. |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset | JSON-Array oder kommagetrennte Liste vorhandener Chrome-Erweiterungsverzeichnisse. Erfordert `PLAYWRIGHT_MCP_USER_DATA_DIR`. Verwenden Sie JSON-Arrays für Windows-Pfade oder Pfade mit Kommas. |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | Enables the console message compatibility patch. |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
@@ -84,7 +87,14 @@ brückenbezogene Metadaten zur Anfrage `initialize` hinzufügen:
         "geoipProxyMatch": true,
         "headless": false,
         "humanize": true,
-        "humanPreset": "careful"
+        "humanPreset": "careful",
+        "userDataDir": "/absolute/path/to/profile",
+        "contextOptions": {
+          "viewport": { "width": 1280, "height": 720 },
+          "locale": "en-US",
+          "timezoneId": "America/New_York"
+        },
+        "extensionPaths": ["/absolute/path/to/extension"]
       }
     }
   }
@@ -106,6 +116,29 @@ Sitzungen behalten das während `initialize` erfasste Verhalten bei.
 `headless` auf `false` erfordert eine funktionsfähige Anzeigeumgebung, insbesondere bei
 Docker- oder Linux-Server-Bereitstellungen.
 
+`userDataDir` aktiviert für diese Sitzung ein persistentes Chromium-Profil und
+überschreibt `PLAYWRIGHT_MCP_USER_DATA_DIR`. Die Bridge löst das Verzeichnis als
+absoluten, plattformnativen Pfad auf, erstellt es bei Bedarf, prüft die
+Schreibbarkeit und schreibt es in das generierte `browser.userDataDir`. Ein
+persistentes Profil deaktiviert das standardmäßige isolierte Streamable-HTTP-Profil
+für diese Sitzung. Die Bridge weist doppelte aktive Profilverzeichnisse
+innerhalb eines Prozesses zurück; prozessübergreifende Profilkonflikte bleiben
+Chromium/Playwright-Fehler.
+
+`contextOptions` werden validiert und flach über
+`CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` zusammengeführt; verschachtelte Objekte
+ersetzen ganze Werte. Unterstützte Felder sind `userAgent`, `viewport`,
+`locale`, `timezoneId`, `colorScheme`, `permissions`, `geolocation`,
+`extraHTTPHeaders`, `httpCredentials`, `ignoreHTTPSErrors`, `offline`,
+`deviceScaleFactor`, `isMobile` und `hasTouch`. Eine beliebige Weitergabe von
+`BrowserContextOptions` wird in dieser Version nicht unterstützt.
+
+`extensionPaths` müssen auf vorhandene Verzeichnisse zeigen und erfordern ein
+persistentes `userDataDir`. Die Bridge löst Erweiterungspfade als absolute,
+plattformnative Pfade auf, übergibt sie an CloakBrowser und schreibt die
+generierten Chromium-Argumente `--load-extension` und
+`--disable-extensions-except` in die generierte Playwright-MCP-Konfiguration.
+
 Authentifizierte HTTP-Proxy-Anmeldedaten können in `proxyServer` eingebettet werden, zum
 Beispiel `http://user:pass@proxy.example:8080`. Führen Sie eine Prozent-Kodierung für Anmeldeinformationen
 durch, die URL-Bedeutung haben, wie z. B. `@`, `:`, `/`, `?`, `#` und `%`.
@@ -125,7 +158,6 @@ Die Bridge leitet die Einstellungen von `PLAYWRIGHT_MCP_*` an den vorgelagerten 
 - `PLAYWRIGHT_MCP_IMAGE_RESPONSES`
 - `PLAYWRIGHT_MCP_SNAPSHOT_MODE`
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
-- `PLAYWRIGHT_MCP_USER_DATA_DIR`
 
 Die vollständige Übersicht über die Optionen des Upstream-Projekts finden Sie in der Playwright-MCP-Dokumentation des Upstream-Projekts.
 

@@ -24,6 +24,41 @@ docker run --rm --init -i \
 
 Ті самі теги випусків публікуються на Docker Hub як `swimmwatch/cloakbrowser-mcp`, а на GHCR — як `ghcr.io/swimmwatch/cloakbrowser-mcp`.
 
+## Постійні профілі
+
+Docker не вмикає постійний профіль браузера за замовчуванням. Використовуйте
+наявний том `/data` як корінь збереження, якщо хочете, щоб cookie, локальне
+сховище, кеш або стан розширень зберігалися після перезапусків контейнера:
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Змінні середовища всередині Docker мають використовувати шляхи контейнера, як-от
+`/data/profiles/default`, а не шляхи хоста. Міст створює каталог профілю за
+відсутності, перевіряє доступність для запису, записує шлях контейнера у
+згенеровану конфігурацію Playwright MCP і відхиляє дубльовані активні каталоги
+профілю всередині одного серверного процесу.
+
+Розширення Chrome потребують постійного профілю та мають монтуватися окремо.
+Монтування розширення може бути доступне лише для читання:
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/extensions/my-extension:/extensions/my-extension:ro" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Використовуйте JSON-масив для `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`, коли шлях
+містить коми. Для використання npm у Windows JSON-масиви також є найбезпечнішим
+способом передавання шляхів із літерами дисків.
+
 ## HTTP-потік
 
 Для локального використання Streamable HTTP опублікуйте порт контейнера на петлі зворотного зв’язку:
@@ -83,6 +118,7 @@ docker run --rm --init -i \
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `/data` |
 | `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` |
@@ -94,6 +130,8 @@ docker run --rm --init -i \
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` |
 | `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` |
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` |

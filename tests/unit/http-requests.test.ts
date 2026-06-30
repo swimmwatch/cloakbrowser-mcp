@@ -52,6 +52,13 @@ describe('HTTP request helpers', () => {
           headless: false,
           humanize: true,
           humanPreset: 'careful',
+          userDataDir: ' /tmp/profile ',
+          contextOptions: {
+            viewport: { width: 1280, height: 720 },
+            locale: 'en-US',
+            timezoneId: 'America/New_York',
+          },
+          extensionPaths: ['/tmp/ext-one', ' /tmp/ext-two '],
         }),
       ),
     ).toEqual({
@@ -63,6 +70,13 @@ describe('HTTP request helpers', () => {
       headless: false,
       humanize: true,
       humanPreset: 'careful',
+      userDataDir: '/tmp/profile',
+      contextOptions: {
+        viewport: { width: 1280, height: 720 },
+        locale: 'en-US',
+        timezoneId: 'America/New_York',
+      },
+      extensionPaths: ['/tmp/ext-one', '/tmp/ext-two'],
     });
 
     expect(readBridgeRuntimeOptionsFromInitialize(createInitializeRequest())).toEqual({});
@@ -96,6 +110,28 @@ describe('HTTP request helpers', () => {
     expect(() =>
       readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ humanPreset: 'fast' })),
     ).toThrow('humanPreset must be "default" or "careful"');
+    expect(() =>
+      readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ userDataDir: ' ' })),
+    ).toThrow('userDataDir must be a non-empty string');
+    expect(() =>
+      readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ contextOptions: [] })),
+    ).toThrow('contextOptions must be an object');
+    expect(() =>
+      readBridgeRuntimeOptionsFromInitialize(
+        createInitializeRequest({ contextOptions: { storageState: 'state.json' } }),
+      ),
+    ).toThrow('contextOptions.storageState is not supported');
+    expect(() =>
+      readBridgeRuntimeOptionsFromInitialize(
+        createInitializeRequest({ contextOptions: { viewport: { width: 1280, height: 0 } } }),
+      ),
+    ).toThrow('contextOptions.viewport.height');
+    expect(() =>
+      readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ extensionPaths: '/tmp/ext' })),
+    ).toThrow('extensionPaths must be a string array');
+    expect(() =>
+      readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ extensionPaths: ['/tmp/ext', ' '] })),
+    ).toThrow('extensionPaths[1] must be a non-empty string');
   });
 });
 

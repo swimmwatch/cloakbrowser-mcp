@@ -43,6 +43,9 @@ La [Referencia de la CLI](generated/cli.md) generada es la lista oficial de los 
 | `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | Default action timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset | Directorio de perfil persistente de Chromium. El puente lo resuelve como una ruta absoluta, lo crea si falta, comprueba que se pueda escribir y lo escribe en el `browser.userDataDir` generado. |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset | Objeto JSON con opciones de contexto validadas. Los campos admitidos se enumeran más abajo. |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset | Matriz JSON o lista separada por comas de directorios de extensiones de Chrome existentes. Requiere `PLAYWRIGHT_MCP_USER_DATA_DIR`. Usa matrices JSON para rutas de Windows o rutas que contengan comas. |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | Enables the console message compatibility patch. |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
@@ -84,7 +87,14 @@ metadatos específicos del puente a la solicitud `initialize`:
         "geoipProxyMatch": true,
         "headless": false,
         "humanize": true,
-        "humanPreset": "careful"
+        "humanPreset": "careful",
+        "userDataDir": "/absolute/path/to/profile",
+        "contextOptions": {
+          "viewport": { "width": 1280, "height": 720 },
+          "locale": "en-US",
+          "timezoneId": "America/New_York"
+        },
+        "extensionPaths": ["/absolute/path/to/extension"]
       }
     }
   }
@@ -106,6 +116,29 @@ existentes conservan el comportamiento capturado durante `initialize`.
 `headless` en `false` requiere un entorno de visualización operativo, especialmente en
 implementaciones en Docker o en servidores Linux.
 
+`userDataDir` habilita un perfil persistente de Chromium para esa sesión y
+sobrescribe `PLAYWRIGHT_MCP_USER_DATA_DIR`. El puente resuelve el directorio
+como una ruta absoluta nativa de la plataforma, lo crea si falta, comprueba que
+se pueda escribir y lo escribe en el `browser.userDataDir` generado. Un perfil
+persistente deshabilita el perfil aislado predeterminado de Streamable HTTP para
+esa sesión. El puente rechaza directorios de perfil activos duplicados dentro de
+un mismo proceso; los conflictos de perfil entre procesos siguen siendo errores
+de Chromium/Playwright.
+
+`contextOptions` se validan y se fusionan superficialmente sobre
+`CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS`; los objetos anidados se sustituyen por
+completo. Los campos admitidos son `userAgent`, `viewport`, `locale`,
+`timezoneId`, `colorScheme`, `permissions`, `geolocation`, `extraHTTPHeaders`,
+`httpCredentials`, `ignoreHTTPSErrors`, `offline`, `deviceScaleFactor`,
+`isMobile` y `hasTouch`. En esta versión no se admite el paso arbitrario de
+`BrowserContextOptions`.
+
+`extensionPaths` deben apuntar a directorios existentes y requieren un
+`userDataDir` persistente. El puente resuelve las rutas de extensiones como
+rutas absolutas nativas de la plataforma, las pasa a CloakBrowser y escribe los
+argumentos de Chromium generados `--load-extension` y
+`--disable-extensions-except` en la configuración generada de Playwright MCP.
+
 Las credenciales de proxy HTTP autenticadas se pueden incrustar en `proxyServer`, por
 ejemplo `http://user:pass@proxy.example:8080`. Codifica en formato «percent» los
 caracteres de las credenciales que tengan significado en una URL, como `@`, `:`, `/`, `?`, `#`, y `%`.
@@ -125,7 +158,6 @@ El puente reenvía la configuración de `PLAYWRIGHT_MCP_*` al MCP de Playwright 
 - `PLAYWRIGHT_MCP_IMAGE_RESPONSES`
 - `PLAYWRIGHT_MCP_SNAPSHOT_MODE`
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
-- `PLAYWRIGHT_MCP_USER_DATA_DIR`
 
 Consulta la documentación de Playwright MCP del proyecto original para conocer todas las opciones disponibles.
 

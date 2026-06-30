@@ -24,6 +24,41 @@ Artefakte werden im Container unter `/data` gespeichert. Mounten Sie diesen Pfad
 
 Die gleichen Release-Tags werden auf Docker Hub als `swimmwatch/cloakbrowser-mcp` und auf GHCR als `ghcr.io/swimmwatch/cloakbrowser-mcp`.
 
+## Persistente Profile
+
+Docker aktiviert standardmäßig kein persistentes Browserprofil. Verwenden Sie das
+vorhandene Volume `/data` als Persistenzwurzel, wenn Cookies, lokaler Speicher,
+Cache oder Erweiterungsstatus Container-Neustarts überdauern sollen:
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Umgebungsvariablen innerhalb von Docker müssen Containerpfade wie
+`/data/profiles/default` verwenden, keine Hostpfade. Die Bridge erstellt das
+Profilverzeichnis bei Bedarf, prüft die Schreibbarkeit, schreibt den
+Containerpfad in die generierte Playwright-MCP-Konfiguration und weist doppelte
+aktive Profilverzeichnisse innerhalb eines Serverprozesses zurück.
+
+Chrome-Erweiterungen erfordern ein persistentes Profil und müssen separat
+gemountet werden. Der Erweiterungs-Mount kann schreibgeschützt sein:
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/extensions/my-extension:/extensions/my-extension:ro" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Verwenden Sie ein JSON-Array für `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`, wenn ein
+Pfad Kommas enthält. Für die npm-Nutzung unter Windows sind JSON-Arrays auch der
+sicherste Weg, Pfade mit Laufwerksbuchstaben zu übergeben.
+
 ## Streamable HTTP
 
 Für die lokale Nutzung von Streamable HTTP veröffentlichen Sie den Container-Port über Loopback:
@@ -83,6 +118,7 @@ Anwendungsfälle in mehreren Regionen und Einschränkungen.
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `/data` |
 | `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` |
@@ -94,6 +130,8 @@ Anwendungsfälle in mehreren Regionen und Einschränkungen.
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` |
 | `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` |
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` |

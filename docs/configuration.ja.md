@@ -43,6 +43,9 @@ Playwright MCP の動作には、アップストリームの `PLAYWRIGHT_MCP_*` 
 | `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | Default action timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset | 永続的な Chromium プロファイルディレクトリ。ブリッジは絶対パスに解決し、存在しない場合は作成し、書き込み可能であることを確認して、生成された `browser.userDataDir` に書き込みます。 |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset | 検証済みのコンテキストオプションを含む JSON オブジェクト。サポートされるフィールドは下記に記載されています。 |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset | 既存の Chrome 拡張機能ディレクトリの JSON 配列またはカンマ区切りリスト。`PLAYWRIGHT_MCP_USER_DATA_DIR` が必要です。Windows パスやカンマを含むパスには JSON 配列を使用してください。 |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | Enables the console message compatibility patch. |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
@@ -83,7 +86,14 @@ Playwright MCPのページ初期化フックを通じて適用されるため、
         "geoipProxyMatch": true,
         "headless": false,
         "humanize": true,
-        "humanPreset": "careful"
+        "humanPreset": "careful",
+        "userDataDir": "/absolute/path/to/profile",
+        "contextOptions": {
+          "viewport": { "width": 1280, "height": 720 },
+          "locale": "en-US",
+          "timezoneId": "America/New_York"
+        },
+        "extensionPaths": ["/absolute/path/to/extension"]
       }
     }
   }
@@ -102,6 +112,29 @@ Playwright MCPのページ初期化フックを通じて適用されるため、
 
 `headless` を使用すると、そのセッションのヘッドレスブラウザモードを有効または無効にできます。 `headless` を `false` に設定するには、特に
 DockerやLinuxサーバーでの展開において、特に重要です。
+
+`userDataDir` は、そのセッションで永続的な Chromium プロファイルを有効にし、
+`PLAYWRIGHT_MCP_USER_DATA_DIR` を上書きします。ブリッジはディレクトリを
+プラットフォームネイティブの絶対パスに解決し、存在しない場合は作成し、
+書き込み可能であることを確認して、生成された `browser.userDataDir` に
+書き込みます。永続プロファイルは、そのセッションのデフォルトの
+Streamable HTTP 分離プロファイルを無効にします。ブリッジは、同一プロセス内で
+重複するアクティブなプロファイルディレクトリを拒否します。プロセス間の
+プロファイル競合は、引き続き Chromium/Playwright のエラーになります。
+
+`contextOptions` は検証され、`CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` の上に
+浅くマージされます。ネストされたオブジェクトは値全体として置き換えられます。
+サポートされるフィールドは `userAgent`、`viewport`、`locale`、`timezoneId`、
+`colorScheme`、`permissions`、`geolocation`、`extraHTTPHeaders`、
+`httpCredentials`、`ignoreHTTPSErrors`、`offline`、`deviceScaleFactor`、
+`isMobile`、`hasTouch` です。このリリースでは任意の `BrowserContextOptions`
+のパススルーはサポートされません。
+
+`extensionPaths` は既存のディレクトリを指す必要があり、永続的な
+`userDataDir` が必要です。ブリッジは拡張機能のパスをプラットフォームネイティブの
+絶対パスに解決し、CloakBrowser に渡し、生成された Chromium 引数
+`--load-extension` と `--disable-extensions-except` を生成済みの Playwright MCP
+設定に書き込みます。
 
 認証済みHTTPプロキシの認証情報は、`proxyServer`に埋め込むことができます。
 例えば、`http://user:pass@proxy.example:8080` などです。`@`、
@@ -122,7 +155,6 @@ DockerやLinuxサーバーでの展開において、特に重要です。
 - `PLAYWRIGHT_MCP_IMAGE_RESPONSES`
 - `PLAYWRIGHT_MCP_SNAPSHOT_MODE`
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
-- `PLAYWRIGHT_MCP_USER_DATA_DIR`
 
 アップストリームのオプションの全一覧については、Playwright MCPのアップストリームドキュメントを参照してください。
 

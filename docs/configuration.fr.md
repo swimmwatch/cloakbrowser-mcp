@@ -43,6 +43,9 @@ La [Référence CLI](generated/cli.md) générée constitue la liste de référe
 | `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | Default action timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset | Répertoire de profil Chromium persistant. Le pont le résout en chemin absolu, le crée s'il manque, vérifie qu'il est accessible en écriture et l'écrit dans le `browser.userDataDir` généré. |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset | Objet JSON contenant des options de contexte validées. Les champs pris en charge sont listés ci-dessous. |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset | Tableau JSON ou liste séparée par des virgules de répertoires d'extensions Chrome existants. Nécessite `PLAYWRIGHT_MCP_USER_DATA_DIR`. Utilisez des tableaux JSON pour les chemins Windows ou les chemins contenant des virgules. |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | Enables the console message compatibility patch. |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
@@ -84,7 +87,14 @@ des métadonnées spécifiques au pont à la requête `initialize` :
         "geoipProxyMatch": true,
         "headless": false,
         "humanize": true,
-        "humanPreset": "careful"
+        "humanPreset": "careful",
+        "userDataDir": "/absolute/path/to/profile",
+        "contextOptions": {
+          "viewport": { "width": 1280, "height": 720 },
+          "locale": "en-US",
+          "timezoneId": "America/New_York"
+        },
+        "extensionPaths": ["/absolute/path/to/extension"]
       }
     }
   }
@@ -106,6 +116,29 @@ sessions existantes conservent le comportement enregistré pendant `initialize`.
 `headless` sur `false` nécessite un environnement d'affichage fonctionnel, en particulier dans les
 les déploiements sur Docker ou sur serveur Linux.
 
+`userDataDir` active un profil Chromium persistant pour cette session et
+remplace `PLAYWRIGHT_MCP_USER_DATA_DIR`. Le pont résout le répertoire en chemin
+absolu natif de la plateforme, le crée s'il manque, vérifie qu'il est accessible
+en écriture et l'écrit dans le `browser.userDataDir` généré. Un profil
+persistant désactive le profil isolé Streamable HTTP par défaut pour cette
+session. Le pont rejette les répertoires de profil actifs en double dans un même
+processus ; les conflits de profil entre processus restent des erreurs
+Chromium/Playwright.
+
+`contextOptions` sont validées et fusionnées superficiellement au-dessus de
+`CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` ; les objets imbriqués remplacent des
+valeurs entières. Les champs pris en charge sont `userAgent`, `viewport`,
+`locale`, `timezoneId`, `colorScheme`, `permissions`, `geolocation`,
+`extraHTTPHeaders`, `httpCredentials`, `ignoreHTTPSErrors`, `offline`,
+`deviceScaleFactor`, `isMobile` et `hasTouch`. Le passage arbitraire de
+`BrowserContextOptions` n'est pas pris en charge dans cette version.
+
+`extensionPaths` doivent pointer vers des répertoires existants et nécessitent
+un `userDataDir` persistant. Le pont résout les chemins d'extensions en chemins
+absolus natifs de la plateforme, les transmet à CloakBrowser et écrit les
+arguments Chromium générés `--load-extension` et `--disable-extensions-except`
+dans la configuration Playwright MCP générée.
+
 Les identifiants de proxy HTTP authentifiés peuvent être intégrés dans `proxyServer`, par
 exemple `http://user:pass@proxy.example:8080`. Encodez en pourcentage les caractères d’identification
 ayant une signification URL, tels que `@`, `:`, `/`, `?`, `#`, et `%`.
@@ -125,7 +158,6 @@ Le pont transmet les paramètres `PLAYWRIGHT_MCP_*` au MCP Playwright en amont. 
 - `PLAYWRIGHT_MCP_IMAGE_RESPONSES`
 - `PLAYWRIGHT_MCP_SNAPSHOT_MODE`
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
-- `PLAYWRIGHT_MCP_USER_DATA_DIR`
 
 Consultez la documentation officielle de Playwright MCP pour découvrir l'ensemble des options disponibles.
 

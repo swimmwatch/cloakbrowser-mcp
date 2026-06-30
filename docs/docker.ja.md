@@ -24,6 +24,39 @@ docker run --rm --init -i \
 
 同じリリースタグが、Docker Hub には `swimmwatch/cloakbrowser-mcp`という形式で公開され、GHCRには`ghcr.io/swimmwatch/cloakbrowser-mcp`という形式で公開されます。
 
+## 永続プロファイル
+
+Docker はデフォルトでは永続的なブラウザプロファイルを有効にしません。cookie、
+ローカルストレージ、キャッシュ、または拡張機能の状態をコンテナ再起動後も保持したい場合は、
+既存の `/data` ボリュームを永続化ルートとして使用してください：
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Docker 内の環境変数には、ホストパスではなく `/data/profiles/default` のような
+コンテナパスを使用する必要があります。ブリッジはプロファイルディレクトリが存在しない場合に
+作成し、書き込み可能であることを確認し、コンテナパスを生成済みの Playwright MCP
+設定に書き込み、1 つのサーバープロセス内で重複するアクティブなプロファイルディレクトリを拒否します。
+
+Chrome 拡張機能には永続プロファイルが必要で、個別にマウントする必要があります。
+拡張機能のマウントは読み取り専用にできます：
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/extensions/my-extension:/extensions/my-extension:ro" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+パスにカンマが含まれる場合は、`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` に JSON 配列を
+使用してください。Windows で npm を使用する場合も、ドライブ文字付きパスを渡すには JSON 配列が最も安全です。
+
 ## ストリーム可能なHTTP
 
 ローカルでの Streamable HTTP を使用する場合は、コンテナのポートをループバックで公開してください：
@@ -82,6 +115,7 @@ docker run --rm --init -i \
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `/data` |
 | `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` |
@@ -93,6 +127,8 @@ docker run --rm --init -i \
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` |
 | `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` |
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` |

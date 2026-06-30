@@ -24,6 +24,44 @@ Les artefacts sont enregistrés dans `/data` au sein du conteneur. Montez ce che
 
 Les mêmes étiquettes de version sont publiées sur Docker Hub sous la forme `swimmwatch/cloakbrowser-mcp` sur Docker Hub et sous la forme `ghcr.io/swimmwatch/cloakbrowser-mcp` sur GHCR.
 
+## Profils persistants
+
+Docker n'active pas de profil de navigateur persistant par défaut. Utilisez le
+volume existant `/data` comme racine de persistance lorsque vous voulez que les
+cookies, le stockage local, le cache ou l'état des extensions survivent aux
+redémarrages du conteneur :
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Les variables d'environnement dans Docker doivent utiliser des chemins de
+conteneur comme `/data/profiles/default`, et non des chemins hôte. Le pont crée
+le répertoire de profil s'il manque, vérifie qu'il est accessible en écriture,
+écrit le chemin du conteneur dans la configuration Playwright MCP générée et
+rejette les répertoires de profil actifs en double dans un même processus
+serveur.
+
+Les extensions Chrome nécessitent un profil persistant et doivent être montées
+séparément. Le montage de l'extension peut être en lecture seule :
+
+```bash
+docker run --rm --init -i \
+  -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
+  -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/extensions/my-extension:/extensions/my-extension:ro" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Utilisez un tableau JSON pour `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` lorsqu'un
+chemin contient des virgules. Pour l'utilisation de npm sous Windows, les
+tableaux JSON sont également la méthode la plus sûre pour transmettre des
+chemins avec lettres de lecteur.
+
 ## HTTP en continu
 
 Pour une utilisation locale de Streamable via HTTP, publiez le port du conteneur sur la boucle de retour :
@@ -83,6 +121,7 @@ les cas d'utilisation multirégionaux et les limitations.
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `/data` |
 | `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` |
+| `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` |
@@ -94,6 +133,8 @@ les cas d'utilisation multirégionaux et les limitations.
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` |
 | `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` |
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` |
+| `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset |
+| `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` |
