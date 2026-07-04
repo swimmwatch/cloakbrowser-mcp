@@ -1,5 +1,5 @@
 {
-  "$comment": "This file is auto-generated from docs/reference/api/openapi.yaml. Do not edit manually. Run 'make generate-schema' to update.",
+  "$comment": "Bundled from https://github.com/modelcontextprotocol/static/blob/main/schemas/2025-12-11/server.schema.json (SHA 9f6469b7962e6d02844ec6f0d7aed14f27b4c19f). Do not edit manually. To update, fetch the new versioned schema from modelcontextprotocol/static and add an entry to BUNDLED_SCHEMAS in scripts/validate-server-json.mjs.",
   "$id": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "$ref": "#/definitions/ServerDetail",
   "$schema": "http://json-schema.org/draft-07/schema#",
@@ -238,7 +238,7 @@
           "description": "Transport protocol configuration for the package"
         },
         "version": {
-          "description": "Package version. Must be a specific version. Version ranges are rejected (e.g., '^1.2.3', '~1.2.3', '\u003e=1.2.3', '1.x', '1.*').",
+          "description": "Package version. Must be a specific version. Version ranges are rejected (e.g., '^1.2.3', '~1.2.3', '>=1.2.3', '1.x', '1.*').",
           "example": "1.0.2",
           "minLength": 1,
           "not": {
@@ -318,7 +318,7 @@
       "description": "Repository metadata for the MCP server source code. Enables users and security experts to inspect the code, improving transparency.",
       "properties": {
         "id": {
-          "description": "Repository identifier from the hosting service (e.g., GitHub repo ID). Owned and determined by the source forge. Should remain stable across repository renames and may be used to detect repository resurrection attacks - if a repository is deleted and recreated, the ID should change. For GitHub, use: gh api repos/\u003cowner\u003e/\u003crepo\u003e --jq '.id'",
+          "description": "Repository identifier from the hosting service (e.g., GitHub repo ID). Owned and determined by the source forge. Should remain stable across repository renames and may be used to detect repository resurrection attacks - if a repository is deleted and recreated, the ID should change. For GitHub, use: gh api repos/<owner>/<repo> --jq '.id'",
           "example": "b94b5f7e-c7c6-d760-2c78-a5e9b8a5b8c9",
           "type": "string"
         },
@@ -417,7 +417,7 @@
           "type": "string"
         },
         "version": {
-          "description": "Version string for this server. SHOULD follow semantic versioning (e.g., '1.0.2', '2.1.0-alpha'). Equivalent of Implementation.version in MCP specification. Non-semantic versions are allowed but may not sort predictably. Version ranges are rejected (e.g., '^1.2.3', '~1.2.3', '\u003e=1.2.3', '1.x', '1.*').",
+          "description": "Version string for this server. SHOULD follow semantic versioning (e.g., '1.0.2', '2.1.0-alpha'). Equivalent of Implementation.version in MCP specification. Non-semantic versions are allowed but may not sort predictably. Version ranges are rejected (e.g., '^1.2.3', '~1.2.3', '>=1.2.3', '1.x', '1.*').",
           "example": "1.0.2",
           "maxLength": 255,
           "type": "string"
