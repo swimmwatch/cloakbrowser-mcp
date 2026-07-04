@@ -1,9 +1,17 @@
 #!/usr/bin/env node
 import process from 'node:process';
+import { fileURLToPath, URL } from 'node:url';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import { readJson } from '#scripts/lib/files';
 import { fetchJson } from '#scripts/lib/http';
+
+const BUNDLED_SCHEMAS = new Map([
+  [
+    'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
+    fileURLToPath(new URL('./lib/schemas/mcp-server-2025-12-11.schema.json', import.meta.url)),
+  ],
+]);
 
 const serverJsonPath = process.argv[2] ?? 'server.json';
 const serverJson = readJson(serverJsonPath);
@@ -21,9 +29,11 @@ for (const [index, pkg] of (serverJson.packages ?? []).entries()) {
   }
 }
 
-const schema = await fetchJson(schemaUrl, {
-  userAgent: 'cloakbrowser-mcp-server-validator',
-});
+const bundledSchemaPath = BUNDLED_SCHEMAS.get(schemaUrl);
+const schema =
+  bundledSchemaPath !== undefined
+    ? readJson(bundledSchemaPath)
+    : await fetchJson(schemaUrl, { userAgent: 'cloakbrowser-mcp-server-validator' });
 
 const ajv = new Ajv({
   allErrors: true,
