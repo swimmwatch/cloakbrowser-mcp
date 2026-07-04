@@ -99,10 +99,11 @@ async function downloadSchema(url) {
 async function readPreviousSchema(filePath) {
   try {
     const text = await readFile(filePath, 'utf8');
+    const parsed = JSON.parse(text);
     return {
       path: filePath,
-      normalized: normalizeJson(JSON.parse(text)),
-      parsed: JSON.parse(text),
+      normalized: normalizeJson(parsed),
+      parsed,
     };
   } catch (error) {
     if (isMissingFileError(error)) {
