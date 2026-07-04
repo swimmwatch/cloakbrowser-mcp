@@ -42,6 +42,8 @@ jobs:
           token: ${{ github.token }}
           branch: chore/update-mcp-json-schema
           delete-branch: true
+          draft: false
+          assignees: swimmwatch
           commit-message: 'chore: update MCP JSON schema'
           title: 'chore: update MCP JSON schema'
           add-paths: |
