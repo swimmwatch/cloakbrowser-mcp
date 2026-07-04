@@ -1,0 +1,70 @@
+name: MCP Schema Update
+
+on:
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '22'
+          package-manager-cache: false
+
+      - id: schema
+        name: Check MCP schema updates
+        run: node scripts/check-mcp-schema-updates.mjs
+
+      - name: Report no schema change
+        if: steps.schema.outputs.changed != 'true'
+        run: echo 'No MCP schema changes detected.'
+
+      - id: pull-request
+        if: steps.schema.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+        with:
+          token: ${{ github.token }}
+          branch: chore/update-mcp-json-schema
+          delete-branch: true
+          draft: false
+          assignees: swimmwatch
+          commit-message: 'chore: update MCP JSON schema'
+          title: 'chore: update MCP JSON schema'
+          add-paths: |
+            schemas/mcp/latest.json
+            schemas/mcp/mcp-schema-*.json
+          body: |
+            This PR updates the stored MCP JSON schema.
+
+            Changes:
+            - Added a new schema snapshot: `${{ steps.schema.outputs.snapshot_path }}`
+            - Updated latest.json
+            - Source: `${{ steps.schema.outputs.schema_source_url }}`
+            - Checked at: `${{ steps.schema.outputs.checked_at }}`
+            - Previous snapshot: `${{ steps.schema.outputs.previous_schema_path }}`
+            - Diff summary: ${{ steps.schema.outputs.diff_summary }}
+
+            The previous schema version is kept for historical reference.
+
+      - name: Report created or updated pull request
+        if: steps.schema.outputs.changed == 'true'
+        run: |
+          echo "PR operation: ${{ steps.pull-request.outputs.pull-request-operation }}"
+          echo "PR number: ${{ steps.pull-request.outputs.pull-request-number }}"
+          echo "PR URL: ${{ steps.pull-request.outputs.pull-request-url }}"
