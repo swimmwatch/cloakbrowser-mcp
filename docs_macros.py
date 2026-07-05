@@ -6,9 +6,9 @@ from pathlib import Path
 from typing import Any
 
 
-def _read_project_metadata() -> dict[str, str]:
-    root = Path(__file__).resolve().parent
-    package = _read_json(root / "package.json")
+def read_project_metadata(root: Path | None = None) -> dict[str, str]:
+    project_root = root or Path(__file__).resolve().parent
+    package = _read_json(project_root / "package.json")
     version = package["version"]
     docker_version = version.replace("+", "-")
 
@@ -19,11 +19,11 @@ def _read_project_metadata() -> dict[str, str]:
         "npm_pin": f"cloakbrowser-mcp@{version}",
         "docker_image": f"swimmwatch/cloakbrowser-mcp:{docker_version}",
         "ghcr_image": f"ghcr.io/swimmwatch/cloakbrowser-mcp:{docker_version}",
-        **_read_playwright_mcp_metadata(root, version),
+        **_read_compatibility_metadata(project_root, version),
     }
 
 
-def _read_playwright_mcp_metadata(root: Path, project_version: str) -> dict[str, str]:
+def _read_compatibility_metadata(root: Path, project_version: str) -> dict[str, str]:
     compatibility = _read_json(root / "docs" / "data" / "version-compatibility.json")
     row = next((item for item in compatibility if item["version"] == project_version), None)
     if row is None:
@@ -31,15 +31,21 @@ def _read_playwright_mcp_metadata(root: Path, project_version: str) -> dict[str,
             "docs/data/version-compatibility.json must contain an entry for "
             f"package version {project_version!r}"
         )
-    dependency = row["playwrightMcp"]
-    version = _extract_version(dependency)
+    playwright_mcp_dependency = row["playwrightMcp"]
+    playwright_mcp_version = _extract_version(playwright_mcp_dependency)
+    cloakbrowser_dependency = row["cloakbrowser"]
+    cloakbrowser_version = _extract_version(cloakbrowser_dependency)
 
     return {
-        "playwright_mcp_dependency": dependency,
-        "playwright_mcp_version": version,
-        "playwright_mcp_package_tag": f"@playwright/mcp@{version}",
-        "playwright_mcp_release_tag": f"v{version}",
+        "playwright_mcp_dependency": playwright_mcp_dependency,
+        "playwright_mcp_version": playwright_mcp_version,
+        "playwright_mcp_package_tag": f"@playwright/mcp@{playwright_mcp_version}",
+        "playwright_mcp_release_tag": f"v{playwright_mcp_version}",
         "playwright_mcp_docker_base": row["playwrightMcpDockerBase"],
+        "cloakbrowser_dependency": cloakbrowser_dependency,
+        "cloakbrowser_version": cloakbrowser_version,
+        "cloakbrowser_package_tag": f"cloakbrowser@{cloakbrowser_version}",
+        "cloakbrowser_release_tag": f"v{cloakbrowser_version}",
     }
 
 
@@ -56,4 +62,4 @@ def _read_json(path: Path) -> Any:
 
 
 def define_env(env: Any) -> None:
-    env.variables["project"] = _read_project_metadata()
+    env.variables["project"] = read_project_metadata()
