@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-07-05
+
+### Added
+
+- Added a bundled MCP server schema and automated schema update workflow so
+  `server.json` validation no longer depends on fetching the schema at runtime.
+- Added CloakBrowser dependency metadata to the MkDocs project macros and
+  generated `llms.txt` compatibility values from the same release metadata.
+
+### Changed
+
+- Updated the CloakBrowser dependency to `^0.4.7`.
+- Updated npm dependencies and pinned Docker GitHub Actions used by CI and
+  release workflows.
+
+### Fixed
+
+- Fixed duplicate Streamable HTTP request body reads.
+
 ## [1.6.0] - 2026-06-30
 
 ### Added
@@ -255,7 +274,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.3.0...v1.4.0
