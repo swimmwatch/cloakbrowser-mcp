@@ -24,7 +24,8 @@ export default tseslint.config(
       '.agents/skills/remotion/**',
       '.venv-docs/**',
       'site/**',
-      'tools/video/**/node_modules/**',
+      // The demo video is an isolated Remotion workspace with its own dependency tree and typecheck.
+      'tools/video/**',
     ],
   },
   js.configs.recommended,
