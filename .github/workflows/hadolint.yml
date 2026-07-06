@@ -1,0 +1,25 @@
+name: Hadolint
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  HADOLINT_IMAGE_REF: docker.io/hadolint/hadolint:v2.14.0@sha256:27086352fd5e1907ea2b934eb1023f217c5ae087992eb59fde121dce9c9ff21e
+
+jobs:
+  hadolint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Run Hadolint
+        run: docker run --rm -v "$PWD:/repo:ro" --workdir /repo "$HADOLINT_IMAGE_REF" /bin/hadolint Dockerfile

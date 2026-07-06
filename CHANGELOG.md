@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Added a Hadolint pull request check and Docker-backed `npm run docker:lint`
+  command for Dockerfile linting.
+
 ### Changed
 
 - Updated the CloakBrowser dependency to `^0.4.8` and forwarded

@@ -70,6 +70,7 @@
     "audit:prod": "npm audit --omit=dev --audit-level=high",
     "package:verify": "npm run build && npm run server:validate && node scripts/verify-npm-package.mjs",
     "docker:build": "docker buildx build --load -t cloakbrowser-mcp:dev --build-arg RELEASE_VERSION=$npm_package_version --build-arg RELEASE_VERSION_TAG=v$npm_package_version .",
+    "docker:lint": "docker run --rm -v \"$PWD:/repo:ro\" --workdir /repo docker.io/hadolint/hadolint:v2.14.0@sha256:27086352fd5e1907ea2b934eb1023f217c5ae087992eb59fde121dce9c9ff21e /bin/hadolint Dockerfile",
     "docker:smoke": "docker run --rm --init cloakbrowser-mcp:dev --help",
     "bridge:compare": "node scripts/compare-playwright-mcp-bridge.mjs",
     "upstream:check": "npm run upstream:check:playwright && npm run upstream:check:cloakbrowser",
