@@ -22,9 +22,9 @@ tags:
 ## Demo de 30 segundos
 
 <div class="clb-demo-video">
-  <video controls playsinline preload="metadata" poster="assets/videos/30-second-demo-poster.png">
-    <source src="assets/videos/30-second-demo.mp4" type="video/mp4" />
-    <a href="assets/videos/30-second-demo.mp4">Baixe o vídeo de demonstração.</a>
+  <video controls playsinline preload="metadata" poster="../assets/videos/30-second-demo-poster.png">
+    <source src="../assets/videos/30-second-demo.mp4" type="video/mp4" />
+    <a href="../assets/videos/30-second-demo.mp4">Baixe o vídeo de demonstração.</a>
   </video>
 </div>
 

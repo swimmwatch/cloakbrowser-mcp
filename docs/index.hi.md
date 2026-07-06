@@ -22,9 +22,9 @@ tags:
 ## 30-सेकंड का डेमो
 
 <div class="clb-demo-video">
-  <video controls playsinline preload="metadata" poster="assets/videos/30-second-demo-poster.png">
-    <source src="assets/videos/30-second-demo.mp4" type="video/mp4" />
-    <a href="assets/videos/30-second-demo.mp4">डेमो वीडियो डाउनलोड करें।</a>
+  <video controls playsinline preload="metadata" poster="../assets/videos/30-second-demo-poster.png">
+    <source src="../assets/videos/30-second-demo.mp4" type="video/mp4" />
+    <a href="../assets/videos/30-second-demo.mp4">डेमो वीडियो डाउनलोड करें।</a>
   </video>
 </div>
 

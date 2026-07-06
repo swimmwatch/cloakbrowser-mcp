@@ -800,72 +800,72 @@
         "ru": {
           "path": "index.ru.md",
           "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
-          "translationHash": "9f0198356b18e10afb96e02f9664d199dd3735d45e17c70f2bf5a3fb19410339",
+          "translationHash": "327cfe692156a3c0ad661cebe49e32cc16c9ce8ec0ba3a63918bff0995463bfe",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T22:53:59.012Z"
+          "updatedAt": "2026-07-06T23:08:04.729Z"
         },
         "be": {
           "path": "index.be.md",
           "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
-          "translationHash": "16a6602bc5388790224d226165c6bedf3c2c0fcffd58caec12bf2f11ef9ba148",
+          "translationHash": "acf81c109c37d8c23e4ac67ecefa4ee46c8bf510489a4895f38876d593657c49",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T22:53:59.012Z"
+          "updatedAt": "2026-07-06T23:08:04.729Z"
         },
         "uk": {
           "path": "index.uk.md",
           "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
-          "translationHash": "81f7a44a9c540314a83c0b730b0f9d8ce4848346ce5b7642f532a604ccca5e9c",
+          "translationHash": "067ef09920bb130b95faa4a0f7bb3797703263794236cfcc8338f017df53c151",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T22:53:59.012Z"
+          "updatedAt": "2026-07-06T23:08:04.729Z"
         },
         "es": {
           "path": "index.es.md",
           "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
-          "translationHash": "f9c8f1156a8dc0101101fd09ec93a2f18b3b57a6aa95c042ab38741168155b57",
+          "translationHash": "99da32374fdeb0faa21c22419043ff6be1808d80f89968e548d0e0613b0cb9d7",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T22:53:59.012Z"
+          "updatedAt": "2026-07-06T23:08:04.729Z"
         },
         "pt-BR": {
           "path": "index.pt-BR.md",
           "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
-          "translationHash": "a3be7ec8a0a0ee26963e17bb9deebb63f715a481c9c97d9774f1a1b260852bf1",
+          "translationHash": "7a046eb4f51395e7c513e78a0a4fcbb9bb6a25e6f312cd7ec4e9630d63ae8062",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T22:53:59.012Z"
+          "updatedAt": "2026-07-06T23:08:04.729Z"
         },
         "zh": {
           "path": "index.zh.md",
           "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
-          "translationHash": "cdce432f603cce0c6f842d076529948fc43dec9d0fcfcdfcfc03e86194d242ba",
+          "translationHash": "1d321456c84bc21b1a867fd17cc0f0c929ccf043703b9f20f7a55d11eff2841c",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T22:53:59.012Z"
+          "updatedAt": "2026-07-06T23:08:04.729Z"
         },
         "ja": {
           "path": "index.ja.md",
           "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
-          "translationHash": "f0b10de13d92d546fbf6abe9538be28e4fc14e43c04b353a39b036a8520028e5",
+          "translationHash": "a8eeb393ae5b98e1c4fe26904b84b5b16940bd58037f456a721baa8c345ffc62",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T22:53:59.012Z"
+          "updatedAt": "2026-07-06T23:08:04.729Z"
         },
         "de": {
           "path": "index.de.md",
           "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
-          "translationHash": "f3dea3a6623aeded231feb99b0e1f85480bc0d7ce84cc1a1939c7961d9682eb6",
+          "translationHash": "0b94aa25977243b044fa866a69b71e0356d2f005e8dcf6f160962e79086ff12a",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T22:53:59.012Z"
+          "updatedAt": "2026-07-06T23:08:04.729Z"
         },
         "fr": {
           "path": "index.fr.md",
           "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
-          "translationHash": "cbea6a2f992a9ddbcefa199221888034539795581d9fc53b38571088faa77a57",
+          "translationHash": "890e0f0f75ec2de0f1ff206fa5a7f6370573e47a5a55ad5d6f9529137723421f",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T22:53:59.012Z"
+          "updatedAt": "2026-07-06T23:08:04.729Z"
         },
         "hi": {
           "path": "index.hi.md",
           "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
-          "translationHash": "5fceff803c4c914c5e9aa203af0fcd43dfd2b80af1a1d045cdd167576dfa166c",
+          "translationHash": "fc156c8fa493abf34a90be854280aa8af4885cf09ae3ffd336c5facf44c0fbd5",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T22:53:59.012Z"
+          "updatedAt": "2026-07-06T23:08:04.729Z"
         }
       }
     },

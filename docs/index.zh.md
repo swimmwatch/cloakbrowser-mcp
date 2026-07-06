@@ -22,9 +22,9 @@ tags:
 ## 30 秒演示
 
 <div class="clb-demo-video">
-  <video controls playsinline preload="metadata" poster="assets/videos/30-second-demo-poster.png">
-    <source src="assets/videos/30-second-demo.mp4" type="video/mp4" />
-    <a href="assets/videos/30-second-demo.mp4">下载演示视频。</a>
+  <video controls playsinline preload="metadata" poster="../assets/videos/30-second-demo-poster.png">
+    <source src="../assets/videos/30-second-demo.mp4" type="video/mp4" />
+    <a href="../assets/videos/30-second-demo.mp4">下载演示视频。</a>
   </video>
 </div>
 

@@ -22,9 +22,9 @@ tags:
 ## 30-секундная дэманстрацыя
 
 <div class="clb-demo-video">
-  <video controls playsinline preload="metadata" poster="assets/videos/30-second-demo-poster.png">
-    <source src="assets/videos/30-second-demo.mp4" type="video/mp4" />
-    <a href="assets/videos/30-second-demo.mp4">Спампаваць дэманстрацыйнае відэа.</a>
+  <video controls playsinline preload="metadata" poster="../assets/videos/30-second-demo-poster.png">
+    <source src="../assets/videos/30-second-demo.mp4" type="video/mp4" />
+    <a href="../assets/videos/30-second-demo.mp4">Спампаваць дэманстрацыйнае відэа.</a>
   </video>
 </div>
 
