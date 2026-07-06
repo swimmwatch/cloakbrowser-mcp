@@ -30,6 +30,9 @@ export type HumanPreset = (typeof humanPresets)[number];
 type CloakBuildLaunchOptions = typeof buildLaunchOptions;
 type CloakLaunchOptions = NonNullable<Parameters<CloakBuildLaunchOptions>[0]>;
 type CloakLaunchOptionsWithExtensions = CloakLaunchOptions & { extensionPaths?: string[] };
+type CloakLaunchOptionsForBridge = CloakLaunchOptionsWithExtensions & {
+  viewport?: BridgeContextOptions['viewport'];
+};
 type CloakProxyOption = NonNullable<CloakLaunchOptions['proxy']>;
 type PlaywrightProxyOption = {
   server: string;
@@ -187,11 +190,13 @@ export async function prepareBridgeRuntime(
       childEnv.CLOAKBROWSER_AUTO_UPDATE = childEnv.CLOAKBROWSER_AUTO_UPDATE ?? 'false';
       config.browser!.launchOptions!.args = await resolveCloakLaunchArgs({
         env,
+        cloakBinaryPath,
         args: config.browser!.launchOptions!.args ?? [],
         headless,
         chromiumSandbox,
         proxy: options.proxy,
         extensionPaths,
+        contextOptions,
         buildCloakLaunchOptions: options.buildCloakLaunchOptions ?? buildLaunchOptions,
         geoip: shouldMatchProxyGeoip(env, options.geoipProxyMatch),
       });
@@ -251,11 +256,13 @@ export class BridgeRuntimeConfigurationError extends Error {}
 
 interface ResolveCloakLaunchArgsOptions {
   env: EnvReader;
+  cloakBinaryPath: string;
   args: string[];
   headless: boolean;
   chromiumSandbox: boolean | undefined;
   proxy?: BridgeRuntimeProxy;
   extensionPaths: string[];
+  contextOptions?: BridgeContextOptions;
   buildCloakLaunchOptions: CloakBuildLaunchOptions;
   geoip: boolean;
 }
@@ -263,10 +270,10 @@ interface ResolveCloakLaunchArgsOptions {
 async function resolveCloakLaunchArgs(options: ResolveCloakLaunchArgsOptions): Promise<string[]> {
   const proxy = resolveConfiguredProxy(options.env, options.args, options.proxy);
   const geoip = options.geoip && proxy !== undefined;
-  if (!geoip && options.extensionPaths.length === 0) return options.args;
-
   const cloakOptions = createCloakLaunchOptions(options, proxy, geoip);
-  const launchOptions = await suppressStdout(() => options.buildCloakLaunchOptions(cloakOptions));
+  const launchOptions = await suppressStdout(() =>
+    withCloakBinaryPath(options.cloakBinaryPath, () => options.buildCloakLaunchOptions(cloakOptions)),
+  );
   return mergeLaunchArgs(options.args, extractCloakGeneratedArgs(launchOptions.args ?? []));
 }
 
@@ -274,7 +281,7 @@ function createCloakLaunchOptions(
   options: ResolveCloakLaunchArgsOptions,
   proxy: CloakProxyOption | undefined,
   geoip: boolean,
-): CloakLaunchOptionsWithExtensions {
+): CloakLaunchOptionsForBridge {
   return {
     headless: options.headless,
     stealthArgs: false,
@@ -282,6 +289,7 @@ function createCloakLaunchOptions(
     ...(proxy === undefined ? {} : { proxy }),
     ...(geoip ? { geoip: true } : {}),
     ...(options.extensionPaths.length === 0 ? {} : { extensionPaths: options.extensionPaths }),
+    ...(options.contextOptions?.viewport === undefined ? {} : { viewport: options.contextOptions.viewport }),
     launchOptions:
       options.chromiumSandbox === undefined ? undefined : { chromiumSandbox: options.chromiumSandbox },
   };
@@ -674,6 +682,7 @@ function extractCloakGeneratedArgs(args: readonly string[]): string[] {
       '--fingerprint-locale=',
       '--load-extension=',
       '--disable-extensions-except=',
+      '--start-maximized',
     ].some((prefix) => arg.startsWith(prefix)),
   );
 }
@@ -758,6 +767,17 @@ function removeProxyEnv(env: Record<string, string>): void {
 
 export function getCurrentCloakBinaryInfo(): ReturnType<typeof binaryInfo> {
   return binaryInfo();
+}
+
+function withCloakBinaryPath<T>(cloakBinaryPath: string, fn: () => T): T {
+  const previous = process.env.CLOAKBROWSER_BINARY_PATH;
+  process.env.CLOAKBROWSER_BINARY_PATH = cloakBinaryPath;
+  try {
+    return fn();
+  } finally {
+    if (previous === undefined) delete process.env.CLOAKBROWSER_BINARY_PATH;
+    else process.env.CLOAKBROWSER_BINARY_PATH = previous;
+  }
 }
 
 function parseBrowserEngine(value: string): BrowserEngine {

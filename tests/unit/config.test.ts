@@ -68,6 +68,43 @@ describe('bridge config generation', () => {
     runtime.dispose();
   });
 
+  it('merges generated CloakBrowser default launch args', async () => {
+    const root = createTempRoot();
+    const previousCloakBinaryPath = process.env.CLOAKBROWSER_BINARY_PATH;
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      buildCloakLaunchOptions: async (options) => {
+        if (!options) throw new Error('Expected Cloak launch options');
+        expect(process.env.CLOAKBROWSER_BINARY_PATH).toBe(fakeCloakBinaryPath);
+        expect(options.geoip).toBeUndefined();
+        expect(options.proxy).toBeUndefined();
+        expect(options.stealthArgs).toBe(false);
+        expect(options.args).toEqual(['--no-sandbox', '--alpha']);
+        return {
+          executablePath: fakeCloakBinaryPath,
+          headless: true,
+          args: [...(options.args ?? []), '--start-maximized'],
+        };
+      },
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS: 'false',
+        CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS: '--alpha',
+      },
+    });
+
+    expect(runtime.config.browser?.launchOptions?.args).toEqual([
+      '--no-sandbox',
+      '--alpha',
+      '--start-maximized',
+    ]);
+    expect(process.env.CLOAKBROWSER_BINARY_PATH).toBe(previousCloakBinaryPath);
+
+    runtime.dispose();
+  });
+
   it('adds the console fallback preload when enabled', async () => {
     const root = createTempRoot();
     const runtime = await prepareBridgeRuntime({
@@ -211,6 +248,35 @@ describe('bridge config generation', () => {
       isMobile: false,
       hasTouch: true,
     });
+
+    runtime.dispose();
+  });
+
+  it('passes explicit context viewport to CloakBrowser launch options', async () => {
+    const root = createTempRoot();
+    const viewport = { width: 1024, height: 768 };
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      contextOptions: { viewport },
+      buildCloakLaunchOptions: async (options) => {
+        if (!options) throw new Error('Expected Cloak launch options');
+        const optionsWithViewport = options as typeof options & { viewport?: typeof viewport };
+        expect(optionsWithViewport.viewport).toEqual(viewport);
+        return {
+          executablePath: fakeCloakBinaryPath,
+          headless: true,
+          args: options.args ?? [],
+        };
+      },
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS: 'false',
+      },
+    });
+
+    expect(runtime.config.browser?.contextOptions?.viewport).toEqual(viewport);
 
     runtime.dispose();
   });
@@ -593,14 +659,19 @@ describe('bridge config generation', () => {
 
   it('allows an explicit runtime option to disable env-enabled GeoIP proxy matching', async () => {
     const root = createTempRoot();
-    let called = false;
     const runtime = await prepareBridgeRuntime({
       tempRoot: root,
       geoipProxyMatch: false,
       ensureCloakBinary: async () => fakeCloakBinaryPath,
-      buildCloakLaunchOptions: async () => {
-        called = true;
-        return {};
+      buildCloakLaunchOptions: async (options) => {
+        if (!options) throw new Error('Expected Cloak launch options');
+        expect(options.geoip).toBeUndefined();
+        expect(options.proxy).toEqual({ server: 'http://proxy.example:8080' });
+        return {
+          executablePath: fakeCloakBinaryPath,
+          headless: true,
+          args: options.args ?? [],
+        };
       },
       env: {
         PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
@@ -610,7 +681,7 @@ describe('bridge config generation', () => {
       },
     });
 
-    expect(called).toBe(false);
+    expect(runtime.config.browser?.launchOptions?.args).toContain('--no-sandbox');
 
     runtime.dispose();
   });
@@ -766,14 +837,19 @@ describe('bridge config generation', () => {
 
   it('does not resolve GeoIP proxy matching without a configured proxy', async () => {
     const root = createTempRoot();
-    let called = false;
     const runtime = await prepareBridgeRuntime({
       tempRoot: root,
       geoipProxyMatch: true,
       ensureCloakBinary: async () => fakeCloakBinaryPath,
-      buildCloakLaunchOptions: async () => {
-        called = true;
-        return {};
+      buildCloakLaunchOptions: async (options) => {
+        if (!options) throw new Error('Expected Cloak launch options');
+        expect(options.geoip).toBeUndefined();
+        expect(options.proxy).toBeUndefined();
+        return {
+          executablePath: fakeCloakBinaryPath,
+          headless: true,
+          args: options.args ?? [],
+        };
       },
       env: {
         PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
@@ -781,7 +857,7 @@ describe('bridge config generation', () => {
       },
     });
 
-    expect(called).toBe(false);
+    expect(runtime.config.browser?.launchOptions?.args).toContain('--no-sandbox');
 
     runtime.dispose();
   });

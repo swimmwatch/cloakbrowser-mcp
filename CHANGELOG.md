@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Updated the CloakBrowser dependency to `^0.4.8` and forwarded
+  CloakBrowser-generated default launch args such as `--start-maximized`.
+
 ## [1.6.1] - 2026-07-05
 
 ### Added
