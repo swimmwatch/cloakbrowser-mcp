@@ -1,9 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { stripDependencyRange } from '#scripts/lib/semver';
 import {
-  createReleaseNotesSummary as summarizeReleaseNotes,
   getLatestNpmDistTag,
   getRepositoryReleaseNotes,
+  createReleaseNotesSummary as summarizeReleaseNotes,
 } from '#scripts/lib/upstream-releases';
 
 export const upstreamConfig = {

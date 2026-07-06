@@ -68,45 +68,13 @@ export function extractJsonLd(html) {
   return scripts;
 }
 
+/**
+ * Validates the built MkDocs site files that search engines and social previews consume.
+ */
 export function validateBuiltDocsSeo(siteDir, siteUrl) {
   const errors = [];
   const normalizedSiteUrl = siteUrl.endsWith('/') ? siteUrl : `${siteUrl}/`;
-  const llmsPath = join(siteDir, 'llms.txt');
-  const robotsPath = join(siteDir, 'robots.txt');
-  const sitemapPath = join(siteDir, 'sitemap.xml');
-
-  if (!existsSync(llmsPath)) {
-    errors.push('missing llms.txt');
-  }
-
-  if (!existsSync(robotsPath)) {
-    errors.push('missing robots.txt');
-  } else {
-    const robots = readText(robotsPath);
-    const expectedSitemap = `Sitemap: ${new URL('sitemap.xml', normalizedSiteUrl).toString()}`;
-
-    if (!robots.includes('User-agent: *')) {
-      errors.push('robots.txt does not include a global user-agent rule');
-    }
-
-    if (!robots.includes(expectedSitemap)) {
-      errors.push(`robots.txt does not include ${expectedSitemap}`);
-    }
-  }
-
-  if (!existsSync(sitemapPath)) {
-    errors.push('missing sitemap.xml');
-  } else {
-    const sitemap = readText(sitemapPath);
-
-    if (!sitemap.includes('<urlset')) {
-      errors.push('sitemap.xml does not contain a urlset');
-    }
-
-    if (!sitemap.includes(`<loc>${normalizedSiteUrl}`)) {
-      errors.push(`sitemap.xml does not contain absolute URLs under ${normalizedSiteUrl}`);
-    }
-  }
+  errors.push(...validateRequiredSeoFiles(siteDir, normalizedSiteUrl));
 
   const htmlFiles = findHtmlFiles(siteDir);
 
@@ -115,78 +83,146 @@ export function validateBuiltDocsSeo(siteDir, siteUrl) {
   }
 
   for (const filePath of htmlFiles) {
-    const label = relative(siteDir, filePath);
-    const html = readText(filePath);
-    const locale = readLocaleFromBuiltPath(label);
-    const minimumDescriptionLength = locale ? minimumLocalizedDescriptionLength(locale) : 40;
-    const canonical = extractAttribute(html, 'link', 'rel', 'canonical', 'href');
-    const description = extractAttribute(html, 'meta', 'name', 'description', 'content');
-    const robots = extractAttribute(html, 'meta', 'name', 'robots', 'content');
-    const ogTitle = extractAttribute(html, 'meta', 'property', 'og:title', 'content');
-    const ogDescription = extractAttribute(html, 'meta', 'property', 'og:description', 'content');
-    const ogImage = extractAttribute(html, 'meta', 'property', 'og:image', 'content');
-    const twitterCard = extractAttribute(html, 'meta', 'name', 'twitter:card', 'content');
-    const twitterTitle = extractAttribute(html, 'meta', 'name', 'twitter:title', 'content');
-    const twitterDescription = extractAttribute(html, 'meta', 'name', 'twitter:description', 'content');
-    const twitterImage = extractAttribute(html, 'meta', 'name', 'twitter:image', 'content');
-
-    if (!/<title>[^<]+<\/title>/i.test(html)) {
-      errors.push(`${label}: missing title`);
-    }
-
-    if (!description || description.length < minimumDescriptionLength) {
-      errors.push(`${label}: missing or too-short meta description`);
-    }
-
-    if (!canonical?.startsWith(normalizedSiteUrl)) {
-      errors.push(`${label}: canonical URL is missing or not under ${normalizedSiteUrl}`);
-    }
-
-    if (robots !== 'index, follow') {
-      errors.push(`${label}: robots meta should be "index, follow"`);
-    }
-
-    if (!ogTitle || !ogDescription || !ogImage?.startsWith(normalizedSiteUrl)) {
-      errors.push(`${label}: incomplete Open Graph metadata`);
-    }
-
-    if (
-      twitterCard !== 'summary_large_image' ||
-      !twitterTitle ||
-      !twitterDescription ||
-      !twitterImage?.startsWith(normalizedSiteUrl)
-    ) {
-      errors.push(`${label}: incomplete Twitter card metadata`);
-    }
-
-    let schemas;
-    try {
-      schemas = extractJsonLd(html);
-    } catch (error) {
-      errors.push(`${label}: invalid JSON-LD: ${error.message}`);
-      continue;
-    }
-
-    if (!schemas.some((schema) => schema['@type'] === 'WebSite')) {
-      errors.push(`${label}: missing WebSite JSON-LD`);
-    }
-
-    if (label === 'index.html') {
-      if (!schemas.some((schema) => schema['@type'] === 'SoftwareApplication')) {
-        errors.push(`${label}: missing SoftwareApplication JSON-LD`);
-      }
-    } else {
-      if (!schemas.some((schema) => schema['@type'] === 'TechArticle')) {
-        errors.push(`${label}: missing TechArticle JSON-LD`);
-      }
-
-      if (!schemas.some((schema) => schema['@type'] === 'BreadcrumbList')) {
-        errors.push(`${label}: missing BreadcrumbList JSON-LD`);
-      }
-    }
+    errors.push(...validateHtmlFileSeo(siteDir, filePath, normalizedSiteUrl));
   }
 
   return errors;
+}
+
+function validateRequiredSeoFiles(siteDir, normalizedSiteUrl) {
+  return [
+    ...validateLlmsFile(siteDir),
+    ...validateRobotsFile(siteDir, normalizedSiteUrl),
+    ...validateSitemapFile(siteDir, normalizedSiteUrl),
+  ];
+}
+
+function validateLlmsFile(siteDir) {
+  return existsSync(join(siteDir, 'llms.txt')) ? [] : ['missing llms.txt'];
+}
+
+function validateRobotsFile(siteDir, normalizedSiteUrl) {
+  const robotsPath = join(siteDir, 'robots.txt');
+  if (!existsSync(robotsPath)) return ['missing robots.txt'];
+
+  const errors = [];
+  const robots = readText(robotsPath);
+  const expectedSitemap = `Sitemap: ${new URL('sitemap.xml', normalizedSiteUrl).toString()}`;
+
+  if (!robots.includes('User-agent: *')) {
+    errors.push('robots.txt does not include a global user-agent rule');
+  }
+
+  if (!robots.includes(expectedSitemap)) {
+    errors.push(`robots.txt does not include ${expectedSitemap}`);
+  }
+
+  return errors;
+}
+
+function validateSitemapFile(siteDir, normalizedSiteUrl) {
+  const sitemapPath = join(siteDir, 'sitemap.xml');
+  if (!existsSync(sitemapPath)) return ['missing sitemap.xml'];
+
+  const errors = [];
+  const sitemap = readText(sitemapPath);
+
+  if (!sitemap.includes('<urlset')) {
+    errors.push('sitemap.xml does not contain a urlset');
+  }
+
+  if (!sitemap.includes(`<loc>${normalizedSiteUrl}`)) {
+    errors.push(`sitemap.xml does not contain absolute URLs under ${normalizedSiteUrl}`);
+  }
+
+  return errors;
+}
+
+function validateHtmlFileSeo(siteDir, filePath, normalizedSiteUrl) {
+  const label = relative(siteDir, filePath);
+  const html = readText(filePath);
+  const metadata = readHtmlMetadata(html);
+  return [
+    ...validateHtmlBasics(label, html, metadata, normalizedSiteUrl),
+    ...validateSocialMetadata(label, metadata, normalizedSiteUrl),
+    ...validateJsonLdSchemas(label, html),
+  ];
+}
+
+function readHtmlMetadata(html) {
+  return {
+    canonical: extractAttribute(html, 'link', 'rel', 'canonical', 'href'),
+    description: extractAttribute(html, 'meta', 'name', 'description', 'content'),
+    robots: extractAttribute(html, 'meta', 'name', 'robots', 'content'),
+    ogTitle: extractAttribute(html, 'meta', 'property', 'og:title', 'content'),
+    ogDescription: extractAttribute(html, 'meta', 'property', 'og:description', 'content'),
+    ogImage: extractAttribute(html, 'meta', 'property', 'og:image', 'content'),
+    twitterCard: extractAttribute(html, 'meta', 'name', 'twitter:card', 'content'),
+    twitterTitle: extractAttribute(html, 'meta', 'name', 'twitter:title', 'content'),
+    twitterDescription: extractAttribute(html, 'meta', 'name', 'twitter:description', 'content'),
+    twitterImage: extractAttribute(html, 'meta', 'name', 'twitter:image', 'content'),
+  };
+}
+
+function validateHtmlBasics(label, html, metadata, normalizedSiteUrl) {
+  const errors = [];
+  const locale = readLocaleFromBuiltPath(label);
+  const minimumDescriptionLength = locale ? minimumLocalizedDescriptionLength(locale) : 40;
+
+  if (!/<title>[^<]+<\/title>/i.test(html)) {
+    errors.push(`${label}: missing title`);
+  }
+
+  if (!metadata.description || metadata.description.length < minimumDescriptionLength) {
+    errors.push(`${label}: missing or too-short meta description`);
+  }
+
+  if (!metadata.canonical?.startsWith(normalizedSiteUrl)) {
+    errors.push(`${label}: canonical URL is missing or not under ${normalizedSiteUrl}`);
+  }
+
+  if (metadata.robots !== 'index, follow') {
+    errors.push(`${label}: robots meta should be "index, follow"`);
+  }
+
+  return errors;
+}
+
+function validateSocialMetadata(label, metadata, normalizedSiteUrl) {
+  const errors = [];
+
+  if (!metadata.ogTitle || !metadata.ogDescription || !metadata.ogImage?.startsWith(normalizedSiteUrl)) {
+    errors.push(`${label}: incomplete Open Graph metadata`);
+  }
+
+  if (
+    metadata.twitterCard !== 'summary_large_image' ||
+    !metadata.twitterTitle ||
+    !metadata.twitterDescription ||
+    !metadata.twitterImage?.startsWith(normalizedSiteUrl)
+  ) {
+    errors.push(`${label}: incomplete Twitter card metadata`);
+  }
+  return errors;
+}
+
+function validateJsonLdSchemas(label, html) {
+  let schemas;
+  try {
+    schemas = extractJsonLd(html);
+  } catch (error) {
+    return [`${label}: invalid JSON-LD: ${error.message}`];
+  }
+
+  return requiredSchemaTypes(label)
+    .filter((type) => !schemas.some((schema) => schema['@type'] === type))
+    .map((type) => `${label}: missing ${type} JSON-LD`);
+}
+
+function requiredSchemaTypes(label) {
+  return label === 'index.html'
+    ? ['WebSite', 'SoftwareApplication']
+    : ['WebSite', 'TechArticle', 'BreadcrumbList'];
 }
 
 function escapeRegExp(value) {

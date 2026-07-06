@@ -10,6 +10,9 @@ export const manifestAccept = [
   'application/vnd.docker.distribution.manifest.v2+json',
 ].join(', ');
 
+/**
+ * Checks the official MCP Registry, npm package, OCI images, and GitHub MCP listing for local metadata.
+ */
 export async function checkMcpRegistry({ args, packageJson, serverJson }) {
   const serverName = String(serverJson.name ?? packageJson.mcpName ?? '');
   const localVersion = String(packageJson.version ?? serverJson.version ?? '');
@@ -195,62 +198,81 @@ export async function checkOciPackages(server, report) {
   report.oci.status = report.oci.images.every((image) => image.status === 'ok') ? 'ok' : 'failed';
 }
 
+/**
+ * Checks whether the server is visible in GitHub's curated MCP listing or search pages.
+ */
 export async function checkGitHubMcpListing(server, { packageJson, report, requireGitHubMcp, serverName }) {
   const repositoryUrl = server.repository?.url ?? packageJson.repository?.url ?? '';
   const repository = parseGitHubRepository(repositoryUrl);
-  const checkedUrls = [];
+  const state = { sawNotFound: false, sawUnknown: false };
 
-  if (repository) {
-    checkedUrls.push(`https://github.com/mcp/${repository.owner}/${repository.repo}`);
+  for (const url of createGitHubMcpUrls(repository)) {
+    const checkedUrl = await checkGitHubMcpUrl(url, { repository, server, serverName });
+    report.githubMcp.checkedUrls.push(checkedUrl);
+
+    if (checkedUrl.matched) {
+      report.githubMcp.status = 'listed';
+      return;
+    }
+
+    updateGitHubMcpState(state, checkedUrl);
   }
 
-  checkedUrls.push(
+  report.githubMcp.status = state.sawUnknown && !state.sawNotFound ? 'unknown' : 'not_listed_yet';
+  appendGitHubMcpOutcome(report, requireGitHubMcp);
+}
+
+function createGitHubMcpUrls(repository) {
+  const urls = [];
+
+  if (repository) {
+    urls.push(`https://github.com/mcp/${repository.owner}/${repository.repo}`);
+  }
+
+  urls.push(
     `https://github.com/mcp?q=${encodeURIComponent('cloakbrowser')}`,
     `https://github.com/mcp?q=${encodeURIComponent(repository?.owner ?? 'swimmwatch')}`,
   );
 
-  let sawNotFound = false;
-  let sawUnknown = false;
+  return urls;
+}
 
-  for (const url of checkedUrls) {
-    try {
-      const response = await fetchRegistryTextWithStatus(url);
-      const text = response.text;
-      const listed =
-        response.ok &&
-        (text.includes(serverName) ||
-          text.includes(String(server.title ?? '')) ||
-          (repository ? text.includes(`${repository.owner}/${repository.repo}`) : false));
-
-      report.githubMcp.checkedUrls.push({
-        url,
-        status: response.status,
-        matched: listed,
-      });
-
-      if (listed) {
-        report.githubMcp.status = 'listed';
-        return;
-      }
-
-      if (response.status === 404) {
-        sawNotFound = true;
-      } else if (!response.ok) {
-        sawUnknown = true;
-      }
-    } catch (error) {
-      sawUnknown = true;
-      report.githubMcp.checkedUrls.push({
-        url,
-        status: null,
-        matched: false,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
+async function checkGitHubMcpUrl(url, { repository, server, serverName }) {
+  try {
+    const response = await fetchRegistryTextWithStatus(url);
+    return {
+      url,
+      status: response.status,
+      matched: isGitHubMcpMatch(response, { repository, server, serverName }),
+    };
+  } catch (error) {
+    return {
+      url,
+      status: null,
+      matched: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
+}
 
-  report.githubMcp.status = sawUnknown && !sawNotFound ? 'unknown' : 'not_listed_yet';
+function isGitHubMcpMatch(response, { repository, server, serverName }) {
+  if (!response.ok) return false;
+  return (
+    response.text.includes(serverName) ||
+    response.text.includes(String(server.title ?? '')) ||
+    (repository ? response.text.includes(`${repository.owner}/${repository.repo}`) : false)
+  );
+}
 
+function updateGitHubMcpState(state, checkedUrl) {
+  if (checkedUrl.status === 404) {
+    state.sawNotFound = true;
+  } else if (checkedUrl.status === null || checkedUrl.status >= 400) {
+    state.sawUnknown = true;
+  }
+}
+
+function appendGitHubMcpOutcome(report, requireGitHubMcp) {
   if (report.githubMcp.status === 'unknown') {
     report.warnings.push('GitHub MCP Registry listing could not be determined');
   } else if (report.githubMcp.status === 'not_listed_yet') {
@@ -279,6 +301,9 @@ export function selectLatestEntry(entries) {
   return [...entries].sort((left, right) => compareVersions(right.server.version, left.server.version))[0];
 }
 
+/**
+ * Checks an OCI manifest endpoint, including the bearer-token challenge used by Docker registries.
+ */
 export async function checkOciManifest(identifier) {
   const parsed = parseOciIdentifier(identifier);
   const registryApiHost = getOciRegistryApiHost(parsed.registry);
@@ -473,6 +498,9 @@ export function parseArgs(argv) {
   return { flags, options };
 }
 
+/**
+ * Formats registry check results for the human-readable CLI output.
+ */
 export function formatReport(value) {
   const lines = [
     `MCP registry check for ${value.serverName}`,

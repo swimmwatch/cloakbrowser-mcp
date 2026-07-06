@@ -8,7 +8,7 @@ import type { CallToolResult, ListToolsResult } from '@modelcontextprotocol/sdk/
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { BridgeRuntime } from '@/bridge/config.js';
 import { LOCAL_TOOL_BRIDGE_INFO } from '@/bridge/tools.js';
-import { createBridgeServer, startBridge, type BridgeServer } from '@/server.js';
+import { type BridgeServer, createBridgeServer, startBridge } from '@/server.js';
 
 const clients: Client[] = [];
 const tempRoots: string[] = [];

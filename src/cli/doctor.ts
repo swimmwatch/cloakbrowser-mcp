@@ -61,6 +61,9 @@ type DoctorReportTemplateValues = Record<
   string
 >;
 
+/**
+ * Collects environment, upstream CLI, and CloakBrowser binary diagnostics for the doctor command.
+ */
 export function createDoctorReport(): DoctorReport {
   const checks: DoctorCheck[] = [];
   const nodeEngine = packageMetadata.engines?.node ?? 'unknown';

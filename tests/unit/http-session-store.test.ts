@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { HTTP_SESSION_BACKEND_MEMORY } from '@/http/options.js';
 import {
+  createSessionStore,
   HTTP_SESSION_STATUS_ACTIVE,
   HTTP_SESSION_STATUS_CLOSED,
   InMemorySessionStore,
-  createSessionStore,
 } from '@/http/sessionStore.js';
 
 describe('HTTP session store', () => {

@@ -23,7 +23,7 @@
  * - microsoft/playwright-mcp#1305
  * - microsoft/playwright-mcp#1245
  */
-import { existsSync, readFileSync, readdirSync, readlinkSync, unlinkSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, readlinkSync, unlinkSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join as joinPosix } from 'node:path/posix';
 import { join as joinWin32 } from 'node:path/win32';

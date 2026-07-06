@@ -11,6 +11,9 @@ export function isLocalizedMarkdown(fileName, localeSuffixes) {
   return Boolean(match && localeSuffixes.has(match[1]));
 }
 
+/**
+ * Finds localized docs whose manifest entry no longer matches the source or target file state.
+ */
 export function findStaleTranslations(sources, manifest, { docsDir, locales, validateLocalizedMarkdown }) {
   const stale = [];
 
@@ -18,30 +21,11 @@ export function findStaleTranslations(sources, manifest, { docsDir, locales, val
     const sourceEntry = manifest.sources[source.rel];
 
     for (const localeConfig of locales) {
-      const targetRel = localizedPath(source.rel, localeConfig.locale);
-      const targetPath = join(docsDir, targetRel);
-      const translationEntry = sourceEntry?.translations?.[localeConfig.locale];
-      const targetExists = existsSync(targetPath);
-      const targetText = targetExists ? readFileSync(targetPath, 'utf8') : undefined;
-      const translationHash = targetText === undefined ? undefined : sha256(targetText);
-      const invalidReason =
-        targetText === undefined ? undefined : validateLocalizedMarkdown(targetText, localeConfig.locale);
-      const expectedSourceHash = translationEntry?.sourceHash ?? sourceEntry?.sourceHash;
-      let reason;
-
-      if (!targetExists) {
-        reason = 'missing localized file';
-      } else if (!translationEntry) {
-        reason = 'missing manifest entry';
-      } else if (expectedSourceHash !== source.sourceHash) {
-        reason = 'source changed';
-      } else if (translationEntry.path !== targetRel) {
-        reason = 'manifest path mismatch';
-      } else if (invalidReason) {
-        reason = invalidReason;
-      } else if (translationEntry.translationHash !== translationHash) {
-        reason = 'localized file changed without manifest update';
-      }
+      const status = readTranslationStatus(source, sourceEntry, localeConfig, {
+        docsDir,
+        validateLocalizedMarkdown,
+      });
+      const reason = getStaleTranslationReason(source, status);
 
       if (reason) {
         stale.push({
@@ -50,14 +34,44 @@ export function findStaleTranslations(sources, manifest, { docsDir, locales, val
           sourceRel: source.rel,
           sourceHash: source.sourceHash,
           sourceText: source.sourceText,
-          targetPath,
-          targetRel,
+          targetPath: status.targetPath,
+          targetRel: status.targetRel,
         });
       }
     }
   }
 
   return stale;
+}
+
+function readTranslationStatus(source, sourceEntry, localeConfig, { docsDir, validateLocalizedMarkdown }) {
+  const targetRel = localizedPath(source.rel, localeConfig.locale);
+  const targetPath = join(docsDir, targetRel);
+  const translationEntry = sourceEntry?.translations?.[localeConfig.locale];
+  const targetExists = existsSync(targetPath);
+  const targetText = targetExists ? readFileSync(targetPath, 'utf8') : undefined;
+  return {
+    targetRel,
+    targetPath,
+    translationEntry,
+    targetExists,
+    translationHash: targetText === undefined ? undefined : sha256(targetText),
+    invalidReason:
+      targetText === undefined ? undefined : validateLocalizedMarkdown(targetText, localeConfig.locale),
+    expectedSourceHash: translationEntry?.sourceHash ?? sourceEntry?.sourceHash,
+  };
+}
+
+function getStaleTranslationReason(source, status) {
+  if (!status.targetExists) return 'missing localized file';
+  if (!status.translationEntry) return 'missing manifest entry';
+  if (status.expectedSourceHash !== source.sourceHash) return 'source changed';
+  if (status.translationEntry.path !== status.targetRel) return 'manifest path mismatch';
+  if (status.invalidReason) return status.invalidReason;
+  if (status.translationEntry.translationHash !== status.translationHash) {
+    return 'localized file changed without manifest update';
+  }
+  return undefined;
 }
 
 export function pruneManifest(manifest, sources, { locales }) {
@@ -79,6 +93,9 @@ export function pruneManifest(manifest, sources, { locales }) {
   }
 }
 
+/**
+ * Rebuilds the translation manifest from localized files that already exist on disk.
+ */
 export function refreshManifest(
   manifest,
   sources,
@@ -230,6 +247,9 @@ export function shouldTranslatePart(part) {
   return /[A-Za-z]/u.test(withoutPlaceholders);
 }
 
+/**
+ * Replaces Markdown syntax that must survive machine translation with stable placeholder tokens.
+ */
 export function protectMarkdown(markdown) {
   const placeholders = [];
 

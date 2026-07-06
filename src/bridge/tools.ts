@@ -1,5 +1,5 @@
 import type { CallToolResult, Tool } from '@modelcontextprotocol/sdk/types.js';
-import { getCurrentCloakBinaryInfo, type BridgeRuntime } from '#src/bridge/config';
+import { type BridgeRuntime, getCurrentCloakBinaryInfo } from '#src/bridge/config';
 import {
   CLOAKBROWSER_TOOL_COUNT,
   PLAYWRIGHT_MCP_BROWSER_TOOL_COUNT,

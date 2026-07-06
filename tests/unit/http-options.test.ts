@@ -9,12 +9,12 @@ import {
 import {
   BRIDGE_TRANSPORT_STDIO,
   BRIDGE_TRANSPORT_STREAMABLE_HTTP,
+  defaultStreamableHttpOptions,
   HEALTHZ_PATH,
   HTTP_PROTOCOL_HTTP,
   HTTP_PROTOCOL_HTTPS,
   HTTP_SESSION_BACKEND_MEMORY,
   READYZ_PATH,
-  defaultStreamableHttpOptions,
 } from '@/http/options.js';
 
 const cliEnvNames = cliOptionDefinitions.map((definition) => definition.env);
