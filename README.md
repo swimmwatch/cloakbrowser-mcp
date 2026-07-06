@@ -81,7 +81,7 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
 ```
 
-The Docker image writes artifacts to `/data` and is published for `linux/amd64` and `linux/arm64`. The same tags are also available from `ghcr.io/swimmwatch/cloakbrowser-mcp`. See [Docker](docs/docker.md) for persistent profiles, extension mounts, HTTPS, and smoke-test examples.
+The Docker image writes artifacts to `/data` and is published for `linux/amd64` and `linux/arm64`. It defaults to `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX=true` for compatibility with containerized runtimes where Chromium sandboxing is often unavailable. If your host and container runtime support Chromium sandboxing, set `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX=false`; for untrusted pages, keep container network access and mounted host directories tightly scoped. The same tags are also available from `ghcr.io/swimmwatch/cloakbrowser-mcp`. See [Docker](docs/docker.md) for persistent profiles, extension mounts, HTTPS, and smoke-test examples.
 
 ## Add To MCP Clients
 

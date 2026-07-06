@@ -288,18 +288,71 @@ describe('HTTP server helpers', () => {
         'GET /healthz?token=secret HTTP/1.1\r\nHost: bad host\r\nConnection: close\r\n\r\n',
       );
 
-      expect(response).toContain('HTTP/1.1 500');
+      expect(response).toContain('HTTP/1.1 404');
       expect(requestLogs).toContainEqual(
         expect.objectContaining({
           duration_ms: expect.any(Number),
           message: 'http request',
           method: 'GET',
           path: '/healthz',
-          status: HttpStatus.InternalServerError,
+          status: HttpStatus.NotFound,
         }),
       );
     } finally {
       await server.close();
+    }
+  });
+
+  it('warns when Streamable HTTP binds outside loopback without auth or TLS', async () => {
+    const warnings: Array<Record<string, unknown>> = [];
+    const server = await startStreamableHttpBridge({
+      ...defaultStreamableHttpOptions,
+      host: '0.0.0.0',
+      logger: createWarningCaptureLogger(warnings),
+      port: 0,
+    });
+
+    try {
+      expect(warnings).toContainEqual(
+        expect.objectContaining({
+          endpoint: '/mcp',
+          host: '0.0.0.0',
+          message: 'streamable-http bound to non-loopback host without auth or TLS',
+          protocol: 'http',
+        }),
+      );
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('does not warn for loopback, authenticated, or HTTPS Streamable HTTP binds', async () => {
+    const warnings: Array<Record<string, unknown>> = [];
+    const loopback = await startStreamableHttpBridge({
+      ...defaultStreamableHttpOptions,
+      logger: createWarningCaptureLogger(warnings),
+      port: 0,
+    });
+    const authenticated = await startStreamableHttpBridge({
+      ...defaultStreamableHttpOptions,
+      authToken: 'secret',
+      host: '0.0.0.0',
+      logger: createWarningCaptureLogger(warnings),
+      port: 0,
+    });
+    const https = await startStreamableHttpBridge({
+      ...defaultStreamableHttpOptions,
+      host: '0.0.0.0',
+      logger: createWarningCaptureLogger(warnings),
+      port: 0,
+      protocol: 'https',
+      tls: tlsConfig,
+    });
+
+    try {
+      expect(warnings).toEqual([]);
+    } finally {
+      await Promise.allSettled([loopback.close(), authenticated.close(), https.close()]);
     }
   });
 
@@ -361,4 +414,18 @@ function createThrowingSessionStore(message: string): SessionStore {
     list: async () => [],
     clear: async () => {},
   };
+}
+
+function createWarningCaptureLogger(warnings: Array<Record<string, unknown>>): BridgeLogger {
+  const noop = (): void => undefined;
+  return {
+    debug: noop,
+    error: noop,
+    fatal: noop,
+    info: noop,
+    trace: noop,
+    warn(fields: Record<string, unknown>, message: string) {
+      warnings.push({ ...fields, message });
+    },
+  } as unknown as BridgeLogger;
 }

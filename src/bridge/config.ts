@@ -1,11 +1,15 @@
 import {
   accessSync,
+  closeSync,
   constants as fsConstants,
   mkdirSync,
   mkdtempSync,
+  openSync,
+  readFileSync,
   realpathSync,
   rmSync,
   statSync,
+  unlinkSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -120,6 +124,59 @@ export interface PlaywrightMcpBridgeConfig {
 
 const ignoredAutomationArgs = ['--enable-automation', '--enable-unsafe-swiftshader'];
 const activeProfileLocks = new Set<string>();
+const profileLockFileName = '.cloakbrowser-mcp-profile.lock';
+
+const inheritedChildEnvNames = new Set([
+  'ALL_PROXY',
+  'APPDATA',
+  'CLOAKBROWSER_AUTO_UPDATE',
+  'CLOAKBROWSER_CACHE_DIR',
+  'COMSPEC',
+  'DBUS_SESSION_BUS_ADDRESS',
+  'DISPLAY',
+  'HOME',
+  'HOMEDRIVE',
+  'HOMEPATH',
+  'HTTP_PROXY',
+  'HTTPS_PROXY',
+  'LANG',
+  'LC_ALL',
+  'LC_CTYPE',
+  'LC_MESSAGES',
+  'LOCALAPPDATA',
+  'NODE_EXTRA_CA_CERTS',
+  'NO_PROXY',
+  'PATH',
+  'PATHEXT',
+  'Path',
+  'PLAYWRIGHT_BROWSERS_PATH',
+  'PLAYWRIGHT_CHROMIUM_DOWNLOAD_HOST',
+  'PLAYWRIGHT_DOWNLOAD_HOST',
+  'PLAYWRIGHT_FIREFOX_DOWNLOAD_HOST',
+  'PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD',
+  'PLAYWRIGHT_WEBKIT_DOWNLOAD_HOST',
+  'SSL_CERT_DIR',
+  'SSL_CERT_FILE',
+  'SystemRoot',
+  'TEMP',
+  'TERM',
+  'TMP',
+  'TMPDIR',
+  'USERPROFILE',
+  'WAYLAND_DISPLAY',
+  'WINDIR',
+  'XAUTHORITY',
+  'XDG_CACHE_HOME',
+  'XDG_CONFIG_HOME',
+  'XDG_DATA_HOME',
+  'XDG_RUNTIME_DIR',
+  'all_proxy',
+  'http_proxy',
+  'https_proxy',
+  'no_proxy',
+]);
+
+const inheritedChildEnvPrefixes = ['PLAYWRIGHT_MCP_', 'CLOAK_PLAYWRIGHT_MCP_'] as const;
 
 type BridgeBrowserConfig = NonNullable<PlaywrightMcpBridgeConfig['browser']>;
 type BridgeLaunchOptions = NonNullable<BridgeBrowserConfig['launchOptions']>;
@@ -368,7 +425,7 @@ async function resolveCloakLaunchArgs(options: ResolveCloakLaunchArgsOptions): P
   const launchOptions = await suppressStdout(() =>
     withCloakBinaryPath(options.cloakBinaryPath, () => options.buildCloakLaunchOptions(cloakOptions)),
   );
-  return mergeLaunchArgs(options.args, extractCloakGeneratedArgs(launchOptions.args ?? []));
+  return mergeLaunchArgs(options.args, extractCloakGeneratedArgs(readStringArray(launchOptions.args)));
 }
 
 function createCloakLaunchOptions(
@@ -539,10 +596,80 @@ function acquireProfileLock(userDataDir: string): () => void {
       `User data directory is already active in this process: ${userDataDir}`,
     );
   }
+
+  const lockPath = path.join(userDataDir, profileLockFileName);
+  createProfileLockFile(lockPath, userDataDir);
   activeProfileLocks.add(key);
+
   return () => {
     activeProfileLocks.delete(key);
+    removeProfileLockFile(lockPath);
   };
+}
+
+function createProfileLockFile(lockPath: string, userDataDir: string): void {
+  let fd: number | undefined;
+  try {
+    fd = openSync(lockPath, 'wx', 0o600);
+    writeFileSync(
+      fd,
+      `${JSON.stringify(
+        {
+          pid: process.pid,
+          createdAt: new Date().toISOString(),
+          userDataDir,
+        },
+        null,
+        2,
+      )}\n`,
+    );
+  } catch (error) {
+    if (isFileExistsError(error)) {
+      throw new BridgeRuntimeConfigurationError(
+        `Persistent profile is already active: ${userDataDir}${formatProfileLockDetails(lockPath)}`,
+      );
+    }
+    const message = error instanceof Error ? error.message : String(error);
+    throw new BridgeRuntimeConfigurationError(`Could not create profile lock for ${userDataDir}: ${message}`);
+  } finally {
+    if (fd !== undefined) closeSync(fd);
+  }
+}
+
+function removeProfileLockFile(lockPath: string): void {
+  try {
+    unlinkSync(lockPath);
+  } catch (error) {
+    if (!isFileMissingError(error)) throw error;
+  }
+}
+
+function formatProfileLockDetails(lockPath: string): string {
+  try {
+    const parsed = JSON.parse(readFileSync(lockPath, 'utf8')) as unknown;
+    if (!isRecord(parsed)) return '';
+    const pid = typeof parsed.pid === 'number' ? parsed.pid : undefined;
+    const createdAt = typeof parsed.createdAt === 'string' ? parsed.createdAt : undefined;
+    const details = [
+      pid === undefined ? undefined : `pid=${pid}`,
+      createdAt === undefined ? undefined : `createdAt=${createdAt}`,
+    ].filter((item) => item !== undefined);
+    return details.length > 0 ? ` (${details.join(', ')})` : '';
+  } catch {
+    return '';
+  }
+}
+
+function isFileExistsError(error: unknown): boolean {
+  return isNodeError(error) && error.code === 'EEXIST';
+}
+
+function isFileMissingError(error: unknown): boolean {
+  return isNodeError(error) && error.code === 'ENOENT';
+}
+
+function isNodeError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && 'code' in error;
 }
 
 function profileLockKey(userDataDir: string): string {
@@ -800,6 +927,11 @@ function launchArgKey(arg: string): string {
   return arg.split('=')[0] ?? arg;
 }
 
+function readStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === 'string');
+}
+
 function optionalEnvString(env: EnvReader, name: string): string | undefined {
   const value = env[name]?.trim();
   return value ? value : undefined;
@@ -814,7 +946,7 @@ export function createChildEnv(
 ): Record<string, string> {
   const result: Record<string, string> = {};
   for (const [key, value] of Object.entries(env)) {
-    if (typeof value === 'string') result[key] = value;
+    if (typeof value === 'string' && shouldInheritChildEnv(key)) result[key] = value;
   }
   result.PLAYWRIGHT_MCP_HEADLESS = String(headless);
   result.CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET = humanPreset;
@@ -829,6 +961,12 @@ export function createChildEnv(
   }
   if (runtimeProxy) applyRuntimeProxyEnv(result, runtimeProxy);
   return result;
+}
+
+function shouldInheritChildEnv(key: string): boolean {
+  return (
+    inheritedChildEnvNames.has(key) || inheritedChildEnvPrefixes.some((prefix) => key.startsWith(prefix))
+  );
 }
 
 function applyRuntimeProxyEnv(env: Record<string, string>, proxy: BridgeRuntimeProxy): void {

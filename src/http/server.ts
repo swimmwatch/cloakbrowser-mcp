@@ -6,6 +6,7 @@ import { type Implementation } from '@modelcontextprotocol/sdk/types.js';
 import {
   BRIDGE_TRANSPORT_STREAMABLE_HTTP,
   HEALTHZ_PATH,
+  HTTP_PROTOCOL_HTTP,
   type HttpSessionBackend,
   READYZ_PATH,
   type StreamableHttpOptions,
@@ -122,6 +123,7 @@ class StreamableHttpBridgeController {
 
   async start(): Promise<StreamableHttpBridgeServer> {
     await listenHttpServer(this.#httpServer, this.#options.port, this.#options.host);
+    this.#warnIfUnsafeHttpExposure();
     const address = this.#httpServer.address();
     if (typeof address === 'string' || address === null) {
       throw new Error('HTTP server did not expose a TCP address');
@@ -136,6 +138,20 @@ class StreamableHttpBridgeController {
         await this.#store.clear();
       },
     };
+  }
+
+  #warnIfUnsafeHttpExposure(): void {
+    if (this.#options.protocol !== HTTP_PROTOCOL_HTTP) return;
+    if (this.#options.authToken !== undefined) return;
+    if (isLoopbackHost(this.#options.host)) return;
+    this.#options.logger?.warn(
+      {
+        endpoint: this.#options.endpoint,
+        host: this.#options.host,
+        protocol: this.#options.protocol,
+      },
+      'streamable-http bound to non-loopback host without auth or TLS',
+    );
   }
 
   async #handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -503,6 +519,13 @@ class StreamableHttpBridgeController {
       );
     });
   }
+}
+
+function isLoopbackHost(host: string): boolean {
+  const normalized = host.trim().toLowerCase();
+  const unwrapped =
+    normalized.startsWith('[') && normalized.endsWith(']') ? normalized.slice(1, -1) : normalized;
+  return unwrapped === 'localhost' || unwrapped === '::1' || /^127(?:\.\d{1,3}){3}$/u.test(unwrapped);
 }
 
 function mergeContextOptions(

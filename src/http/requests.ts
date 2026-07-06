@@ -20,8 +20,11 @@ export function isEndpointRequest(
   protocol: StreamableHttpOptions['protocol'] = 'http',
 ): boolean {
   const host = getSingleHeader(req, 'host') ?? formatHost(fallbackHost);
-  const url = new URL(req.url ?? '/', `${protocol}://${host}`);
-  return url.pathname === endpoint;
+  try {
+    return new URL(req.url ?? '/', `${protocol}://${host}`).pathname === endpoint;
+  } catch {
+    return false;
+  }
 }
 
 export function requestPathName(

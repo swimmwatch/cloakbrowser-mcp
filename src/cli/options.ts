@@ -230,7 +230,7 @@ export function parseCliOptions(args: readonly string[]): CliOptions {
 }
 
 export function readCliOptions(command: Command): CliOptions {
-  return toCliOptions(command.opts<CommanderCliOptions>());
+  return toCliOptions(command.opts<CommanderCliOptions>(), command);
 }
 
 export function renderCliReferenceMarkdown(version: string): string {
@@ -292,14 +292,17 @@ function createCommanderOption(definition: CliOptionDefinition): Option {
   return option;
 }
 
-function toCliOptions(options: CommanderCliOptions): CliOptions {
+function toCliOptions(options: CommanderCliOptions, command: Command): CliOptions {
   const tls = normalizeTlsOptions(options);
   validateHttpProtocolOptions(options.httpProtocol, tls);
   return {
     transport: options.transport,
     bridge: {
-      geoipProxyMatch: normalizeBoolean(options.geoipProxyMatch),
-      humanize: normalizeBoolean(options.humanize),
+      geoipProxyMatch: normalizeBoolean(
+        options.geoipProxyMatch,
+        readRawBooleanEnv(command, 'geoipProxyMatch'),
+      ),
+      humanize: normalizeBoolean(options.humanize, readRawBooleanEnv(command, 'humanize')),
       humanPreset: options.humanPreset,
     },
     http: {
@@ -317,10 +320,24 @@ function toCliOptions(options: CommanderCliOptions): CliOptions {
   };
 }
 
-function normalizeBoolean(value: boolean | string | undefined): boolean {
+function readRawBooleanEnv(command: Command, name: keyof CommanderCliOptions): string | undefined {
+  if (command.getOptionValueSource(name) !== 'env') return undefined;
+  const definition = cliOptionDefinitions.find((option) => option.name === name);
+  return definition === undefined ? undefined : process.env[definition.env];
+}
+
+function normalizeBoolean(value: boolean | string | undefined, rawEnvValue?: string): boolean {
+  if (rawEnvValue !== undefined) return parseBooleanEnvValue(rawEnvValue);
   if (typeof value === 'boolean') return value;
   if (value === undefined) return false;
-  return ['1', 'true', 'yes', 'on'].includes(value.toLowerCase());
+  return parseBooleanEnvValue(value);
+}
+
+function parseBooleanEnvValue(value: string): boolean {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'true') return true;
+  if (normalized === 'false') return false;
+  throw new InvalidArgumentError(`Boolean environment values must be "true" or "false", got "${value}"`);
 }
 
 function normalizeTlsOptions(options: CommanderCliOptions): StreamableHttpTlsOptions {

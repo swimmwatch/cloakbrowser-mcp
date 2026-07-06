@@ -17,6 +17,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Updated the CloakBrowser dependency to `^0.4.8` and forwarded
   CloakBrowser-generated default launch args such as `--start-maximized`.
+- Updated contributor and security policy documentation to reflect the current
+  Node.js requirement and published release support policy.
+- Made bridge CLI boolean environment variables reject unknown string values
+  instead of silently treating typos as `false`.
+
+### Fixed
+
+- Handled malformed Streamable HTTP Host or URL values without surfacing an
+  internal routing error.
+
+### Security
+
+- Narrowed upstream child-process environment inheritance to an allowlist so
+  unrelated tokens and CI secrets are not forwarded by default.
+- Added an advisory filesystem lock for persistent browser profiles across
+  bridge processes.
+- Added a Streamable HTTP startup warning for non-loopback HTTP binds without
+  built-in auth or TLS, and documented the Docker no-sandbox trade-off.
 
 ## [1.6.1] - 2026-07-05
 

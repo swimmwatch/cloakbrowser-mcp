@@ -52,7 +52,7 @@ export default tseslint.config(
       sonarjs,
     },
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
@@ -65,8 +65,8 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
-      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-return': 'error',
+      '@typescript-eslint/no-unsafe-argument': 'error',
       '@typescript-eslint/restrict-template-expressions': 'off',
       // Interface methods are declared `async` for consistency even when the
       // mock implementation has no awaits.
@@ -191,6 +191,10 @@ export default tseslint.config(
         process: 'readonly',
       },
     },
+    rules: {
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+    },
   },
   {
     files: ['scripts/**/*.mjs'],
@@ -201,6 +205,8 @@ export default tseslint.config(
       },
     },
     rules: {
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
       'n/no-unpublished-import': 'off',
     },
   },
@@ -211,6 +217,8 @@ export default tseslint.config(
       'max-depth': 'off',
       'max-lines-per-function': 'off',
       'no-secrets/no-secrets': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
       'sonarjs/cognitive-complexity': 'off',
       'jsdoc/require-jsdoc': 'off',
       'jsdoc/require-description': 'off',

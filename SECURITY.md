@@ -2,7 +2,9 @@
 
 ## Supported versions
 
-The project has not published a stable release yet. Security fixes are applied to `main`.
+Security fixes are applied to `main` and released as patch versions for the
+latest published minor release line. Upgrade to the latest patch release in the
+latest minor line to receive supported fixes.
 
 ## Reporting a vulnerability
 
@@ -39,5 +41,13 @@ Please avoid public disclosure until a coordinated fix is released.
 ## Scope notes
 
 This repository exposes upstream Playwright MCP tools unchanged, including unsafe tools such as `browser_evaluate` and `browser_run_code_unsafe`. Reports about bridge-specific process isolation, stdio transport leaks, Docker packaging, metadata, or CloakBrowser executable resolution are in scope. Reports about upstream Playwright MCP tool behavior should also be reported upstream when the issue reproduces without this bridge.
+
+The Docker image defaults to `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX=true` for
+compatibility with containerized CI and MCP runtimes where Chromium sandboxing is
+often unavailable. Treat this as a compatibility trade-off, not a security
+boundary. If your host and container runtime support Chromium sandboxing, set
+`CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX=false`. For untrusted pages, keep the container
+network and mounted filesystem scope constrained even when the Chromium sandbox
+is enabled.
 
 The project does not support requests for CAPTCHA-solving, anti-bot evasion, or bypassing access controls. Such requests are out of scope and will be declined.

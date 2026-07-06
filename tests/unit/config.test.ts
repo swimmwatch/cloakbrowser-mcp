@@ -1,4 +1,5 @@
-import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -6,6 +7,7 @@ import { createLaunchArgs, prepareBridgeRuntime } from '@/bridge/config.js';
 import { fakeCloakBinaryPath } from '@tests/helpers/paths.js';
 
 const tempRoots: string[] = [];
+const profileLockFileName = '.cloakbrowser-mcp-profile.lock';
 
 afterEach(() => {
   for (const root of tempRoots.splice(0)) rmSync(root, { recursive: true, force: true });
@@ -64,6 +66,53 @@ describe('bridge config generation', () => {
       args: ['--no-sandbox', '--foo', '--bar=baz'],
       chromiumSandbox: false,
     });
+
+    runtime.dispose();
+  });
+
+  it('builds the child env from an explicit allowlist', async () => {
+    const root = createTempRoot();
+    const outputDir = path.join(root, 'artifacts');
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      env: {
+        AWS_SECRET_ACCESS_KEY: 'not-forwarded',
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS: 'false',
+        CLOAKBROWSER_AUTO_UPDATE: 'true',
+        CLOAKBROWSER_CACHE_DIR: path.join(root, 'cloak-cache'),
+        GITHUB_TOKEN: 'not-forwarded',
+        HOME: path.join(root, 'home'),
+        LANG: 'C.UTF-8',
+        NODE_EXTRA_CA_CERTS: path.join(root, 'ca.pem'),
+        NODE_OPTIONS: '--inspect',
+        PATH: '/usr/bin',
+        PLAYWRIGHT_BROWSERS_PATH: path.join(root, 'playwright-cache'),
+        PLAYWRIGHT_MCP_ALLOWED_ORIGINS: 'https://example.test',
+        PLAYWRIGHT_MCP_BROWSER_ENGINE: 'playwright',
+        PLAYWRIGHT_MCP_OUTPUT_DIR: outputDir,
+        PLAYWRIGHT_MCP_PROXY_BYPASS: '.internal',
+        PLAYWRIGHT_MCP_PROXY_SERVER: 'http://proxy.example:8080',
+        TMPDIR: root,
+      },
+    });
+
+    expect(runtime.childEnv.PATH).toBe('/usr/bin');
+    expect(runtime.childEnv.HOME).toBe(path.join(root, 'home'));
+    expect(runtime.childEnv.TMPDIR).toBe(root);
+    expect(runtime.childEnv.LANG).toBe('C.UTF-8');
+    expect(runtime.childEnv.NODE_EXTRA_CA_CERTS).toBe(path.join(root, 'ca.pem'));
+    expect(runtime.childEnv.PLAYWRIGHT_BROWSERS_PATH).toBe(path.join(root, 'playwright-cache'));
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_ALLOWED_ORIGINS).toBe('https://example.test');
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_SERVER).toBe('http://proxy.example:8080');
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_BYPASS).toBe('.internal');
+    expect(runtime.childEnv.CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS).toBe('false');
+    expect(runtime.childEnv.CLOAKBROWSER_CACHE_DIR).toBe(path.join(root, 'cloak-cache'));
+    expect(runtime.childEnv.CLOAKBROWSER_AUTO_UPDATE).toBe('true');
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_OUTPUT_DIR).toBe(outputDir);
+    expect(runtime.childEnv.AWS_SECRET_ACCESS_KEY).toBeUndefined();
+    expect(runtime.childEnv.GITHUB_TOKEN).toBeUndefined();
+    expect(runtime.childEnv.NODE_OPTIONS).toBeUndefined();
 
     runtime.dispose();
   });
@@ -156,12 +205,15 @@ describe('bridge config generation', () => {
     });
 
     const expectedProfileDir = canonicalDirectory(profileDir);
+    const lockPath = path.join(expectedProfileDir, profileLockFileName);
     expect(runtime.config.browser?.userDataDir).toBe(expectedProfileDir);
     expect(runtime.config.browser?.isolated).toBeUndefined();
     expect(runtime.childEnv.PLAYWRIGHT_MCP_USER_DATA_DIR).toBe(expectedProfileDir);
     expect(runtime.childEnv.PLAYWRIGHT_MCP_ISOLATED).toBeUndefined();
+    expect(existsSync(lockPath)).toBe(true);
 
     runtime.dispose();
+    expect(existsSync(lockPath)).toBe(false);
 
     const afterDispose = await prepareBridgeRuntime({
       tempRoot: root,
@@ -174,7 +226,9 @@ describe('bridge config generation', () => {
       },
     });
     expect(afterDispose.config.browser?.userDataDir).toBe(expectedProfileDir);
+    expect(existsSync(lockPath)).toBe(true);
     afterDispose.dispose();
+    expect(existsSync(lockPath)).toBe(false);
   });
 
   it('rejects duplicate active persistent profile directories', async () => {
@@ -201,6 +255,60 @@ describe('bridge config generation', () => {
         },
       }),
     ).rejects.toThrow('already active');
+
+    runtime.dispose();
+  });
+
+  it('rejects persistent profile directories locked by another process', async () => {
+    const root = createTempRoot();
+    const profileDir = path.join(root, 'profiles', 'default');
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        PLAYWRIGHT_MCP_USER_DATA_DIR: profileDir,
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    const result = spawnSync(
+      process.execPath,
+      [
+        '--conditions',
+        'development',
+        '--import',
+        'tsx',
+        '--input-type=module',
+        '--eval',
+        [
+          "import { prepareBridgeRuntime } from './src/bridge/config.ts';",
+          'try {',
+          '  const runtime = await prepareBridgeRuntime();',
+          '  runtime.dispose();',
+          '  process.exit(0);',
+          '} catch (error) {',
+          '  process.stderr.write(error instanceof Error ? error.message : String(error));',
+          '  process.exit(42);',
+          '}',
+        ].join('\n'),
+      ],
+      {
+        cwd: path.resolve('.'),
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          PLAYWRIGHT_MCP_BROWSER_ENGINE: 'playwright',
+          PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'child-artifacts'),
+          PLAYWRIGHT_MCP_USER_DATA_DIR: profileDir,
+          CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        },
+      },
+    );
+
+    expect(result.status).toBe(42);
+    expect(result.stderr).toContain('Persistent profile is already active');
+    expect(result.stderr).toContain('pid=');
 
     runtime.dispose();
   });
