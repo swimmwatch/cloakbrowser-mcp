@@ -1,5 +1,10 @@
 import { readFile } from 'node:fs/promises';
 import { compareVersions, parseVersion, semverPattern, stripDependencyRange } from '#scripts/lib/semver';
+import {
+  createReleaseNotesSummary as summarizeReleaseNotes,
+  getLatestNpmDistTag,
+  getRepositoryReleaseNotes,
+} from '#scripts/lib/upstream-releases';
 
 export const upstreamConfig = {
   dockerRepository: 'mcr.microsoft.com/playwright/mcp',
@@ -24,16 +29,7 @@ export async function readCurrentPlaywrightMcpVersions() {
 }
 
 export async function getLatestNpmVersion(fetchJson) {
-  const metadata = await fetchJson(
-    `https://registry.npmjs.org/${encodeURIComponent(upstreamConfig.npmPackageName)}`,
-  );
-  const latest = metadata?.['dist-tags']?.latest;
-
-  if (typeof latest !== 'string') {
-    throw new Error(`Could not resolve latest npm dist-tag for ${upstreamConfig.npmPackageName}.`);
-  }
-
-  return latest;
+  return getLatestNpmDistTag(fetchJson, upstreamConfig.npmPackageName);
 }
 
 export async function getLatestDockerVersion(fetchJson) {
@@ -53,40 +49,15 @@ export async function getLatestDockerVersion(fetchJson) {
 }
 
 export async function getReleaseNotes(fetchJson, currentVersion, latestVersion) {
-  const releases = await fetchJson(
-    `https://api.github.com/repos/${upstreamConfig.upstreamRepository}/releases?per_page=100`,
-  );
-  const current = parseVersion(currentVersion);
-  const latest = parseVersion(latestVersion);
-
-  return releases
-    .filter((release) => semverPattern.test(release.tag_name))
-    .map((release) => ({
-      tagName: release.tag_name,
-      name: release.name || release.tag_name,
-      url: release.html_url,
-      publishedAt: release.published_at,
-      body: release.body || '',
-      version: parseVersion(release.tag_name),
-    }))
-    .filter(
-      (release) =>
-        compareVersions(release.version, current) > 0 && compareVersions(release.version, latest) <= 0,
-    )
-    .sort((left, right) => compareVersions(right.version, left.version));
+  return getRepositoryReleaseNotes(fetchJson, {
+    currentVersion,
+    latestVersion,
+    upstreamRepository: upstreamConfig.upstreamRepository,
+  });
 }
 
 export function createReleaseNotesSummary(releases) {
-  if (releases.length === 0) {
-    return '- Upstream release notes were not found for the detected version range.';
-  }
-
-  return releases
-    .map((release) => {
-      const body = truncateMarkdown(release.body.trim() || 'No release body was published.', 1800);
-      return `### [${release.name}](${release.url})\n\n${body}`;
-    })
-    .join('\n\n');
+  return summarizeReleaseNotes(releases);
 }
 
 function extractDockerImageVersion(dockerfile) {
@@ -99,12 +70,4 @@ function extractDockerImageVersion(dockerfile) {
   }
 
   return match.groups.tag.replace(/^v/, '');
-}
-
-function truncateMarkdown(markdown, maxLength) {
-  if (markdown.length <= maxLength) {
-    return markdown;
-  }
-
-  return `${markdown.slice(0, maxLength).trimEnd()}\n\n...`;
 }
