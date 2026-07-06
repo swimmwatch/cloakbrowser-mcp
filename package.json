@@ -117,7 +117,7 @@
   "overrides": {
     "vite": "8.0.16",
     "esbuild": "0.28.1",
-    "@typescript-eslint/utils": "^8.62.1"
+    "@typescript-eslint/utils": "8.62.1"
   },
   "keywords": [
     "mcp",

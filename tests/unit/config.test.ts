@@ -75,6 +75,7 @@ describe('bridge config generation', () => {
       tempRoot: root,
       ensureCloakBinary: async () => fakeCloakBinaryPath,
       buildCloakLaunchOptions: async (options) => {
+        await Promise.resolve();
         if (!options) throw new Error('Expected Cloak launch options');
         expect(process.env.CLOAKBROWSER_BINARY_PATH).toBe(fakeCloakBinaryPath);
         expect(options.geoip).toBeUndefined();

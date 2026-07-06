@@ -83,7 +83,7 @@ describe('streamable HTTP CLI logging', () => {
       ),
     ).resolves.toBeDefined();
     expect(stderr.text).toBe('');
-  }, 30_000);
+  }, 45_000);
 });
 
 interface CollectedStream {

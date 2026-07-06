@@ -847,11 +847,11 @@ export function getCurrentCloakBinaryInfo(): ReturnType<typeof binaryInfo> {
   return binaryInfo();
 }
 
-function withCloakBinaryPath<T>(cloakBinaryPath: string, fn: () => T): T {
+async function withCloakBinaryPath<T>(cloakBinaryPath: string, fn: () => Promise<T>): Promise<T> {
   const previous = process.env.CLOAKBROWSER_BINARY_PATH;
   process.env.CLOAKBROWSER_BINARY_PATH = cloakBinaryPath;
   try {
-    return fn();
+    return await fn();
   } finally {
     if (previous === undefined) delete process.env.CLOAKBROWSER_BINARY_PATH;
     else process.env.CLOAKBROWSER_BINARY_PATH = previous;
