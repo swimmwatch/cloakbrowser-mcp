@@ -1,5 +1,5 @@
 ---
-description: Ponte Playwright MCP para automação de navegador com CloakBrowser, Docker, Streamable HTTP, perfis persistentes, opções de contexto validadas, carregamento de extensões, correspondência de proxy por GeoIP e entrada humanizada.
+description: Servidor de automação de navegador compatível com Playwright MCP como drop-in, com ferramentas upstream sem alterações, CloakBrowser Chromium e empacotamento pronto para npm, Docker e Streamable HTTP.
 icon: material/home
 tags:
   - User Guide
@@ -11,13 +11,15 @@ tags:
 
 <p class="clb-hero-actions" align="center">
   <a class="md-button md-button--primary" href="getting-started/">Primeiros passos</a>
-  <a class="md-button" href="tools/">Ferramentas</a>
-  <a class="md-button" href="docker/">Docker</a>
+  <a class="md-button" href="comparison/">Comparação</a>
+  <a class="md-button" href="recipes/">Receitas</a>
 </p>
 
 # Servidor MCP do CloakBrowser
 
-`cloakbrowser-mcp` é um servidor de automação de navegador baseado no Model Context Protocol (MCP) que é executado a montante do `@playwright/mcp` com o binário do CloakBrowser Chromium. Utilize-o quando desejar ferramentas de navegador compatíveis com o Playwright MCP, execução do CloakBrowser, instalação via npm, imagens do Docker, sessões HTTP transmitíveis, correspondência de proxy com reconhecimento de GeoIP para controle de qualidade regional ou comportamento de entrada humanizado para fluxos sensíveis à interação.
+`cloakbrowser-mcp` é um servidor de automação de navegador compatível com Playwright MCP como drop-in, com ferramentas upstream sem alterações, CloakBrowser Chromium e empacotamento pronto para npm, Docker e Streamable HTTP. Ele executa o upstream `@playwright/mcp` como superfície canônica de ferramentas de navegador e adiciona recursos de execução CloakBrowser orientados a implantação.
+
+Use quando quiser ferramentas de navegador compatíveis com Playwright MCP junto com perfis persistentes, carregamento de extensões, validação de contexto, correspondência GeoIP de proxy para QA regional ou entrada humanizada.
 
 Versão atual: {{ project.version_tag }}.
 
@@ -94,3 +96,7 @@ Os contratos da ferramenta Playwright MCP, de nível superior, são os que preva
 - [Ferramentas](tools.md) para expectativas de interface de ferramentas e paridade com o upstream.
 - [Perguntas frequentes](faq.md) para dúvidas comuns sobre instalação, Docker, paridade e segurança.
 - [Guia do colaborador](contributor-guide.md) com detalhes sobre desenvolvimento, testes, arquitetura e lançamentos.
+
+## Mais caminhos práticos
+
+Para escolher entre o Playwright MCP upstream e este pacote, consulte a [comparação](comparison.md). Para tarefas rápidas, use as [receitas](recipes/index.md): perfil persistente, extensões, reverse proxy, QA regional, Claude Desktop, Codex CLI e teste smoke de CI.

@@ -165,3 +165,7 @@ npm run docker:smoke
 该 Dockerfile 使用已锁定的官方 Playwright MCP 镜像作为运行时基础镜像，在构建过程中应用可用的 Debian 安全更新，从运行时镜像中移除未使用的全局 npm 有效载荷，并在 `/opt/cloakbrowser-mcp`下安装桥接服务。
 
 该发布工作流会发布 SBOM 和溯源证明，包含源代码、修订版、版本、许可证、基础镜像名称以及基础镜像摘要的 OCI 标签，并在发布前使用 Trivy 对构建好的镜像进行扫描。
+
+## 更多实用路径
+
+要在 upstream Playwright MCP 和本包之间选择，请查看[对比](comparison.md)。快速任务请使用[操作示例](recipes/index.md)：持久配置文件、扩展、reverse proxy、区域 QA、Claude Desktop、Codex CLI 和 CI 冒烟测试。

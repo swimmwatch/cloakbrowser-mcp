@@ -1,5 +1,5 @@
 ---
-description: Міст Playwright MCP для автоматизації браузера з CloakBrowser, Docker, Streamable HTTP, постійними профілями, перевіреними параметрами контексту, завантаженням розширень, зіставленням проксі за GeoIP та гуманізованим введенням.
+description: Drop-in сумісний із Playwright MCP сервер браузерної автоматизації з незмінними upstream-інструментами, CloakBrowser Chromium і готовим пакуванням npm, Docker та Streamable HTTP.
 icon: material/home
 tags:
   - User Guide
@@ -11,13 +11,15 @@ tags:
 
 <p class="clb-hero-actions" align="center">
   <a class="md-button md-button--primary" href="getting-started/">Почати</a>
-  <a class="md-button" href="tools/">Інструменти</a>
-  <a class="md-button" href="docker/">Docker</a>
+  <a class="md-button" href="comparison/">Порівняння</a>
+  <a class="md-button" href="recipes/">Рецепти</a>
 </p>
 
 # Сервер CloakBrowser MCP
 
-`cloakbrowser-mcp` — це сервер автоматизації браузера на базі Model Context Protocol, який працює на верхньому рівні `@playwright/mcp` із бінарним файлом CloakBrowser Chromium. Використовуйте його, якщо вам потрібні інструменти для браузера, сумісні з Playwright MCP, виконання CloakBrowser, установка через npm, образи Docker, HTTP-сесії, що підтримують потокову передачу даних, підбір проксі-серверів з урахуванням GeoIP для регіонального контролю якості або імітація поведінки користувача при введенні даних для процесів, чутливих до взаємодії.
+`cloakbrowser-mcp` — це drop-in сумісний із Playwright MCP сервер браузерної автоматизації з незмінними upstream-інструментами, CloakBrowser Chromium і готовим пакуванням npm, Docker та Streamable HTTP. Він запускає upstream `@playwright/mcp` як канонічну поверхню браузерних інструментів і додає навколо неї можливості запуску CloakBrowser для розгортання.
+
+Використовуйте його, коли потрібні сумісні з Playwright MCP браузерні інструменти плюс постійні профілі, завантаження розширень, перевірка контексту, зіставлення GeoIP проксі для регіонального QA або людиноподібне введення.
 
 Поточна версія: {{ project.version_tag }}.
 
@@ -94,3 +96,7 @@ tags:
 - [Інструменти](tools.md) для відповідності очікуванням щодо інтерфейсу інструментів та узгодженості з вищими рівнями.
 - [FAQ](faq.md) для відповідей на типові запитання щодо встановлення, Docker, сумісності та безпеки.
 - [Посібник для учасників](contributor-guide.md) з детальною інформацією щодо розробки, тестування, архітектури та випуску версій.
+
+## Додаткові практичні сценарії
+
+Щоб обрати між upstream Playwright MCP і цим пакетом, перегляньте [порівняння](comparison.md). Для швидких задач використовуйте [рецепти](recipes/index.md): постійний профіль, розширення, reverse proxy, регіональне QA, Claude Desktop, Codex CLI і smoke-тест CI.

@@ -12,6 +12,7 @@ Use upstream `PLAYWRIGHT_MCP_*` variables for Playwright MCP behavior. Use `CLOA
 
 The old `CLOAKBROWSER_MCP_*` variables are not supported.
 The generated [CLI Reference](generated/cli.md) is the authoritative list of bridge CLI flags and their matching environment variables.
+For task-focused examples, see the [Recipes](recipes/index.md) section.
 
 ## Bridge Options
 
@@ -61,6 +62,7 @@ MCP and only injects the resolved `--fingerprint-timezone`, `--lang`, and
 
 See [GeoIP Proxy Matching](geoip-proxy-matching.md) for setup examples, runtime
 Streamable HTTP proxy metadata, use cases, precedence rules, and limitations.
+For a concise task path, see [Regional QA Through Proxy](recipes/regional-qa-through-proxy.md).
 
 ## Humanized Input Behavior
 
@@ -104,6 +106,8 @@ Restart the bridge or create a new HTTP session after changing extension files
 or extension paths. Use a JSON array for `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`
 when paths contain commas, when passing multiple extensions, or when using
 Windows drive-letter paths.
+
+See [Load Chrome Extension](recipes/load-chrome-extension.md) for a shorter copy-paste setup.
 
 ## Streamable HTTP Runtime Metadata
 
@@ -177,6 +181,7 @@ characters that have URL meaning, such as `@`, `:`, `/`, `?`, `#`, and `%`.
 
 For multi-location QA patterns, see [GeoIP Proxy Matching](geoip-proxy-matching.md).
 For interaction realism patterns, see [Humanized Input Behavior](humanized-input-behavior.md).
+For login reuse and extension setup, see [Persistent Login Profile](recipes/persistent-login-profile.md) and [Load Chrome Extension](recipes/load-chrome-extension.md).
 
 ## Upstream Options
 

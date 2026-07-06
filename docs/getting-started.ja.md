@@ -281,3 +281,7 @@ MCPクライアントにツールのリストを表示するよう依頼して�
 
 - `cloakbrowser_binary_info`
 - `cloakbrowser_bridge_info`
+
+## 追加の実用パス
+
+upstream Playwright MCP とこのパッケージのどちらを使うかは[比較](comparison.md)を参照してください。短い作業手順には[レシピ](recipes/index.md)を使います: 永続プロファイル、拡張機能、reverse proxy、リージョン QA、Claude Desktop、Codex CLI、CI スモークテスト。

@@ -34,3 +34,7 @@ Docker te ofrece un entorno de ejecución más repetible y aislado, pero no elim
 ## ¿Este proyecto utiliza herramientas de análisis o seguimiento?
 
 No. El sitio de documentación no tiene activadas las funciones de análisis de forma predeterminada. La visibilidad en los motores de búsqueda se gestiona mediante metadatos estándar, `robots.txt`, la generación de mapas del sitio, etiquetas opcionales de verificación para webmasters y notificaciones opcionales de IndexNow.
+
+## Más rutas prácticas
+
+Para elegir entre Playwright MCP upstream y este paquete, consulta la [comparación](comparison.md). Para tareas rápidas, usa las [recetas](recipes/index.md): perfil persistente, extensiones, reverse proxy, QA regional, Claude Desktop, Codex CLI y prueba smoke de CI.

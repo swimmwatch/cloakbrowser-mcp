@@ -281,3 +281,7 @@ npx -y cloakbrowser-mcp@latest
 
 - `cloakbrowser_binary_info`
 - `cloakbrowser_bridge_info`
+
+## Додаткові практичні сценарії
+
+Щоб обрати між upstream Playwright MCP і цим пакетом, перегляньте [порівняння](comparison.md). Для швидких задач використовуйте [рецепти](recipes/index.md): постійний профіль, розширення, reverse proxy, регіональне QA, Claude Desktop, Codex CLI і smoke-тест CI.

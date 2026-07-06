@@ -281,3 +281,7 @@ npx -y cloakbrowser-mcp@latest
 
 - `cloakbrowser_binary_info`
 - `cloakbrowser_bridge_info`
+
+## 更多实用路径
+
+要在 upstream Playwright MCP 和本包之间选择，请查看[对比](comparison.md)。快速任务请使用[操作示例](recipes/index.md)：持久配置文件、扩展、reverse proxy、区域 QA、Claude Desktop、Codex CLI 和 CI 冒烟测试。

@@ -34,3 +34,7 @@ Docker आपको अधिक पुनरावृत्ति योग्�
 क्या यह प्रोजेक्ट एनालिटिक्स या ट्रैकिंग का उपयोग करता है?
 
 नहीं। दस्तावेज़ीकरण साइट डिफ़ॉल्ट रूप से एनालिटिक्स सक्षम नहीं करती है। सर्च-इंजन खोज मानक मेटाडेटा, `robots.txt`, साइटमैप निर्माण, वैकल्पिक वेबमास्टर सत्यापन टैग, और वैकल्पिक IndexNow सूचनाओं के माध्यम से संभाली जाती है।
+
+## अतिरिक्त व्यावहारिक रास्ते
+
+upstream Playwright MCP और इस package में चुनने के लिए [तुलना](comparison.md) देखें। तेज tasks के लिए [रेसिपी](recipes/index.md) उपयोग करें: persistent profile, extensions, reverse proxy, regional QA, Claude Desktop, Codex CLI और CI smoke test.

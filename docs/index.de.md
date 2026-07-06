@@ -1,5 +1,5 @@
 ---
-description: Playwright-MCP-Brücke für CloakBrowser-Browserautomatisierung mit Docker, Streamable HTTP, persistenten Profilen, validierten Kontextoptionen, Erweiterungsladen, GeoIP-Proxy-Zuordnung und humanisierter Eingabe.
+description: Playwright-MCP-kompatibler Browserautomationsserver als Drop-in, mit unveränderten upstream Tools, CloakBrowser Chromium und produktionsreifer Paketierung für npm, Docker und Streamable HTTP.
 icon: material/home
 tags:
   - User Guide
@@ -11,13 +11,15 @@ tags:
 
 <p class="clb-hero-actions" align="center">
   <a class="md-button md-button--primary" href="getting-started/">Erste Schritte</a>
-  <a class="md-button" href="tools/">Werkzeuge</a>
-  <a class="md-button" href="docker/">Docker</a>
+  <a class="md-button" href="comparison/">Vergleich</a>
+  <a class="md-button" href="recipes/">Rezepte</a>
 </p>
 
 # CloakBrowser MCP-Server
 
-`cloakbrowser-mcp` ist ein Browser-Automatisierungsserver nach dem Model Context Protocol, der `@playwright/mcp` mit der CloakBrowser-Chromium-Binärdatei im Upstream-Bereich ausführt. Verwenden Sie ihn, wenn Sie Playwright-MCP-kompatible Browser-Tools, die Ausführung von CloakBrowser, npm-Installationen, Docker-Images, streambare HTTP-Sitzungen, GeoIP-basierte Proxy-Zuordnung für regionale Qualitätssicherung oder humanisiertes Eingabeverhalten für interaktionssensitive Abläufe benötigen.
+`cloakbrowser-mcp` ist ein Playwright-MCP-kompatibler Browserautomationsserver als Drop-in, mit unveränderten upstream Tools, CloakBrowser Chromium und produktionsreifer Paketierung für npm, Docker und Streamable HTTP. Er führt upstream `@playwright/mcp` als kanonische Browser-Tool-Oberfläche aus und ergänzt deployment-orientierte CloakBrowser-Ausführungsfunktionen.
+
+Nutzen Sie ihn, wenn Sie Playwright-MCP-kompatible Browsertools plus persistente Profile, Erweiterungen, Kontextvalidierung, GeoIP-Proxy-Abgleich für regionale QA oder humanisierte Eingabe benötigen.
 
 Aktuelle Version: {{ project.version_tag }}.
 
@@ -94,3 +96,7 @@ Die Verträge des vorgelagerten Playwright-MCP-Tools sind maßgebend. Dieses Pro
 - [Tools](tools.md) für Erwartungen an die Tool-Oberfläche und Upstream-Parität.
 - [FAQ](faq.md) zu häufigen Fragen zu Installation, Docker, Kompatibilität und Sicherheit.
 - [Leitfaden für Mitwirkende](contributor-guide.md) mit Details zu Entwicklung, Tests, Architektur und Veröffentlichungen.
+
+## Weitere praktische Pfade
+
+Für die Entscheidung zwischen upstream Playwright MCP und diesem Paket nutzen Sie den [Vergleich](comparison.md). Für kurze Aufgaben nutzen Sie die [Rezepte](recipes/index.md): persistentes Profil, Erweiterungen, reverse proxy, regionale QA, Claude Desktop, Codex CLI und CI-Smoke-Test.

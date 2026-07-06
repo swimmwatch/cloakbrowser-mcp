@@ -29,9 +29,9 @@
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](docs/docker.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-`cloakbrowser-mcp` is a [Model Context Protocol](https://modelcontextprotocol.io/) browser automation server that runs upstream [`@playwright/mcp`](https://github.com/microsoft/playwright-mcp) with the [CloakBrowser](https://github.com/CloakHQ/CloakBrowser) Chromium binary. It gives MCP clients Playwright-compatible browser tools while keeping the upstream tool contracts unchanged.
+`cloakbrowser-mcp` is a drop-in Playwright MCP-compatible browser automation server with unchanged upstream tools, [CloakBrowser](https://github.com/CloakHQ/CloakBrowser) Chromium, and production-ready npm, Docker, and Streamable HTTP packaging. It runs upstream [`@playwright/mcp`](https://github.com/microsoft/playwright-mcp) as the canonical tool surface and points that runtime at CloakBrowser.
 
-Documentation: [swimmwatch.github.io/cloakbrowser-mcp](https://swimmwatch.github.io/cloakbrowser-mcp/)
+Documentation: [swimmwatch.github.io/cloakbrowser-mcp](https://swimmwatch.github.io/cloakbrowser-mcp/) · [Comparison](https://swimmwatch.github.io/cloakbrowser-mcp/comparison/) · [Recipes](https://swimmwatch.github.io/cloakbrowser-mcp/recipes/)
 
 Use it when you need:
 
@@ -43,6 +43,8 @@ Use it when you need:
 - humanized mouse, keyboard, and scroll behavior for interaction-sensitive flows.
 
 Cross-platform checks cover npm on Linux x64/arm64, macOS arm64/x64, and Windows x64 across Node.js 22-26. Docker images are built and smoke-tested for `linux/amd64` and `linux/arm64`.
+
+See [`@playwright/mcp` vs `cloakbrowser-mcp`](docs/comparison.md) when deciding whether plain upstream Playwright MCP or CloakBrowser MCP fits a deployment better. The [Recipes](docs/recipes/index.md) pages show task-focused setup paths for persistent login profiles, Chrome extensions, reverse proxies, regional QA, client connections, and CI smoke tests.
 
 ## Install With npm
 
@@ -81,7 +83,7 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
 ```
 
-The Docker image writes artifacts to `/data` and is published for `linux/amd64` and `linux/arm64`. It defaults to `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX=true` for compatibility with containerized runtimes where Chromium sandboxing is often unavailable. If your host and container runtime support Chromium sandboxing, set `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX=false`; for untrusted pages, keep container network access and mounted host directories tightly scoped. The same tags are also available from `ghcr.io/swimmwatch/cloakbrowser-mcp`. See [Docker](docs/docker.md) for persistent profiles, extension mounts, HTTPS, and smoke-test examples.
+The Docker image writes artifacts to `/data` and is published for `linux/amd64` and `linux/arm64`. It defaults to `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX=true` for compatibility with containerized runtimes where Chromium sandboxing is often unavailable. If your host and container runtime support Chromium sandboxing, set `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX=false`; for untrusted pages, keep container network access and mounted host directories tightly scoped. The same tags are also available from `ghcr.io/swimmwatch/cloakbrowser-mcp`. See [Docker](docs/docker.md) for persistent profiles, extension mounts, HTTPS, and smoke-test examples, or use the [reverse proxy recipe](docs/recipes/docker-streamable-http-reverse-proxy.md) for a focused Streamable HTTP deployment.
 
 ## Add To MCP Clients
 
@@ -167,13 +169,13 @@ If this client uses Claude/Cursor/Cline/Windsurf/Warp-style config, add it under
 "mcpServers" with the same command and args. Do not add secrets.
 ```
 
-More examples are in [Getting Started](docs/getting-started.md).
+More examples are in [Getting Started](docs/getting-started.md), with dedicated recipes for [Claude Desktop](docs/recipes/connect-claude-desktop.md) and [Codex CLI](docs/recipes/connect-codex-cli.md).
 
 ## Configuration
 
 Use upstream `PLAYWRIGHT_MCP_*` variables for browser, artifacts, timeouts, network, and tool capability settings. Cloak-specific bridge toggles use `CLOAK_PLAYWRIGHT_MCP_*`.
 
-The common variable table now lives in [Configuration](docs/configuration.md). That page also covers persistent profiles, validated context options, Chrome extensions, Streamable HTTP metadata, and HTTPS/auth options. See [GeoIP Proxy Matching](docs/geoip-proxy-matching.md) for regional proxy behavior and [Humanized Input Behavior](docs/humanized-input-behavior.md) for interaction realism.
+The common variable table now lives in [Configuration](docs/configuration.md). That page also covers persistent profiles, validated context options, Chrome extensions, Streamable HTTP metadata, and HTTPS/auth options. See [GeoIP Proxy Matching](docs/geoip-proxy-matching.md) for regional proxy behavior, [Humanized Input Behavior](docs/humanized-input-behavior.md) for interaction realism, and [Recipes](docs/recipes/index.md) for task-focused configurations.
 
 ## Version Compatibility
 

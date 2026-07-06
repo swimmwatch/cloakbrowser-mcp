@@ -95,6 +95,15 @@ plugins:
             Overview: Обзор
             User Guide: Руководство пользователя
             Getting Started: Начало работы
+            Comparison: Сравнение
+            Recipes: Рецепты
+            Persistent Login Profile: Постоянный профиль входа
+            Load Chrome Extension: Загрузка расширения Chrome
+            Docker Streamable HTTP Behind Reverse Proxy: Docker Streamable HTTP за обратным прокси
+            Regional QA Through Proxy: Региональное QA через прокси
+            Connect To Claude Desktop: Подключение к Claude Desktop
+            Connect To Codex CLI: Подключение к Codex CLI
+            CI Smoke Test: Smoke-тест CI
             Docker: Docker
             Version Compatibility: Совместимость версий
             Configuration: Конфигурация
@@ -119,6 +128,15 @@ plugins:
             Overview: Агляд
             User Guide: Кіраўніцтва карыстальніка
             Getting Started: Пачатак працы
+            Comparison: Параўнанне
+            Recipes: Рэцэпты
+            Persistent Login Profile: Пастаянны профіль уваходу
+            Load Chrome Extension: Загрузка пашырэння Chrome
+            Docker Streamable HTTP Behind Reverse Proxy: Docker Streamable HTTP за зваротным проксі
+            Regional QA Through Proxy: Рэгіянальнае QA праз проксі
+            Connect To Claude Desktop: Падключэнне да Claude Desktop
+            Connect To Codex CLI: Падключэнне да Codex CLI
+            CI Smoke Test: Smoke-тэст CI
             Docker: Docker
             Version Compatibility: Сумяшчальнасць версій
             Configuration: Канфігурацыя
@@ -143,6 +161,15 @@ plugins:
             Overview: Огляд
             User Guide: Посібник користувача
             Getting Started: Початок роботи
+            Comparison: Порівняння
+            Recipes: Рецепти
+            Persistent Login Profile: Постійний профіль входу
+            Load Chrome Extension: Завантаження розширення Chrome
+            Docker Streamable HTTP Behind Reverse Proxy: Docker Streamable HTTP за зворотним проксі
+            Regional QA Through Proxy: Регіональне QA через проксі
+            Connect To Claude Desktop: Підключення до Claude Desktop
+            Connect To Codex CLI: Підключення до Codex CLI
+            CI Smoke Test: Smoke-тест CI
             Docker: Docker
             Version Compatibility: Сумісність версій
             Configuration: Конфігурація
@@ -167,6 +194,15 @@ plugins:
             Overview: Resumen
             User Guide: Guía de usuario
             Getting Started: Primeros pasos
+            Comparison: Comparación
+            Recipes: Recetas
+            Persistent Login Profile: Perfil de inicio de sesión persistente
+            Load Chrome Extension: Cargar extensión de Chrome
+            Docker Streamable HTTP Behind Reverse Proxy: Docker Streamable HTTP detrás de proxy inverso
+            Regional QA Through Proxy: QA regional mediante proxy
+            Connect To Claude Desktop: Conectar con Claude Desktop
+            Connect To Codex CLI: Conectar con Codex CLI
+            CI Smoke Test: Prueba smoke de CI
             Docker: Docker
             Version Compatibility: Compatibilidad de versiones
             Configuration: Configuración
@@ -191,6 +227,15 @@ plugins:
             Overview: Visão geral
             User Guide: Guia do usuário
             Getting Started: Primeiros passos
+            Comparison: Comparação
+            Recipes: Receitas
+            Persistent Login Profile: Perfil de login persistente
+            Load Chrome Extension: Carregar extensão do Chrome
+            Docker Streamable HTTP Behind Reverse Proxy: Docker Streamable HTTP atrás de proxy reverso
+            Regional QA Through Proxy: QA regional via proxy
+            Connect To Claude Desktop: Conectar ao Claude Desktop
+            Connect To Codex CLI: Conectar ao Codex CLI
+            CI Smoke Test: Teste smoke de CI
             Docker: Docker
             Version Compatibility: Compatibilidade de versões
             Configuration: Configuração
@@ -215,6 +260,15 @@ plugins:
             Overview: 概览
             User Guide: 用户指南
             Getting Started: 快速开始
+            Comparison: 对比
+            Recipes: 操作示例
+            Persistent Login Profile: 持久登录配置文件
+            Load Chrome Extension: 加载 Chrome 扩展
+            Docker Streamable HTTP Behind Reverse Proxy: 反向代理后的 Docker Streamable HTTP
+            Regional QA Through Proxy: 通过代理进行区域 QA
+            Connect To Claude Desktop: 连接到 Claude Desktop
+            Connect To Codex CLI: 连接到 Codex CLI
+            CI Smoke Test: CI 冒烟测试
             Docker: Docker
             Version Compatibility: 版本兼容性
             Configuration: 配置
@@ -239,6 +293,15 @@ plugins:
             Overview: 概要
             User Guide: ユーザーガイド
             Getting Started: はじめに
+            Comparison: 比較
+            Recipes: レシピ
+            Persistent Login Profile: 永続ログインプロファイル
+            Load Chrome Extension: Chrome 拡張機能を読み込む
+            Docker Streamable HTTP Behind Reverse Proxy: リバースプロキシ背後の Docker Streamable HTTP
+            Regional QA Through Proxy: プロキシ経由のリージョン QA
+            Connect To Claude Desktop: Claude Desktop に接続
+            Connect To Codex CLI: Codex CLI に接続
+            CI Smoke Test: CI スモークテスト
             Docker: Docker
             Version Compatibility: バージョン互換性
             Configuration: 設定
@@ -263,6 +326,15 @@ plugins:
             Overview: Überblick
             User Guide: Benutzerhandbuch
             Getting Started: Erste Schritte
+            Comparison: Vergleich
+            Recipes: Rezepte
+            Persistent Login Profile: Persistentes Login-Profil
+            Load Chrome Extension: Chrome-Erweiterung laden
+            Docker Streamable HTTP Behind Reverse Proxy: Docker Streamable HTTP hinter Reverse Proxy
+            Regional QA Through Proxy: Regionale QA über Proxy
+            Connect To Claude Desktop: Mit Claude Desktop verbinden
+            Connect To Codex CLI: Mit Codex CLI verbinden
+            CI Smoke Test: CI-Smoke-Test
             Docker: Docker
             Version Compatibility: Versionskompatibilität
             Configuration: Konfiguration
@@ -287,6 +359,15 @@ plugins:
             Overview: Vue d'ensemble
             User Guide: Guide utilisateur
             Getting Started: Premiers pas
+            Comparison: Comparaison
+            Recipes: Recettes
+            Persistent Login Profile: Profil de connexion persistant
+            Load Chrome Extension: Charger une extension Chrome
+            Docker Streamable HTTP Behind Reverse Proxy: Docker Streamable HTTP derrière un proxy inverse
+            Regional QA Through Proxy: QA régionale via proxy
+            Connect To Claude Desktop: Connecter à Claude Desktop
+            Connect To Codex CLI: Connecter à Codex CLI
+            CI Smoke Test: Test smoke CI
             Docker: Docker
             Version Compatibility: Compatibilité des versions
             Configuration: Configuration
@@ -311,6 +392,15 @@ plugins:
             Overview: अवलोकन
             User Guide: उपयोगकर्ता मार्गदर्शिका
             Getting Started: शुरुआत करें
+            Comparison: तुलना
+            Recipes: रेसिपी
+            Persistent Login Profile: स्थायी लॉगिन प्रोफ़ाइल
+            Load Chrome Extension: Chrome एक्सटेंशन लोड करें
+            Docker Streamable HTTP Behind Reverse Proxy: रिवर्स प्रॉक्सी के पीछे Docker Streamable HTTP
+            Regional QA Through Proxy: प्रॉक्सी के माध्यम से क्षेत्रीय QA
+            Connect To Claude Desktop: Claude Desktop से कनेक्ट करें
+            Connect To Codex CLI: Codex CLI से कनेक्ट करें
+            CI Smoke Test: CI स्मोक टेस्ट
             Docker: Docker
             Version Compatibility: संस्करण संगतता
             Configuration: कॉन्फ़िगरेशन
@@ -375,6 +465,16 @@ nav:
   - Overview: index.md
   - User Guide:
       - Getting Started: getting-started.md
+      - Comparison: comparison.md
+      - Recipes:
+          - Overview: recipes/index.md
+          - Persistent Login Profile: recipes/persistent-login-profile.md
+          - Load Chrome Extension: recipes/load-chrome-extension.md
+          - Docker Streamable HTTP Behind Reverse Proxy: recipes/docker-streamable-http-reverse-proxy.md
+          - Regional QA Through Proxy: recipes/regional-qa-through-proxy.md
+          - Connect To Claude Desktop: recipes/connect-claude-desktop.md
+          - Connect To Codex CLI: recipes/connect-codex-cli.md
+          - CI Smoke Test: recipes/ci-smoke-test.md
       - Docker: docker.md
       - Version Compatibility: version-compatibility.md
       - Configuration: configuration.md

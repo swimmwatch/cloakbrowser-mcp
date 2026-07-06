@@ -137,3 +137,7 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
 - [कॉन्फ़िगरेशन](configuration.md) सभी ब्रिज और अपस्ट्रीम पर्यावरण चरों को सूचीबद्ध करता है।
 - [GeoIP प्रॉक्सी मिलान](geoip-proxy-matching.md) क्षेत्र-संगत प्रॉक्सी प्रोफाइल को समझाता है।
 - [टूल्स](tools.md) यह समझाता है कि अपस्ट्रीम प्लेराइट MCP ब्राउज़र टूल्स को बिना बदले क्यों अग्रेषित किया जाता है।
+
+## अतिरिक्त व्यावहारिक रास्ते
+
+upstream Playwright MCP और इस package में चुनने के लिए [तुलना](comparison.md) देखें। तेज tasks के लिए [रेसिपी](recipes/index.md) उपयोग करें: persistent profile, extensions, reverse proxy, regional QA, Claude Desktop, Codex CLI और CI smoke test.

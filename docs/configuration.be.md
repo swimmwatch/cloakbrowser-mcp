@@ -213,3 +213,7 @@ cloakbrowser-mcp --transport streamable-http \
 
 Гатоўнасць вяртае HTTP `200`, пакуль даступная ёмістасць сеансу, і HTTP `503` калі `active + pending >= max`.
 Калі `--http-auth-token` або `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` наладжаны, абодва проба патрабуюць аднолькавага `Authorization: Bearer ...` загалоўка, як і ў запытах MCP. Без аўтэнтыфікацыйнага токена пробы адкрыты на наладжаным HTTP-адрасе злучэння.
+
+## Дадатковыя практычныя сцэнарыі
+
+Каб выбраць паміж upstream Playwright MCP і гэтым пакетам, глядзіце [параўнанне](comparison.md). Для хуткіх задач выкарыстоўвайце [рэцэпты](recipes/index.md): пастаянны профіль, пашырэнні, reverse proxy, рэгіянальнае QA, Claude Desktop, Codex CLI і smoke-тэст CI.

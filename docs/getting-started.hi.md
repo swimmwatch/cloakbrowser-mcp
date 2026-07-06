@@ -281,3 +281,7 @@ MCP क्लाइंट से टूल्स की सूची मां�
 
 - `cloakbrowser_binary_info`
 - `cloakbrowser_bridge_info`
+
+## अतिरिक्त व्यावहारिक रास्ते
+
+upstream Playwright MCP और इस package में चुनने के लिए [तुलना](comparison.md) देखें। तेज tasks के लिए [रेसिपी](recipes/index.md) उपयोग करें: persistent profile, extensions, reverse proxy, regional QA, Claude Desktop, Codex CLI और CI smoke test.

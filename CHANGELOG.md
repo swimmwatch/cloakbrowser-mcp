@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   command for Dockerfile linting.
 - Added ESLint plugin coverage for Node.js, import, Vitest, and regular
   expression checks.
+- Added comparison and recipe documentation that explains when to use
+  CloakBrowser MCP instead of plain upstream `@playwright/mcp`.
 
 ### Changed
 

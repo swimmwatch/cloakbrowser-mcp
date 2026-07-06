@@ -152,3 +152,7 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
 - [Канфігурацыя](configuration.md) пералічвае ўсе зменныя асяроддзя для bridge і upstream.
 - [Docker](docker.md) тлумачыць па змаўчанні налады асяроддзя кантэйнера і публікацыю Streamable HTTP.
 - [Інструменты](tools.md) тлумачыць, чаму інструменты браўзера upstream Playwright MCP перадаюцца без змен.
+
+## Дадатковыя практычныя сцэнарыі
+
+Каб выбраць паміж upstream Playwright MCP і гэтым пакетам, глядзіце [параўнанне](comparison.md). Для хуткіх задач выкарыстоўвайце [рэцэпты](recipes/index.md): пастаянны профіль, пашырэнні, reverse proxy, рэгіянальнае QA, Claude Desktop, Codex CLI і smoke-тэст CI.

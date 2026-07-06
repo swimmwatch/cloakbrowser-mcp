@@ -34,3 +34,7 @@ Docker vous offre un environnement d'exécution plus reproductible et isolé, ma
 ## Ce projet utilise-t-il des outils d'analyse ou de suivi ?
 
 Non. Le site de documentation n'active pas les statistiques par défaut. L'indexation par les moteurs de recherche est gérée via des métadonnées standard, `robots.txt`, la génération d'un plan du site, des balises de vérification du webmaster (facultatives) et des notifications IndexNow (facultatives).
+
+## Parcours pratiques supplémentaires
+
+Pour choisir entre Playwright MCP amont et ce paquet, consultez la [comparaison](comparison.md). Pour des tâches courtes, utilisez les [recettes](recipes/index.md): profil persistant, extensions, reverse proxy, QA régionale, Claude Desktop, Codex CLI et test smoke CI.

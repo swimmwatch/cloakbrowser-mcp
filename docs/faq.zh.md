@@ -34,3 +34,7 @@ Docker 为您提供了更具可重复性和隔离性的运行时环境，但这�
 ## 该项目是否使用分析或跟踪功能？
 
 不。该文档网站默认未启用分析功能。搜索引擎的检索通过标准元数据、`robots.txt`、网站地图生成、可选的网站管理员验证标签以及可选的 IndexNow 通知来实现。
+
+## 更多实用路径
+
+要在 upstream Playwright MCP 和本包之间选择，请查看[对比](comparison.md)。快速任务请使用[操作示例](recipes/index.md)：持久配置文件、扩展、reverse proxy、区域 QA、Claude Desktop、Codex CLI 和 CI 冒烟测试。

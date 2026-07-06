@@ -15,6 +15,9 @@ human-like mouse, keyboard, and scroll layer. It is useful when QA needs more
 realistic pacing, pointer movement, typing cadence, and scroll behavior than
 standard automation provides.
 
+For practical setup flows that can combine humanized input with profiles, proxy
+settings, and MCP clients, start from the [Recipes](recipes/index.md) section.
+
 The bridge does not add new browser tools or change upstream Playwright MCP
 schemas. It applies CloakBrowser's page interaction patch during Playwright MCP
 page initialization, so existing tools continue to work with the same inputs.
@@ -157,4 +160,5 @@ checks.
 
 - [Configuration](configuration.md) lists all bridge and upstream environment variables.
 - [GeoIP Proxy Matching](geoip-proxy-matching.md) explains region-consistent proxy profiles.
+- [Recipes](recipes/index.md) lists task-focused setup paths.
 - [Tools](tools.md) explains why upstream Playwright MCP browser tools are forwarded unchanged.

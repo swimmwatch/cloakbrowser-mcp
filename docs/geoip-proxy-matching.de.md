@@ -176,3 +176,7 @@ Richtlinienprüfungen betrachtet werden.
 - [Konfiguration](configuration.md) listet alle Bridge- und Upstream-Umgebungsvariablen auf.
 - [Docker](docker.md) erläutert die Standardwerte für die Container-Laufzeit und die Streamable-HTTP-Veröffentlichung.
 - [Tools](tools.md) erläutert, warum die Upstream-Browser-Tools von Playwright MCP unverändert weitergeleitet werden.
+
+## Weitere praktische Pfade
+
+Für die Entscheidung zwischen upstream Playwright MCP und diesem Paket nutzen Sie den [Vergleich](comparison.md). Für kurze Aufgaben nutzen Sie die [Rezepte](recipes/index.md): persistentes Profil, Erweiterungen, reverse proxy, regionale QA, Claude Desktop, Codex CLI und CI-Smoke-Test.

@@ -158,3 +158,7 @@ Elle ne doit pas être considérée comme un moyen de contourner les contrôles 
 - [Configuration](configuration.md) répertorie toutes les variables d'environnement du pont et de l'en amont.
 - [Correspondance de proxy GeoIP](geoip-proxy-matching.md) explique les profils de proxy cohérents au niveau régional.
 - [Outils](tools.md) explique pourquoi les outils de navigateur Playwright MCP en amont sont transférés tels quels.
+
+## Parcours pratiques supplémentaires
+
+Pour choisir entre Playwright MCP amont et ce paquet, consultez la [comparaison](comparison.md). Pour des tâches courtes, utilisez les [recettes](recipes/index.md): profil persistant, extensions, reverse proxy, QA régionale, Claude Desktop, Codex CLI et test smoke CI.

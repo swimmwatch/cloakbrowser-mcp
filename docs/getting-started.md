@@ -11,7 +11,7 @@ Use the published npm package or Docker image. Installing from source is only ne
 
 Choose npm when your MCP client already runs on your machine and Node.js is available. Choose Docker when you want a repeatable runtime with the upstream Playwright MCP base image and the CloakBrowser cache prepared inside the container.
 
-For a quick overview of common setup questions, see the [FAQ](faq.md).
+For a quick overview of common setup questions, see the [FAQ](faq.md). If you are deciding between upstream `@playwright/mcp` and this package, start with the [comparison](comparison.md). If you already know the task, use the [recipes](recipes/index.md).
 
 ## npm
 
@@ -94,6 +94,8 @@ npx -y cloakbrowser-mcp@latest
 Use Docker when you want a repeatable runtime. Keep `-i` so stdio stays connected and add `--init` so browser child processes are reaped correctly.
 
 For Streamable HTTP clients, start the server separately and configure the client URL as `http://127.0.0.1:3000/mcp` or `https://127.0.0.1:3000/mcp`. If `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` or `--http-auth-token` is set, send the same Bearer token to `/mcp`, `/healthz`, and `/readyz`.
+
+For shorter task-focused setup paths, see the [Claude Desktop](recipes/connect-claude-desktop.md), [Codex CLI](recipes/connect-codex-cli.md), and [Docker reverse proxy](recipes/docker-streamable-http-reverse-proxy.md) recipes.
 
 === "Codex CLI"
 

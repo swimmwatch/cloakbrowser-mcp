@@ -221,3 +221,7 @@ cloakbrowser-mcp --transport streamable-http \
 
 当会话容量可用时，就绪状态返回 HTTP `200`，而当 `503`，而当 `active + pending >= max` 时则返回 `active + pending >= max`。
 如果配置了 `--http-auth-token` 或 `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` 已配置，则这两个探针都需要与 MCP 请求相同的 `Authorization: Bearer ...` 标头。 如果没有身份验证令牌，探针将在配置的 HTTP 绑定地址上保持开放状态。
+
+## 更多实用路径
+
+要在 upstream Playwright MCP 和本包之间选择，请查看[对比](comparison.md)。快速任务请使用[操作示例](recipes/index.md)：持久配置文件、扩展、reverse proxy、区域 QA、Claude Desktop、Codex CLI 和 CI 冒烟测试。

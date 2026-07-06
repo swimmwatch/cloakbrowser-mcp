@@ -166,3 +166,7 @@ npm run docker:smoke
 Dockerfile रनटाइम बेस के रूप में पिन किए गए आधिकारिक Playwright MCP इमेज का उपयोग करता है, बिल्ड के दौरान उपलब्ध Debian सुरक्षा अपडेट्स लागू करता है, रनटाइम इमेज से अनावश्यक ग्लोबल npm पेलोड को हटाता है, और `/opt/cloakbrowser-mcp`।
 
 रिलीज़ वर्कफ़्लो SBOM और उत्पत्ति प्रमाणीकरण प्रकाशित करता है, स्रोत, संशोधन, संस्करण, लाइसेंस, बेस इमेज नाम और बेस इमेज डिजीस्ट के लिए OCI लेबल शामिल करता है, और प्रकाशित करने से पहले निर्मित इमेज को Trivy से स्कैन करता है।
+
+## अतिरिक्त व्यावहारिक रास्ते
+
+upstream Playwright MCP और इस package में चुनने के लिए [तुलना](comparison.md) देखें। तेज tasks के लिए [रेसिपी](recipes/index.md) उपयोग करें: persistent profile, extensions, reverse proxy, regional QA, Claude Desktop, Codex CLI और CI smoke test.

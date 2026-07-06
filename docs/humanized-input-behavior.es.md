@@ -157,3 +157,7 @@ No debe considerarse una forma de eludir los controles de acceso ni las comproba
 - [Configuración](configuration.md) enumera todas las variables de entorno del puente y del servidor de origen.
 - [Coincidencia de proxy GeoIP](geoip-proxy-matching.md) explica los perfiles de proxy coherentes con la región.
 - [Herramientas](tools.md) explica por qué las herramientas del navegador Playwright MCP de origen se reenvían sin modificaciones.
+
+## Más rutas prácticas
+
+Para elegir entre Playwright MCP upstream y este paquete, consulta la [comparación](comparison.md). Para tareas rápidas, usa las [recetas](recipes/index.md): perfil persistente, extensiones, reverse proxy, QA regional, Claude Desktop, Codex CLI y prueba smoke de CI.

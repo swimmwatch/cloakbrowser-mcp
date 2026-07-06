@@ -1,5 +1,5 @@
 ---
-description: 用于 CloakBrowser 浏览器自动化的 Playwright MCP 桥接器，支持 Docker、Streamable HTTP、持久化配置文件、经过验证的上下文选项、扩展加载、GeoIP 代理匹配和拟人化输入。
+description: 可作为 Playwright MCP drop-in 的浏览器自动化服务器，保持 upstream 工具不变，使用 CloakBrowser Chromium，并提供 npm、Docker 和 Streamable HTTP 打包。
 icon: material/home
 tags:
   - User Guide
@@ -11,8 +11,8 @@ tags:
 
 <p class="clb-hero-actions" align="center">
   <a class="md-button md-button--primary" href="getting-started/">快速开始</a>
-  <a class="md-button" href="tools/">工具</a>
-  <a class="md-button" href="docker/">Docker</a>
+  <a class="md-button" href="comparison/">对比</a>
+  <a class="md-button" href="recipes/">操作示例</a>
 </p>
 
 # CloakBrowser MCP 服务器
@@ -94,3 +94,7 @@ tags:
 - [工具](tools.md)，用于满足工具界面的预期以及与上游版本保持一致。
 - [常见问题解答](faq.md)，涵盖常见的安装、Docker、功能一致性和安全问题。
 - [贡献者指南](contributor-guide.md)，涵盖开发、测试、架构及发布详情。
+
+## 更多实用路径
+
+要在 upstream Playwright MCP 和本包之间选择，请查看[对比](comparison.md)。快速任务请使用[操作示例](recipes/index.md)：持久配置文件、扩展、reverse proxy、区域 QA、Claude Desktop、Codex CLI 和 CI 冒烟测试。

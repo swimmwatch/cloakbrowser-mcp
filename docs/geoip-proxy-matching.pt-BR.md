@@ -175,3 +175,7 @@ Ele não deve ser tratado como uma forma de contornar controles de acesso ou ver
 - [Configuração](configuration.md) lista todas as variáveis de ambiente da ponte e do upstream.
 - [Docker](docker.md) explica os padrões de tempo de execução do contêiner e a publicação HTTP do Streamable.
 - [Ferramentas](tools.md) explica por que as ferramentas de navegador do Playwright MCP a montante são encaminhadas sem alterações.
+
+## Mais caminhos práticos
+
+Para escolher entre o Playwright MCP upstream e este pacote, consulte a [comparação](comparison.md). Para tarefas rápidas, use as [receitas](recipes/index.md): perfil persistente, extensões, reverse proxy, QA regional, Claude Desktop, Codex CLI e teste smoke de CI.

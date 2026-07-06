@@ -1,5 +1,5 @@
 ---
-description: CloakBrowser ब्राउज़र ऑटोमेशन के लिए Playwright MCP ब्रिज, जिसमें Docker, Streamable HTTP, persistent profiles, validated context options, extension loading, GeoIP प्रॉक्सी मिलान, और humanized input शामिल हैं।
+description: Playwright MCP drop-in compatible browser automation server, unchanged upstream tools, CloakBrowser Chromium और npm, Docker, Streamable HTTP packaging के साथ।
 icon: material/home
 tags:
   - User Guide
@@ -11,13 +11,15 @@ tags:
 
 <p class="clb-hero-actions" align="center">
   <a class="md-button md-button--primary" href="getting-started/">शुरू करें</a>
-  <a class="md-button" href="tools/">टूल</a>
-  <a class="md-button" href="docker/">Docker</a>
+  <a class="md-button" href="comparison/">तुलना</a>
+  <a class="md-button" href="recipes/">रेसिपी</a>
 </p>
 
 # क्लोकब्राउज़र एमसीपी सर्वर
 
-`cloakbrowser-mcp` एक Model Context Protocol browser automation server है, जो CloakBrowser Chromium binary के साथ upstream `@playwright/mcp` चलाता है। इसका उपयोग तब करें जब आपको Playwright MCP-compatible browser tools, CloakBrowser चलाना, npm installation, Docker इमेज, Streamable HTTP sessions, regional QA के लिए GeoIP-aware proxy मिलान या interaction-sensitive flows के लिए मानवीय input behavior चाहिए।
+`cloakbrowser-mcp` Playwright MCP drop-in compatible browser automation server है, जिसमें upstream tools unchanged रहते हैं, CloakBrowser Chromium चलता है, और npm, Docker तथा Streamable HTTP packaging मिलती है। यह upstream `@playwright/mcp` को canonical browser tool surface की तरह चलाता है और उसके आसपास deployment-oriented CloakBrowser चलाने वाली सुविधाएँ जोड़ता है।
+
+इसे तब उपयोग करें जब आपको Playwright MCP-compatible browser tools के साथ persistent profiles, extension loading, context validation, regional QA के लिए GeoIP proxy मिलान या मानवीय input चाहिए।
 
 वर्तमान संस्करण: {{ project.version_tag }}.
 
@@ -94,3 +96,7 @@ tags:
 - [टूल्स](tools.md) टूल-सर्फेस अपेक्षाओं और अपस्ट्रीम समता के लिए।
 - [FAQ](faq.md) सामान्य इंस्टॉलेशन, डॉकर, पेरिटी और सुरक्षा प्रश्नों के लिए।
 - [योगदानकर्ता गाइड](contributor-guide.md) विकास, परीक्षण, वास्तुकला, और रिलीज़ विवरण के लिए।
+
+## अतिरिक्त व्यावहारिक रास्ते
+
+upstream Playwright MCP और इस package में चुनने के लिए [तुलना](comparison.md) देखें। तेज tasks के लिए [रेसिपी](recipes/index.md) उपयोग करें: persistent profile, extensions, reverse proxy, regional QA, Claude Desktop, Codex CLI और CI smoke test.

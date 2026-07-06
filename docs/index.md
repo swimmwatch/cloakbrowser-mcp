@@ -1,5 +1,5 @@
 ---
-description: Playwright MCP bridge for CloakBrowser browser automation with Docker, Streamable HTTP, persistent profiles, validated context options, extension loading, GeoIP proxy matching, and humanized input.
+description: Drop-in Playwright MCP-compatible browser automation server with unchanged upstream tools, CloakBrowser Chromium, and production-ready npm, Docker, and Streamable HTTP packaging.
 icon: material/home
 tags:
   - User Guide
@@ -11,13 +11,15 @@ tags:
 
 <p class="clb-hero-actions" align="center">
   <a class="md-button md-button--primary" href="getting-started/">Get started</a>
-  <a class="md-button" href="tools/">Tools</a>
-  <a class="md-button" href="docker/">Docker</a>
+  <a class="md-button" href="comparison/">Compare</a>
+  <a class="md-button" href="recipes/">Recipes</a>
 </p>
 
 # CloakBrowser MCP Server
 
-`cloakbrowser-mcp` is a Model Context Protocol browser automation server that runs upstream `@playwright/mcp` with the CloakBrowser Chromium binary. Use it when you want Playwright MCP-compatible browser tools, CloakBrowser execution, npm installation, Docker images, Streamable HTTP sessions, GeoIP-aware proxy matching for regional QA, or humanized input behavior for interaction-sensitive flows.
+`cloakbrowser-mcp` is a drop-in Playwright MCP-compatible browser automation server with unchanged upstream tools, CloakBrowser Chromium, and production-ready npm, Docker, and Streamable HTTP packaging. It runs upstream `@playwright/mcp` as the canonical browser tool surface and adds deployment-oriented CloakBrowser execution features around it.
+
+Use it when you want Playwright MCP-compatible browser tools plus persistent profiles, extension loading, context validation, GeoIP-aware proxy matching for regional QA, or humanized input behavior for interaction-sensitive flows.
 
 Current version: {{ project.version_tag }}.
 
@@ -85,9 +87,13 @@ The upstream Playwright MCP tool contracts are authoritative. This project adds 
 - `cloakbrowser_binary_info`
 - `cloakbrowser_bridge_info`
 
+See [`@playwright/mcp` vs `cloakbrowser-mcp`](comparison.md) for a neutral feature comparison.
+
 ## Next Steps
 
 - [Getting Started](getting-started.md) for npm, Docker, and MCP client configuration.
+- [`@playwright/mcp` vs `cloakbrowser-mcp`](comparison.md) for deciding when the bridge is useful.
+- [Recipes](recipes/index.md) for persistent login profiles, extensions, reverse proxies, regional QA, MCP clients, and CI smoke tests.
 - [Configuration](configuration.md) for supported environment variables.
 - [GeoIP Proxy Matching](geoip-proxy-matching.md) for regional QA, runtime proxy metadata, and multi-location Streamable HTTP sessions.
 - [Humanized Input Behavior](humanized-input-behavior.md) for interaction realism, setup, and use cases.

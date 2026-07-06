@@ -227,3 +227,7 @@ Cuando el puente funciona con `--transport streamable-http`, expone puntos final
 
 La disponibilidad devuelve HTTP `200` mientras haya capacidad de sesión disponible y HTTP `503` cuando `active + pending >= max`.
 Si se configura `--http-auth-token` o `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN`, ambas sondas requieren el mismo encabezado `Authorization: Bearer ...` que las solicitudes MCP. Sin un token de autenticación, las sondas permanecen abiertas en la dirección de enlace HTTP configurada.
+
+## Más rutas prácticas
+
+Para elegir entre Playwright MCP upstream y este paquete, consulta la [comparación](comparison.md). Para tareas rápidas, usa las [recetas](recipes/index.md): perfil persistente, extensiones, reverse proxy, QA regional, Claude Desktop, Codex CLI y prueba smoke de CI.

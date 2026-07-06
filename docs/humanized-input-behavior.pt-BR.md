@@ -158,3 +158,7 @@ Ele não deve ser utilizado como forma de contornar controles de acesso ou verif
 - [Configuração](configuration.md) lista todas as variáveis de ambiente da ponte e do upstream.
 - [Correspondência de proxy GeoIP](geoip-proxy-matching.md) explica os perfis de proxy consistentes por região.
 - [Ferramentas](tools.md) explica por que as ferramentas de navegador do Playwright MCP upstream são encaminhadas sem alterações.
+
+## Mais caminhos práticos
+
+Para escolher entre o Playwright MCP upstream e este pacote, consulte a [comparação](comparison.md). Para tarefas rápidas, use as [receitas](recipes/index.md): perfil persistente, extensões, reverse proxy, QA regional, Claude Desktop, Codex CLI e teste smoke de CI.
