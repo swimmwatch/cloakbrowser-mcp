@@ -1,0 +1,31 @@
+{
+  "name": "cloakbrowser-mcp-30-second-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "render": "npm run render:video && npm run render:poster",
+    "normalize:video": "ffmpeg -y -i ../../../docs/assets/videos/30-second-demo.raw.mp4 -an -c:v libx264 -pix_fmt yuv420p -movflags +faststart ../../../docs/assets/videos/30-second-demo.mp4 && node -e \"require('node:fs').rmSync('../../../docs/assets/videos/30-second-demo.raw.mp4',{force:true})\"",
+    "render:poster": "remotion still src/index.tsx CloakBrowserMcpDemo ../../../docs/assets/videos/30-second-demo-poster.png --frame=64 --overwrite",
+    "render:video": "remotion render src/index.tsx CloakBrowserMcpDemo ../../../docs/assets/videos/30-second-demo.raw.mp4 --codec=h264 --pixel-format=yuv420p --overwrite && npm run normalize:video",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@remotion/animated-emoji": "4.0.485",
+    "@remotion/cli": "4.0.485",
+    "@remotion/effects": "4.0.485",
+    "@remotion/google-fonts": "4.0.485",
+    "@remotion/lottie": "4.0.485",
+    "@remotion/motion-blur": "4.0.485",
+    "@remotion/noise": "4.0.485",
+    "@remotion/shapes": "4.0.485",
+    "@remotion/transitions": "4.0.485",
+    "@types/node": "26.0.0",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "lottie-web": "5.13.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "remotion": "4.0.485",
+    "typescript": "6.0.3"
+  }
+}

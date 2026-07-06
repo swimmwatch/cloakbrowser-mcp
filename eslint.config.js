@@ -14,7 +14,18 @@ import vitest from 'eslint-plugin-vitest';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'coverage/**', 'artifacts/**', 'node_modules/**', '.venv-docs/**', 'site/**'],
+    ignores: [
+      'dist/**',
+      'coverage/**',
+      'artifacts/**',
+      'node_modules/**',
+      '.agents/skills/brag/**',
+      '.agents/skills/humanizer/**',
+      '.agents/skills/remotion/**',
+      '.venv-docs/**',
+      'site/**',
+      'tools/video/**/node_modules/**',
+    ],
   },
   js.configs.recommended,
   n.configs['flat/recommended-module'],

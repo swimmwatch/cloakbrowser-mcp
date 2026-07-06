@@ -31,6 +31,12 @@
 
 `cloakbrowser-mcp` is a drop-in Playwright MCP-compatible browser automation server with unchanged upstream tools, [CloakBrowser](https://github.com/CloakHQ/CloakBrowser) Chromium, and production-ready npm, Docker, and Streamable HTTP packaging. It runs upstream [`@playwright/mcp`](https://github.com/microsoft/playwright-mcp) as the canonical tool surface and points that runtime at CloakBrowser.
 
+## 30-second demo
+
+[![30-second demo showing CloakBrowser MCP startup, humanized research prompt typing, web automation, and testing workflows](https://raw.githubusercontent.com/swimmwatch/cloakbrowser-mcp/main/docs/assets/videos/30-second-demo-poster.png)](https://raw.githubusercontent.com/swimmwatch/cloakbrowser-mcp/main/docs/assets/videos/30-second-demo.mp4)
+
+Run `npx -y cloakbrowser-mcp@latest`, connect Claude Desktop or Codex CLI, ask for web research, daily automation, or testing in plain English, and inspect the real browser result.
+
 Documentation: [swimmwatch.github.io/cloakbrowser-mcp](https://swimmwatch.github.io/cloakbrowser-mcp/) · [Comparison](https://swimmwatch.github.io/cloakbrowser-mcp/comparison/) · [Recipes](https://swimmwatch.github.io/cloakbrowser-mcp/recipes/)
 
 Use it when you need:

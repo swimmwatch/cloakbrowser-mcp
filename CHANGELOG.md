@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   expression checks.
 - Added comparison and recipe documentation that explains when to use
   CloakBrowser MCP instead of plain upstream `@playwright/mcp`.
+- Added a README demo video covering npm startup, humanized prompt typing, web
+  research, daily automation, and testing workflows.
 
 ### Changed
 
