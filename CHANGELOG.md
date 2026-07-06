@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Added a Hadolint pull request check and Docker-backed `npm run docker:lint`
   command for Dockerfile linting.
+- Added ESLint plugin coverage for Node.js, import, Vitest, and regular
+  expression checks.
 
 ### Changed
 

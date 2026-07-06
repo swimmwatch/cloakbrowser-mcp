@@ -91,13 +91,17 @@
     "socks-proxy-agent": "^10.1.0"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.39.4",
     "@types/node": "^26.0.0",
     "@vitest/coverage-v8": "^4.1.9",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
-    "eslint": "^10.5.0",
+    "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import-x": "^4.17.1",
+    "eslint-plugin-n": "^18.2.1",
+    "eslint-plugin-regexp": "^3.1.1",
+    "eslint-plugin-vitest": "^0.5.4",
     "fast-check": "^4.8.0",
     "prettier": "^3.8.4",
     "tsx": "^4.22.4",
@@ -107,7 +111,8 @@
   },
   "overrides": {
     "vite": "8.0.16",
-    "esbuild": "0.28.1"
+    "esbuild": "0.28.1",
+    "@typescript-eslint/utils": "^8.62.1"
   },
   "keywords": [
     "mcp",
