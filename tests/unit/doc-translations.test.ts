@@ -16,6 +16,7 @@ interface DocTranslationsModule {
   ): StaleTranslation[];
   isLocalizedMarkdown(fileName: string, localeSuffixes: Set<string>): boolean;
   localizedPath(sourceRel: string, locale: string): string;
+  normalizeDocPath(filePath: string): string;
   postProcessLocalizedMarkdown(
     markdown: string,
     locale: string,
@@ -117,7 +118,9 @@ describe('documentation translation helpers', () => {
 
     expect(translations.isLocalizedMarkdown('guide.es.md', suffixes)).toBe(true);
     expect(translations.isLocalizedMarkdown('guide.md', suffixes)).toBe(false);
+    expect(translations.normalizeDocPath('nested\\guide.md')).toBe('nested/guide.md');
     expect(translations.localizedPath('nested/guide.md', 'es')).toBe('nested/guide.es.md');
+    expect(translations.localizedPath('nested\\guide.md', 'es')).toBe('nested/guide.es.md');
     expect(
       translations.postProcessLocalizedMarkdown('Get started', 'es', {
         es: { 'Get started': 'Primeros pasos' },
@@ -233,5 +236,40 @@ describe('documentation translation helpers', () => {
     if (!refreshedTranslationEntry) throw new Error('missing refreshed test translation entry');
     expect(refreshedTranslationEntry.translationHash).toBe(translations.sha256(translatedText));
     expect(manifest.sources['removed.md']).toBeUndefined();
+  });
+
+  it('normalizes Windows-style source paths before checking the manifest', () => {
+    const docsDir = createTempRoot();
+    const sourceText = '# Recipe\n';
+    const translatedText = '# Receta\n';
+    const source: SourceDoc = {
+      rel: 'recipes\\guide.md',
+      sourceHash: translations.sha256(sourceText),
+      sourceText,
+    };
+    writeDoc(docsDir, 'recipes/guide.es.md', translatedText);
+
+    const manifest: TranslationManifest = {
+      sources: {
+        'recipes/guide.md': {
+          sourceHash: source.sourceHash,
+          translations: {
+            es: {
+              path: 'recipes/guide.es.md',
+              sourceHash: source.sourceHash,
+              translationHash: translations.sha256(translatedText),
+            },
+          },
+        },
+      },
+    };
+
+    expect(
+      translations.findStaleTranslations([source], manifest, {
+        docsDir,
+        locales,
+        validateLocalizedMarkdown: () => undefined,
+      }),
+    ).toEqual([]);
   });
 });

@@ -7,6 +7,7 @@ import {
   createLocaleSuffixSet,
   findStaleTranslations,
   isLocalizedMarkdown,
+  normalizeDocPath,
   postProcessLocalizedMarkdown,
   pruneManifest,
   refreshManifest,
@@ -501,7 +502,7 @@ function discoverEnglishDocs() {
     for (const entry of readdirSync(directory)) {
       const path = join(directory, entry);
       const stats = statSync(path);
-      const rel = relative(docsDir, path).replaceAll('\\\\', '/');
+      const rel = normalizeDocPath(relative(docsDir, path));
       const parts = rel.split('/');
 
       if (stats.isDirectory()) {

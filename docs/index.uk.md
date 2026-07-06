@@ -19,6 +19,17 @@ tags:
 
 `cloakbrowser-mcp` — це drop-in сумісний із Playwright MCP сервер браузерної автоматизації з незмінними upstream-інструментами, CloakBrowser Chromium і готовим пакуванням npm, Docker та Streamable HTTP. Він запускає upstream `@playwright/mcp` як канонічну поверхню браузерних інструментів і додає навколо неї можливості запуску CloakBrowser для розгортання.
 
+## 30-секундна демонстрація
+
+<div class="clb-demo-video">
+  <video controls playsinline preload="metadata" poster="assets/videos/30-second-demo-poster.png">
+    <source src="assets/videos/30-second-demo.mp4" type="video/mp4" />
+    <a href="assets/videos/30-second-demo.mp4">Завантажити демонстраційне відео.</a>
+  </video>
+</div>
+
+<p class="clb-demo-caption">Подивіться перший запуск: запустіть npm-пакет, підключіть MCP-клієнт, попросіть виконати веб-дослідження, автоматизацію або тестування й перевірте результат у справжньому браузері.</p>
+
 Використовуйте його, коли потрібні сумісні з Playwright MCP браузерні інструменти плюс постійні профілі, завантаження розширень, перевірка контексту, зіставлення GeoIP проксі для регіонального QA або людиноподібне введення.
 
 Поточна версія: {{ project.version_tag }}.

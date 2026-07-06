@@ -19,6 +19,17 @@ tags:
 
 `cloakbrowser-mcp` 是一个基于模型上下文协议（Model Context Protocol）的浏览器自动化服务器，它在上游运行 `@playwright/mcp` 并配合 CloakBrowser Chromium 二进制文件使用。 当您需要兼容 Playwright MCP 的浏览器工具、CloakBrowser 执行、npm 安装、Docker 镜像、可流式传输的 HTTP 会话、支持 GeoIP 的代理匹配（用于区域性质量保证），或针对交互敏感流程的人性化输入行为时，请使用该服务器。
 
+## 30 秒演示
+
+<div class="clb-demo-video">
+  <video controls playsinline preload="metadata" poster="assets/videos/30-second-demo-poster.png">
+    <source src="assets/videos/30-second-demo.mp4" type="video/mp4" />
+    <a href="assets/videos/30-second-demo.mp4">下载演示视频。</a>
+  </video>
+</div>
+
+<p class="clb-demo-caption">观看首次运行：启动 npm 包，连接 MCP 客户端，请求 Web 研究、自动化或测试，并检查真实浏览器中的结果。</p>
+
 当前版本：{{ project.version_tag }}。
 
 ## 版本兼容性

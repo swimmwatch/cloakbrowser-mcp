@@ -17,7 +17,8 @@ export function isLocalizedMarkdown(fileName, localeSuffixes) {
 export function findStaleTranslations(sources, manifest, { docsDir, locales, validateLocalizedMarkdown }) {
   const stale = [];
 
-  for (const source of sources) {
+  for (const rawSource of sources) {
+    const source = normalizeSourceDoc(rawSource);
     const sourceEntry = manifest.sources[source.rel];
 
     for (const localeConfig of locales) {
@@ -75,7 +76,7 @@ function getStaleTranslationReason(source, status) {
 }
 
 export function pruneManifest(manifest, sources, { locales }) {
-  const sourceRels = new Set(sources.map(({ rel }) => rel));
+  const sourceRels = new Set(sources.map(({ rel }) => normalizeDocPath(rel)));
   const localeCodes = new Set(locales.map(({ locale }) => locale));
 
   for (const sourceRel of Object.keys(manifest.sources)) {
@@ -101,7 +102,8 @@ export function refreshManifest(
   sources,
   { docsDir, locales, validateLocalizedMarkdown, now = () => new Date().toISOString() },
 ) {
-  for (const source of sources) {
+  for (const rawSource of sources) {
+    const source = normalizeSourceDoc(rawSource);
     const sourceEntry = (manifest.sources[source.rel] ??= {
       sourceHash: source.sourceHash,
       translations: {},
@@ -137,7 +139,18 @@ export function refreshManifest(
 }
 
 export function localizedPath(sourceRel, locale) {
-  return sourceRel.replace(/\.md$/u, `.${locale}.md`);
+  return normalizeDocPath(sourceRel).replace(/\.md$/u, `.${locale}.md`);
+}
+
+export function normalizeDocPath(filePath) {
+  return filePath.replaceAll('\\', '/');
+}
+
+function normalizeSourceDoc(source) {
+  return {
+    ...source,
+    rel: normalizeDocPath(source.rel),
+  };
 }
 
 export function postProcessLocalizedMarkdown(markdown, locale, localizedPhraseReplacements) {

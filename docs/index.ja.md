@@ -19,6 +19,17 @@ tags:
 
 `cloakbrowser-mcp` は、CloakBrowser Chromium バイナリを使用して `@playwright/mcp` をアップストリームで実行する、Model Context Protocol 対応のブラウザ自動化サーバーです。 Playwright MCP 互換のブラウザツール、CloakBrowser の実行、npm インストール、Docker イメージ、ストリーム可能な HTTP セッション、地域別の QA 向けの GeoIP 対応プロキシマッチング、またはインタラクションに敏感なフロー向けのヒューマナイズされた入力動作が必要な場合に利用してください。
 
+## 30秒デモ
+
+<div class="clb-demo-video">
+  <video controls playsinline preload="metadata" poster="assets/videos/30-second-demo-poster.png">
+    <source src="assets/videos/30-second-demo.mp4" type="video/mp4" />
+    <a href="assets/videos/30-second-demo.mp4">デモ動画をダウンロードする。</a>
+  </video>
+</div>
+
+<p class="clb-demo-caption">最初の実行を確認できます。npm パッケージを起動し、MCP クライアントを接続して、Web 調査、自動化、またはテストを依頼し、実際のブラウザー結果を確認します。</p>
+
 現在のバージョン：{{ project.version_tag }}。
 
 ## バージョンの互換性

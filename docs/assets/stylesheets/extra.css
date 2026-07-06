@@ -28,6 +28,25 @@
   margin: 0 0 2rem;
 }
 
+.md-typeset .clb-demo-video {
+  margin: 1.25rem 0 0.65rem;
+}
+
+.md-typeset .clb-demo-video video {
+  background: #0f172a;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.45rem;
+  box-shadow: 0 0.65rem 1.7rem rgb(15 23 42 / 12%);
+  display: block;
+  width: 100%;
+}
+
+.md-typeset .clb-demo-caption {
+  color: var(--md-default-fg-color--light);
+  font-size: 0.9rem;
+  margin: 0 0 1.6rem;
+}
+
 .md-typeset .grid.cards > ul > li {
   border-radius: 0.35rem;
 }

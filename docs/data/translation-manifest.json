@@ -795,77 +795,77 @@
       }
     },
     "index.md": {
-      "sourceHash": "cb9b7a0fdc7a8360d8d7dc1a69fb2992cfd36c86d940187ab2dbd0c929e87b11",
+      "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
       "translations": {
         "ru": {
           "path": "index.ru.md",
-          "sourceHash": "cb9b7a0fdc7a8360d8d7dc1a69fb2992cfd36c86d940187ab2dbd0c929e87b11",
-          "translationHash": "c68ecd2dc4cde0cb75badf7bd274389dbff6a33c00b3c519b53bb9857be6ed0c",
+          "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
+          "translationHash": "9f0198356b18e10afb96e02f9664d199dd3735d45e17c70f2bf5a3fb19410339",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T14:26:47.978Z"
+          "updatedAt": "2026-07-06T22:53:59.012Z"
         },
         "be": {
           "path": "index.be.md",
-          "sourceHash": "cb9b7a0fdc7a8360d8d7dc1a69fb2992cfd36c86d940187ab2dbd0c929e87b11",
-          "translationHash": "fe8d790dfedbf1233271bf741ff720165be1aef9843882687c8fafd0195e08e9",
+          "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
+          "translationHash": "16a6602bc5388790224d226165c6bedf3c2c0fcffd58caec12bf2f11ef9ba148",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T14:26:47.978Z"
+          "updatedAt": "2026-07-06T22:53:59.012Z"
         },
         "uk": {
           "path": "index.uk.md",
-          "sourceHash": "cb9b7a0fdc7a8360d8d7dc1a69fb2992cfd36c86d940187ab2dbd0c929e87b11",
-          "translationHash": "f2f25d1a7cde8272a6073e8c1f1144183111a7df348544ff756ec8d16397b9f2",
+          "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
+          "translationHash": "81f7a44a9c540314a83c0b730b0f9d8ce4848346ce5b7642f532a604ccca5e9c",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T14:26:47.978Z"
+          "updatedAt": "2026-07-06T22:53:59.012Z"
         },
         "es": {
           "path": "index.es.md",
-          "sourceHash": "cb9b7a0fdc7a8360d8d7dc1a69fb2992cfd36c86d940187ab2dbd0c929e87b11",
-          "translationHash": "ee9c9bbfca6a0d37f2188d32cb5fb03656f7e09a9648805d78b784f9c05770d5",
+          "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
+          "translationHash": "f9c8f1156a8dc0101101fd09ec93a2f18b3b57a6aa95c042ab38741168155b57",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T14:26:47.978Z"
+          "updatedAt": "2026-07-06T22:53:59.012Z"
         },
         "pt-BR": {
           "path": "index.pt-BR.md",
-          "sourceHash": "cb9b7a0fdc7a8360d8d7dc1a69fb2992cfd36c86d940187ab2dbd0c929e87b11",
-          "translationHash": "c8356a4638fa44b570448d8c3b1215a468169fb4a5676417d9d420d4f53d9899",
+          "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
+          "translationHash": "a3be7ec8a0a0ee26963e17bb9deebb63f715a481c9c97d9774f1a1b260852bf1",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T14:26:47.978Z"
+          "updatedAt": "2026-07-06T22:53:59.012Z"
         },
         "zh": {
           "path": "index.zh.md",
-          "sourceHash": "cb9b7a0fdc7a8360d8d7dc1a69fb2992cfd36c86d940187ab2dbd0c929e87b11",
-          "translationHash": "816e9c92f0aaa4f105bdb4fb52bf2a6e79f2fdcf060c550317aec8f1bfe96ec2",
+          "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
+          "translationHash": "cdce432f603cce0c6f842d076529948fc43dec9d0fcfcdfcfc03e86194d242ba",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T14:26:47.978Z"
+          "updatedAt": "2026-07-06T22:53:59.012Z"
         },
         "ja": {
           "path": "index.ja.md",
-          "sourceHash": "cb9b7a0fdc7a8360d8d7dc1a69fb2992cfd36c86d940187ab2dbd0c929e87b11",
-          "translationHash": "4ccab649945e131237409050a67d83a7175e7410efabd4de4f84132fe55e0149",
+          "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
+          "translationHash": "f0b10de13d92d546fbf6abe9538be28e4fc14e43c04b353a39b036a8520028e5",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T14:26:47.978Z"
+          "updatedAt": "2026-07-06T22:53:59.012Z"
         },
         "de": {
           "path": "index.de.md",
-          "sourceHash": "cb9b7a0fdc7a8360d8d7dc1a69fb2992cfd36c86d940187ab2dbd0c929e87b11",
-          "translationHash": "c39771f43cebfe9ba866cce11e5f9a973442a05683b28bc6a036ba8afa39ed4f",
+          "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
+          "translationHash": "f3dea3a6623aeded231feb99b0e1f85480bc0d7ce84cc1a1939c7961d9682eb6",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T14:26:47.978Z"
+          "updatedAt": "2026-07-06T22:53:59.012Z"
         },
         "fr": {
           "path": "index.fr.md",
-          "sourceHash": "cb9b7a0fdc7a8360d8d7dc1a69fb2992cfd36c86d940187ab2dbd0c929e87b11",
-          "translationHash": "4444146f2307655ca63873d3ee4c31b46401fca8fbcfc5a247fa1bac76697a1c",
+          "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
+          "translationHash": "cbea6a2f992a9ddbcefa199221888034539795581d9fc53b38571088faa77a57",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T14:26:47.978Z"
+          "updatedAt": "2026-07-06T22:53:59.012Z"
         },
         "hi": {
           "path": "index.hi.md",
-          "sourceHash": "cb9b7a0fdc7a8360d8d7dc1a69fb2992cfd36c86d940187ab2dbd0c929e87b11",
-          "translationHash": "1ce2cea71337c5fe3ac3f15ab1d504ae2915c633b196b4be649f753bd53c10ad",
+          "sourceHash": "d709938e7ee7cfe4bbb13c4bf841afa06aaa1260b2902ca849936045c6f31535",
+          "translationHash": "5fceff803c4c914c5e9aa203af0fcd43dfd2b80af1a1d045cdd167576dfa166c",
           "translator": "manual targeted translation",
-          "updatedAt": "2026-07-06T14:26:47.978Z"
+          "updatedAt": "2026-07-06T22:53:59.012Z"
         }
       }
     },
