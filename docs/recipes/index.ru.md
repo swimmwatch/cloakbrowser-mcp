@@ -17,7 +17,7 @@ tags:
 
 ## Развертывание
 
-- [Docker Streamable HTTP за обратным прокси] (docker-streamable-http-reverse-proxy.md)
+- [Docker Streamable HTTP за обратным прокси](docker-streamable-http-reverse-proxy.md)
 - [Региональный QA через прокси](regional-qa-through-proxy.md)
 - [CI Испытание на дым](ci-smoke-test.md)
 

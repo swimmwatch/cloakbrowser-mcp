@@ -880,15 +880,22 @@ function hasProxyCredentials(server: string): boolean {
 }
 
 function extractCloakGeneratedArgs(args: readonly string[]): string[] {
-  return args.filter((arg) =>
-    [
-      '--fingerprint-timezone=',
-      '--lang=',
-      '--fingerprint-locale=',
-      '--load-extension=',
-      '--disable-extensions-except=',
-      '--start-maximized',
-    ].some((prefix) => arg.startsWith(prefix)),
+  return args.filter(isCloakGeneratedArg);
+}
+
+const exactCloakGeneratedArgs = new Set(['--start-maximized']);
+
+const prefixedCloakGeneratedArgs = [
+  '--fingerprint-timezone=',
+  '--lang=',
+  '--fingerprint-locale=',
+  '--load-extension=',
+  '--disable-extensions-except=',
+];
+
+function isCloakGeneratedArg(arg: string): boolean {
+  return (
+    exactCloakGeneratedArgs.has(arg) || prefixedCloakGeneratedArgs.some((prefix) => arg.startsWith(prefix))
   );
 }
 

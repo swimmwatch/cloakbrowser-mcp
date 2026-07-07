@@ -37,5 +37,5 @@ codex mcp add cloakbrowser --url http://127.0.0.1:3000/mcp
 ## Связанный
 
 - [Начало работы](../getting-started.md)
-- [Docker Streamable HTTP за обратным прокси] (docker-streamable-http-reverse-proxy.md)
+- [Docker Streamable HTTP за обратным прокси](docker-streamable-http-reverse-proxy.md)
 - [Инструменты](../tools.md)

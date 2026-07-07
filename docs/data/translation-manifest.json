@@ -1550,7 +1550,7 @@
         "ru": {
           "path": "recipes/connect-codex-cli.ru.md",
           "sourceHash": "7bf10f3c6b627246f55abc86d6e65ee0f1aa228ba237906f6fd245f4c60528ce",
-          "translationHash": "a273851ad746339adce9f77d3249c7f3048c1b0400e6f0cd5f46ea0ae2c1543a",
+          "translationHash": "cfbf035a1187ee9346c10758d94bfd5d0d6481b8ec30584ddcab10de48c386ed",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-07-06T18:50:42.387Z"
         },
@@ -1700,7 +1700,7 @@
         "ru": {
           "path": "recipes/index.ru.md",
           "sourceHash": "32a93c36e22c8f8d7ff28da64ed1dc98752609514fa0f08ebdd4110f7cd3da85",
-          "translationHash": "a252a5b48a366bdc7a6e80367b115929212ccba35e17838ea838d47954b2b5b9",
+          "translationHash": "1e0e5f273d0fa729c1e915cb01645ebba84e0344936dfb957f641a0a8f752032",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-07-06T18:50:42.387Z"
         },

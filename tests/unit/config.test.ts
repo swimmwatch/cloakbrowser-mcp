@@ -134,7 +134,7 @@ describe('bridge config generation', () => {
         return {
           executablePath: fakeCloakBinaryPath,
           headless: true,
-          args: [...(options.args ?? []), '--start-maximized'],
+          args: [...(options.args ?? []), '--lang=en-US', '--start-maximized', '--start-maximized-for-test'],
         };
       },
       env: {
@@ -148,6 +148,7 @@ describe('bridge config generation', () => {
     expect(runtime.config.browser?.launchOptions?.args).toEqual([
       '--no-sandbox',
       '--alpha',
+      '--lang=en-US',
       '--start-maximized',
     ]);
     expect(process.env.CLOAKBROWSER_BINARY_PATH).toBe(previousCloakBinaryPath);
