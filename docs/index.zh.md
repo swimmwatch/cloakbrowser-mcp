@@ -1,5 +1,5 @@
 ---
-description: 用于 CloakBrowser 浏览器自动化的 Playwright MCP 桥接器，支持 Docker、Streamable HTTP、持久化配置文件、经过验证的上下文选项、扩展加载、GeoIP 代理匹配和拟人化输入。
+description: 可作为 Playwright MCP drop-in 的浏览器自动化服务器，保持 upstream 工具不变，使用 CloakBrowser Chromium，并提供 npm、Docker 和 Streamable HTTP 打包。
 icon: material/home
 tags:
   - User Guide
@@ -11,13 +11,21 @@ tags:
 
 <p class="clb-hero-actions" align="center">
   <a class="md-button md-button--primary" href="getting-started/">快速开始</a>
-  <a class="md-button" href="tools/">工具</a>
-  <a class="md-button" href="docker/">Docker</a>
+  <a class="md-button" href="comparison/">对比</a>
+  <a class="md-button" href="recipes/">操作示例</a>
 </p>
 
 # CloakBrowser MCP 服务器
 
 `cloakbrowser-mcp` 是一个基于模型上下文协议（Model Context Protocol）的浏览器自动化服务器，它在上游运行 `@playwright/mcp` 并配合 CloakBrowser Chromium 二进制文件使用。 当您需要兼容 Playwright MCP 的浏览器工具、CloakBrowser 执行、npm 安装、Docker 镜像、可流式传输的 HTTP 会话、支持 GeoIP 的代理匹配（用于区域性质量保证），或针对交互敏感流程的人性化输入行为时，请使用该服务器。
+
+## 30 秒演示
+
+<div class="clb-demo-video" markdown>
+[![CloakBrowser MCP 30 秒演示](assets/videos/30-second-demo.webp)](assets/videos/30-second-demo.mp4)
+</div>
+
+<p class="clb-demo-caption">观看首次运行：启动 npm 包，连接 MCP 客户端，请求 Web 研究、自动化或测试，并检查真实浏览器中的结果。</p>
 
 当前版本：{{ project.version_tag }}。
 
@@ -27,7 +35,7 @@ tags:
 
 | cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base                 | CloakBrowser | Transport              | Parity         |
 | ---------------- | --------------- | ------------------------------------------ | ------------ | ---------------------- | -------------- |
-| `1.6.1`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.7`     | stdio, Streamable HTTP | 在 CI 中比较 |
+| `1.6.1`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.8`     | stdio, Streamable HTTP | 在 CI 中比较 |
 | `1.6.0`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.7`     | stdio, Streamable HTTP | 在 CI 中比较 |
 | `1.5.0`          | `^0.0.76`       | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.4.3`     | stdio, Streamable HTTP | 在 CI 中比较 |
 | `1.4.0`          | `^0.0.76`       | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.3.32`    | stdio, Streamable HTTP | 在 CI 中比较 |
@@ -94,3 +102,7 @@ tags:
 - [工具](tools.md)，用于满足工具界面的预期以及与上游版本保持一致。
 - [常见问题解答](faq.md)，涵盖常见的安装、Docker、功能一致性和安全问题。
 - [贡献者指南](contributor-guide.md)，涵盖开发、测试、架构及发布详情。
+
+## 更多实用路径
+
+要在 upstream Playwright MCP 和本包之间选择，请查看[对比](comparison.md)。快速任务请使用[操作示例](recipes/index.md)：持久配置文件、扩展、reverse proxy、区域 QA、Claude Desktop、Codex CLI 和 CI 冒烟测试。

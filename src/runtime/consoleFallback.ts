@@ -48,6 +48,9 @@ export const consoleFallbackInitScript = `(() => {
   }
 })();`;
 
+/**
+ * Generates the preload script that bridges captured page console messages into Playwright MCP tools.
+ */
 export function consoleFallbackPreloadScript(coreBundlePath: string): string {
   return `'use strict';
 

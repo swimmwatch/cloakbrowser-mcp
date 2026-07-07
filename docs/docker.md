@@ -10,6 +10,8 @@ tags:
 
 The published image is the recommended runtime for repeatable MCP usage.
 
+Use the [Docker Streamable HTTP reverse proxy recipe](recipes/docker-streamable-http-reverse-proxy.md) when you want a short deployment path for an already-running HTTP server behind TLS and authentication.
+
 ## Run
 
 ```bash
@@ -91,6 +93,8 @@ The host-side `127.0.0.1:3000` bind keeps the endpoint local. If you publish Str
 Streamable HTTP exposes fixed `GET /healthz` and `GET /readyz` probes on the same host and port. If `--http-auth-token` or `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` is configured, the probes require the same `Authorization: Bearer ...` header as MCP requests.
 See the generated [CLI Reference](generated/cli.md) for all HTTP transport flags and environment variables.
 
+For a complete reverse-proxy-oriented example, see [Docker Streamable HTTP Behind Reverse Proxy](recipes/docker-streamable-http-reverse-proxy.md).
+
 ## GeoIP Proxy Matching
 
 Docker uses the same proxy and GeoIP environment variables as npm. Enable
@@ -111,7 +115,7 @@ special characters in the username or password.
 When the container runs Streamable HTTP, clients can also choose different
 proxies per MCP session through `initialize` metadata. See
 [GeoIP Proxy Matching](geoip-proxy-matching.md) for runtime proxy metadata,
-multi-region use cases, and limitations.
+multi-region use cases, limitations, and the [regional QA recipe](recipes/regional-qa-through-proxy.md).
 
 ## Defaults
 

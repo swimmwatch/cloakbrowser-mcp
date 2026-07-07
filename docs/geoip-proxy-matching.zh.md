@@ -174,3 +174,7 @@ GeoIP 数据库。CloakBrowser 会在首次
 - [配置](configuration.md) 列出了所有桥接和上游环境变量。
 - [Docker](docker.md) 说明了容器运行时的默认设置以及 Streamable HTTP 发布。
 - [工具](tools.md) 解释了为何上游的 Playwright MCP 浏览器工具会被原样转发。
+
+## 更多实用路径
+
+要在 upstream Playwright MCP 和本包之间选择，请查看[对比](comparison.md)。快速任务请使用[操作示例](recipes/index.md)：持久配置文件、扩展、reverse proxy、区域 QA、Claude Desktop、Codex CLI 和 CI 冒烟测试。

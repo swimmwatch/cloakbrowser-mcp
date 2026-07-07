@@ -281,3 +281,7 @@ Bitten Sie den MCP-Client, die Tools aufzulisten. Sie sollten die Browser-Tools 
 
 - `cloakbrowser_binary_info`
 - `cloakbrowser_bridge_info`
+
+## Weitere praktische Pfade
+
+Für die Entscheidung zwischen upstream Playwright MCP und diesem Paket nutzen Sie den [Vergleich](comparison.md). Für kurze Aufgaben nutzen Sie die [Rezepte](recipes/index.md): persistentes Profil, Erweiterungen, reverse proxy, regionale QA, Claude Desktop, Codex CLI und CI-Smoke-Test.

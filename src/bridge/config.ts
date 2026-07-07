@@ -1,11 +1,15 @@
 import {
   accessSync,
+  closeSync,
   constants as fsConstants,
   mkdirSync,
   mkdtempSync,
+  openSync,
+  readFileSync,
   realpathSync,
   rmSync,
   statSync,
+  unlinkSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -17,9 +21,9 @@ import {
   envBool,
   envInt,
   envList,
+  type EnvReader,
   envString,
   quoteNodeOptionValue,
-  type EnvReader,
 } from '#src/bridge/env';
 import { resolvePlaywrightCoreBundlePath } from '#src/bridge/paths';
 import { consoleFallbackInitScript, consoleFallbackPreloadScript } from '#src/runtime/consoleFallback';
@@ -30,6 +34,9 @@ export type HumanPreset = (typeof humanPresets)[number];
 type CloakBuildLaunchOptions = typeof buildLaunchOptions;
 type CloakLaunchOptions = NonNullable<Parameters<CloakBuildLaunchOptions>[0]>;
 type CloakLaunchOptionsWithExtensions = CloakLaunchOptions & { extensionPaths?: string[] };
+type CloakLaunchOptionsForBridge = CloakLaunchOptionsWithExtensions & {
+  viewport?: BridgeContextOptions['viewport'];
+};
 type CloakProxyOption = NonNullable<CloakLaunchOptions['proxy']>;
 type PlaywrightProxyOption = {
   server: string;
@@ -117,7 +124,81 @@ export interface PlaywrightMcpBridgeConfig {
 
 const ignoredAutomationArgs = ['--enable-automation', '--enable-unsafe-swiftshader'];
 const activeProfileLocks = new Set<string>();
+const profileLockFileName = '.cloakbrowser-mcp-profile.lock';
 
+const inheritedChildEnvNames = new Set([
+  'ALL_PROXY',
+  'APPDATA',
+  'CLOAKBROWSER_AUTO_UPDATE',
+  'CLOAKBROWSER_CACHE_DIR',
+  'COMSPEC',
+  'DBUS_SESSION_BUS_ADDRESS',
+  'DISPLAY',
+  'HOME',
+  'HOMEDRIVE',
+  'HOMEPATH',
+  'HTTP_PROXY',
+  'HTTPS_PROXY',
+  'LANG',
+  'LC_ALL',
+  'LC_CTYPE',
+  'LC_MESSAGES',
+  'LOCALAPPDATA',
+  'NODE_EXTRA_CA_CERTS',
+  'NO_PROXY',
+  'PATH',
+  'PATHEXT',
+  'Path',
+  'PLAYWRIGHT_BROWSERS_PATH',
+  'PLAYWRIGHT_CHROMIUM_DOWNLOAD_HOST',
+  'PLAYWRIGHT_DOWNLOAD_HOST',
+  'PLAYWRIGHT_FIREFOX_DOWNLOAD_HOST',
+  'PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD',
+  'PLAYWRIGHT_WEBKIT_DOWNLOAD_HOST',
+  'SSL_CERT_DIR',
+  'SSL_CERT_FILE',
+  'SystemRoot',
+  'TEMP',
+  'TERM',
+  'TMP',
+  'TMPDIR',
+  'USERPROFILE',
+  'WAYLAND_DISPLAY',
+  'WINDIR',
+  'XAUTHORITY',
+  'XDG_CACHE_HOME',
+  'XDG_CONFIG_HOME',
+  'XDG_DATA_HOME',
+  'XDG_RUNTIME_DIR',
+  'all_proxy',
+  'http_proxy',
+  'https_proxy',
+  'no_proxy',
+]);
+
+const inheritedChildEnvPrefixes = ['PLAYWRIGHT_MCP_', 'CLOAK_PLAYWRIGHT_MCP_'] as const;
+
+type BridgeBrowserConfig = NonNullable<PlaywrightMcpBridgeConfig['browser']>;
+type BridgeLaunchOptions = NonNullable<BridgeBrowserConfig['launchOptions']>;
+
+interface PreparedBridgeRuntimeBase {
+  env: EnvReader;
+  tempDir: string;
+  outputDir: string;
+  browserEngine: BrowserEngine;
+  useCloak: boolean;
+  headless: boolean;
+  humanPreset: HumanPreset;
+  childEnv: Record<string, string>;
+  chromiumSandbox: boolean | undefined;
+  launchOptions: BridgeLaunchOptions;
+  browserConfig: BridgeBrowserConfig;
+  config: PlaywrightMcpBridgeConfig;
+}
+
+/**
+ * Builds the temporary Playwright MCP config and environment used to launch the upstream bridge.
+ */
 export async function prepareBridgeRuntime(
   options: PrepareBridgeRuntimeOptions = {},
 ): Promise<BridgeRuntime> {
@@ -126,115 +207,190 @@ export async function prepareBridgeRuntime(
   let releaseProfileLock: (() => void) | undefined;
 
   try {
-    const outputDir = envString(env, 'PLAYWRIGHT_MCP_OUTPUT_DIR', path.resolve('.playwright-mcp'));
-    mkdirSync(outputDir, { recursive: true });
+    const runtime = createPreparedBridgeRuntimeBase(env, options, tempDir);
+    releaseProfileLock = applyConfiguredUserDataDir(runtime, options.userDataDir);
+    const extensionPaths = applyConfiguredContextAndExtensions(runtime, options);
+    applyConfiguredProxy(runtime, options.proxy);
+    applyBrowserIsolation(runtime, options.browserIsolated);
+    const cloakBinaryPath = runtime.useCloak
+      ? await configureCloakRuntime(runtime, options, extensionPaths)
+      : undefined;
+    configureConsoleFallback(runtime);
+    const configPath = writeBridgeConfig(runtime);
 
-    const browserEngine = parseBrowserEngine(envString(env, 'PLAYWRIGHT_MCP_BROWSER_ENGINE', 'cloak'));
-    const useCloak = browserEngine === 'cloak';
-    const headless = options.headless ?? envBool(env, 'PLAYWRIGHT_MCP_HEADLESS', true);
-    const humanPreset =
-      options.humanPreset ?? parseHumanPreset(envString(env, 'CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET', 'default'));
-    const childEnv = createChildEnv(env, outputDir, options.proxy, headless, humanPreset);
-    const chromiumSandbox = useCloak ? !envBool(env, 'CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX', true) : undefined;
-    const launchOptions = {
-      headless,
-      args: useCloak ? createLaunchArgs(env) : envList(env, 'CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS'),
-      chromiumSandbox,
-      ignoreDefaultArgs: useCloak ? ignoredAutomationArgs : undefined,
-    };
-    const config: PlaywrightMcpBridgeConfig = {
-      browser: {
-        browserName: 'chromium',
-        launchOptions,
-      },
-    };
-
-    const userDataDir = resolveConfiguredUserDataDir(env, options.userDataDir);
-    if (userDataDir !== undefined) {
-      releaseProfileLock = acquireProfileLock(userDataDir);
-      config.browser!.userDataDir = userDataDir;
-      childEnv.PLAYWRIGHT_MCP_USER_DATA_DIR = userDataDir;
-      delete childEnv.PLAYWRIGHT_MCP_ISOLATED;
-    }
-
-    const contextOptions = resolveConfiguredContextOptions(env, options.contextOptions);
-    if (contextOptions !== undefined) {
-      config.browser!.contextOptions = contextOptions;
-    }
-
-    const extensionPaths = resolveConfiguredExtensionPaths(env, options.extensionPaths);
-    if (extensionPaths.length > 0 && userDataDir === undefined) {
-      throw new BridgeRuntimeConfigurationError(
-        'CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS requires PLAYWRIGHT_MCP_USER_DATA_DIR or initialize metadata userDataDir',
-      );
-    }
-
-    const configuredProxy = resolveConfiguredProxy(env, launchOptions.args ?? [], options.proxy);
-    if (configuredProxy && typeof configuredProxy !== 'string') {
-      config.browser!.launchOptions!.proxy = configuredProxy;
-    }
-
-    if (options.browserIsolated === true && userDataDir === undefined) {
-      config.browser!.isolated = true;
-      childEnv.PLAYWRIGHT_MCP_ISOLATED = 'true';
-    }
-
-    let cloakBinaryPath: string | undefined;
-    if (useCloak) {
-      cloakBinaryPath = await suppressStdout(options.ensureCloakBinary ?? ensureBinary);
-      config.browser!.launchOptions!.executablePath = cloakBinaryPath;
-      childEnv.PLAYWRIGHT_MCP_EXECUTABLE_PATH = cloakBinaryPath;
-      childEnv.CLOAKBROWSER_AUTO_UPDATE = childEnv.CLOAKBROWSER_AUTO_UPDATE ?? 'false';
-      config.browser!.launchOptions!.args = await resolveCloakLaunchArgs({
-        env,
-        args: config.browser!.launchOptions!.args ?? [],
-        headless,
-        chromiumSandbox,
-        proxy: options.proxy,
-        extensionPaths,
-        buildCloakLaunchOptions: options.buildCloakLaunchOptions ?? buildLaunchOptions,
-        geoip: shouldMatchProxyGeoip(env, options.geoipProxyMatch),
-      });
-      if (shouldHumanize(env, options.humanize)) {
-        config.browser!.initPage = [...(config.browser!.initPage ?? []), resolveHumanizeInitPagePath()];
-      }
-    }
-
-    if (useCloak && envBool(env, 'CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK', true)) {
-      const initScriptPath = path.join(tempDir, 'console-fallback-init.js');
-      const preloadPath = path.join(tempDir, 'console-fallback.cjs');
-      writeFileSync(initScriptPath, consoleFallbackInitScript);
-      writeFileSync(preloadPath, consoleFallbackPreloadScript(resolvePlaywrightCoreBundlePath()));
-      config.browser!.initScript = [...(config.browser!.initScript ?? []), initScriptPath];
-      childEnv.NODE_OPTIONS = appendNodeOption(
-        childEnv.NODE_OPTIONS,
-        `--require=${quoteNodeOptionValue(preloadPath)}`,
-      );
-    }
-
-    const configPath = path.join(tempDir, 'playwright-mcp.config.json');
-    writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
-    childEnv.PLAYWRIGHT_MCP_CONFIG = configPath;
-
-    return {
-      browserEngine,
-      configPath,
-      tempDir,
-      childEnv,
-      outputDir,
-      cloakBinaryPath,
-      config,
-      dispose() {
-        releaseProfileLock?.();
-        releaseProfileLock = undefined;
-        rmSync(tempDir, { recursive: true, force: true });
-      },
-    };
+    return createBridgeRuntime(runtime, configPath, cloakBinaryPath, releaseProfileLock);
   } catch (error) {
     releaseProfileLock?.();
     rmSync(tempDir, { recursive: true, force: true });
     throw error;
   }
+}
+
+function createPreparedBridgeRuntimeBase(
+  env: EnvReader,
+  options: PrepareBridgeRuntimeOptions,
+  tempDir: string,
+): PreparedBridgeRuntimeBase {
+  const outputDir = envString(env, 'PLAYWRIGHT_MCP_OUTPUT_DIR', path.resolve('.playwright-mcp'));
+  mkdirSync(outputDir, { recursive: true });
+
+  const browserEngine = parseBrowserEngine(envString(env, 'PLAYWRIGHT_MCP_BROWSER_ENGINE', 'cloak'));
+  const useCloak = browserEngine === 'cloak';
+  const headless = options.headless ?? envBool(env, 'PLAYWRIGHT_MCP_HEADLESS', true);
+  const humanPreset =
+    options.humanPreset ?? parseHumanPreset(envString(env, 'CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET', 'default'));
+  const childEnv = createChildEnv(env, outputDir, options.proxy, headless, humanPreset);
+  const chromiumSandbox = useCloak ? !envBool(env, 'CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX', true) : undefined;
+  const launchOptions: BridgeLaunchOptions = {
+    headless,
+    args: useCloak ? createLaunchArgs(env) : envList(env, 'CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS'),
+    chromiumSandbox,
+    ignoreDefaultArgs: useCloak ? ignoredAutomationArgs : undefined,
+  };
+  const browserConfig: BridgeBrowserConfig = {
+    browserName: 'chromium',
+    launchOptions,
+  };
+
+  return {
+    env,
+    tempDir,
+    outputDir,
+    browserEngine,
+    useCloak,
+    headless,
+    humanPreset,
+    childEnv,
+    chromiumSandbox,
+    launchOptions,
+    browserConfig,
+    config: { browser: browserConfig },
+  };
+}
+
+function applyConfiguredUserDataDir(
+  runtime: PreparedBridgeRuntimeBase,
+  runtimeUserDataDir: string | undefined,
+): (() => void) | undefined {
+  const userDataDir = resolveConfiguredUserDataDir(runtime.env, runtimeUserDataDir);
+  if (userDataDir === undefined) return undefined;
+
+  runtime.browserConfig.userDataDir = userDataDir;
+  runtime.childEnv.PLAYWRIGHT_MCP_USER_DATA_DIR = userDataDir;
+  delete runtime.childEnv.PLAYWRIGHT_MCP_ISOLATED;
+  return acquireProfileLock(userDataDir);
+}
+
+function applyConfiguredContextAndExtensions(
+  runtime: PreparedBridgeRuntimeBase,
+  options: PrepareBridgeRuntimeOptions,
+): string[] {
+  const contextOptions = resolveConfiguredContextOptions(runtime.env, options.contextOptions);
+  if (contextOptions !== undefined) {
+    runtime.browserConfig.contextOptions = contextOptions;
+  }
+
+  const extensionPaths = resolveConfiguredExtensionPaths(runtime.env, options.extensionPaths);
+  if (extensionPaths.length > 0 && runtime.browserConfig.userDataDir === undefined) {
+    throw new BridgeRuntimeConfigurationError(
+      'CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS requires PLAYWRIGHT_MCP_USER_DATA_DIR or initialize metadata userDataDir',
+    );
+  }
+  return extensionPaths;
+}
+
+function applyConfiguredProxy(
+  runtime: PreparedBridgeRuntimeBase,
+  runtimeProxy: BridgeRuntimeProxy | undefined,
+): void {
+  const configuredProxy = resolveConfiguredProxy(runtime.env, runtime.launchOptions.args ?? [], runtimeProxy);
+  if (configuredProxy && typeof configuredProxy !== 'string') {
+    runtime.launchOptions.proxy = configuredProxy;
+  }
+}
+
+function applyBrowserIsolation(
+  runtime: PreparedBridgeRuntimeBase,
+  browserIsolated: boolean | undefined,
+): void {
+  if (browserIsolated === true && runtime.browserConfig.userDataDir === undefined) {
+    runtime.browserConfig.isolated = true;
+    runtime.childEnv.PLAYWRIGHT_MCP_ISOLATED = 'true';
+  }
+}
+
+async function configureCloakRuntime(
+  runtime: PreparedBridgeRuntimeBase,
+  options: PrepareBridgeRuntimeOptions,
+  extensionPaths: string[],
+): Promise<string> {
+  const cloakBinaryPath = await suppressStdout(options.ensureCloakBinary ?? ensureBinary);
+  runtime.launchOptions.executablePath = cloakBinaryPath;
+  runtime.childEnv.PLAYWRIGHT_MCP_EXECUTABLE_PATH = cloakBinaryPath;
+  runtime.childEnv.CLOAKBROWSER_AUTO_UPDATE = runtime.childEnv.CLOAKBROWSER_AUTO_UPDATE ?? 'false';
+  runtime.launchOptions.args = await resolveCloakLaunchArgs({
+    env: runtime.env,
+    cloakBinaryPath,
+    args: runtime.launchOptions.args ?? [],
+    headless: runtime.headless,
+    chromiumSandbox: runtime.chromiumSandbox,
+    proxy: options.proxy,
+    extensionPaths,
+    contextOptions: runtime.browserConfig.contextOptions,
+    buildCloakLaunchOptions: options.buildCloakLaunchOptions ?? buildLaunchOptions,
+    geoip: shouldMatchProxyGeoip(runtime.env, options.geoipProxyMatch),
+  });
+  if (shouldHumanize(runtime.env, options.humanize)) {
+    runtime.browserConfig.initPage = [
+      ...(runtime.browserConfig.initPage ?? []),
+      resolveHumanizeInitPagePath(),
+    ];
+  }
+  return cloakBinaryPath;
+}
+
+function configureConsoleFallback(runtime: PreparedBridgeRuntimeBase): void {
+  if (!runtime.useCloak || !envBool(runtime.env, 'CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK', true)) return;
+
+  const initScriptPath = path.join(runtime.tempDir, 'console-fallback-init.js');
+  const preloadPath = path.join(runtime.tempDir, 'console-fallback.cjs');
+  writeFileSync(initScriptPath, consoleFallbackInitScript);
+  writeFileSync(preloadPath, consoleFallbackPreloadScript(resolvePlaywrightCoreBundlePath()));
+  runtime.browserConfig.initScript = [...(runtime.browserConfig.initScript ?? []), initScriptPath];
+  runtime.childEnv.NODE_OPTIONS = appendNodeOption(
+    runtime.childEnv.NODE_OPTIONS,
+    `--require=${quoteNodeOptionValue(preloadPath)}`,
+  );
+}
+
+function writeBridgeConfig(runtime: PreparedBridgeRuntimeBase): string {
+  const configPath = path.join(runtime.tempDir, 'playwright-mcp.config.json');
+  writeFileSync(configPath, `${JSON.stringify(runtime.config, null, 2)}\n`);
+  runtime.childEnv.PLAYWRIGHT_MCP_CONFIG = configPath;
+  return configPath;
+}
+
+function createBridgeRuntime(
+  runtime: PreparedBridgeRuntimeBase,
+  configPath: string,
+  cloakBinaryPath: string | undefined,
+  releaseProfileLock: (() => void) | undefined,
+): BridgeRuntime {
+  let releaseLock = releaseProfileLock;
+  return {
+    browserEngine: runtime.browserEngine,
+    configPath,
+    tempDir: runtime.tempDir,
+    childEnv: runtime.childEnv,
+    outputDir: runtime.outputDir,
+    cloakBinaryPath,
+    config: runtime.config,
+    dispose() {
+      releaseLock?.();
+      releaseLock = undefined;
+      rmSync(runtime.tempDir, { recursive: true, force: true });
+    },
+  };
 }
 
 export function createLaunchArgs(env: EnvReader): string[] {
@@ -251,11 +407,13 @@ export class BridgeRuntimeConfigurationError extends Error {}
 
 interface ResolveCloakLaunchArgsOptions {
   env: EnvReader;
+  cloakBinaryPath: string;
   args: string[];
   headless: boolean;
   chromiumSandbox: boolean | undefined;
   proxy?: BridgeRuntimeProxy;
   extensionPaths: string[];
+  contextOptions?: BridgeContextOptions;
   buildCloakLaunchOptions: CloakBuildLaunchOptions;
   geoip: boolean;
 }
@@ -263,18 +421,18 @@ interface ResolveCloakLaunchArgsOptions {
 async function resolveCloakLaunchArgs(options: ResolveCloakLaunchArgsOptions): Promise<string[]> {
   const proxy = resolveConfiguredProxy(options.env, options.args, options.proxy);
   const geoip = options.geoip && proxy !== undefined;
-  if (!geoip && options.extensionPaths.length === 0) return options.args;
-
   const cloakOptions = createCloakLaunchOptions(options, proxy, geoip);
-  const launchOptions = await suppressStdout(() => options.buildCloakLaunchOptions(cloakOptions));
-  return mergeLaunchArgs(options.args, extractCloakGeneratedArgs(launchOptions.args ?? []));
+  const launchOptions = await suppressStdout(() =>
+    withCloakBinaryPath(options.cloakBinaryPath, () => options.buildCloakLaunchOptions(cloakOptions)),
+  );
+  return mergeLaunchArgs(options.args, extractCloakGeneratedArgs(readStringArray(launchOptions.args)));
 }
 
 function createCloakLaunchOptions(
   options: ResolveCloakLaunchArgsOptions,
   proxy: CloakProxyOption | undefined,
   geoip: boolean,
-): CloakLaunchOptionsWithExtensions {
+): CloakLaunchOptionsForBridge {
   return {
     headless: options.headless,
     stealthArgs: false,
@@ -282,6 +440,7 @@ function createCloakLaunchOptions(
     ...(proxy === undefined ? {} : { proxy }),
     ...(geoip ? { geoip: true } : {}),
     ...(options.extensionPaths.length === 0 ? {} : { extensionPaths: options.extensionPaths }),
+    ...(options.contextOptions?.viewport === undefined ? {} : { viewport: options.contextOptions.viewport }),
     launchOptions:
       options.chromiumSandbox === undefined ? undefined : { chromiumSandbox: options.chromiumSandbox },
   };
@@ -358,6 +517,26 @@ function mergeContextOptions(
   return Object.keys(merged).length === 0 ? undefined : merged;
 }
 
+const bridgeContextOptionParsers = {
+  userAgent: readNonEmptyString,
+  viewport: parseViewport,
+  locale: readNonEmptyString,
+  timezoneId: readNonEmptyString,
+  colorScheme: parseColorScheme,
+  permissions: parseStringArray,
+  geolocation: parseGeolocation,
+  extraHTTPHeaders: parseStringRecord,
+  httpCredentials: parseHttpCredentials,
+  ignoreHTTPSErrors: readBoolean,
+  offline: readBoolean,
+  deviceScaleFactor: readPositiveNumber,
+  isMobile: readBoolean,
+  hasTouch: readBoolean,
+} satisfies Record<keyof BridgeContextOptions, (value: unknown, label: string) => unknown>;
+
+/**
+ * Validates browser context options supplied through environment JSON or initialize metadata.
+ */
 export function parseBridgeContextOptions(value: unknown, label = 'contextOptions'): BridgeContextOptions {
   if (!isRecord(value)) {
     throw new BridgeRuntimeConfigurationError(`${label} must be an object`);
@@ -365,54 +544,18 @@ export function parseBridgeContextOptions(value: unknown, label = 'contextOption
 
   const result: BridgeContextOptions = {};
   for (const key of Object.keys(value)) {
-    switch (key) {
-      case 'userAgent':
-        result.userAgent = readNonEmptyString(value[key], `${label}.userAgent`);
-        break;
-      case 'viewport':
-        result.viewport = parseViewport(value[key], `${label}.viewport`);
-        break;
-      case 'locale':
-        result.locale = readNonEmptyString(value[key], `${label}.locale`);
-        break;
-      case 'timezoneId':
-        result.timezoneId = readNonEmptyString(value[key], `${label}.timezoneId`);
-        break;
-      case 'colorScheme':
-        result.colorScheme = parseColorScheme(value[key], `${label}.colorScheme`);
-        break;
-      case 'permissions':
-        result.permissions = parseStringArray(value[key], `${label}.permissions`);
-        break;
-      case 'geolocation':
-        result.geolocation = parseGeolocation(value[key], `${label}.geolocation`);
-        break;
-      case 'extraHTTPHeaders':
-        result.extraHTTPHeaders = parseStringRecord(value[key], `${label}.extraHTTPHeaders`);
-        break;
-      case 'httpCredentials':
-        result.httpCredentials = parseHttpCredentials(value[key], `${label}.httpCredentials`);
-        break;
-      case 'ignoreHTTPSErrors':
-        result.ignoreHTTPSErrors = readBoolean(value[key], `${label}.ignoreHTTPSErrors`);
-        break;
-      case 'offline':
-        result.offline = readBoolean(value[key], `${label}.offline`);
-        break;
-      case 'deviceScaleFactor':
-        result.deviceScaleFactor = readPositiveNumber(value[key], `${label}.deviceScaleFactor`);
-        break;
-      case 'isMobile':
-        result.isMobile = readBoolean(value[key], `${label}.isMobile`);
-        break;
-      case 'hasTouch':
-        result.hasTouch = readBoolean(value[key], `${label}.hasTouch`);
-        break;
-      default:
-        throw new BridgeRuntimeConfigurationError(`${label}.${key} is not supported`);
+    if (!isBridgeContextOptionKey(key)) {
+      throw new BridgeRuntimeConfigurationError(`${label}.${key} is not supported`);
     }
+    Object.assign(result, {
+      [key]: bridgeContextOptionParsers[key](value[key], `${label}.${key}`),
+    });
   }
   return result;
+}
+
+function isBridgeContextOptionKey(key: string): key is keyof BridgeContextOptions {
+  return Object.hasOwn(bridgeContextOptionParsers, key);
 }
 
 function resolveDirectory(
@@ -453,10 +596,80 @@ function acquireProfileLock(userDataDir: string): () => void {
       `User data directory is already active in this process: ${userDataDir}`,
     );
   }
+
+  const lockPath = path.join(userDataDir, profileLockFileName);
+  createProfileLockFile(lockPath, userDataDir);
   activeProfileLocks.add(key);
+
   return () => {
     activeProfileLocks.delete(key);
+    removeProfileLockFile(lockPath);
   };
+}
+
+function createProfileLockFile(lockPath: string, userDataDir: string): void {
+  let fd: number | undefined;
+  try {
+    fd = openSync(lockPath, 'wx', 0o600);
+    writeFileSync(
+      fd,
+      `${JSON.stringify(
+        {
+          pid: process.pid,
+          createdAt: new Date().toISOString(),
+          userDataDir,
+        },
+        null,
+        2,
+      )}\n`,
+    );
+  } catch (error) {
+    if (isFileExistsError(error)) {
+      throw new BridgeRuntimeConfigurationError(
+        `Persistent profile is already active: ${userDataDir}${formatProfileLockDetails(lockPath)}`,
+      );
+    }
+    const message = error instanceof Error ? error.message : String(error);
+    throw new BridgeRuntimeConfigurationError(`Could not create profile lock for ${userDataDir}: ${message}`);
+  } finally {
+    if (fd !== undefined) closeSync(fd);
+  }
+}
+
+function removeProfileLockFile(lockPath: string): void {
+  try {
+    unlinkSync(lockPath);
+  } catch (error) {
+    if (!isFileMissingError(error)) throw error;
+  }
+}
+
+function formatProfileLockDetails(lockPath: string): string {
+  try {
+    const parsed = JSON.parse(readFileSync(lockPath, 'utf8')) as unknown;
+    if (!isRecord(parsed)) return '';
+    const pid = typeof parsed.pid === 'number' ? parsed.pid : undefined;
+    const createdAt = typeof parsed.createdAt === 'string' ? parsed.createdAt : undefined;
+    const details = [
+      pid === undefined ? undefined : `pid=${pid}`,
+      createdAt === undefined ? undefined : `createdAt=${createdAt}`,
+    ].filter((item) => item !== undefined);
+    return details.length > 0 ? ` (${details.join(', ')})` : '';
+  } catch {
+    return '';
+  }
+}
+
+function isFileExistsError(error: unknown): boolean {
+  return isNodeError(error) && error.code === 'EEXIST';
+}
+
+function isFileMissingError(error: unknown): boolean {
+  return isNodeError(error) && error.code === 'ENOENT';
+}
+
+function isNodeError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && 'code' in error;
 }
 
 function profileLockKey(userDataDir: string): string {
@@ -667,14 +880,22 @@ function hasProxyCredentials(server: string): boolean {
 }
 
 function extractCloakGeneratedArgs(args: readonly string[]): string[] {
-  return args.filter((arg) =>
-    [
-      '--fingerprint-timezone=',
-      '--lang=',
-      '--fingerprint-locale=',
-      '--load-extension=',
-      '--disable-extensions-except=',
-    ].some((prefix) => arg.startsWith(prefix)),
+  return args.filter(isCloakGeneratedArg);
+}
+
+const exactCloakGeneratedArgs = new Set(['--start-maximized']);
+
+const prefixedCloakGeneratedArgs = [
+  '--fingerprint-timezone=',
+  '--lang=',
+  '--fingerprint-locale=',
+  '--load-extension=',
+  '--disable-extensions-except=',
+];
+
+function isCloakGeneratedArg(arg: string): boolean {
+  return (
+    exactCloakGeneratedArgs.has(arg) || prefixedCloakGeneratedArgs.some((prefix) => arg.startsWith(prefix))
   );
 }
 
@@ -713,6 +934,11 @@ function launchArgKey(arg: string): string {
   return arg.split('=')[0] ?? arg;
 }
 
+function readStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === 'string');
+}
+
 function optionalEnvString(env: EnvReader, name: string): string | undefined {
   const value = env[name]?.trim();
   return value ? value : undefined;
@@ -727,7 +953,7 @@ export function createChildEnv(
 ): Record<string, string> {
   const result: Record<string, string> = {};
   for (const [key, value] of Object.entries(env)) {
-    if (typeof value === 'string') result[key] = value;
+    if (typeof value === 'string' && shouldInheritChildEnv(key)) result[key] = value;
   }
   result.PLAYWRIGHT_MCP_HEADLESS = String(headless);
   result.CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET = humanPreset;
@@ -744,6 +970,12 @@ export function createChildEnv(
   return result;
 }
 
+function shouldInheritChildEnv(key: string): boolean {
+  return (
+    inheritedChildEnvNames.has(key) || inheritedChildEnvPrefixes.some((prefix) => key.startsWith(prefix))
+  );
+}
+
 function applyRuntimeProxyEnv(env: Record<string, string>, proxy: BridgeRuntimeProxy): void {
   env.PLAYWRIGHT_MCP_PROXY_SERVER = proxy.server;
   if (proxy.bypass === undefined) delete env.PLAYWRIGHT_MCP_PROXY_BYPASS;
@@ -758,6 +990,17 @@ function removeProxyEnv(env: Record<string, string>): void {
 
 export function getCurrentCloakBinaryInfo(): ReturnType<typeof binaryInfo> {
   return binaryInfo();
+}
+
+async function withCloakBinaryPath<T>(cloakBinaryPath: string, fn: () => Promise<T>): Promise<T> {
+  const previous = process.env.CLOAKBROWSER_BINARY_PATH;
+  process.env.CLOAKBROWSER_BINARY_PATH = cloakBinaryPath;
+  try {
+    return await fn();
+  } finally {
+    if (previous === undefined) delete process.env.CLOAKBROWSER_BINARY_PATH;
+    else process.env.CLOAKBROWSER_BINARY_PATH = previous;
+  }
 }
 
 function parseBrowserEngine(value: string): BrowserEngine {

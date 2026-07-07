@@ -39,6 +39,9 @@ export async function loadSitemapUrls({ siteDir, siteUrl }) {
   return extractSitemapUrls(await fetchText(sitemapUrl, { userAgent: 'cloakbrowser-mcp-indexnow' }));
 }
 
+/**
+ * Submits same-site sitemap URLs to IndexNow and reports how many URLs were accepted.
+ */
 export async function submitIndexNow({ key, siteUrl, urls }) {
   assertIndexNowKey(key);
   const normalizedSiteUrl = siteUrl.endsWith('/') ? siteUrl : `${siteUrl}/`;

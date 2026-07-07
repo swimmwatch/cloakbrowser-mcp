@@ -154,3 +154,7 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
 - [設定](configuration.md) には、すべてのブリッジおよびアップストリームの環境変数が記載されています。
 - [GeoIP プロキシのマッチング](geoip-proxy-matching.md) では、地域に一貫性のあるプロキシプロファイルについて説明しています。
 - [ツール](tools.md) では、アップストリームの Playwright MCP ブラウザツールが変更されずに転送される理由について説明しています。
+
+## 追加の実用パス
+
+upstream Playwright MCP とこのパッケージのどちらを使うかは[比較](comparison.md)を参照してください。短い作業手順には[レシピ](recipes/index.md)を使います: 永続プロファイル、拡張機能、reverse proxy、リージョン QA、Claude Desktop、Codex CLI、CI スモークテスト。

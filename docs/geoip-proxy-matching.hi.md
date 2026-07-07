@@ -154,3 +154,7 @@ GeoIP लोकेशन डेटा अनुमानित होता ह�
 - [कॉन्फ़िगरेशन](configuration.md) सभी ब्रिज और अपस्ट्रीम एनवायरनमेंट वेरिएबल्स को सूचीबद्ध करता है।
 - [Docker](docker.md) कंटेनर रनटाइम डिफ़ॉल्ट और Streamable HTTP पब्लिशिंग को समझाता है।
 - [टूल्स](tools.md) यह समझाता है कि अपस्ट्रीम Playwright MCP ब्राउज़र टूल्स को बिना बदले क्यों फॉरवर्ड किया जाता है।
+
+## अतिरिक्त व्यावहारिक रास्ते
+
+upstream Playwright MCP और इस package में चुनने के लिए [तुलना](comparison.md) देखें। तेज tasks के लिए [रेसिपी](recipes/index.md) उपयोग करें: persistent profile, extensions, reverse proxy, regional QA, Claude Desktop, Codex CLI और CI smoke test.

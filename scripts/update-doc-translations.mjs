@@ -1,9 +1,20 @@
 #!/usr/bin/env node
-import { createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import process from 'node:process';
+import {
+  createLocaleSuffixSet,
+  findStaleTranslations,
+  isLocalizedMarkdown,
+  normalizeDocPath,
+  postProcessLocalizedMarkdown,
+  pruneManifest,
+  refreshManifest,
+  sha256,
+  translateMarkdown,
+  validateLocalizedMarkdown,
+} from '#scripts/lib/doc-translations';
 
 const docsDir = join(process.cwd(), 'docs');
 const manifestPath = join(docsDir, 'data', 'translation-manifest.json');
@@ -25,7 +36,7 @@ const locales = [
   { locale: 'hi', name: 'हिन्दी', deeplTarget: 'HI' },
 ];
 
-const localeSuffixes = new Set(locales.map(({ locale }) => locale));
+const localeSuffixes = createLocaleSuffixSet(locales);
 const excludedDirectories = new Set(['assets', 'data', 'generated', 'hooks', 'overrides']);
 const excludedFiles = new Set(['dockerhub-readme.md']);
 
@@ -386,18 +397,35 @@ const localizedPhraseReplacements = {
   },
 };
 
+const validateLocalizedDoc = (markdown, locale) =>
+  validateLocalizedMarkdown(markdown, locale, {
+    invalidLocalizedContentPatterns,
+    knownUntranslatedPhrases,
+  });
+
+const postProcessLocalizedDoc = (markdown, locale) =>
+  postProcessLocalizedMarkdown(markdown, locale, localizedPhraseReplacements);
+
 async function main() {
   const sources = discoverEnglishDocs();
   const manifest = readManifest();
 
   if (refreshManifestOnly) {
-    refreshManifest(manifest, sources);
+    refreshManifest(manifest, sources, {
+      docsDir,
+      locales,
+      validateLocalizedMarkdown: validateLocalizedDoc,
+    });
     writeManifest(manifest);
     process.stderr.write('Refreshed documentation translation manifest.\n');
     return;
   }
 
-  const stale = findStaleTranslations(sources, manifest);
+  const stale = findStaleTranslations(sources, manifest, {
+    docsDir,
+    locales,
+    validateLocalizedMarkdown: validateLocalizedDoc,
+  });
 
   if (checkOnly) {
     if (stale.length > 0) {
@@ -433,11 +461,11 @@ async function main() {
       }
 
       process.stderr.write(`Translating ${item.sourceRel} -> ${item.locale}\n`);
-      const translated = postProcessLocalizedMarkdown(
+      const translated = postProcessLocalizedDoc(
         await translateMarkdown(item.sourceText, localeConfig.deeplTarget, client),
         item.locale,
       );
-      const invalidReason = validateLocalizedMarkdown(translated, item.locale);
+      const invalidReason = validateLocalizedDoc(translated, item.locale);
       if (invalidReason) {
         throw new Error(`Generated invalid translation for ${item.targetRel}: ${invalidReason}`);
       }
@@ -462,7 +490,7 @@ async function main() {
     client.close();
   }
 
-  pruneManifest(manifest, sources);
+  pruneManifest(manifest, sources, { locales });
   writeManifest(manifest);
   process.stderr.write(`Updated ${stale.length} documentation translation(s).\n`);
 }
@@ -474,7 +502,7 @@ function discoverEnglishDocs() {
     for (const entry of readdirSync(directory)) {
       const path = join(directory, entry);
       const stats = statSync(path);
-      const rel = relative(docsDir, path).replaceAll('\\\\', '/');
+      const rel = normalizeDocPath(relative(docsDir, path));
       const parts = rel.split('/');
 
       if (stats.isDirectory()) {
@@ -488,7 +516,7 @@ function discoverEnglishDocs() {
         continue;
       }
 
-      if (isLocalizedMarkdown(entry)) {
+      if (isLocalizedMarkdown(entry, localeSuffixes)) {
         continue;
       }
 
@@ -510,11 +538,6 @@ function discoverEnglishDocs() {
   return results.sort((left, right) => left.rel.localeCompare(right.rel));
 }
 
-function isLocalizedMarkdown(fileName) {
-  const match = fileName.match(/\.([^.]+(?:-[^.]+)?)\.md$/u);
-  return Boolean(match && localeSuffixes.has(match[1]));
-}
-
 function readManifest() {
   if (!existsSync(manifestPath)) {
     return {
@@ -530,109 +553,6 @@ function readManifest() {
   return JSON.parse(readFileSync(manifestPath, 'utf8'));
 }
 
-function findStaleTranslations(sources, manifest) {
-  const stale = [];
-
-  for (const source of sources) {
-    const sourceEntry = manifest.sources[source.rel];
-
-    for (const localeConfig of locales) {
-      const targetRel = localizedPath(source.rel, localeConfig.locale);
-      const targetPath = join(docsDir, targetRel);
-      const translationEntry = sourceEntry?.translations?.[localeConfig.locale];
-      const targetExists = existsSync(targetPath);
-      const targetText = targetExists ? readFileSync(targetPath, 'utf8') : undefined;
-      const translationHash = targetText === undefined ? undefined : sha256(targetText);
-      const invalidReason =
-        targetText === undefined ? undefined : validateLocalizedMarkdown(targetText, localeConfig.locale);
-      const expectedSourceHash = translationEntry?.sourceHash ?? sourceEntry?.sourceHash;
-      let reason;
-
-      if (!targetExists) {
-        reason = 'missing localized file';
-      } else if (!translationEntry) {
-        reason = 'missing manifest entry';
-      } else if (expectedSourceHash !== source.sourceHash) {
-        reason = 'source changed';
-      } else if (translationEntry.path !== targetRel) {
-        reason = 'manifest path mismatch';
-      } else if (invalidReason) {
-        reason = invalidReason;
-      } else if (translationEntry.translationHash !== translationHash) {
-        reason = 'localized file changed without manifest update';
-      }
-
-      if (reason) {
-        stale.push({
-          locale: localeConfig.locale,
-          reason,
-          sourceRel: source.rel,
-          sourceHash: source.sourceHash,
-          sourceText: source.sourceText,
-          targetPath,
-          targetRel,
-        });
-      }
-    }
-  }
-
-  return stale;
-}
-
-function pruneManifest(manifest, sources) {
-  const sourceRels = new Set(sources.map(({ rel }) => rel));
-  const localeCodes = new Set(locales.map(({ locale }) => locale));
-
-  for (const sourceRel of Object.keys(manifest.sources)) {
-    if (!sourceRels.has(sourceRel)) {
-      delete manifest.sources[sourceRel];
-      continue;
-    }
-
-    const translations = manifest.sources[sourceRel].translations ?? {};
-    for (const locale of Object.keys(translations)) {
-      if (!localeCodes.has(locale)) {
-        delete translations[locale];
-      }
-    }
-  }
-}
-
-function refreshManifest(manifest, sources) {
-  for (const source of sources) {
-    const sourceEntry = (manifest.sources[source.rel] ??= {
-      sourceHash: source.sourceHash,
-      translations: {},
-    });
-    sourceEntry.sourceHash = source.sourceHash;
-
-    for (const { locale } of locales) {
-      const targetRel = localizedPath(source.rel, locale);
-      const targetPath = join(docsDir, targetRel);
-
-      if (!existsSync(targetPath)) {
-        throw new Error(`Cannot refresh manifest; missing ${targetRel}`);
-      }
-
-      const targetText = readFileSync(targetPath, 'utf8');
-      const invalidReason = validateLocalizedMarkdown(targetText, locale);
-      if (invalidReason) {
-        throw new Error(`Cannot refresh manifest; ${targetRel}: ${invalidReason}`);
-      }
-
-      sourceEntry.translations[locale] = {
-        path: targetRel,
-        sourceHash: source.sourceHash,
-        translationHash: sha256(targetText),
-        translator: sourceEntry.translations[locale]?.translator ?? 'deepl-mcp translate-text',
-        updatedAt: sourceEntry.translations[locale]?.updatedAt ?? new Date().toISOString(),
-      };
-    }
-  }
-
-  pruneManifest(manifest, sources);
-}
-
 function writeManifest(manifest) {
   manifest.version = 1;
   manifest.sourceLanguage = sourceLanguage;
@@ -640,186 +560,6 @@ function writeManifest(manifest) {
     locales.map(({ locale, name, deeplTarget }) => [locale, { name, deeplTarget }]),
   );
   writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
-}
-
-function localizedPath(sourceRel, locale) {
-  return sourceRel.replace(/\.md$/u, `.${locale}.md`);
-}
-
-function postProcessLocalizedMarkdown(markdown, locale) {
-  const replacements = localizedPhraseReplacements[locale];
-  if (!replacements) {
-    return markdown;
-  }
-
-  let result = markdown;
-  for (const [source, replacement] of Object.entries(replacements)) {
-    result = result.replaceAll(source, replacement);
-  }
-
-  return result;
-}
-
-function validateLocalizedMarkdown(markdown, locale) {
-  for (const pattern of invalidLocalizedContentPatterns) {
-    if (pattern.test(markdown)) {
-      return `localized ${locale} content contains invalid marker ${pattern}`;
-    }
-  }
-
-  const tripleFenceCount = markdown.match(/^```/gmu)?.length ?? 0;
-  if (tripleFenceCount % 2 !== 0) {
-    return `localized ${locale} content has unbalanced triple-backtick code fences`;
-  }
-
-  const tildeFenceCount = markdown.match(/^~~~/gmu)?.length ?? 0;
-  if (tildeFenceCount % 2 !== 0) {
-    return `localized ${locale} content has unbalanced tilde code fences`;
-  }
-
-  for (const phrase of knownUntranslatedPhrases) {
-    if (markdown.includes(phrase)) {
-      return `localized ${locale} content contains untranslated phrase "${phrase}"`;
-    }
-  }
-
-  return undefined;
-}
-
-async function translateMarkdown(markdown, targetLanguage, client) {
-  const protectedMarkdown = protectMarkdown(markdown);
-  const translated = await translateProtectedMarkdown(protectedMarkdown.text, targetLanguage, client);
-  return restoreMarkdown(translated, protectedMarkdown.placeholders);
-}
-
-async function translateProtectedMarkdown(markdown, targetLanguage, client) {
-  const parts = markdown.split(/(\n{2,})/u);
-  const translatedParts = [];
-
-  for (const part of parts) {
-    if (shouldTranslatePart(part)) {
-      translatedParts.push(await translatePart(part, targetLanguage, client));
-    } else {
-      translatedParts.push(part);
-    }
-  }
-
-  return translatedParts.join('');
-}
-
-async function translatePart(part, targetLanguage, client) {
-  const translated = await client.translateText(part, targetLanguage);
-  if (preservesPlaceholders(part, translated)) {
-    return translated;
-  }
-
-  const lineParts = part.split(/(\n)/u);
-  const translatedLineParts = [];
-
-  for (const linePart of lineParts) {
-    if (!shouldTranslatePart(linePart)) {
-      translatedLineParts.push(linePart);
-      continue;
-    }
-
-    const translatedLine = await client.translateText(linePart, targetLanguage);
-    translatedLineParts.push(preservesPlaceholders(linePart, translatedLine) ? translatedLine : linePart);
-  }
-
-  return translatedLineParts.join('');
-}
-
-function preservesPlaceholders(source, translated) {
-  for (const token of source.matchAll(/<clb-keep data-i="[0-9]+">CLB[0-9]+<\/clb-keep>/gu)) {
-    if (!translated.includes(token[0])) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function shouldTranslatePart(part) {
-  if (part.trim() === '') {
-    return false;
-  }
-
-  const withoutPlaceholders = part.replace(/<clb-keep data-i="[0-9]+">CLB[0-9]+<\/clb-keep>/gu, '');
-
-  return /[A-Za-z]/u.test(withoutPlaceholders);
-}
-
-function protectMarkdown(markdown) {
-  const placeholders = [];
-
-  function protect(value) {
-    if (value === '') {
-      return value;
-    }
-
-    const id = String(placeholders.length).padStart(6, '0');
-    const token = `<clb-keep data-i="${id}">CLB${id}</clb-keep>`;
-    placeholders.push([token, value]);
-    return token;
-  }
-
-  let text = markdown;
-
-  if (text.startsWith('---\n')) {
-    const end = text.indexOf('\n---\n', 4);
-    if (end !== -1) {
-      const frontmatter = text.slice(4, end);
-      const body = text.slice(end + 5);
-      const protectedFrontmatter = frontmatter
-        .split('\n')
-        .map((line) => {
-          const match = line.match(/^([A-Za-z0-9_-]+):(\s*)(.*)$/u);
-          if (match && (match[1] === 'title' || match[1] === 'description')) {
-            return `${protect(`${match[1]}:${match[2]}`)}${match[3]}`;
-          }
-
-          return protect(line);
-        })
-        .join('\n');
-      text = `${protect('---')}\n${protectedFrontmatter}\n${protect('---')}\n${body}`;
-    }
-  }
-
-  text = protectBody(text, protect);
-  return { text, placeholders };
-}
-
-function protectBody(text, protect) {
-  return text
-    .replace(/```[\s\S]*?```/gu, (value) => protect(value))
-    .replace(/~~~[\s\S]*?~~~/gu, (value) => protect(value))
-    .replace(/<!--[\s\S]*?-->/gu, (value) => protect(value))
-    .replace(/\{\{\s*[^{}\n]+\s*\}\}/gu, (value) => protect(value))
-    .replace(/^(?:\|.*\|\n?){2,}/gmu, (value) => protect(value))
-    .replace(/<p\b[\s\S]*?<\/p>/giu, (value) => protect(value))
-    .replace(/<div\b[\s\S]*?<\/div>/giu, (value) => protect(value))
-    .replace(/`[^`\n]+`/gu, (value) => protect(value))
-    .replace(/:[a-z0-9_/-]+:/giu, (value) => protect(value))
-    .replace(/\]\(([^)\n]+)\)/gu, (_match, url) => `](${protect(url)})`)
-    .replace(/https?:\/\/[^\s)>]+/giu, (value) => protect(value));
-}
-
-function restoreMarkdown(markdown, placeholders) {
-  let restored = markdown;
-
-  for (const [token, value] of placeholders.toReversed()) {
-    if (!restored.includes(token)) {
-      throw new Error(`DeepL response did not preserve placeholder ${token}`);
-    }
-
-    restored = restored.replaceAll(token, value);
-  }
-
-  return restored;
-}
-
-function sha256(value) {
-  return createHash('sha256').update(value).digest('hex');
 }
 
 class DeepLMcpClient {

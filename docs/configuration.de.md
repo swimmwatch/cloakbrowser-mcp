@@ -228,3 +228,7 @@ Wenn die Brücke mit `--transport streamable-http` betrieben wird, stellt sie fe
 
 Die Bereitschaft gibt HTTP `200` zurück, solange Sitzungskapazität verfügbar ist, und HTTP `503`, wenn `active + pending >= max` ist.
 Wenn `--http-auth-token` oder `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` konfiguriert ist, benötigen beide Probes denselben `Authorization: Bearer ...`-Header wie MCP-Anfragen. Ohne Authentifizierungstoken sind die Probes auf der konfigurierten HTTP-Bind-Adresse offen.
+
+## Weitere praktische Pfade
+
+Für die Entscheidung zwischen upstream Playwright MCP und diesem Paket nutzen Sie den [Vergleich](comparison.md). Für kurze Aufgaben nutzen Sie die [Rezepte](recipes/index.md): persistentes Profil, Erweiterungen, reverse proxy, regionale QA, Claude Desktop, Codex CLI und CI-Smoke-Test.

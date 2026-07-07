@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { type BridgeRuntime } from '@/bridge/config.js';
 import {
-  LOCAL_TOOL_BINARY_INFO,
-  LOCAL_TOOL_BRIDGE_INFO,
   callLocalTool,
   createLocalTools,
   isLocalTool,
+  LOCAL_TOOL_BINARY_INFO,
+  LOCAL_TOOL_BRIDGE_INFO,
 } from '@/bridge/tools.js';
 import { fakeCloakBinaryPath, fakeConfigPath, fakeOutputDir, fakeRuntimeDir } from '@tests/helpers/paths.js';
 

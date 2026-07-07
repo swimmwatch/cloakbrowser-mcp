@@ -15,6 +15,8 @@ GeoIP proxy matching keeps browser fingerprint settings aligned with the proxy
 location used by upstream Playwright MCP. It is useful when regional QA depends
 on a consistent proxy, timezone, language, and locale profile.
 
+For a concise end-to-end setup, see [Regional QA Through Proxy](recipes/regional-qa-through-proxy.md).
+
 The bridge does not create or route proxy traffic itself. Proxy routing remains
 owned by upstream Playwright MCP through `PLAYWRIGHT_MCP_PROXY_SERVER`. When
 matching is enabled, CloakBrowser MCP resolves the configured proxy location and
@@ -175,4 +177,5 @@ policy checks.
 
 - [Configuration](configuration.md) lists all bridge and upstream environment variables.
 - [Docker](docker.md) explains container runtime defaults and Streamable HTTP publishing.
+- [Regional QA Through Proxy](recipes/regional-qa-through-proxy.md) gives a task-focused setup.
 - [Tools](tools.md) explains why upstream Playwright MCP browser tools are forwarded unchanged.

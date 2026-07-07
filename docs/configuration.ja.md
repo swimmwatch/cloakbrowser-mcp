@@ -223,3 +223,7 @@ cloakbrowser-mcp --transport streamable-http \
 
 Readiness returns HTTP `200` while session capacity is available and HTTP `503` when `active + pending >= max`.
 `--http-auth-token` または `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` が設定されている場合、両方のプローブは、MCP リクエストと同様に `Authorization: Bearer ...` ヘッダーを必要とします。 認証トークンがない場合、プローブは設定されたHTTPバインドアドレスで公開されます。
+
+## 追加の実用パス
+
+upstream Playwright MCP とこのパッケージのどちらを使うかは[比較](comparison.md)を参照してください。短い作業手順には[レシピ](recipes/index.md)を使います: 永続プロファイル、拡張機能、reverse proxy、リージョン QA、Claude Desktop、Codex CLI、CI スモークテスト。

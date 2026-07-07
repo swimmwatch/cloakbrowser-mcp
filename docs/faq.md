@@ -15,6 +15,8 @@ CloakBrowser MCP is a [Model Context Protocol](https://modelcontextprotocol.io/)
 
 The upstream Playwright MCP server owns the browser tool schemas, descriptions, and responses. CloakBrowser MCP keeps those tools unchanged and adds only two local introspection tools: `cloakbrowser_binary_info` and `cloakbrowser_bridge_info`.
 
+See [`@playwright/mcp` vs `cloakbrowser-mcp`](comparison.md) for a neutral comparison of tool parity, CloakBrowser execution, packaging, Streamable HTTP, profiles, extensions, regional QA, and humanized input.
+
 ## Should I install it from npm or Docker?
 
 Use npm when your MCP client already runs on your machine and Node.js 22.12 or newer is available. Use Docker when you want a repeatable Playwright MCP-based image with the CloakBrowser cache prepared inside the container.
@@ -22,6 +24,12 @@ Use npm when your MCP client already runs on your machine and Node.js 22.12 or n
 ## Which MCP clients can use it?
 
 Any MCP client that supports stdio or Streamable HTTP servers can use CloakBrowser MCP. The [Getting Started](getting-started.md) guide includes stdio JSON examples for Codex, Claude Desktop, Claude Code, Cursor, VS Code/Cline-style clients, Continue, Windsurf, Goose, and Warp-style configurations.
+
+Short setup recipes are available for [Claude Desktop](recipes/connect-claude-desktop.md) and [Codex CLI](recipes/connect-codex-cli.md).
+
+## Where are the practical setup examples?
+
+Use the [Recipes](recipes/index.md) section for task-focused pages covering persistent login profiles, Chrome extensions, Docker Streamable HTTP behind a reverse proxy, regional QA through a proxy, MCP client setup, and CI smoke tests.
 
 ## Does it support the same browser tools as Playwright MCP?
 

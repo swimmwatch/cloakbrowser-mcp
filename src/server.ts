@@ -7,13 +7,13 @@ import {
   CallToolRequestSchema,
   type CallToolResult,
   type Implementation,
-  type ListToolsResult,
   type ListToolsRequest,
   ListToolsRequestSchema,
+  type ListToolsResult,
 } from '@modelcontextprotocol/sdk/types.js';
 import {
-  prepareBridgeRuntime,
   type BridgeRuntime,
+  prepareBridgeRuntime,
   type PrepareBridgeRuntimeOptions,
 } from '#src/bridge/config';
 import { resolvePlaywrightMcpCliPath } from '#src/bridge/paths';
@@ -55,6 +55,9 @@ export async function startBridge(options: StartBridgeOptions = {}): Promise<Bri
   return bridge;
 }
 
+/**
+ * Creates the outer MCP server that forwards upstream Playwright tools and exposes local introspection tools.
+ */
 export async function createBridgeServer(options: BridgeServerOptions = {}): Promise<BridgeServer> {
   const runtime = options.runtime ?? (await prepareBridgeRuntime(options.runtimeOptions));
   const upstreamClient = options.upstreamClient ?? (await connectUpstream(runtime));

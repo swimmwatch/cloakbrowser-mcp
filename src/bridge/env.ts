@@ -23,10 +23,15 @@ export function envList(env: EnvReader, name: string, fallback = ''): string[] {
   if (!raw.trim()) return [];
   if (raw.trim().startsWith('[')) {
     const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed) || parsed.some((item) => typeof item !== 'string')) {
-      throw new Error(`${name} must be a JSON string array`);
+    if (!Array.isArray(parsed)) throw new Error(`${name} must be a JSON string array`);
+    const result: string[] = [];
+    for (const item of parsed) {
+      if (typeof item !== 'string') {
+        throw new Error(`${name} must be a JSON string array`);
+      }
+      result.push(item);
     }
-    return parsed;
+    return result;
   }
   return raw
     .split(',')

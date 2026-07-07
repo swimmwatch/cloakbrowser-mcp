@@ -1,5 +1,5 @@
 ---
-description: Мост Playwright MCP для аўтаматызацыі браўзера з CloakBrowser, Docker, Streamable HTTP, пастаяннымі профілямі, праверанымі параметрамі кантэксту, загрузкай пашырэнняў, супастаўленнем проксі па GeoIP і чалавекападобным уводам.
+description: Drop-in сумяшчальны з Playwright MCP сервер браузернай аўтаматызацыі з нязменнымі upstream-інструментамі, CloakBrowser Chromium і гатовай упакоўкай npm, Docker і Streamable HTTP.
 icon: material/home
 tags:
   - User Guide
@@ -11,13 +11,23 @@ tags:
 
 <p class="clb-hero-actions" align="center">
   <a class="md-button md-button--primary" href="getting-started/">Пачаць</a>
-  <a class="md-button" href="tools/">Інструменты</a>
-  <a class="md-button" href="docker/">Docker</a>
+  <a class="md-button" href="comparison/">Параўнанне</a>
+  <a class="md-button" href="recipes/">Рэцэпты</a>
 </p>
 
 # КлоакБраўзер МС Сервер
 
-`cloakbrowser-mcp` — гэта сервер аўтаматызацыі браузера на аснове Model Context Protocol, які запускае upstream `@playwright/mcp` з бінарным файлам CloakBrowser Chromium. Выкарыстоўвайце яго, калі патрэбныя браузерныя інструменты, сумяшчальныя з Playwright MCP, запуск CloakBrowser, усталёўка праз npm, Docker-вобразы, сеансы Streamable HTTP, супастаўленне проксі па GeoIP для рэгіянальнага QA або чалавекападобныя паводзіны ўводу для сцэнарыяў, адчувальных да ўзаемадзеяння.
+`cloakbrowser-mcp` — гэта drop-in сумяшчальны з Playwright MCP сервер браузернай аўтаматызацыі з нязменнымі upstream-інструментамі, CloakBrowser Chromium і гатовай упакоўкай npm, Docker і Streamable HTTP. Ён запускае upstream `@playwright/mcp` як кананічную паверхню браузерных інструментаў і дадае вакол яе магчымасці запуску CloakBrowser для разгортвання.
+
+## 30-секундная дэманстрацыя
+
+<div class="clb-demo-video" markdown>
+[![30-секундная дэманстрацыя CloakBrowser MCP](assets/videos/30-second-demo.webp)](assets/videos/30-second-demo.mp4)
+</div>
+
+<p class="clb-demo-caption">Паглядзіце першы запуск: запусціце npm-пакет, падключыце MCP-кліент, папрасіце выканаць вэб-даследаванне, аўтаматызацыю або тэставанне і праверце вынік у сапраўдным браўзеры.</p>
+
+Выкарыстоўвайце яго, калі патрэбныя сумяшчальныя з Playwright MCP браузерныя інструменты плюс пастаянныя профілі, загрузка пашырэнняў, праверка кантэксту, супастаўленне GeoIP проксі для рэгіянальнага QA або чалавекападобны ўвод.
 
 Бягучая версія: {{ project.version_tag }}.
 
@@ -27,7 +37,7 @@ tags:
 
 | cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base                 | CloakBrowser | Transport              | Parity         |
 | ---------------- | --------------- | ------------------------------------------ | ------------ | ---------------------- | -------------- |
-| `1.6.1`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.7`     | stdio, Streamable HTTP | Параўноўваецца ў CI |
+| `1.6.1`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.8`     | stdio, Streamable HTTP | Параўноўваецца ў CI |
 | `1.6.0`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.7`     | stdio, Streamable HTTP | Параўноўваецца ў CI |
 | `1.5.0`          | `^0.0.76`       | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.4.3`     | stdio, Streamable HTTP | Параўноўваецца ў CI |
 | `1.4.0`          | `^0.0.76`       | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.3.32`    | stdio, Streamable HTTP | Параўноўваецца ў CI |
@@ -94,3 +104,7 @@ tags:
 - [Інструменты](tools.md) для чаканняў адносна працоўнага асяроддзя інструментаў і супастаўнасці з вышэйстаячым кодам.
 - [Пытанні і адказы](faq.md) па распаўсюджаных пытаннях усталявання, Docker, супастаўнасці і бяспекі.
 - [Кіраўніцтва для ўдзельнікаў](contributor-guide.md) з інфармацыяй пра распрацоўку, тэсціраванне, архітэктуру і выпускі.
+
+## Дадатковыя практычныя сцэнарыі
+
+Каб выбраць паміж upstream Playwright MCP і гэтым пакетам, глядзіце [параўнанне](comparison.md). Для хуткіх задач выкарыстоўвайце [рэцэпты](recipes/index.md): пастаянны профіль, пашырэнні, reverse proxy, рэгіянальнае QA, Claude Desktop, Codex CLI і smoke-тэст CI.

@@ -1,5 +1,5 @@
 ---
-description: Puente Playwright MCP para automatización de navegadores con CloakBrowser, Docker, Streamable HTTP, perfiles persistentes, opciones de contexto validadas, carga de extensiones, coincidencia de proxy GeoIP y entrada humanizada.
+description: Servidor de automatización de navegador compatible con Playwright MCP como drop-in, con herramientas upstream sin cambios, CloakBrowser Chromium y empaquetado listo para npm, Docker y Streamable HTTP.
 icon: material/home
 tags:
   - User Guide
@@ -11,13 +11,23 @@ tags:
 
 <p class="clb-hero-actions" align="center">
   <a class="md-button md-button--primary" href="getting-started/">Primeros pasos</a>
-  <a class="md-button" href="tools/">Herramientas</a>
-  <a class="md-button" href="docker/">Docker</a>
+  <a class="md-button" href="comparison/">Comparación</a>
+  <a class="md-button" href="recipes/">Recetas</a>
 </p>
 
 # Servidor MCP de CloakBrowser
 
-`cloakbrowser-mcp` es un servidor de automatización de navegadores basado en el Protocolo de Contexto de Modelo (MCP) que se ejecuta en la fase previa a `@playwright/mcp` con el binario de CloakBrowser para Chromium. Úsalo cuando necesites herramientas de navegador compatibles con Playwright MCP, ejecución de CloakBrowser, instalación de npm, imágenes de Docker, sesiones HTTP transmitibles, asignación de proxies con reconocimiento de GeoIP para el control de calidad regional o un comportamiento de entrada humanizado para flujos sensibles a la interacción.
+`cloakbrowser-mcp` es un servidor de automatización de navegador compatible con Playwright MCP como drop-in, con herramientas upstream sin cambios, CloakBrowser Chromium y empaquetado listo para npm, Docker y Streamable HTTP. Ejecuta upstream `@playwright/mcp` como superficie canónica de herramientas de navegador y añade alrededor funciones de ejecución CloakBrowser orientadas al despliegue.
+
+## Demo de 30 segundos
+
+<div class="clb-demo-video" markdown>
+[![Demo de 30 segundos de CloakBrowser MCP](assets/videos/30-second-demo.webp)](assets/videos/30-second-demo.mp4)
+</div>
+
+<p class="clb-demo-caption">Mira el primer arranque: inicia el paquete npm, conecta un cliente MCP, pide investigación web, automatización o pruebas, e inspecciona el resultado en un navegador real.</p>
+
+Úsalo cuando quieras herramientas de navegador compatibles con Playwright MCP junto con perfiles persistentes, carga de extensiones, validación de contexto, coincidencia GeoIP de proxy para QA regional o entrada humanizada.
 
 Versión actual: {{ project.version_tag }}.
 
@@ -27,7 +37,7 @@ Versión actual: {{ project.version_tag }}.
 
 | cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base                 | CloakBrowser | Transport              | Parity         |
 | ---------------- | --------------- | ------------------------------------------ | ------------ | ---------------------- | -------------- |
-| `1.6.1`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.7`     | stdio, Streamable HTTP | Comparado en CI |
+| `1.6.1`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.8`     | stdio, Streamable HTTP | Comparado en CI |
 | `1.6.0`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.7`     | stdio, Streamable HTTP | Comparado en CI |
 | `1.5.0`          | `^0.0.76`       | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.4.3`     | stdio, Streamable HTTP | Comparado en CI |
 | `1.4.0`          | `^0.0.76`       | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.3.32`    | stdio, Streamable HTTP | Comparado en CI |
@@ -94,3 +104,7 @@ Los contratos de la herramienta Playwright MCP, situada en la fase previa, son l
 - [Herramientas](tools.md) para definir las expectativas de la interfaz de las herramientas y la paridad con los componentes de origen.
 - [Preguntas frecuentes](faq.md) sobre cuestiones comunes relacionadas con la instalación, Docker, la paridad y la seguridad.
 - [Guía para colaboradores](contributor-guide.md) con detalles sobre el desarrollo, las pruebas, la arquitectura y las versiones.
+
+## Más rutas prácticas
+
+Para elegir entre Playwright MCP upstream y este paquete, consulta la [comparación](comparison.md). Para tareas rápidas, usa las [recetas](recipes/index.md): perfil persistente, extensiones, reverse proxy, QA regional, Claude Desktop, Codex CLI y prueba smoke de CI.

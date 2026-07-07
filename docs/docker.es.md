@@ -171,3 +171,7 @@ npm run docker:smoke
 El archivo Dockerfile utiliza la imagen oficial de Playwright MCP fijada como base del entorno de ejecución, aplica las actualizaciones de seguridad de Debian disponibles durante la compilación, elimina la carga útil global de npm no utilizada de la imagen del entorno de ejecución e instala el puente en `/opt/cloakbrowser-mcp`.
 
 El flujo de trabajo de publicación publica las certificaciones de la lista de materiales de software (SBOM) y de procedencia, incluye etiquetas OCI para el origen, la revisión, la versión, la licencia, el nombre de la imagen base y el resumen de la imagen base, y analiza la imagen compilada con Trivy antes de su publicación.
+
+## Más rutas prácticas
+
+Para elegir entre Playwright MCP upstream y este paquete, consulta la [comparación](comparison.md). Para tareas rápidas, usa las [recetas](recipes/index.md): perfil persistente, extensiones, reverse proxy, QA regional, Claude Desktop, Codex CLI y prueba smoke de CI.

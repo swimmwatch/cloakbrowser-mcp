@@ -24,6 +24,9 @@ export interface SessionStore {
   clear(): Promise<void>;
 }
 
+/**
+ * Stores Streamable HTTP sessions in process memory for the default single-process backend.
+ */
 export class InMemorySessionStore implements SessionStore {
   readonly #records = new Map<string, HttpSessionRecord>();
 
@@ -84,6 +87,9 @@ export class InMemorySessionStore implements SessionStore {
   }
 }
 
+/**
+ * Creates the configured HTTP session persistence backend.
+ */
 export function createSessionStore(backend: string): SessionStore {
   if (backend === HTTP_SESSION_BACKEND_MEMORY) return new InMemorySessionStore();
   throw new Error(`Unsupported HTTP session backend "${backend}"`);

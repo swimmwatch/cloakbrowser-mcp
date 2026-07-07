@@ -3,6 +3,10 @@ coverage
 artifacts
 .playwright-mcp
 node_modules
+.agents/skills/brag
+.agents/skills/humanizer
+.agents/skills/remotion
+tools/video/**/node_modules
 *.md
 *.png
 docs/overrides/**/*.html

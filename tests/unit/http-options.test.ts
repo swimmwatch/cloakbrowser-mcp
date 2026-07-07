@@ -9,12 +9,12 @@ import {
 import {
   BRIDGE_TRANSPORT_STDIO,
   BRIDGE_TRANSPORT_STREAMABLE_HTTP,
+  defaultStreamableHttpOptions,
   HEALTHZ_PATH,
   HTTP_PROTOCOL_HTTP,
   HTTP_PROTOCOL_HTTPS,
   HTTP_SESSION_BACKEND_MEMORY,
   READYZ_PATH,
-  defaultStreamableHttpOptions,
 } from '@/http/options.js';
 
 const cliEnvNames = cliOptionDefinitions.map((definition) => definition.env);
@@ -53,6 +53,25 @@ describe('Commander CLI options', () => {
       expect(parseCliOptions([]).bridge.humanize).toBe(true);
       expect(parseCliOptions(['--humanize']).bridge.humanize).toBe(true);
     });
+  });
+
+  it('requires explicit true or false boolean env values', () => {
+    withCliEnv(
+      {
+        CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH: ' false ',
+        CLOAK_PLAYWRIGHT_MCP_HUMANIZE: 'TRUE',
+      },
+      () => {
+        expect(parseCliOptions([]).bridge.geoipProxyMatch).toBe(false);
+        expect(parseCliOptions([]).bridge.humanize).toBe(true);
+      },
+    );
+
+    for (const value of ['treu', 'tru', 'enabled', 'yes', 'on', '1', '']) {
+      withCliEnv({ CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH: value }, () => {
+        expect(() => parseCliOptions([])).toThrow('Boolean environment values must be "true" or "false"');
+      });
+    }
   });
 
   it('reads the human preset bridge option from env and CLI flags', () => {

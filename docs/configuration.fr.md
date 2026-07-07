@@ -228,3 +228,7 @@ Lorsque le pont fonctionne avec `--transport streamable-http`, il expose des poi
 
 La fonctionnalité « Readiness » renvoie `200` tant qu'il reste de la capacité de session disponible, et `503` lorsque `active + pending >= max`.
 Si `--http-auth-token` ou `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` est configuré, les deux sondes doivent utiliser le même en-tête `Authorization: Bearer ...` que les requêtes MCP. En l'absence de jeton d'authentification, les sondes sont ouvertes sur l'adresse de liaison HTTP configurée.
+
+## Parcours pratiques supplémentaires
+
+Pour choisir entre Playwright MCP amont et ce paquet, consultez la [comparaison](comparison.md). Pour des tâches courtes, utilisez les [recettes](recipes/index.md): profil persistant, extensions, reverse proxy, QA régionale, Claude Desktop, Codex CLI et test smoke CI.

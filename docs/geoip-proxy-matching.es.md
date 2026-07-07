@@ -176,3 +176,7 @@ comprobaciones de políticas regionales.
 - [Configuración](configuration.md) enumera todas las variables de entorno del puente y del entorno de origen.
 - [Docker](docker.md) explica los valores predeterminados del tiempo de ejecución de los contenedores y la publicación HTTP de Streamable.
 - [Herramientas](tools.md) explica por qué las herramientas de navegador Playwright MCP de origen se reenvían sin modificaciones.
+
+## Más rutas prácticas
+
+Para elegir entre Playwright MCP upstream y este paquete, consulta la [comparación](comparison.md). Para tareas rápidas, usa las [recetas](recipes/index.md): perfil persistente, extensiones, reverse proxy, QA regional, Claude Desktop, Codex CLI y prueba smoke de CI.

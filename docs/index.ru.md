@@ -1,5 +1,5 @@
 ---
-description: Мост Playwright MCP для автоматизации браузера с CloakBrowser, Docker, Streamable HTTP, постоянными профилями, проверенными параметрами контекста, загрузкой расширений, сопоставлением прокси по GeoIP и гуманизированным вводом.
+description: Drop-in совместимый с Playwright MCP сервер браузерной автоматизации с неизменёнными upstream-инструментами, CloakBrowser Chromium и готовой упаковкой npm, Docker и Streamable HTTP.
 icon: material/home
 tags:
   - User Guide
@@ -11,13 +11,23 @@ tags:
 
 <p class="clb-hero-actions" align="center">
   <a class="md-button md-button--primary" href="getting-started/">Начать</a>
-  <a class="md-button" href="tools/">Инструменты</a>
-  <a class="md-button" href="docker/">Docker</a>
+  <a class="md-button" href="comparison/">Сравнение</a>
+  <a class="md-button" href="recipes/">Рецепты</a>
 </p>
 
 # Сервер CloakBrowser MCP
 
-`cloakbrowser-mcp` — это сервер автоматизации браузера на основе Model Context Protocol, который запускает вышестоящий `@playwright/mcp` с бинарным файлом CloakBrowser на базе Chromium. Используйте его, если вам нужны инструменты для браузера, совместимые с Playwright MCP, запуск CloakBrowser, установка через npm, образы Docker, HTTP-сессии с поддержкой Streamable, подбор прокси с учетом GeoIP для регионального контроля качества или имитация поведения пользователя при вводе данных для рабочих процессов, чувствительных к взаимодействию.
+`cloakbrowser-mcp` — это drop-in совместимый с Playwright MCP сервер браузерной автоматизации с неизменёнными upstream-инструментами, CloakBrowser Chromium и готовой упаковкой npm, Docker и Streamable HTTP. Он запускает upstream `@playwright/mcp` как каноническую поверхность браузерных инструментов и добавляет вокруг неё возможности запуска CloakBrowser для развёртывания.
+
+## 30-секундная демонстрация
+
+<div class="clb-demo-video" markdown>
+[![30-секундная демонстрация CloakBrowser MCP](assets/videos/30-second-demo.webp)](assets/videos/30-second-demo.mp4)
+</div>
+
+<p class="clb-demo-caption">Посмотрите первый запуск: запустите npm-пакет, подключите MCP-клиент, попросите выполнить веб-исследование, автоматизацию или тестирование и проверьте результат в настоящем браузере.</p>
+
+Используйте его, когда нужны совместимые с Playwright MCP браузерные инструменты плюс постоянные профили, загрузка расширений, проверка контекста, сопоставление GeoIP прокси для регионального QA или человекоподобный ввод для чувствительных к взаимодействию сценариев.
 
 Текущая версия: {{ project.version_tag }}.
 
@@ -27,7 +37,7 @@ tags:
 
 | cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base                 | CloakBrowser | Transport              | Parity         |
 | ---------------- | --------------- | ------------------------------------------ | ------------ | ---------------------- | -------------- |
-| `1.6.1`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.7`     | stdio, Streamable HTTP | Сравнивается в CI |
+| `1.6.1`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.8`     | stdio, Streamable HTTP | Сравнивается в CI |
 | `1.6.0`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.7`     | stdio, Streamable HTTP | Сравнивается в CI |
 | `1.5.0`          | `^0.0.76`       | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.4.3`     | stdio, Streamable HTTP | Сравнивается в CI |
 | `1.4.0`          | `^0.0.76`       | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.3.32`    | stdio, Streamable HTTP | Сравнивается в CI |
@@ -94,3 +104,7 @@ tags:
 - [Инструменты](tools.md) для соответствия ожиданиям в отношении интерфейса инструментов и согласованности с исходным кодом.
 - [Часто задаваемые вопросы](faq.md) по типичным вопросам об установке, Docker, совместимости и безопасности.
 - [Руководство для участников](contributor-guide.md) с подробностями о разработке, тестировании, архитектуре и выпусках.
+
+## Дополнительные практические сценарии
+
+Для выбора между upstream Playwright MCP и этим пакетом используйте [сравнение](comparison.md). Для быстрых задач используйте [рецепты](recipes/index.md): постоянный профиль, расширения, reverse proxy, региональное QA, Claude Desktop, Codex CLI и smoke-тест CI.

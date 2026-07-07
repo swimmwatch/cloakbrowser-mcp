@@ -11,7 +11,7 @@ npm install
 npm run check
 ```
 
-Node.js 20 or newer is required.
+Node.js 22.12.0 or newer is required.
 
 ## Pull Request Checklist
 

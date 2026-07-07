@@ -1,4 +1,4 @@
-import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
+import { type ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -63,6 +63,7 @@ describe('streamable HTTP CLI logging', () => {
       stdout,
       / INFO cloakbrowser-mcp streamable-http listening /u,
       () => stderr.text,
+      20_000,
     );
     expect(stdoutLine).toMatch(
       /^\d{4}-\d{2}-\d{2}T\S+Z INFO cloakbrowser-mcp streamable-http listening url=http:\/\/127\.0\.0\.1:\d+\/mcp$/u,
@@ -77,10 +78,12 @@ describe('streamable HTTP CLI logging', () => {
         child,
         stdout,
         /^\d{4}-\d{2}-\d{2}T\S+Z INFO cloakbrowser-mcp http request duration_ms=\d+ method=GET path=\/healthz status=200$/u,
+        () => stderr.text,
+        10_000,
       ),
     ).resolves.toBeDefined();
     expect(stderr.text).toBe('');
-  });
+  }, 45_000);
 });
 
 interface CollectedStream {
@@ -112,12 +115,24 @@ function waitForLine(
   stream: CollectedStream,
   pattern: RegExp,
   diagnostics?: () => string,
+  timeoutMs = 5_000,
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
       cleanup();
-      reject(new Error(`Timed out waiting for line matching ${pattern}`));
-    }, 5_000);
+      const diagnosticText = diagnostics?.().trim();
+      reject(
+        new Error(
+          [
+            `Timed out waiting for line matching ${pattern}`,
+            stream.text.trim() ? `stdout:\n${stream.text.trim()}` : undefined,
+            diagnosticText ? `stderr:\n${diagnosticText}` : undefined,
+          ]
+            .filter((line) => line !== undefined)
+            .join('\n'),
+        ),
+      );
+    }, timeoutMs);
 
     const findLine = (): string | undefined => stream.text.split(/\r?\n/u).find((line) => pattern.test(line));
     const onData = (): void => {

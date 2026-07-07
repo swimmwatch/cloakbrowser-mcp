@@ -6,20 +6,21 @@ import { type Implementation } from '@modelcontextprotocol/sdk/types.js';
 import {
   BRIDGE_TRANSPORT_STREAMABLE_HTTP,
   HEALTHZ_PATH,
-  READYZ_PATH,
+  HTTP_PROTOCOL_HTTP,
   type HttpSessionBackend,
+  READYZ_PATH,
   type StreamableHttpOptions,
 } from '#src/http/options';
 import {
-  HTTP_SESSION_STATUS_ACTIVE,
   createSessionStore,
+  HTTP_SESSION_STATUS_ACTIVE,
   type HttpSessionRecord,
   type SessionStore,
 } from '#src/http/sessionStore';
 import { HttpStatus, JsonRpcErrorCode } from '#src/http/status';
 import type { BridgeLogger } from '#src/logging/logger';
 import { MCP_SESSION_ID_HEADER } from '#src/protocol/constants';
-import { createBridgeServer, type BridgeServer } from '#src/server';
+import { type BridgeServer, createBridgeServer } from '#src/server';
 import {
   closeHttpServer,
   createStreamableNodeServer,
@@ -28,15 +29,16 @@ import {
   type StreamableNodeServer,
 } from '#src/http/nodeServer';
 import {
-  RequestBodyTooLargeError,
+  type BridgeInitializeRuntimeOptions,
   containsInitializeRequest,
   getSingleHeader,
   hasJsonContentType,
-  isEndpointRequest,
-  readJsonBody,
-  requestPathName,
   InvalidBridgeInitializeMetaError,
+  isEndpointRequest,
   readBridgeRuntimeOptionsFromInitialize,
+  readJsonBody,
+  RequestBodyTooLargeError,
+  requestPathName,
 } from '#src/http/requests';
 import { endResponse, writeJsonResponse, writeJsonRpcError } from '#src/http/responses';
 import { BridgeRuntimeConfigurationError, type PrepareBridgeRuntimeOptions } from '#src/bridge/config';
@@ -121,6 +123,7 @@ class StreamableHttpBridgeController {
 
   async start(): Promise<StreamableHttpBridgeServer> {
     await listenHttpServer(this.#httpServer, this.#options.port, this.#options.host);
+    this.#warnIfUnsafeHttpExposure();
     const address = this.#httpServer.address();
     if (typeof address === 'string' || address === null) {
       throw new Error('HTTP server did not expose a TCP address');
@@ -135,6 +138,20 @@ class StreamableHttpBridgeController {
         await this.#store.clear();
       },
     };
+  }
+
+  #warnIfUnsafeHttpExposure(): void {
+    if (this.#options.protocol !== HTTP_PROTOCOL_HTTP) return;
+    if (this.#options.authToken !== undefined) return;
+    if (isLoopbackHost(this.#options.host)) return;
+    this.#options.logger?.warn(
+      {
+        endpoint: this.#options.endpoint,
+        host: this.#options.host,
+        protocol: this.#options.protocol,
+      },
+      'streamable-http bound to non-loopback host without auth or TLS',
+    );
   }
 
   async #handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -256,49 +273,74 @@ class StreamableHttpBridgeController {
     res: ServerResponse,
     parsedBody: unknown,
   ): Promise<void> {
-    let sessionRuntimeOptions: Pick<
-      PrepareBridgeRuntimeOptions,
-      | 'contextOptions'
-      | 'extensionPaths'
-      | 'geoipProxyMatch'
-      | 'headless'
-      | 'humanize'
-      | 'humanPreset'
-      | 'proxy'
-      | 'userDataDir'
-    >;
+    const sessionRuntimeOptions = this.#readSessionRuntimeOptions(res, parsedBody);
+    if (sessionRuntimeOptions === undefined) return;
+
+    if (!this.#reserveSessionSlot(res)) return;
+
+    const sessionId = randomUUID();
+    const record = this.#createSessionRecord(sessionId, Date.now());
+    const transport = this.#createSessionTransport(sessionId, record);
+
     try {
-      sessionRuntimeOptions = readBridgeRuntimeOptionsFromInitialize(parsedBody);
+      const bridge = await createBridgeServer({
+        serverInfo: this.#options.serverInfo,
+        runtimeOptions: this.#createRuntimeOptionsForSession(sessionRuntimeOptions),
+      });
+      this.#sessions.set(sessionId, { id: sessionId, bridge, transport });
+      await bridge.start(transport);
+      await transport.handleRequest(req, res, parsedBody);
+    } catch (error) {
+      await this.#closeSession(sessionId);
+      if (this.#handleInitializeError(res, error)) return;
+      throw error;
+    } finally {
+      this.#pendingSessionInitializations -= 1;
+    }
+  }
+
+  #readSessionRuntimeOptions(
+    res: ServerResponse,
+    parsedBody: unknown,
+  ): BridgeInitializeRuntimeOptions | undefined {
+    try {
+      return readBridgeRuntimeOptionsFromInitialize(parsedBody);
     } catch (error) {
       if (error instanceof InvalidBridgeInitializeMetaError) {
         writeJsonRpcError(res, HttpStatus.BadRequest, JsonRpcErrorCode.ServerError, error.message);
-        return;
+        return undefined;
       }
       throw error;
     }
+  }
 
-    const now = Date.now();
-    if (this.#sessions.size + this.#pendingSessionInitializations >= this.#options.sessionMax) {
-      writeJsonRpcError(
-        res,
-        HttpStatus.ServiceUnavailable,
-        JsonRpcErrorCode.ServerError,
-        'HTTP session limit reached',
-      );
-      return;
+  #reserveSessionSlot(res: ServerResponse): boolean {
+    if (this.#sessions.size + this.#pendingSessionInitializations < this.#options.sessionMax) {
+      this.#pendingSessionInitializations += 1;
+      return true;
     }
 
-    this.#pendingSessionInitializations += 1;
-    const sessionId = randomUUID();
-    const record: HttpSessionRecord = {
+    writeJsonRpcError(
+      res,
+      HttpStatus.ServiceUnavailable,
+      JsonRpcErrorCode.ServerError,
+      'HTTP session limit reached',
+    );
+    return false;
+  }
+
+  #createSessionRecord(sessionId: string, now: number): HttpSessionRecord {
+    return {
       id: sessionId,
       createdAt: now,
       lastSeenAt: now,
       expiresAt: now + this.#options.sessionIdleTtlMs,
       status: HTTP_SESSION_STATUS_ACTIVE,
     };
+  }
 
-    const transport = new StreamableHTTPServerTransport({
+  #createSessionTransport(sessionId: string, record: HttpSessionRecord): StreamableHTTPServerTransport {
+    return new StreamableHTTPServerTransport({
       sessionIdGenerator: () => sessionId,
       onsessioninitialized: async (initializedSessionId) => {
         if (initializedSessionId !== sessionId) {
@@ -310,40 +352,29 @@ class StreamableHttpBridgeController {
         if (closedSessionId) await this.#store.markClosed(closedSessionId, Date.now());
       },
     });
+  }
 
-    try {
-      const bridge = await createBridgeServer({
-        serverInfo: this.#options.serverInfo,
-        runtimeOptions: {
-          browserIsolated: true,
-          geoipProxyMatch:
-            sessionRuntimeOptions.geoipProxyMatch ?? this.#options.runtimeOptions?.geoipProxyMatch,
-          headless: sessionRuntimeOptions.headless ?? this.#options.runtimeOptions?.headless,
-          humanize: sessionRuntimeOptions.humanize ?? this.#options.runtimeOptions?.humanize,
-          humanPreset: sessionRuntimeOptions.humanPreset ?? this.#options.runtimeOptions?.humanPreset,
-          userDataDir: sessionRuntimeOptions.userDataDir ?? this.#options.runtimeOptions?.userDataDir,
-          contextOptions: mergeContextOptions(
-            this.#options.runtimeOptions?.contextOptions,
-            sessionRuntimeOptions.contextOptions,
-          ),
-          extensionPaths:
-            sessionRuntimeOptions.extensionPaths ?? this.#options.runtimeOptions?.extensionPaths,
-          proxy: sessionRuntimeOptions.proxy ?? this.#options.runtimeOptions?.proxy,
-        },
-      });
-      this.#sessions.set(sessionId, { id: sessionId, bridge, transport });
-      await bridge.start(transport);
-      await transport.handleRequest(req, res, parsedBody);
-    } catch (error) {
-      await this.#closeSession(sessionId);
-      if (error instanceof BridgeRuntimeConfigurationError) {
-        writeJsonRpcError(res, HttpStatus.BadRequest, JsonRpcErrorCode.ServerError, error.message);
-        return;
-      }
-      throw error;
-    } finally {
-      this.#pendingSessionInitializations -= 1;
-    }
+  #createRuntimeOptionsForSession(
+    sessionRuntimeOptions: BridgeInitializeRuntimeOptions,
+  ): PrepareBridgeRuntimeOptions {
+    const defaults = this.#options.runtimeOptions;
+    return {
+      browserIsolated: true,
+      geoipProxyMatch: preferSessionOption(sessionRuntimeOptions.geoipProxyMatch, defaults?.geoipProxyMatch),
+      headless: preferSessionOption(sessionRuntimeOptions.headless, defaults?.headless),
+      humanize: preferSessionOption(sessionRuntimeOptions.humanize, defaults?.humanize),
+      humanPreset: preferSessionOption(sessionRuntimeOptions.humanPreset, defaults?.humanPreset),
+      userDataDir: preferSessionOption(sessionRuntimeOptions.userDataDir, defaults?.userDataDir),
+      contextOptions: mergeContextOptions(defaults?.contextOptions, sessionRuntimeOptions.contextOptions),
+      extensionPaths: preferSessionOption(sessionRuntimeOptions.extensionPaths, defaults?.extensionPaths),
+      proxy: preferSessionOption(sessionRuntimeOptions.proxy, defaults?.proxy),
+    };
+  }
+
+  #handleInitializeError(res: ServerResponse, error: unknown): boolean {
+    if (!(error instanceof BridgeRuntimeConfigurationError)) return false;
+    writeJsonRpcError(res, HttpStatus.BadRequest, JsonRpcErrorCode.ServerError, error.message);
+    return true;
   }
 
   async #handleSessionRequest(
@@ -490,6 +521,13 @@ class StreamableHttpBridgeController {
   }
 }
 
+function isLoopbackHost(host: string): boolean {
+  const normalized = host.trim().toLowerCase();
+  const unwrapped =
+    normalized.startsWith('[') && normalized.endsWith(']') ? normalized.slice(1, -1) : normalized;
+  return unwrapped === 'localhost' || unwrapped === '::1' || /^127(?:\.\d{1,3}){3}$/u.test(unwrapped);
+}
+
 function mergeContextOptions(
   envContextOptions: PrepareBridgeRuntimeOptions['contextOptions'],
   sessionContextOptions: PrepareBridgeRuntimeOptions['contextOptions'],
@@ -497,6 +535,10 @@ function mergeContextOptions(
   if (envContextOptions === undefined) return sessionContextOptions;
   if (sessionContextOptions === undefined) return envContextOptions;
   return { ...envContextOptions, ...sessionContextOptions };
+}
+
+function preferSessionOption<T>(sessionValue: T | undefined, defaultValue: T | undefined): T | undefined {
+  return sessionValue ?? defaultValue;
 }
 
 function timingSafeStringEqual(actual: string, expected: string): boolean {

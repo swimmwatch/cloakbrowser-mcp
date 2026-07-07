@@ -34,3 +34,7 @@ O Docker oferece um ambiente de execução mais repetível e isolado, mas não t
 ## Este projeto utiliza ferramentas de análise ou rastreamento?
 
 Não. O site de documentação não habilita análises por padrão. A indexação pelos mecanismos de busca é feita por meio de metadados padrão, `robots.txt`, geração de mapa do site, tags opcionais de verificação para webmasters e notificações opcionais do IndexNow.
+
+## Mais caminhos práticos
+
+Para escolher entre o Playwright MCP upstream e este pacote, consulte a [comparação](comparison.md). Para tarefas rápidas, use as [receitas](recipes/index.md): perfil persistente, extensões, reverse proxy, QA regional, Claude Desktop, Codex CLI e teste smoke de CI.

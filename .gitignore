@@ -1,5 +1,9 @@
 # Dependencies and package-manager caches
 /node_modules/
+.agents/skills/brag/
+.agents/skills/humanizer/
+.agents/skills/remotion/
+tools/video/**/node_modules/
 /.npm/
 /.pnpm-store/
 

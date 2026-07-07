@@ -168,3 +168,7 @@ npm run docker:smoke
 この Dockerfile では、ピン留めされた公式の Playwright MCP イメージをランタイムのベースとして使用し、ビルド中に利用可能な Debian のセキュリティ更新を適用し、ランタイムイメージから未使用のグローバル npm ペイロードを削除し、`/opt/cloakbrowser-mcp`の下にブリッジをインストールします。
 
 このリリースワークフローでは、SBOMおよび出所証明を公開し、ソース、リビジョン、バージョン、ライセンス、ベースイメージ名、ベースイメージのダイジェストに関するOCIラベルを含め、公開前にTrivyを使用してビルド済みイメージをスキャンします。
+
+## 追加の実用パス
+
+upstream Playwright MCP とこのパッケージのどちらを使うかは[比較](comparison.md)を参照してください。短い作業手順には[レシピ](recipes/index.md)を使います: 永続プロファイル、拡張機能、reverse proxy、リージョン QA、Claude Desktop、Codex CLI、CI スモークテスト。

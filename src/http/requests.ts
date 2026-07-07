@@ -1,13 +1,13 @@
 import type { IncomingMessage } from 'node:http';
-import { isInitializeRequest, type InitializeRequest } from '@modelcontextprotocol/sdk/types.js';
+import { type InitializeRequest, isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import {
-  parseHumanPreset,
-  parseBridgeContextOptions,
   type BridgeContextOptions,
+  BridgeRuntimeConfigurationError,
   type BridgeRuntimeProxy,
   type HumanPreset,
+  parseBridgeContextOptions,
+  parseHumanPreset,
   type PrepareBridgeRuntimeOptions,
-  BridgeRuntimeConfigurationError,
 } from '#src/bridge/config';
 import { formatHost } from '#src/http/nodeServer';
 import { type StreamableHttpOptions } from '#src/http/options';
@@ -20,8 +20,11 @@ export function isEndpointRequest(
   protocol: StreamableHttpOptions['protocol'] = 'http',
 ): boolean {
   const host = getSingleHeader(req, 'host') ?? formatHost(fallbackHost);
-  const url = new URL(req.url ?? '/', `${protocol}://${host}`);
-  return url.pathname === endpoint;
+  try {
+    return new URL(req.url ?? '/', `${protocol}://${host}`).pathname === endpoint;
+  } catch {
+    return false;
+  }
 }
 
 export function requestPathName(
@@ -76,43 +79,65 @@ export type BridgeInitializeRuntimeOptions = Pick<
   | 'userDataDir'
 >;
 
+/**
+ * Reads per-session bridge runtime overrides from MCP initialize metadata.
+ */
 export function readBridgeRuntimeOptionsFromInitialize(value: unknown): BridgeInitializeRuntimeOptions {
   const request = findInitializeRequest(value);
   if (!request) return {};
 
+  const bridgeMeta = readBridgeInitializeMeta(request);
+  return bridgeMeta === undefined ? {} : readBridgeRuntimeOptionsFromMeta(bridgeMeta);
+}
+
+function readBridgeInitializeMeta(request: InitializeRequest): Record<string, unknown> | undefined {
   const meta = request.params._meta as Record<string, unknown> | undefined;
   const bridgeMeta = meta?.[BRIDGE_INITIALIZE_META_KEY];
-  if (bridgeMeta === undefined) return {};
+  if (bridgeMeta === undefined) return undefined;
   if (!isRecord(bridgeMeta)) {
     throw new InvalidBridgeInitializeMetaError(
       `${BRIDGE_INITIALIZE_META_KEY} initialize metadata must be an object`,
     );
   }
+  return bridgeMeta;
+}
 
+function readBridgeRuntimeOptionsFromMeta(
+  bridgeMeta: Record<string, unknown>,
+): BridgeInitializeRuntimeOptions {
   const proxyServer = readOptionalString(bridgeMeta, 'proxyServer');
   const proxyBypass = readOptionalString(bridgeMeta, 'proxyBypass');
-  const geoipProxyMatch = readOptionalBoolean(bridgeMeta, 'geoipProxyMatch');
-  const headless = readOptionalBoolean(bridgeMeta, 'headless');
-  const humanize = readOptionalBoolean(bridgeMeta, 'humanize');
-  const humanPreset = readOptionalHumanPreset(bridgeMeta, 'humanPreset');
-  const userDataDir = readOptionalString(bridgeMeta, 'userDataDir');
-  const contextOptions = readOptionalContextOptions(bridgeMeta, 'contextOptions');
-  const extensionPaths = readOptionalStringArray(bridgeMeta, 'extensionPaths');
+  const proxy = readRuntimeProxy(proxyServer, proxyBypass);
+  return compactRuntimeOptions({
+    geoipProxyMatch: readOptionalBoolean(bridgeMeta, 'geoipProxyMatch'),
+    headless: readOptionalBoolean(bridgeMeta, 'headless'),
+    humanize: readOptionalBoolean(bridgeMeta, 'humanize'),
+    humanPreset: readOptionalHumanPreset(bridgeMeta, 'humanPreset'),
+    userDataDir: readOptionalString(bridgeMeta, 'userDataDir'),
+    contextOptions: readOptionalContextOptions(bridgeMeta, 'contextOptions'),
+    extensionPaths: readOptionalStringArray(bridgeMeta, 'extensionPaths'),
+    proxy,
+  });
+}
+
+function readRuntimeProxy(
+  proxyServer: string | undefined,
+  proxyBypass: string | undefined,
+): BridgeRuntimeProxy | undefined {
   if (proxyBypass !== undefined && proxyServer === undefined) {
     throw new InvalidBridgeInitializeMetaError('proxyBypass requires proxyServer');
   }
+  return proxyServer === undefined ? undefined : createRuntimeProxy(proxyServer, proxyBypass);
+}
 
-  const proxy = proxyServer === undefined ? undefined : createRuntimeProxy(proxyServer, proxyBypass);
-  return {
-    ...(geoipProxyMatch === undefined ? {} : { geoipProxyMatch }),
-    ...(headless === undefined ? {} : { headless }),
-    ...(humanize === undefined ? {} : { humanize }),
-    ...(humanPreset === undefined ? {} : { humanPreset }),
-    ...(userDataDir === undefined ? {} : { userDataDir }),
-    ...(contextOptions === undefined ? {} : { contextOptions }),
-    ...(extensionPaths === undefined ? {} : { extensionPaths }),
-    ...(proxy === undefined ? {} : { proxy }),
-  };
+function compactRuntimeOptions(
+  options: Record<keyof BridgeInitializeRuntimeOptions, unknown>,
+): BridgeInitializeRuntimeOptions {
+  const result: BridgeInitializeRuntimeOptions = {};
+  for (const [key, option] of Object.entries(options)) {
+    if (option !== undefined) Object.assign(result, { [key]: option });
+  }
+  return result;
 }
 
 export function getSingleHeader(req: IncomingMessage, name: string): string | undefined {

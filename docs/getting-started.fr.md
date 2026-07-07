@@ -281,3 +281,7 @@ Demandez au client MCP de lister les outils. Vous devriez voir les outils de nav
 
 - `cloakbrowser_binary_info`
 - `cloakbrowser_bridge_info`
+
+## Parcours pratiques supplémentaires
+
+Pour choisir entre Playwright MCP amont et ce paquet, consultez la [comparaison](comparison.md). Pour des tâches courtes, utilisez les [recettes](recipes/index.md): profil persistant, extensions, reverse proxy, QA régionale, Claude Desktop, Codex CLI et test smoke CI.

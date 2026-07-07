@@ -3,7 +3,7 @@
     "version": "1.6.1",
     "playwrightMcp": "^0.0.77",
     "playwrightMcpDockerBase": "mcr.microsoft.com/playwright/mcp:v0.0.77",
-    "cloakbrowser": "^0.4.7",
+    "cloakbrowser": "^0.4.8",
     "node": ">=22.12",
     "transports": ["stdio", "Streamable HTTP"],
     "readmePlatforms": "npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker linux/amd64, linux/arm64",

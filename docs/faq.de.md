@@ -34,3 +34,7 @@ Docker bietet Ihnen eine besser reproduzierbare und isolierte Laufzeitumgebung, 
 ## Werden bei diesem Projekt Analysetools oder Tracking-Funktionen eingesetzt?
 
 Nein. Auf der Dokumentationsseite sind Analysefunktionen standardmäßig nicht aktiviert. Die Auffindbarkeit in Suchmaschinen wird über Standard-Metadaten, `robots.txt`, die Erstellung einer Sitemap, optionale Webmaster-Verifizierungs-Tags und optionale IndexNow-Benachrichtigungen gewährleistet.
+
+## Weitere praktische Pfade
+
+Für die Entscheidung zwischen upstream Playwright MCP und diesem Paket nutzen Sie den [Vergleich](comparison.md). Für kurze Aufgaben nutzen Sie die [Rezepte](recipes/index.md): persistentes Profil, Erweiterungen, reverse proxy, regionale QA, Claude Desktop, Codex CLI und CI-Smoke-Test.

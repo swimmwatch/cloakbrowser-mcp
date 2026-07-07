@@ -1,5 +1,5 @@
 ---
-description: CloakBrowser のブラウザー自動化向け Playwright MCP ブリッジ。Docker、Streamable HTTP、永続プロファイル、検証済みコンテキストオプション、拡張機能の読み込み、GeoIP プロキシ照合、人間らしい入力に対応します。
+description: upstream ツールを変更せず、CloakBrowser Chromium と npm、Docker、Streamable HTTP 向けパッケージングを備えた Playwright MCP drop-in 互換のブラウザー自動化サーバーです。
 icon: material/home
 tags:
   - User Guide
@@ -11,13 +11,21 @@ tags:
 
 <p class="clb-hero-actions" align="center">
   <a class="md-button md-button--primary" href="getting-started/">はじめに</a>
-  <a class="md-button" href="tools/">ツール</a>
-  <a class="md-button" href="docker/">Docker</a>
+  <a class="md-button" href="comparison/">比較</a>
+  <a class="md-button" href="recipes/">レシピ</a>
 </p>
 
 # CloakBrowser MCP サーバー
 
 `cloakbrowser-mcp` は、CloakBrowser Chromium バイナリを使用して `@playwright/mcp` をアップストリームで実行する、Model Context Protocol 対応のブラウザ自動化サーバーです。 Playwright MCP 互換のブラウザツール、CloakBrowser の実行、npm インストール、Docker イメージ、ストリーム可能な HTTP セッション、地域別の QA 向けの GeoIP 対応プロキシマッチング、またはインタラクションに敏感なフロー向けのヒューマナイズされた入力動作が必要な場合に利用してください。
+
+## 30秒デモ
+
+<div class="clb-demo-video" markdown>
+[![CloakBrowser MCP 30秒デモ](assets/videos/30-second-demo.webp)](assets/videos/30-second-demo.mp4)
+</div>
+
+<p class="clb-demo-caption">最初の実行を確認できます。npm パッケージを起動し、MCP クライアントを接続して、Web 調査、自動化、またはテストを依頼し、実際のブラウザー結果を確認します。</p>
 
 現在のバージョン：{{ project.version_tag }}。
 
@@ -27,7 +35,7 @@ tags:
 
 | cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base                 | CloakBrowser | Transport              | Parity         |
 | ---------------- | --------------- | ------------------------------------------ | ------------ | ---------------------- | -------------- |
-| `1.6.1`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.7`     | stdio, Streamable HTTP | CI で比較済み |
+| `1.6.1`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.8`     | stdio, Streamable HTTP | CI で比較済み |
 | `1.6.0`          | `^0.0.77`       | `mcr.microsoft.com/playwright/mcp:v0.0.77` | `^0.4.7`     | stdio, Streamable HTTP | CI で比較済み |
 | `1.5.0`          | `^0.0.76`       | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.4.3`     | stdio, Streamable HTTP | CI で比較済み |
 | `1.4.0`          | `^0.0.76`       | `mcr.microsoft.com/playwright/mcp:v0.0.76` | `^0.3.32`    | stdio, Streamable HTTP | CI で比較済み |
@@ -94,3 +102,7 @@ tags:
 - [ツール](tools.md)：ツールインターフェースへの期待値および上流との互換性を確保するため。
 - [FAQ](faq.md)：一般的なインストール、Docker、互換性、およびセキュリティに関する質問への回答。
 - [コントリビューターガイド](contributor-guide.md)：開発、テスト、アーキテクチャ、およびリリースに関する詳細。
+
+## 追加の実用パス
+
+upstream Playwright MCP とこのパッケージのどちらを使うかは[比較](comparison.md)を参照してください。短い作業手順には[レシピ](recipes/index.md)を使います: 永続プロファイル、拡張機能、reverse proxy、リージョン QA、Claude Desktop、Codex CLI、CI スモークテスト。
