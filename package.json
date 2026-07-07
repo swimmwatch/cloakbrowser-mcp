@@ -55,6 +55,8 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "video:demo:render": "npm --prefix tools/video/30-second-demo run render",
+    "video:demo:webp": "npm --prefix tools/video/30-second-demo run render:webp",
     "docs:install": "python3 -m venv .venv-docs && .venv-docs/bin/pip install -r docs/requirements.txt",
     "docs:assets": "node scripts/generate-brand-assets.mjs",
     "docs:cli": "node --conditions development --import tsx scripts/generate-cli-docs.ts",

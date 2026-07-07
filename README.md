@@ -33,7 +33,7 @@
 
 ## 30-second demo
 
-https://raw.githubusercontent.com/swimmwatch/cloakbrowser-mcp/main/docs/assets/videos/30-second-demo.mp4
+[![30-second demo showing CloakBrowser MCP startup, humanized research prompt typing, web automation, and testing workflows](docs/assets/videos/30-second-demo.webp)](docs/assets/videos/30-second-demo.mp4)
 
 Run `npx -y cloakbrowser-mcp@latest`, connect Claude Desktop or Codex CLI, ask for web research, daily automation, or testing in plain English, and inspect the real browser result.
 

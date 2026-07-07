@@ -32,12 +32,22 @@
   margin: 1.25rem 0 0.65rem;
 }
 
+.md-typeset .clb-demo-video p {
+  margin: 0;
+}
+
+.md-typeset .clb-demo-video a {
+  display: block;
+}
+
+.md-typeset .clb-demo-video img,
 .md-typeset .clb-demo-video video {
   background: #0f172a;
   border: 1px solid var(--md-default-fg-color--lightest);
   border-radius: 0.45rem;
   box-shadow: 0 0.65rem 1.7rem rgb(15 23 42 / 12%);
   display: block;
+  height: auto;
   width: 100%;
 }
 

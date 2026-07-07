@@ -3,10 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "render": "npm run render:video && npm run render:poster",
+    "render": "npm run render:video && npm run render:poster && npm run render:webp",
     "normalize:video": "ffmpeg -y -i ../../../docs/assets/videos/30-second-demo.raw.mp4 -an -c:v libx264 -pix_fmt yuv420p -movflags +faststart ../../../docs/assets/videos/30-second-demo.mp4 && node -e \"require('node:fs').rmSync('../../../docs/assets/videos/30-second-demo.raw.mp4',{force:true})\"",
     "render:poster": "remotion still src/index.tsx CloakBrowserMcpDemo ../../../docs/assets/videos/30-second-demo-poster.png --frame=64 --overwrite",
     "render:video": "remotion render src/index.tsx CloakBrowserMcpDemo ../../../docs/assets/videos/30-second-demo.raw.mp4 --codec=h264 --pixel-format=yuv420p --overwrite && npm run normalize:video",
+    "render:webp": "ffmpeg -y -i ../../../docs/assets/videos/30-second-demo.mp4 -vf \"fps=15,scale=920:-2:flags=lanczos\" -an -c:v libwebp_anim -lossless 0 -preset drawing -quality 82 -loop 0 ../../../docs/assets/videos/30-second-demo.webp",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

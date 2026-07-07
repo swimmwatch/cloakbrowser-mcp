@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   CloakBrowser MCP instead of plain upstream `@playwright/mcp`.
 - Added README and docs homepage demo video coverage for npm startup, humanized
   prompt typing, web research, daily automation, and testing workflows.
+- Added an Animated WebP demo asset and npm commands for rendering the README
+  and docs demo from the generated MP4.
 
 ### Changed
 
