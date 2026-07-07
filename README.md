@@ -189,7 +189,8 @@ The common variable table now lives in [Configuration](docs/configuration.md). T
 
 | cloakbrowser-mcp | @playwright/mcp | CloakBrowser | Node.js   | Platform                                                                                  |
 | ---------------- | --------------- | ------------ | --------- | ----------------------------------------------------------------------------------------- |
-| `1.6.1`          | `^0.0.77`       | `^0.4.8`     | `>=22.12` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
+| `1.7.0`          | `^0.0.77`       | `^0.4.8`     | `>=22.12` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
+| `1.6.1`          | `^0.0.77`       | `^0.4.7`     | `>=22.12` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
 | `1.6.0`          | `^0.0.77`       | `^0.4.7`     | `>=22.12` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
 | `1.5.0`          | `^0.0.76`       | `^0.4.3`     | `>=22.12` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
 | `1.4.0`          | `^0.0.76`       | `^0.3.32`    | `>=22.12` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |

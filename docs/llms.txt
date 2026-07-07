@@ -10,7 +10,7 @@ GHCR image: https://github.com/swimmwatch/cloakbrowser-mcp/pkgs/container/cloakb
 
 ## Current Compatibility
 
-- cloakbrowser-mcp: 1.6.1
+- cloakbrowser-mcp: 1.7.0
 - @playwright/mcp: ^0.0.77
 - Playwright MCP Docker base: mcr.microsoft.com/playwright/mcp:v0.0.77
 - CloakBrowser: ^0.4.8
