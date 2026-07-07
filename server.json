@@ -3,7 +3,7 @@
   "name": "io.github.swimmwatch/cloakbrowser-mcp",
   "title": "CloakBrowser MCP",
   "description": "Playwright MCP-compatible browser automation bridge for CloakBrowser Chromium.",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "websiteUrl": "https://swimmwatch.github.io/cloakbrowser-mcp/",
   "repository": {
     "url": "https://github.com/swimmwatch/cloakbrowser-mcp",
@@ -21,7 +21,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "cloakbrowser-mcp",
-      "version": "1.6.1",
+      "version": "1.7.0",
       "transport": {
         "type": "stdio"
       },
@@ -88,7 +88,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "cloakbrowser-mcp",
-      "version": "1.6.1",
+      "version": "1.7.0",
       "packageArguments": [
         {
           "type": "named",
@@ -203,7 +203,7 @@
     },
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/swimmwatch/cloakbrowser-mcp:1.6.1",
+      "identifier": "ghcr.io/swimmwatch/cloakbrowser-mcp:1.7.0",
       "transport": {
         "type": "stdio"
       },
@@ -268,7 +268,7 @@
     },
     {
       "registryType": "oci",
-      "identifier": "docker.io/swimmwatch/cloakbrowser-mcp:1.6.1",
+      "identifier": "docker.io/swimmwatch/cloakbrowser-mcp:1.7.0",
       "transport": {
         "type": "stdio"
       },

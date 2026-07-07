@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-07-07
+
 ### Added
 
 - Added a Hadolint pull request check and Docker-backed `npm run docker:lint`
@@ -310,7 +312,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.6.1...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.6.1...v1.7.0
 [1.6.1]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.4.0...v1.5.0
