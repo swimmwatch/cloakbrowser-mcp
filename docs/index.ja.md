@@ -21,8 +21,10 @@ tags:
 
 ## 30秒デモ
 
-<div class="clb-demo-video" markdown>
-[![CloakBrowser MCP 30秒デモ](assets/videos/30-second-demo.webp)](assets/videos/30-second-demo.mp4)
+<div class="clb-demo-video">
+<video controls preload="metadata" poster="assets/videos/30-second-demo-poster.png" aria-label="CloakBrowser MCP 30秒デモ">
+<source src="assets/videos/30-second-demo.mp4" type="video/mp4">
+</video>
 </div>
 
 <p class="clb-demo-caption">最初の実行を確認できます。npm パッケージを起動し、MCP クライアントを接続して、Web 調査、自動化、またはテストを依頼し、実際のブラウザー結果を確認します。</p>

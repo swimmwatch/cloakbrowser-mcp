@@ -21,8 +21,10 @@ tags:
 
 ## 30-секундна демонстрація
 
-<div class="clb-demo-video" markdown>
-[![30-секундна демонстрація CloakBrowser MCP](assets/videos/30-second-demo.webp)](assets/videos/30-second-demo.mp4)
+<div class="clb-demo-video">
+<video controls preload="metadata" poster="assets/videos/30-second-demo-poster.png" aria-label="30-секундна демонстрація CloakBrowser MCP">
+<source src="assets/videos/30-second-demo.mp4" type="video/mp4">
+</video>
 </div>
 
 <p class="clb-demo-caption">Подивіться перший запуск: запустіть npm-пакет, підключіть MCP-клієнт, попросіть виконати веб-дослідження, автоматизацію або тестування й перевірте результат у справжньому браузері.</p>
