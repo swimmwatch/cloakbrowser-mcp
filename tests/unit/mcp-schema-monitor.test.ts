@@ -1,3 +1,8 @@
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 interface McpSchemaMonitorModule {
@@ -19,6 +24,8 @@ interface McpSchemaMonitorModule {
 const monitor = (await import(
   new URL('../../scripts/lib/mcp-schema-monitor.mjs', import.meta.url).href
 )) as unknown as McpSchemaMonitorModule;
+
+const checkScriptPath = fileURLToPath(new URL('../../scripts/check-mcp-schema-updates.mjs', import.meta.url));
 
 describe('mcp schema monitor helpers', () => {
   it('normalizes object keys recursively for stable comparisons', () => {
@@ -166,4 +173,55 @@ describe('mcp schema monitor helpers', () => {
     expect(summary).toContain('added keys: c');
     expect(summary).toContain('removed keys: a');
   });
+
+  it('can report schema changes without writing snapshots', () => {
+    const root = mkdirTempDir('cloakbrowser-mcp-schema-check-');
+    const schemaDir = path.join(root, 'schemas', 'mcp');
+    const githubOutputPath = path.join(root, 'github-output.txt');
+    const previousSchema = { $id: 'https://example.test/schema.json', definitions: { Old: {} } };
+    const nextSchema = {
+      $id: 'https://example.test/schema.json',
+      definitions: { New: {}, Old: {} },
+    };
+
+    mkdirSync(schemaDir, { recursive: true });
+    writeFileSync(path.join(schemaDir, 'latest.json'), monitor.normalizeJson(previousSchema));
+
+    const result = spawnSync(process.execPath, [checkScriptPath], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        GITHUB_OUTPUT: githubOutputPath,
+        MCP_SCHEMA_CHECKED_AT: '2026-07-08',
+        MCP_SCHEMA_DIR: schemaDir,
+        MCP_SCHEMA_SOURCE_URL: `data:application/json,${encodeURIComponent(JSON.stringify(nextSchema))}`,
+        MCP_SCHEMA_WRITE_SNAPSHOTS: 'false',
+      },
+    });
+
+    expect(result.stderr).toBe('');
+    expect(result.status).toBe(0);
+
+    const output = readFileSync(githubOutputPath, 'utf8');
+    expect(output).toContain('changed=true');
+    expect(output).toContain('snapshots_written=false');
+
+    const parsed = JSON.parse(result.stdout) as {
+      changed: boolean;
+      snapshotPath: string;
+      snapshotsWritten: boolean;
+    };
+    expect(parsed.changed).toBe(true);
+    expect(parsed.snapshotPath).toBe('');
+    expect(parsed.snapshotsWritten).toBe(false);
+    expect(readFileSync(path.join(schemaDir, 'latest.json'), 'utf8')).toBe(
+      monitor.normalizeJson(previousSchema),
+    );
+    expect(readdirSync(schemaDir)).toEqual(['latest.json']);
+    expect(existsSync(path.join(schemaDir, 'mcp-schema-2026-07-08.json'))).toBe(false);
+  });
 });
+
+function mkdirTempDir(prefix: string): string {
+  return mkdtempSync(path.join(tmpdir(), prefix));
+}

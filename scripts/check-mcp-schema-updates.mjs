@@ -19,9 +19,8 @@ const schemaSourceUrl = await resolveSchemaSourceUrl({
 });
 const schemaDir = process.env.MCP_SCHEMA_DIR ?? 'schemas/mcp';
 const checkedAt = process.env.MCP_SCHEMA_CHECKED_AT ?? toIsoDate();
+const writeSnapshots = readBooleanEnv('MCP_SCHEMA_WRITE_SNAPSHOTS', true);
 const latestSchemaPath = join(schemaDir, 'latest.json');
-
-await mkdir(schemaDir, { recursive: true });
 
 const downloadedSchema = await downloadSchema(schemaSourceUrl);
 const normalizedDownloaded = normalizeJson(downloadedSchema);
@@ -36,6 +35,7 @@ if (previous?.comparable === comparableDownloaded) {
     checked_at: checkedAt,
     latest_schema_path: latestSchemaPath,
     diff_summary: 'No changes detected in normalized schema content.',
+    snapshots_written: 'false',
   });
 
   process.stdout.write(
@@ -45,6 +45,7 @@ if (previous?.comparable === comparableDownloaded) {
         schemaSourceUrl,
         checkedAt,
         latestSchemaPath,
+        snapshotsWritten: false,
       },
       null,
       2,
@@ -53,11 +54,15 @@ if (previous?.comparable === comparableDownloaded) {
   process.exit(0);
 }
 
-const snapshotFilename = await allocateSnapshotFilename(schemaDir, checkedAt, comparableDownloaded);
-const snapshotPath = join(schemaDir, snapshotFilename);
+let snapshotPath = '';
 
-await writeFile(snapshotPath, normalizedDownloaded);
-await writeFile(latestSchemaPath, normalizedDownloaded);
+if (writeSnapshots) {
+  await mkdir(schemaDir, { recursive: true });
+  const snapshotFilename = await allocateSnapshotFilename(schemaDir, checkedAt, comparableDownloaded);
+  snapshotPath = join(schemaDir, snapshotFilename);
+  await writeFile(snapshotPath, normalizedDownloaded);
+  await writeFile(latestSchemaPath, normalizedDownloaded);
+}
 
 const diffSummary = describeTopLevelDiff(previous?.parsed, downloadedSchema);
 
@@ -69,6 +74,7 @@ const result = {
   snapshotPath,
   previousSchemaPath: previous?.path ?? '',
   diffSummary,
+  snapshotsWritten: writeSnapshots,
 };
 
 await appendGithubOutput({
@@ -79,6 +85,7 @@ await appendGithubOutput({
   snapshot_path: result.snapshotPath,
   previous_schema_path: result.previousSchemaPath,
   diff_summary: result.diffSummary,
+  snapshots_written: String(result.snapshotsWritten),
 });
 
 process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
@@ -145,4 +152,21 @@ function isMissingFileError(error) {
     typeof error.code === 'string' &&
     error.code === 'ENOENT'
   );
+}
+
+function readBooleanEnv(name, defaultValue) {
+  const value = process.env[name]?.trim().toLowerCase();
+  if (value === undefined || value === '') {
+    return defaultValue;
+  }
+
+  if (value === 'true') {
+    return true;
+  }
+
+  if (value === 'false') {
+    return false;
+  }
+
+  throw new Error(`${name} must be true or false.`);
 }
