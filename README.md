@@ -33,9 +33,7 @@
 
 ## 30-second demo
 
-<video controls preload="metadata" poster="docs/assets/videos/30-second-demo-poster.png" aria-label="30-second demo showing CloakBrowser MCP startup, humanized research prompt typing, web automation, and testing workflows">
-<source src="docs/assets/videos/30-second-demo.mp4" type="video/mp4">
-</video>
+[![30-second demo showing CloakBrowser MCP startup, humanized research prompt typing, web automation, and testing workflows](docs/assets/videos/30-second-demo.webp)](docs/assets/videos/30-second-demo.mp4)
 
 Run `npx -y cloakbrowser-mcp@latest`, connect Claude Desktop or Codex CLI, ask for web research, daily automation, or testing in plain English, and inspect the real browser result.
 
