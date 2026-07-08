@@ -6,14 +6,17 @@ import { appendGithubOutput } from '#scripts/lib/github-output';
 import {
   describeTopLevelDiff,
   normalizeJson,
+  normalizeSchemaForComparison,
   parseSchemaPayload,
   pickSnapshotFilename,
+  resolveSchemaSourceUrl,
   toIsoDate,
 } from '#scripts/lib/mcp-schema-monitor';
 
-const schemaSourceUrl =
-  process.env.MCP_SCHEMA_SOURCE_URL ??
-  'https://raw.githubusercontent.com/modelcontextprotocol/static/main/schemas/latest/server.schema.json';
+const schemaSourceUrl = await resolveSchemaSourceUrl({
+  catalogUrl: process.env.MCP_SCHEMA_CATALOG_URL,
+  explicitUrl: process.env.MCP_SCHEMA_SOURCE_URL,
+});
 const schemaDir = process.env.MCP_SCHEMA_DIR ?? 'schemas/mcp';
 const checkedAt = process.env.MCP_SCHEMA_CHECKED_AT ?? toIsoDate();
 const latestSchemaPath = join(schemaDir, 'latest.json');
@@ -22,10 +25,11 @@ await mkdir(schemaDir, { recursive: true });
 
 const downloadedSchema = await downloadSchema(schemaSourceUrl);
 const normalizedDownloaded = normalizeJson(downloadedSchema);
+const comparableDownloaded = normalizeSchemaForComparison(downloadedSchema);
 
 const previous = await readPreviousSchema(latestSchemaPath);
 
-if (previous?.normalized === normalizedDownloaded) {
+if (previous?.comparable === comparableDownloaded) {
   await appendGithubOutput({
     changed: 'false',
     schema_source_url: schemaSourceUrl,
@@ -49,7 +53,7 @@ if (previous?.normalized === normalizedDownloaded) {
   process.exit(0);
 }
 
-const snapshotFilename = await allocateSnapshotFilename(schemaDir, checkedAt, normalizedDownloaded);
+const snapshotFilename = await allocateSnapshotFilename(schemaDir, checkedAt, comparableDownloaded);
 const snapshotPath = join(schemaDir, snapshotFilename);
 
 await writeFile(snapshotPath, normalizedDownloaded);
@@ -102,7 +106,7 @@ async function readPreviousSchema(filePath) {
     const parsed = JSON.parse(text);
     return {
       path: filePath,
-      normalized: normalizeJson(parsed),
+      comparable: normalizeSchemaForComparison(parsed),
       parsed,
     };
   } catch (error) {
@@ -114,13 +118,13 @@ async function readPreviousSchema(filePath) {
   }
 }
 
-async function allocateSnapshotFilename(directoryPath, date, normalizedSchema) {
+async function allocateSnapshotFilename(directoryPath, date, comparableSchema) {
   const filenames = new Set(await listJsonFiles(directoryPath));
 
   const candidate = `mcp-schema-${date}.json`;
   if (filenames.has(candidate)) {
     const existingContent = await readFile(join(directoryPath, candidate), 'utf8');
-    if (normalizeJson(JSON.parse(existingContent)) === normalizedSchema) {
+    if (normalizeSchemaForComparison(JSON.parse(existingContent)) === comparableSchema) {
       return candidate;
     }
   }

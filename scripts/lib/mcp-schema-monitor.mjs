@@ -1,11 +1,21 @@
 import { basename } from 'node:path';
 
+export const defaultSchemaBaseUrl = 'https://static.modelcontextprotocol.io/schemas';
+export const defaultSchemaCatalogUrl =
+  'https://api.github.com/repos/modelcontextprotocol/static/contents/schemas?ref=main';
+
+const schemaVersionPattern = /^\d{4}-\d{2}-\d{2}$/;
+
 export function toIsoDate(value = new Date()) {
   return value.toISOString().slice(0, 10);
 }
 
 export function normalizeJson(value) {
   return `${JSON.stringify(sortJson(value), null, 2)}\n`;
+}
+
+export function normalizeSchemaForComparison(value) {
+  return normalizeJson(stripTopLevelComment(value));
 }
 
 export function sortJson(value) {
@@ -22,6 +32,90 @@ export function sortJson(value) {
   }
 
   return value;
+}
+
+function stripTopLevelComment(value) {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return value;
+  }
+
+  const comparable = { ...value };
+  delete comparable.$comment;
+  return comparable;
+}
+
+export async function resolveSchemaSourceUrl({
+  catalogUrl = defaultSchemaCatalogUrl,
+  explicitUrl,
+  fetchImpl = fetch,
+  schemaBaseUrl = defaultSchemaBaseUrl,
+} = {}) {
+  const trimmedExplicitUrl = explicitUrl?.trim();
+  if (trimmedExplicitUrl) {
+    return trimmedExplicitUrl;
+  }
+
+  const catalog = await fetchSchemaCatalog({ catalogUrl, fetchImpl });
+  const version = selectLatestSchemaVersion(catalog);
+  return createSchemaSourceUrl({ schemaBaseUrl, version });
+}
+
+export async function fetchSchemaCatalog({ catalogUrl = defaultSchemaCatalogUrl, fetchImpl = fetch } = {}) {
+  const response = await fetchImpl(catalogUrl, {
+    headers: {
+      Accept: 'application/vnd.github+json, application/json',
+      'User-Agent': 'cloakbrowser-mcp-schema-monitor',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to discover MCP schema versions from ${catalogUrl}: ${response.status} ${response.statusText}`,
+    );
+  }
+
+  const text = await response.text();
+  let parsed;
+
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error(`MCP schema catalog from ${catalogUrl} is invalid JSON.`);
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error(`MCP schema catalog from ${catalogUrl} must be a JSON array.`);
+  }
+
+  return parsed;
+}
+
+export function selectLatestSchemaVersion(entries) {
+  const versions = entries
+    .filter(isSchemaVersionDirectoryEntry)
+    .map((entry) => entry.name)
+    .sort();
+
+  const latest = versions[versions.length - 1];
+  if (!latest) {
+    throw new Error('MCP schema catalog does not contain any dated schema directories.');
+  }
+
+  return latest;
+}
+
+export function createSchemaSourceUrl({ schemaBaseUrl = defaultSchemaBaseUrl, version }) {
+  return `${schemaBaseUrl.replace(/\/$/, '')}/${version}/server.schema.json`;
+}
+
+function isSchemaVersionDirectoryEntry(entry) {
+  return (
+    typeof entry === 'object' &&
+    entry !== null &&
+    entry.type === 'dir' &&
+    typeof entry.name === 'string' &&
+    schemaVersionPattern.test(entry.name)
+  );
 }
 
 export function parseSchemaPayload({ text, contentType, sourceUrl }) {
