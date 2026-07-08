@@ -1,0 +1,189 @@
+name: Check MCP Schema Updates
+description: Check whether the latest upstream MCP JSON schema differs from the stored snapshot.
+
+inputs:
+  schema-dir:
+    description: Directory containing latest.json and dated MCP schema snapshots.
+    required: false
+    default: schemas/mcp
+  schema-source-url:
+    description: Explicit MCP schema URL to check. When omitted, schema-catalog-url discovery is used.
+    required: false
+    default: ''
+  schema-catalog-url:
+    description: JSON catalog URL used to discover the latest dated MCP schema version.
+    required: false
+    default: https://api.github.com/repos/modelcontextprotocol/static/contents/schemas?ref=main
+  checked-at:
+    description: ISO date recorded by the check. Defaults to the current UTC date.
+    required: false
+    default: ''
+  write-snapshots:
+    description: Whether to write latest.json and a dated snapshot when a schema change is detected.
+    required: false
+    default: 'false'
+  emit-notice:
+    description: Whether to emit a GitHub Actions notice when a schema update is available.
+    required: false
+    default: 'true'
+  write-step-summary:
+    description: Whether to append the check result to the GitHub Actions step summary.
+    required: false
+    default: 'true'
+  change-message:
+    description: Human-readable message used when a schema update is available.
+    required: false
+    default: MCP schema update available.
+  no-change-message:
+    description: Human-readable message used when no schema update is available.
+    required: false
+    default: No MCP schema changes detected.
+
+outputs:
+  changed:
+    description: Whether the latest upstream schema differs from the stored snapshot.
+    value: ${{ steps.check.outputs.changed }}
+  schema_source_url:
+    description: MCP schema URL used for the check.
+    value: ${{ steps.check.outputs.schema_source_url }}
+  checked_at:
+    description: ISO date recorded by the check.
+    value: ${{ steps.check.outputs.checked_at }}
+  latest_schema_path:
+    description: Path to the stored latest schema snapshot.
+    value: ${{ steps.check.outputs.latest_schema_path }}
+  snapshot_path:
+    description: Path written for the dated schema snapshot, when write-snapshots is true and a change is detected.
+    value: ${{ steps.check.outputs.snapshot_path }}
+  previous_schema_path:
+    description: Path to the previous stored schema snapshot.
+    value: ${{ steps.check.outputs.previous_schema_path }}
+  diff_summary:
+    description: Short summary of detected schema differences.
+    value: ${{ steps.check.outputs.diff_summary }}
+  snapshots_written:
+    description: Whether this run wrote latest.json and a dated schema snapshot.
+    value: ${{ steps.check.outputs.snapshots_written }}
+
+runs:
+  using: composite
+  steps:
+    - id: validate-inputs
+      name: Validate inputs
+      shell: bash
+      env:
+        EMIT_NOTICE: ${{ inputs.emit-notice }}
+        WRITE_SNAPSHOTS: ${{ inputs.write-snapshots }}
+        WRITE_STEP_SUMMARY: ${{ inputs.write-step-summary }}
+      run: |
+        set -euo pipefail
+
+        for name in EMIT_NOTICE WRITE_SNAPSHOTS WRITE_STEP_SUMMARY
+        do
+          case "${!name}" in
+            true|false) ;;
+            *)
+              echo "::error title=Invalid action input::$name must be true or false"
+              exit 1
+              ;;
+          esac
+        done
+
+    - name: Set up Node.js
+      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      with:
+        node-version: '22'
+        package-manager-cache: false
+
+    - id: check
+      name: Check MCP schema updates
+      shell: bash
+      env:
+        INPUT_CHECKED_AT: ${{ inputs.checked-at }}
+        INPUT_SCHEMA_CATALOG_URL: ${{ inputs.schema-catalog-url }}
+        INPUT_SCHEMA_DIR: ${{ inputs.schema-dir }}
+        INPUT_SCHEMA_SOURCE_URL: ${{ inputs.schema-source-url }}
+        INPUT_WRITE_SNAPSHOTS: ${{ inputs.write-snapshots }}
+      run: |
+        set -euo pipefail
+
+        if [ -n "$INPUT_CHECKED_AT" ]; then
+          export MCP_SCHEMA_CHECKED_AT="$INPUT_CHECKED_AT"
+        fi
+
+        if [ -n "$INPUT_SCHEMA_CATALOG_URL" ]; then
+          export MCP_SCHEMA_CATALOG_URL="$INPUT_SCHEMA_CATALOG_URL"
+        fi
+
+        if [ -n "$INPUT_SCHEMA_DIR" ]; then
+          export MCP_SCHEMA_DIR="$INPUT_SCHEMA_DIR"
+        fi
+
+        if [ -n "$INPUT_SCHEMA_SOURCE_URL" ]; then
+          export MCP_SCHEMA_SOURCE_URL="$INPUT_SCHEMA_SOURCE_URL"
+        fi
+
+        export MCP_SCHEMA_WRITE_SNAPSHOTS="$INPUT_WRITE_SNAPSHOTS"
+
+        node scripts/check-mcp-schema-updates.mjs
+
+    - name: Report schema check result
+      shell: bash
+      env:
+        CHANGE_MESSAGE: ${{ inputs.change-message }}
+        CHECKED_AT: ${{ steps.check.outputs.checked_at }}
+        CHANGED: ${{ steps.check.outputs.changed }}
+        DIFF_SUMMARY: ${{ steps.check.outputs.diff_summary }}
+        EMIT_NOTICE: ${{ inputs.emit-notice }}
+        LATEST_SCHEMA_PATH: ${{ steps.check.outputs.latest_schema_path }}
+        NO_CHANGE_MESSAGE: ${{ inputs.no-change-message }}
+        PREVIOUS_SCHEMA_PATH: ${{ steps.check.outputs.previous_schema_path }}
+        SCHEMA_SOURCE_URL: ${{ steps.check.outputs.schema_source_url }}
+        SNAPSHOT_PATH: ${{ steps.check.outputs.snapshot_path }}
+        SNAPSHOTS_WRITTEN: ${{ steps.check.outputs.snapshots_written }}
+        WRITE_STEP_SUMMARY: ${{ inputs.write-step-summary }}
+      run: |
+        set -euo pipefail
+
+        escape_command() {
+          local value="$1"
+          value="${value//'%'/'%25'}"
+          value="${value//$'\r'/'%0D'}"
+          value="${value//$'\n'/'%0A'}"
+          printf '%s' "$value"
+        }
+
+        markdown_cell() {
+          local value="$1"
+          value="${value//$'\r'/' '}"
+          value="${value//$'\n'/' '}"
+          value="${value//'|'/'\|'}"
+          printf '%s' "$value"
+        }
+
+        if [ "$CHANGED" = "true" ]; then
+          message="$CHANGE_MESSAGE Source: $SCHEMA_SOURCE_URL. Diff: $DIFF_SUMMARY"
+          echo "$message"
+          if [ "$EMIT_NOTICE" = "true" ]; then
+            echo "::notice title=MCP schema update available::$(escape_command "$message")"
+          fi
+        else
+          echo "$NO_CHANGE_MESSAGE"
+        fi
+
+        if [ "$WRITE_STEP_SUMMARY" = "true" ] && [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+          {
+            echo "### MCP Schema Update Check"
+            echo
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Changed | $(markdown_cell "${CHANGED:-false}") |"
+            echo "| Schema source | $(markdown_cell "${SCHEMA_SOURCE_URL:-}") |"
+            echo "| Checked at | $(markdown_cell "${CHECKED_AT:-}") |"
+            echo "| Latest schema path | $(markdown_cell "${LATEST_SCHEMA_PATH:-}") |"
+            echo "| Previous schema path | $(markdown_cell "${PREVIOUS_SCHEMA_PATH:-}") |"
+            echo "| Snapshot path | $(markdown_cell "${SNAPSHOT_PATH:-}") |"
+            echo "| Snapshots written | $(markdown_cell "${SNAPSHOTS_WRITTEN:-false}") |"
+            echo "| Diff summary | $(markdown_cell "${DIFF_SUMMARY:-}") |"
+          } >> "$GITHUB_STEP_SUMMARY"
+        fi

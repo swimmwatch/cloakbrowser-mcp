@@ -21,8 +21,10 @@ tags:
 
 ## 30 秒演示
 
-<div class="clb-demo-video" markdown>
-[![CloakBrowser MCP 30 秒演示](assets/videos/30-second-demo.webp)](assets/videos/30-second-demo.mp4)
+<div class="clb-demo-video">
+<video controls preload="metadata" poster="assets/videos/30-second-demo-poster.png" aria-label="CloakBrowser MCP 30 秒演示">
+<source src="assets/videos/30-second-demo.mp4" type="video/mp4">
+</video>
 </div>
 
 <p class="clb-demo-caption">观看首次运行：启动 npm 包，连接 MCP 客户端，请求 Web 研究、自动化或测试，并检查真实浏览器中的结果。</p>

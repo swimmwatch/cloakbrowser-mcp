@@ -9,6 +9,9 @@ concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
 
+env:
+  MCP_SCHEMA_DIR: schemas/mcp
+
 permissions:
   contents: read
 
@@ -22,18 +25,12 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: '22'
-          package-manager-cache: false
-
       - id: schema
         name: Check MCP schema updates
-        run: node scripts/check-mcp-schema-updates.mjs
-
-      - name: Report no schema change
-        if: steps.schema.outputs.changed != 'true'
-        run: echo 'No MCP schema changes detected.'
+        uses: ./.github/actions/check-mcp-schema-updates
+        with:
+          schema-dir: ${{ env.MCP_SCHEMA_DIR }}
+          write-snapshots: true
 
       - id: pull-request
         if: steps.schema.outputs.changed == 'true'
