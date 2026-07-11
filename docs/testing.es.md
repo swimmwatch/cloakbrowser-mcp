@@ -24,7 +24,7 @@ npm run test:integration
 
 Las pruebas de integración usan un proceso hijo MCP upstream falso y verifican que el puente combine las herramientas locales y reenvíe las llamadas upstream sin cambios.
 
-CI ejecuta las pruebas unitarias, de integración y E2E de la CLI empaquetada en Node.js 22-26 para Linux x64, Linux arm64, macOS arm64, macOS x64 y Windows x64.
+CI ejecuta las pruebas unitarias, de integración y E2E de la CLI empaquetada en Node.js 22 y 24-26 para Linux x64, Linux arm64, macOS arm64, macOS x64 y Windows x64.
 
 ## Verificación del paquete
 

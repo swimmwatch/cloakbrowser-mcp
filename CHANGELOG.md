@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Refreshed npm, demo, Docker, and GitHub Actions dependencies, including
+  Playwright MCP 0.0.78 and CloakBrowser 0.4.10.
+- Updated supported development and CI Node.js versions to 22.13+ on the 22.x
+  line and 24+.
+
 ## [1.7.0] - 2026-07-07
 
 ### Added

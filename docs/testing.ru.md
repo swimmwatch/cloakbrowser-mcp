@@ -24,7 +24,7 @@ npm run test:integration
 
 Интеграционные тесты используют фальшивый дочерний процесс upstream MCP и проверяют, что мост объединяет локальные инструменты и пересылает upstream-вызовы без изменений.
 
-CI запускает модульные, интеграционные и пакетные E2E-тесты CLI на Node.js 22-26 для Linux x64, Linux arm64, macOS arm64, macOS x64 и Windows x64.
+CI запускает модульные, интеграционные и пакетные E2E-тесты CLI на Node.js 22 и 24-26 для Linux x64, Linux arm64, macOS arm64, macOS x64 и Windows x64.
 
 ## Проверка пакета
 

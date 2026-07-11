@@ -24,7 +24,7 @@ npm run test:integration
 
 集成测试使用假的 upstream MCP 子进程，并验证桥接层会合并本地工具，同时原样转发 upstream 调用。
 
-CI 在 Node.js 22-26 上运行单元测试、集成测试和打包 CLI E2E 测试，覆盖 Linux x64、Linux arm64、macOS arm64、macOS x64 和 Windows x64。
+CI 在 Node.js 22 和 24-26 上运行单元测试、集成测试和打包 CLI E2E 测试，覆盖 Linux x64、Linux arm64、macOS arm64、macOS x64 和 Windows x64。
 
 ## 包验证
 

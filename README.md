@@ -20,7 +20,7 @@
 [![npm downloads](https://img.shields.io/npm/dm/cloakbrowser-mcp.svg?logo=npm&label=npm%20downloads)](https://www.npmjs.com/package/cloakbrowser-mcp)
 [![Docker Hub pulls](https://img.shields.io/docker/pulls/swimmwatch/cloakbrowser-mcp?logo=docker&label=Docker%20Hub)](https://hub.docker.com/r/swimmwatch/cloakbrowser-mcp)
 [![Docker image](https://img.shields.io/docker/v/swimmwatch/cloakbrowser-mcp?sort=semver&logo=docker&label=Docker%20image)](https://hub.docker.com/r/swimmwatch/cloakbrowser-mcp/tags)
-[![Node.js >=22.12](https://img.shields.io/badge/Node.js-%3E%3D22.12-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Node.js 22.13+ or 24+](https://img.shields.io/badge/Node.js-22.13%2B%20or%2024%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript strict](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
 [![Cross-platform](https://img.shields.io/badge/Cross--platform-Linux%20%7C%20macOS%20%7C%20Windows-2563eb)](docs/version-compatibility.md)
 [![Available on CodeGuilds](https://img.shields.io/badge/Available_on-CodeGuilds-6366f1)](https://codeguilds.dev/packages/cloakbrowser-mcp)
@@ -48,7 +48,7 @@ Use it when you need:
 - GeoIP-aware proxy matching for regional QA;
 - humanized mouse, keyboard, and scroll behavior for interaction-sensitive flows.
 
-Cross-platform checks cover npm on Linux x64/arm64, macOS arm64/x64, and Windows x64 across Node.js 22-26. Docker images are built and smoke-tested for `linux/amd64` and `linux/arm64`.
+Cross-platform checks cover npm on Linux x64/arm64, macOS arm64/x64, and Windows x64 across Node.js 22 and 24-26. Docker images are built and smoke-tested for `linux/amd64` and `linux/arm64`.
 
 See [`@playwright/mcp` vs `cloakbrowser-mcp`](docs/comparison.md) when deciding whether plain upstream Playwright MCP or CloakBrowser MCP fits a deployment better. The [Recipes](docs/recipes/index.md) pages show task-focused setup paths for persistent login profiles, Chrome extensions, reverse proxies, regional QA, client connections, and CI smoke tests.
 
@@ -58,7 +58,7 @@ See [`@playwright/mcp` vs `cloakbrowser-mcp`](docs/comparison.md) when deciding 
 npx -y cloakbrowser-mcp@latest
 ```
 
-Requires Node.js 22.12 or newer. Run diagnostics before wiring a client:
+Requires Node.js 22.13+ in the 22.x line, or Node.js 24+. Run diagnostics before wiring a client:
 
 ```bash
 npx -y cloakbrowser-mcp@latest doctor

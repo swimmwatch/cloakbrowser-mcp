@@ -24,7 +24,7 @@ npm run test:integration
 
 統合テストは偽の upstream MCP 子プロセスを使用し、ブリッジがローカルツールを統合し、upstream 呼び出しを変更せずに転送することを検証します。
 
-CI は Node.js 22-26 で単体テスト、統合テスト、パッケージ済み CLI E2E テストを実行し、Linux x64、Linux arm64、macOS arm64、macOS x64、Windows x64 を対象にします。
+CI は Node.js 22 および 24-26 で単体テスト、統合テスト、パッケージ済み CLI E2E テストを実行し、Linux x64、Linux arm64、macOS arm64、macOS x64、Windows x64 を対象にします。
 
 ## パッケージ検証
 

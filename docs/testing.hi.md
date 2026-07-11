@@ -24,7 +24,7 @@ npm run test:integration
 
 इंटीग्रेशन टेस्ट नकली upstream MCP child process का उपयोग करते हैं और सत्यापित करते हैं कि ब्रिज स्थानीय टूल को मिलाता है और upstream कॉल को बिना बदले आगे भेजता है।
 
-CI Node.js 22-26 पर Linux x64, Linux arm64, macOS arm64, macOS x64 और Windows x64 के लिए यूनिट, इंटीग्रेशन और packaged CLI E2E टेस्ट चलाता है।
+CI Node.js 22 और 24-26 पर Linux x64, Linux arm64, macOS arm64, macOS x64 और Windows x64 के लिए यूनिट, इंटीग्रेशन और packaged CLI E2E टेस्ट चलाता है।
 
 ## पैकेज सत्यापन
 

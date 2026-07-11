@@ -30,7 +30,7 @@ npx -y cloakbrowser-mcp@latest --transport streamable-http --http-protocol https
 npx -y {{ project.npm_pin }}
 ```
 
-Le paquet npm nécessite Node.js 22.12 ou une version plus récente. CloakBrowser télécharge son binaire Chromium lors de la première utilisation, à moins qu'il ne soit déjà en cache.
+Le paquet npm nécessite Node.js 22.13+ dans la branche 22.x, ou Node.js 24+. CloakBrowser télécharge son binaire Chromium lors de la première utilisation, à moins qu'il ne soit déjà en cache.
 
 Utilisez `doctor` pour vérifier l'environnement d'exécution Node.js local, les métadonnées du paquet, la résolution de la CLI MCP de Playwright en amont et les métadonnées du binaire CloakBrowser avant de connecter un client. Cette commande ne lance pas le pont et ne télécharge pas de navigateur.
 

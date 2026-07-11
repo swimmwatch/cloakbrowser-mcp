@@ -30,7 +30,7 @@ Marque uma versão quando a reprodutibilidade for importante:
 npx -y {{ project.npm_pin }}
 ```
 
-O pacote npm requer o Node.js 22.12 ou uma versão mais recente. O CloakBrowser baixa seu binário do Chromium na primeira vez em que é usado, a menos que ele já esteja armazenado em cache.
+O pacote npm requer Node.js 22.13+ na linha 22.x, ou Node.js 24+. O CloakBrowser baixa seu binário do Chromium na primeira vez em que é usado, a menos que ele já esteja armazenado em cache.
 
 Use `doctor` para verificar o ambiente de execução local do Node.js, os metadados do pacote, a resolução da CLI do Playwright MCP (upstream) e os metadados do binário do CloakBrowser antes de conectar um cliente. O comando não inicia a ponte nem baixa um navegador.
 

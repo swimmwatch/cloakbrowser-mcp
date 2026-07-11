@@ -17,7 +17,7 @@ import {
 const { image, reportPath } = parseArgs(process.argv.slice(2));
 const baselineImage =
   process.env.PLAYWRIGHT_MCP_BASELINE_IMAGE ??
-  'mcr.microsoft.com/playwright/mcp:v0.0.77@sha256:dd64332608905c527ff0b34494e7671711693057191ea8ee10e674e4d621f23b';
+  'mcr.microsoft.com/playwright/mcp:v0.0.78@sha256:3d871c22ea2d4cca0966e2cfb1860e1cb03eb7353725a3d6cffd133296fb04eb';
 
 const fixtureServer = await startFixtureServer();
 const baseline = await startMcpContainer('playwright', baselineImage, false);
@@ -165,6 +165,7 @@ async function runScenario(target, fixtureUrl) {
   await call('browser_resize', { width: 1280, height: 720 });
   await call('browser_navigate', { url: fixtureUrl });
   await call('browser_snapshot');
+  await call('browser_find', { text: 'Cloak MCP fixture' });
   await call('browser_console_messages', { level: 'info', all: true });
   await call('browser_wait_for', { text: 'Cloak MCP fixture' });
   await call('browser_evaluate', { function: '() => document.title' });
