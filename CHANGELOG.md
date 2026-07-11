@@ -6,12 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-07-11
+
+### Added
+
+- Forwarded Playwright MCP's `browser_find` tool unchanged as part of the
+  upstream 0.0.78 tool surface.
+
 ### Changed
 
 - Refreshed npm, demo, Docker, and GitHub Actions dependencies, including
   Playwright MCP 0.0.78 and CloakBrowser 0.4.10.
 - Updated supported development and CI Node.js versions to 22.13+ on the 22.x
   line and 24+.
+- Aligned the release Docker build with the Playwright MCP 0.0.78 base image
+  used by the application and parity checks.
 
 ## [1.7.0] - 2026-07-07
 
@@ -319,7 +328,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.6.1...v1.7.0
 [1.6.1]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.5.0...v1.6.0

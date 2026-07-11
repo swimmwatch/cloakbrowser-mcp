@@ -187,25 +187,26 @@ The common variable table now lives in [Configuration](docs/configuration.md). T
 
 <!-- compatibility-table:start -->
 
-| cloakbrowser-mcp | @playwright/mcp | CloakBrowser | Node.js   | Platform                                                                                  |
-| ---------------- | --------------- | ------------ | --------- | ----------------------------------------------------------------------------------------- |
-| `1.7.0`          | `^0.0.77`       | `^0.4.8`     | `>=22.12` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
-| `1.6.1`          | `^0.0.77`       | `^0.4.7`     | `>=22.12` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
-| `1.6.0`          | `^0.0.77`       | `^0.4.7`     | `>=22.12` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
-| `1.5.0`          | `^0.0.76`       | `^0.4.3`     | `>=22.12` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
-| `1.4.0`          | `^0.0.76`       | `^0.3.32`    | `>=22.12` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
-| `1.3.0`          | `^0.0.75`       | `^0.3.31`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
-| `1.2.7`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
-| `1.2.6`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
-| `1.2.5`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
-| `1.2.3`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
-| `1.2.2`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
-| `1.2.1`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
-| `1.2.0`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
-| `1.1.0`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
-| `1.0.2`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
-| `1.0.1`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
-| `1.0.0`          | `^0.0.75`       | `^0.3.30`    | `>=20`    | Docker `linux/amd64`, Node.js local                                                       |
+| cloakbrowser-mcp | @playwright/mcp | CloakBrowser | Node.js                | Platform                                                                                  |
+| ---------------- | --------------- | ------------ | ---------------------- | ----------------------------------------------------------------------------------------- |
+| `1.8.0`          | `^0.0.78`       | `^0.4.10`    | `^22.13.0 || >=24.0.0` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
+| `1.7.0`          | `^0.0.77`       | `^0.4.8`     | `>=22.12`              | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
+| `1.6.1`          | `^0.0.77`       | `^0.4.7`     | `>=22.12`              | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
+| `1.6.0`          | `^0.0.77`       | `^0.4.7`     | `>=22.12`              | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
+| `1.5.0`          | `^0.0.76`       | `^0.4.3`     | `>=22.12`              | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
+| `1.4.0`          | `^0.0.76`       | `^0.3.32`    | `>=22.12`              | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
+| `1.3.0`          | `^0.0.75`       | `^0.3.31`    | `>=20`                 | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.7`          | `^0.0.75`       | `^0.3.30`    | `>=20`                 | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.6`          | `^0.0.75`       | `^0.3.30`    | `>=20`                 | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.5`          | `^0.0.75`       | `^0.3.30`    | `>=20`                 | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.3`          | `^0.0.75`       | `^0.3.30`    | `>=20`                 | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.2`          | `^0.0.75`       | `^0.3.30`    | `>=20`                 | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.1`          | `^0.0.75`       | `^0.3.30`    | `>=20`                 | Docker `linux/amd64`, Node.js local                                                       |
+| `1.2.0`          | `^0.0.75`       | `^0.3.30`    | `>=20`                 | Docker `linux/amd64`, Node.js local                                                       |
+| `1.1.0`          | `^0.0.75`       | `^0.3.30`    | `>=20`                 | Docker `linux/amd64`, Node.js local                                                       |
+| `1.0.2`          | `^0.0.75`       | `^0.3.30`    | `>=20`                 | Docker `linux/amd64`, Node.js local                                                       |
+| `1.0.1`          | `^0.0.75`       | `^0.3.30`    | `>=20`                 | Docker `linux/amd64`, Node.js local                                                       |
+| `1.0.0`          | `^0.0.75`       | `^0.3.30`    | `>=20`                 | Docker `linux/amd64`, Node.js local                                                       |
 
 <!-- compatibility-table:end -->
 
