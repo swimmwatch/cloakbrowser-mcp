@@ -244,6 +244,7 @@ describe('template helper', () => {
 describe('Playwright MCP parity helpers', () => {
   it('normalizes volatile tool response text and compares values', () => {
     expect(parity.localToolNames).toContain('cloakbrowser_binary_info');
+    expect(parity.expectedDefaultTools).toContain('browser_find');
     expect(parity.expectedDefaultTools).toContain('browser_snapshot');
     expect(
       parity.normalizeToolResponseText(

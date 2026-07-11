@@ -9,7 +9,7 @@
   "author": "swimmwatch",
   "sideEffects": false,
   "engines": {
-    "node": ">=22.12.0"
+    "node": "^22.13.0 || >=24.0.0"
   },
   "exports": {
     "./package.json": "./package.json"
@@ -84,42 +84,43 @@
     "docs:translations:check": "node scripts/update-doc-translations.mjs --check"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.18.0",
-    "@playwright/mcp": "^0.0.77",
-    "cloakbrowser": "^0.4.8",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@playwright/mcp": "^0.0.78",
+    "cloakbrowser": "^0.4.10",
     "commander": "^15.0.0",
     "mmdb-lib": "^3.0.2",
     "pino": "^10.3.1",
     "socks-proxy-agent": "^10.1.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.4",
-    "@types/node": "^26.0.0",
-    "@vitest/coverage-v8": "^4.1.9",
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^26.1.1",
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "@vitest/coverage-v8": "^4.1.10",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
-    "eslint": "^9.39.4",
+    "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import-x": "^4.17.1",
-    "eslint-plugin-jsdoc": "^61.4.1",
-    "eslint-plugin-n": "^18.2.1",
+    "eslint-plugin-jsdoc": "^63.0.13",
+    "eslint-plugin-n": "^18.2.2",
     "eslint-plugin-no-secrets": "^2.3.3",
-    "eslint-plugin-perfectionist": "^5.9.1",
+    "eslint-plugin-perfectionist": "^5.10.0",
     "eslint-plugin-promise": "^7.3.0",
     "eslint-plugin-regexp": "^3.1.1",
     "eslint-plugin-sonarjs": "^4.1.0",
     "eslint-plugin-vitest": "^0.5.4",
-    "fast-check": "^4.8.0",
-    "prettier": "^3.8.4",
-    "tsx": "^4.22.4",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.61.1",
-    "vitest": "^4.1.9"
+    "fast-check": "^4.9.0",
+    "prettier": "^3.9.5",
+    "tsx": "^4.23.0",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "typescript-eslint": "^8.63.0",
+    "vitest": "^4.1.10"
   },
   "overrides": {
     "vite": "8.0.16",
     "esbuild": "0.28.1",
-    "@typescript-eslint/utils": "8.62.1"
+    "@typescript-eslint/utils": "8.63.0"
   },
   "keywords": [
     "mcp",

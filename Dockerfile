@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
-ARG NODE_IMAGE_REF=node:22-bookworm-slim@sha256:7af03b14a13c8cdd38e45058fd957bf00a72bbe17feac43b1c15a689c029c732
-ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.77@sha256:dd64332608905c527ff0b34494e7671711693057191ea8ee10e674e4d621f23b
+ARG NODE_IMAGE_REF=node:22-bookworm-slim@sha256:53ada149d435c38b14476cb57e4a7da73c15595aba79bd6971b547ceb6d018bf
+ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.78@sha256:3d871c22ea2d4cca0966e2cfb1860e1cb03eb7353725a3d6cffd133296fb04eb
 
 FROM ${NODE_IMAGE_REF} AS deps
 WORKDIR /src
@@ -22,7 +22,7 @@ RUN npm prune --omit=dev --ignore-scripts \
  && npm cache clean --force
 
 FROM ${PLAYWRIGHT_MCP_IMAGE} AS runtime
-ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.77@sha256:dd64332608905c527ff0b34494e7671711693057191ea8ee10e674e4d621f23b
+ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.78@sha256:3d871c22ea2d4cca0966e2cfb1860e1cb03eb7353725a3d6cffd133296fb04eb
 ARG PLAYWRIGHT_MCP_IMAGE_DIGEST=unknown
 ARG RELEASE_VERSION=0.0.0
 ARG RELEASE_VERSION_TAG=v0.0.0

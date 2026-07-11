@@ -17,7 +17,7 @@ El servidor MCP de Playwright, situado en la parte superior de la cadena, es el 
 
 ## ¿Debería instalarlo desde npm o desde Docker?
 
-Utiliza npm si tu cliente MCP ya se ejecuta en tu equipo y tienes disponible Node.js 22.12 o una versión posterior. Utiliza Docker si deseas una imagen repetible basada en Playwright MCP con la caché de CloakBrowser preparada dentro del contenedor.
+Utiliza npm si tu cliente MCP ya se ejecuta en tu equipo y está disponible Node.js 22.13+ en la línea 22.x o Node.js 24+. Utiliza Docker si deseas una imagen repetible basada en Playwright MCP con la caché de CloakBrowser preparada dentro del contenedor.
 
 ## ¿Qué clientes de MCP pueden utilizarlo?
 

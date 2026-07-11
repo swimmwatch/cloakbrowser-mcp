@@ -24,7 +24,7 @@ npm run test:integration
 
 Integration tests use a fake upstream MCP child process and verify that the bridge merges local tools and forwards upstream calls unchanged.
 
-CI runs the unit, integration, and packaged CLI E2E suites on Node.js 22-26 across Linux x64, Linux arm64, macOS arm64, macOS x64, and Windows x64.
+CI runs the unit, integration, and packaged CLI E2E suites on Node.js 22 and 24-26 across Linux x64, Linux arm64, macOS arm64, macOS x64, and Windows x64.
 
 ## Package Verification
 

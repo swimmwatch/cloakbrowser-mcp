@@ -3,7 +3,6 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "ignoreDeprecations": "6.0",
     "lib": ["ES2022"],
     "strict": true,
     "noImplicitOverride": true,
@@ -21,10 +20,9 @@
     "outDir": "dist",
     "rootDir": ".",
     "types": ["node"],
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@tests/*": ["tests/*"]
+      "@/*": ["./src/*"],
+      "@tests/*": ["./tests/*"]
     }
   },
   "include": ["src/**/*", "tests/**/*", "scripts/**/*.ts"],
