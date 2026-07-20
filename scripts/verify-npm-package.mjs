@@ -36,10 +36,15 @@ function packProject() {
     stdio: ['ignore', 'pipe', 'inherit'],
   });
   const results = JSON.parse(raw);
-  if (!Array.isArray(results) || results.length !== 1) {
+  const packages = Array.isArray(results)
+    ? results
+    : results !== null && typeof results === 'object'
+      ? Object.values(results)
+      : [];
+  if (packages.length !== 1) {
     throw new Error(`expected npm pack to return one package, got ${raw}`);
   }
-  return results[0];
+  return packages[0];
 }
 
 function verifyInstall(packageFile) {
