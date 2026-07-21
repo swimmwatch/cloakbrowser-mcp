@@ -1,0 +1,4 @@
+interface:
+  display_name: "Security And Hardening"
+  short_description: "Audit and harden trust boundaries"
+  default_prompt: "Use $security-and-hardening to audit this trust boundary and recommend verified mitigations."

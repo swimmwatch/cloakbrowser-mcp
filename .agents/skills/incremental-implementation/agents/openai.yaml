@@ -1,0 +1,4 @@
+interface:
+  display_name: "Incremental Implementation"
+  short_description: "Implement one reviewed slice at a time"
+  default_prompt: "Use $incremental-implementation to complete one self-contained task packet from specs/<slug>/tasks, update its todo and handoff state, present it for review, and stop."

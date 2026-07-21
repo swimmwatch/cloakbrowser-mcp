@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Planning And Task Breakdown'
+  short_description: 'Create reviewable implementation plans'
+  default_prompt: 'Use $planning-and-task-breakdown to run a comprehensive, multi-round Prompt MCP interview, create self-contained Markdown task packets under specs/<slug>/tasks with every resolved delivery detail, and stop before execution.'

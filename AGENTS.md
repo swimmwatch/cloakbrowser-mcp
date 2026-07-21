@@ -115,6 +115,19 @@ python3 -m pipx run zizmor --min-severity high .
   and required checks are maintainer-controlled. Do not change them without
   explicit confirmation of the exact policy.
 
+## Specifications And Tasks
+
+- For a substantial workstream that needs a specification or spans multiple implementation steps, create one bundle under `specs/<slug>/`.
+- Treat `/spec` as durable contract authoring and `/plan` as task decomposition. Do not use `/spec` to write delivery steps into `spec.md`.
+- Store the implementation contract in `specs/<slug>/spec.md`.
+- During planning, create one self-contained `specs/<slug>/tasks/NN_<slug>.md` file per executable task. Each packet must contain its task-local contract, scope, non-goals, boundaries, acceptance criteria, verification, rollback or recovery notes, and scoped references.
+- Keep `specs/<slug>/tasks/plan.md` to the compact ordered task index, dependencies, and requirement coverage. Keep `todo.md` as the only linked completion checklist and `handoff.md` as compact continuation context.
+- Follow `.agents/references/task-packets.md` when creating, revising, or executing a substantial plan.
+- When authoring a specification or task breakdown, follow `.agents/references/specification-interview.md` and use Prompt MCP for repeated question rounds. Cover every applicable discovery category, ask follow-up questions exposed by earlier answers, and resolve each question as answered, not applicable, or an explicit blocker before finalizing the artifact.
+- During implementation, read the applicable `AGENTS.md`, the current `todo.md` entry, its linked task packet, and task-scoped code and references. Do not read `spec.md`, the full plan, or unrelated task packets unless the packet identifies an unresolved conditional detail or conflict.
+- Convert a legacy specification bundle without numbered task packets through `/plan` before implementation. Do not execute a monolithic task list directly.
+- Do not create a specification bundle for a routine, already-defined change.
+
 ## Documentation
 
 Update `README.md`, `docs/getting-started.md`, `docs/configuration.md`, `docs/docker.md`, or `docs/tools.md` when public CLI, Docker, environment, or tool-surface behavior changes.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Documentation And ADRs"
+  short_description: "Write technical docs and decisions"
+  default_prompt: "Use $documentation-and-adrs to write precise project documentation or a decision record."

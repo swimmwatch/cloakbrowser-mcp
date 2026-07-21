@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Docs Maintainer"
+  short_description: "Maintain the project knowledge base"
+  default_prompt: "Use $project-docs-maintainer to update the canonical documentation and localization scope for this change."

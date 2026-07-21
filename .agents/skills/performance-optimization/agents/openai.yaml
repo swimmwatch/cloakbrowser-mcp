@@ -1,0 +1,4 @@
+interface:
+  display_name: "Performance Optimization"
+  short_description: "Measure and improve performance"
+  default_prompt: "Use $performance-optimization to measure this bottleneck and verify an evidence-based improvement."

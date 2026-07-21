@@ -1,0 +1,4 @@
+interface:
+  display_name: "Doubt-Driven Development"
+  short_description: "Challenge high-risk decisions"
+  default_prompt: "Use $doubt-driven-development to challenge this decision with evidence and reversible alternatives."

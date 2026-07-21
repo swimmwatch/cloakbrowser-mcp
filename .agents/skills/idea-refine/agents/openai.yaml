@@ -1,0 +1,4 @@
+interface:
+  display_name: "Idea Refinement"
+  short_description: "Compare product and technical directions"
+  default_prompt: "Use $idea-refine to compare this idea's options, tradeoffs, and smallest validation experiment."

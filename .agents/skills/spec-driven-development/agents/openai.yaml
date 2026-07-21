@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Spec-Driven Development'
+  short_description: 'Write implementation-ready contracts'
+  default_prompt: 'Use $spec-driven-development to run a comprehensive, multi-round Prompt MCP interview, capture every resolved detail as a durable implementation contract in specs/<slug>/spec.md, and stop before task planning or implementation.'

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Interview Me"
+  short_description: "Elicit project requirements interactively"
+  default_prompt: "Use $interview-me to interview me and turn my answers into clear project requirements."

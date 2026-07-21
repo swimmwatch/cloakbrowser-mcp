@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { Command, InvalidArgumentError, Option } from 'commander';
 import { type HumanPreset, humanPresets } from '#src/bridge/config';
 import {
@@ -13,9 +14,19 @@ import {
   httpProtocols,
   type HttpSessionBackend,
   httpSessionBackends,
+  HTTP_SESSION_BACKEND_REDIS,
   READYZ_PATH,
+  type StreamableHttpArtifactOptions,
+  type StreamableHttpMetricsOptions,
+  type StreamableHttpPeerOptions,
+  type StreamableHttpRedisOptions,
   type StreamableHttpTlsOptions,
 } from '#src/http/options';
+import {
+  defaultLoggingOptions,
+  type LogFormat,
+  logFormats,
+} from '#src/logging/options';
 
 export const cliDescription = 'Playwright MCP bridge backed by CloakBrowser.';
 
@@ -36,14 +47,49 @@ interface CommanderCliOptions {
   httpSessionBackend: HttpSessionBackend;
   httpSessionIdleTtlMs: number;
   httpSessionMax: number;
+  httpSessionDrainTimeoutMs: number;
+  httpSessionInstanceId?: string;
+  httpSessionOwnerName?: string;
+  httpRedisUrl?: string;
+  httpRedisKeyPrefix?: string;
+  httpRedisConnectTimeoutMs: number;
+  httpRedisOperationTimeoutMs: number;
+  httpRedisCaFile?: string;
+  httpRedisCertFile?: string;
+  httpRedisKeyFile?: string;
+  httpPeerHost: string;
+  httpPeerPort: number;
+  httpPeerAdvertiseHost?: string;
+  httpPeerRoutingToken?: string;
+  metrics: boolean;
+  metricsHost: string;
+  metricsPort: number;
+  metricsEndpoint: string;
+  metricsAuthToken?: string;
+  httpArtifactsRoot?: string;
+  httpProfilesRoot?: string;
+  httpExtensionsRoot?: string;
+  httpArtifactMaxFiles: number;
+  httpArtifactRetentionMs: number;
+  httpArtifactCleanupIntervalMs: number;
+  logFormat: LogFormat;
 }
 
 interface DoctorCliOptions {
   json?: boolean;
 }
 
+export const probeKinds = ['health', 'ready'] as const;
+export type ProbeKind = (typeof probeKinds)[number];
+
+export interface ProbeCliOptions {
+  kind: ProbeKind;
+  timeoutMs: number;
+}
+
 interface CreateCliCommandOptions {
   doctorAction?: (options: DoctorCliOptions) => Promise<void> | void;
+  probeAction?: (options: ProbeCliOptions) => Promise<void> | void;
 }
 
 type CliOptionValue = string | number | boolean;
@@ -173,7 +219,7 @@ export const cliOptionDefinitions: readonly CliOptionDefinition[] = [
   {
     name: 'httpSessionBackend',
     flags: '--http-session-backend <backend>',
-    description: 'Session metadata backend. Only memory is implemented in this release.',
+    description: 'Session metadata backend.',
     env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_BACKEND',
     group: 'Streamable HTTP',
     defaultValue: defaultStreamableHttpOptions.sessionBackend,
@@ -197,6 +243,226 @@ export const cliOptionDefinitions: readonly CliOptionDefinition[] = [
     defaultValue: defaultStreamableHttpOptions.sessionMax,
     parser: parsePositiveInteger('HTTP session max'),
   },
+  {
+    name: 'httpSessionDrainTimeoutMs',
+    flags: '--http-session-drain-timeout-ms <ms>',
+    description: 'Graceful drain timeout for owned Streamable HTTP sessions.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_DRAIN_TIMEOUT_MS',
+    group: 'Streamable HTTP Sessions',
+    defaultValue: defaultStreamableHttpOptions.sessionDrainTimeoutMs,
+    parser: parseIntegerInRange('HTTP session drain timeout', 0, 600_000),
+  },
+  {
+    name: 'httpSessionInstanceId',
+    flags: '--http-session-instance-id <id>',
+    description: 'Unique owner instance identifier required by the Redis session backend.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_INSTANCE_ID',
+    group: 'Streamable HTTP Sessions',
+    parser: parseNonEmptyString('HTTP session instance ID must not be empty'),
+  },
+  {
+    name: 'httpSessionOwnerName',
+    flags: '--http-session-owner-name <name>',
+    description: 'Human-readable owner name required by the Redis session backend.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_OWNER_NAME',
+    group: 'Streamable HTTP Sessions',
+    parser: parseNonEmptyString('HTTP session owner name must not be empty'),
+  },
+  {
+    name: 'httpRedisUrl',
+    flags: '--http-redis-url <url>',
+    description: 'Redis or Valkey connection URL. Prefer the environment variable for credentials.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_REDIS_URL',
+    group: 'Redis Sessions',
+    parser: parseRedisUrl,
+  },
+  {
+    name: 'httpRedisKeyPrefix',
+    flags: '--http-redis-key-prefix <prefix>',
+    description: 'Release-unique Redis key prefix.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_REDIS_KEY_PREFIX',
+    group: 'Redis Sessions',
+    parser: parseNonEmptyString('HTTP Redis key prefix must not be empty'),
+  },
+  {
+    name: 'httpRedisConnectTimeoutMs',
+    flags: '--http-redis-connect-timeout-ms <ms>',
+    description: 'Redis connection timeout.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_REDIS_CONNECT_TIMEOUT_MS',
+    group: 'Redis Sessions',
+    defaultValue: defaultStreamableHttpOptions.redis.connectTimeoutMs,
+    parser: parseIntegerInRange('HTTP Redis connection timeout', 100, 60_000),
+  },
+  {
+    name: 'httpRedisOperationTimeoutMs',
+    flags: '--http-redis-operation-timeout-ms <ms>',
+    description: 'Redis command timeout.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_REDIS_OPERATION_TIMEOUT_MS',
+    group: 'Redis Sessions',
+    defaultValue: defaultStreamableHttpOptions.redis.operationTimeoutMs,
+    parser: parseIntegerInRange('HTTP Redis operation timeout', 100, 30_000),
+  },
+  {
+    name: 'httpRedisCaFile',
+    flags: '--http-redis-ca-file <path>',
+    description: 'Redis TLS CA file path.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_REDIS_CA_FILE',
+    group: 'Redis Sessions',
+    parser: parseNonEmptyString('HTTP Redis CA file path must not be empty'),
+  },
+  {
+    name: 'httpRedisCertFile',
+    flags: '--http-redis-cert-file <path>',
+    description: 'Redis TLS client certificate file path.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_REDIS_CERT_FILE',
+    group: 'Redis Sessions',
+    parser: parseNonEmptyString('HTTP Redis certificate file path must not be empty'),
+  },
+  {
+    name: 'httpRedisKeyFile',
+    flags: '--http-redis-key-file <path>',
+    description: 'Redis TLS client private key file path.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_REDIS_KEY_FILE',
+    group: 'Redis Sessions',
+    parser: parseNonEmptyString('HTTP Redis key file path must not be empty'),
+  },
+  {
+    name: 'httpPeerHost',
+    flags: '--http-peer-host <host>',
+    description: 'Internal peer-routing bind host.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_PEER_HOST',
+    group: 'Peer Routing',
+    defaultValue: defaultStreamableHttpOptions.peer.host,
+    parser: parseNonEmptyString('HTTP peer host must not be empty'),
+  },
+  {
+    name: 'httpPeerPort',
+    flags: '--http-peer-port <port>',
+    description: 'Internal peer-routing port.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_PEER_PORT',
+    group: 'Peer Routing',
+    defaultValue: defaultStreamableHttpOptions.peer.port,
+    parser: parseIntegerInRange('HTTP peer port', 1, 65_535),
+  },
+  {
+    name: 'httpPeerAdvertiseHost',
+    flags: '--http-peer-advertise-host <host>',
+    description: 'Pod address advertised to other session owners.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_PEER_ADVERTISE_HOST',
+    group: 'Peer Routing',
+    parser: parseNonEmptyString('HTTP peer advertise host must not be empty'),
+  },
+  {
+    name: 'httpPeerRoutingToken',
+    flags: '--http-peer-routing-token <token>',
+    description: 'Internal routing token. Prefer the environment variable for credentials.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_PEER_ROUTING_TOKEN',
+    group: 'Peer Routing',
+    parser: parseNonEmptyString('HTTP peer routing token must not be empty'),
+  },
+  {
+    name: 'metrics',
+    flags: '--metrics',
+    description: 'Enable the native Prometheus listener.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_METRICS',
+    group: 'Metrics',
+    defaultValue: defaultStreamableHttpOptions.metrics.enabled,
+  },
+  {
+    name: 'metricsHost',
+    flags: '--metrics-host <host>',
+    description: 'Prometheus listener bind host.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_METRICS_HOST',
+    group: 'Metrics',
+    defaultValue: defaultStreamableHttpOptions.metrics.host,
+    parser: parseNonEmptyString('Metrics host must not be empty'),
+  },
+  {
+    name: 'metricsPort',
+    flags: '--metrics-port <port>',
+    description: 'Prometheus listener port. Use 0 for an ephemeral port in tests.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_METRICS_PORT',
+    group: 'Metrics',
+    defaultValue: defaultStreamableHttpOptions.metrics.port,
+    parser: parseIntegerInRange('Metrics port', 0, 65_535),
+  },
+  {
+    name: 'metricsEndpoint',
+    flags: '--metrics-endpoint <path>',
+    description: 'Prometheus exposition endpoint path.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_METRICS_ENDPOINT',
+    group: 'Metrics',
+    defaultValue: defaultStreamableHttpOptions.metrics.endpoint,
+    parser: parseEndpoint('Metrics endpoint'),
+  },
+  {
+    name: 'metricsAuthToken',
+    flags: '--metrics-auth-token <token>',
+    description: 'Metrics bearer token. Prefer the environment variable for credentials.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_METRICS_AUTH_TOKEN',
+    group: 'Metrics',
+    parser: parseNonEmptyString('Metrics auth token must not be empty'),
+  },
+  {
+    name: 'httpArtifactsRoot',
+    flags: '--http-artifacts-root <path>',
+    description: 'Root for private Streamable HTTP session artifact directories.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_ARTIFACTS_ROOT',
+    group: 'HTTP Filesystem',
+    parser: parseAbsolutePath('HTTP artifacts root'),
+  },
+  {
+    name: 'httpProfilesRoot',
+    flags: '--http-profiles-root <path>',
+    description: 'Allowed root for Streamable HTTP persistent profiles.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_PROFILES_ROOT',
+    group: 'HTTP Filesystem',
+    parser: parseAbsolutePath('HTTP profiles root'),
+  },
+  {
+    name: 'httpExtensionsRoot',
+    flags: '--http-extensions-root <path>',
+    description: 'Allowed read-only root for Streamable HTTP extensions.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_EXTENSIONS_ROOT',
+    group: 'HTTP Filesystem',
+    parser: parseAbsolutePath('HTTP extensions root'),
+  },
+  {
+    name: 'httpArtifactMaxFiles',
+    flags: '--http-artifact-max-files <count>',
+    description: 'Maximum completed artifact files retained per HTTP session.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_ARTIFACT_MAX_FILES',
+    group: 'HTTP Filesystem',
+    defaultValue: defaultStreamableHttpOptions.artifacts.maxFiles,
+    parser: parsePositiveInteger('HTTP artifact max files'),
+  },
+  {
+    name: 'httpArtifactRetentionMs',
+    flags: '--http-artifact-retention-ms <ms>',
+    description: 'Retention after a Streamable HTTP session closes.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_ARTIFACT_RETENTION_MS',
+    group: 'HTTP Filesystem',
+    defaultValue: defaultStreamableHttpOptions.artifacts.retentionMs,
+    parser: parsePositiveInteger('HTTP artifact retention'),
+  },
+  {
+    name: 'httpArtifactCleanupIntervalMs',
+    flags: '--http-artifact-cleanup-interval-ms <ms>',
+    description: 'Artifact cleanup scan interval.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_ARTIFACT_CLEANUP_INTERVAL_MS',
+    group: 'HTTP Filesystem',
+    defaultValue: defaultStreamableHttpOptions.artifacts.cleanupIntervalMs,
+    parser: parsePositiveInteger('HTTP artifact cleanup interval'),
+  },
+  {
+    name: 'logFormat',
+    flags: '--log-format <format>',
+    description: 'Runtime log output format.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_LOG_FORMAT',
+    group: 'Logging',
+    defaultValue: defaultLoggingOptions.format,
+    choices: logFormats,
+  },
 ];
 
 export function createCliCommand(version: string, options: CreateCliCommandOptions = {}): Command {
@@ -214,6 +480,7 @@ export function createCliCommand(version: string, options: CreateCliCommandOptio
   }
 
   command.addCommand(createDoctorCommand(options.doctorAction));
+  command.addCommand(createProbeCommand(options.probeAction));
 
   return command;
 }
@@ -253,6 +520,12 @@ ${command.helpInformation().trimEnd()}
 ${createDoctorCommand().helpInformation().trimEnd()}
 \`\`\`
 
+### \`probe\`
+
+\`\`\`text
+${createProbeCommand().helpInformation().trimEnd()}
+\`\`\`
+
 ## Options
 
 ${renderOptionsTable()}
@@ -266,6 +539,22 @@ function createDoctorCommand(action?: (options: DoctorCliOptions) => Promise<voi
 
   if (action) {
     command.action(async (options: DoctorCliOptions) => {
+      await action(options);
+    });
+  }
+
+  return command;
+}
+
+function createProbeCommand(action?: (options: ProbeCliOptions) => Promise<void> | void): Command {
+  const kind = new Option('--kind <kind>', 'Probe kind.').choices(probeKinds).makeOptionMandatory();
+  const command = new Command('probe')
+    .description('Run an authenticated loopback health or readiness probe.')
+    .addOption(kind)
+    .option('--timeout-ms <ms>', 'Probe request timeout.', parsePositiveInteger('Probe timeout'), 2_000);
+
+  if (action) {
+    command.action(async (options: ProbeCliOptions) => {
       await action(options);
     });
   }
@@ -294,7 +583,12 @@ function createCommanderOption(definition: CliOptionDefinition): Option {
 
 function toCliOptions(options: CommanderCliOptions, command: Command): CliOptions {
   const tls = normalizeTlsOptions(options);
+  const redis = normalizeRedisOptions(options);
+  const peer = normalizePeerOptions(options);
+  const metrics = normalizeMetricsOptions(options, command);
+  const artifacts = normalizeArtifactOptions(options);
   validateHttpProtocolOptions(options.httpProtocol, tls);
+  validateRedisSessionOptions(options, redis, peer);
   return {
     transport: options.transport,
     bridge: {
@@ -315,7 +609,17 @@ function toCliOptions(options: CommanderCliOptions, command: Command): CliOption
       sessionBackend: options.httpSessionBackend,
       sessionIdleTtlMs: options.httpSessionIdleTtlMs,
       sessionMax: options.httpSessionMax,
+      sessionDrainTimeoutMs: options.httpSessionDrainTimeoutMs,
+      sessionInstanceId: optionalString(options.httpSessionInstanceId),
+      sessionOwnerName: optionalString(options.httpSessionOwnerName),
+      redis,
+      peer,
+      metrics,
+      artifacts,
       bodyLimitBytes: defaultStreamableHttpOptions.bodyLimitBytes,
+    },
+    logging: {
+      format: options.logFormat,
     },
   };
 }
@@ -347,6 +651,85 @@ function normalizeTlsOptions(options: CommanderCliOptions): StreamableHttpTlsOpt
     pfx: optionalString(options.httpsPfx),
     passphrase: optionalString(options.httpsPassphrase),
   };
+}
+
+function normalizeRedisOptions(options: CommanderCliOptions): StreamableHttpRedisOptions {
+  return {
+    url: optionalString(options.httpRedisUrl),
+    keyPrefix: optionalString(options.httpRedisKeyPrefix),
+    connectTimeoutMs: options.httpRedisConnectTimeoutMs,
+    operationTimeoutMs: options.httpRedisOperationTimeoutMs,
+    caFile: optionalString(options.httpRedisCaFile),
+    certFile: optionalString(options.httpRedisCertFile),
+    keyFile: optionalString(options.httpRedisKeyFile),
+  };
+}
+
+function normalizePeerOptions(options: CommanderCliOptions): StreamableHttpPeerOptions {
+  return {
+    host: options.httpPeerHost,
+    port: options.httpPeerPort,
+    advertiseHost: optionalString(options.httpPeerAdvertiseHost),
+    routingToken: optionalString(options.httpPeerRoutingToken),
+  };
+}
+
+function normalizeMetricsOptions(
+  options: CommanderCliOptions,
+  command: Command,
+): StreamableHttpMetricsOptions {
+  return {
+    enabled: normalizeBoolean(options.metrics, readRawBooleanEnv(command, 'metrics')),
+    host: options.metricsHost,
+    port: options.metricsPort,
+    endpoint: options.metricsEndpoint,
+    authToken: optionalString(options.metricsAuthToken),
+  };
+}
+
+function normalizeArtifactOptions(options: CommanderCliOptions): StreamableHttpArtifactOptions {
+  return {
+    root: optionalString(options.httpArtifactsRoot),
+    profilesRoot: optionalString(options.httpProfilesRoot),
+    extensionsRoot: optionalString(options.httpExtensionsRoot),
+    maxFiles: options.httpArtifactMaxFiles,
+    retentionMs: options.httpArtifactRetentionMs,
+    cleanupIntervalMs: options.httpArtifactCleanupIntervalMs,
+  };
+}
+
+function validateRedisSessionOptions(
+  options: CommanderCliOptions,
+  redis: StreamableHttpRedisOptions,
+  peer: StreamableHttpPeerOptions,
+): void {
+  const hasClientCert = redis.certFile !== undefined;
+  const hasClientKey = redis.keyFile !== undefined;
+  if (hasClientCert !== hasClientKey) {
+    throw new InvalidArgumentError('Redis TLS client authentication requires both certificate and key files');
+  }
+
+  if (
+    redis.url !== undefined &&
+    (redis.caFile !== undefined || hasClientCert) &&
+    new URL(redis.url).protocol !== 'rediss:'
+  ) {
+    throw new InvalidArgumentError('Redis TLS files require a rediss:// URL');
+  }
+
+  if (options.httpSessionBackend !== HTTP_SESSION_BACKEND_REDIS) return;
+
+  requireRedisOption(redis.url, '--http-redis-url');
+  requireRedisOption(redis.keyPrefix, '--http-redis-key-prefix');
+  requireRedisOption(options.httpSessionInstanceId, '--http-session-instance-id');
+  requireRedisOption(options.httpSessionOwnerName, '--http-session-owner-name');
+  requireRedisOption(peer.advertiseHost, '--http-peer-advertise-host');
+  requireRedisOption(peer.routingToken, '--http-peer-routing-token');
+}
+
+function requireRedisOption(value: string | undefined, flag: string): void {
+  if (value !== undefined) return;
+  throw new InvalidArgumentError(`${flag} is required with --http-session-backend redis`);
 }
 
 function validateHttpProtocolOptions(protocol: HttpProtocol, tls: StreamableHttpTlsOptions): void {

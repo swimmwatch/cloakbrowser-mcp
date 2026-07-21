@@ -1,0 +1,4 @@
+interface:
+  display_name: "Context Engineering"
+  short_description: "Improve project context and handoffs"
+  default_prompt: "Use $context-engineering to improve this project's Codex instructions, routing, or handoff."

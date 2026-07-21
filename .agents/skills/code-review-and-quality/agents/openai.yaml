@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Review And Quality"
+  short_description: "Review bridge changes rigorously"
+  default_prompt: "Use $code-review-and-quality to review this change for correctness, contracts, security, and verification gaps."
