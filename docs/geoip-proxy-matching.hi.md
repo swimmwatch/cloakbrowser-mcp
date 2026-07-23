@@ -13,7 +13,11 @@ tags:
 
 GeoIP प्रॉक्सी मैचिंग, ब्राउज़र फिंगरप्रिंट सेटिंग्स को अपस्ट्रीम Playwright MCP द्वारा उपयोग की जाने वाली प्रॉक्सी के स्थान के साथ संरेखित रखती है। यह तब उपयोगी होता है जब क्षेत्रीय QA एक सुसंगत प्रॉक्सी, टाइमज़ोन, भाषा और लोकेल प्रोफ़ाइल पर निर्भर करता है।
 
-ब्रिज स्वयं प्रॉक्सी ट्रैफ़िक नहीं बनाता है या उसका रूटिंग नहीं करता है। प्रॉक्सी रूटिंग `PLAYWRIGHT_MCP_PROXY_SERVER` के माध्यम से अपस्ट्रीम प्लेराइट MCP के स्वामित्व में बनी रहती है। जब मैचिंग सक्षम होती है, तो क्लोकरॉउज़र MCP कॉन्फ़िगर किए गए प्रॉक्सी स्थान को रिज़ॉल्व करता है और टाइमज़ोन, ब्राउज़र भाषा, और फ़िंगरप्रिंट लोकेल के लिए मैचिंग क्लोकरॉउज़र लॉन्च फ़्लैग जोड़ता है।
+ब्रिज स्वयं प्रॉक्सी ट्रैफ़िक नहीं बनाता या रूट नहीं करता। वह
+`PLAYWRIGHT_MCP_PROXY_SERVER` को CloakBrowser की लॉन्च तैयारी में भेजता है।
+मैचिंग सक्षम होने पर CloakBrowser कॉन्फ़िगर किए गए प्रॉक्सी के निकास स्थान को
+रिज़ॉल्व करता है और टाइमज़ोन, ब्राउज़र भाषा, फ़िंगरप्रिंट लोकेल तथा WebRTC IP
+के लिए मिलान करने वाले लॉन्च फ़्लैग जोड़ता है।
 
 ## यह क्या बदलता है
 
@@ -22,6 +26,7 @@ GeoIP प्रॉक्सी मैचिंग, ब्राउज़र फ�
 - `--fingerprint-timezone`
 - `--lang`
 - `--fingerprint-locale`
+- `--fingerprint-webrtc-ip`
 
 यह ब्राउज़र प्रोफ़ाइल को प्रॉक्सी क्षेत्र के साथ आंतरिक रूप से सुसंगत बनाने में मदद करता है।
 अपस्ट्रीम Playwright MCP टूल स्कीमा और ब्राउज़र टूल अभी भी बिना बदले अग्रेषित किए जाते हैं।
@@ -48,6 +53,11 @@ npx -y cloakbrowser-mcp@latest
 प्रमाणित HTTP प्रॉक्सी का समर्थन क्रेडेंशियल्स को एम्बेड करके किया जाता है।
 `PLAYWRIGHT_MCP_PROXY_SERVER`. क्रेडेंशियल्स में विशेष वर्णों का प्रतिशत-एन्कोड करें,
 उदाहरण के लिए `p%40ssword` का उपयोग `p@ssword` के लिए करें।
+
+समर्थित CloakBrowser बाइनरी नेटिव URL-इनलाइन प्रमाणीकरण का उपयोग करती हैं और
+प्रॉक्सी द्वारा सख़्त प्रमाणित CONNECT अनुरोध की आवश्यकता होने पर भी उसका
+वास्तविक निकास IP बताती हैं। पुरानी बाइनरी संगतता फ़ॉलबैक के रूप में
+Playwright प्रॉक्सी ऑब्जेक्ट बनाए रखती हैं।
 
 ## डॉकर सेटअप
 
@@ -142,10 +152,21 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
 | Streamable HTTP default | Runtime metadata न दिए जाने पर process-level environment variables और CLI flags उपयोग करता है। |
 | Streamable HTTP metadata | `initialize.params._meta["io.github.swimmwatch/cloakbrowser-mcp"]` एक session के लिए proxy और GeoIP matching override कर सकता है। |
 | Existing sessions | `initialize` के दौरान capture किए गए proxy और GeoIP setting को रखते हैं। |
-| Proxy routing | Upstream Playwright MCP को delegated रहता है। |
-| Browser geolocation API | यह feature इसे configure नहीं करता; यह केवल CloakBrowser timezone, language और locale fingerprint flags align करता है। |
+| प्रमाणित HTTP प्रॉक्सी | समर्थित बाइनरी पर CloakBrowser नेटिव URL-इनलाइन प्रमाणीकरण और पुरानी बाइनरी पर Playwright प्रॉक्सी ऑब्जेक्ट का उपयोग करती है। |
+| रॉ टाइमज़ोन/लोकेल फ़्लैग | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` में स्पष्ट `--fingerprint-timezone`, `--lang` और `--fingerprint-locale` मान GeoIP से प्राप्त मानों पर प्राथमिकता लेते हैं और डुप्लिकेट नहीं होते। |
+| Browser geolocation API | यह सुविधा इसे कॉन्फ़िगर नहीं करती; यह केवल CloakBrowser के टाइमज़ोन, भाषा, लोकेल और WebRTC IP फ़िंगरप्रिंट मानों को संरेखित करती है। |
 
 GeoIP लोकेशन डेटा अनुमानित होता है और यह प्रॉक्सी आईपी और CloakBrowser के GeoIP डेटाबेस पर निर्भर करता है। CloakBrowser आवश्यकता पड़ने पर पहली बार उपयोग के समय उस ऑफ़लाइन डेटाबेस को डाउनलोड और कैश करता है।
+
+उदाहरण के लिए, निम्न कॉन्फ़िगरेशन स्पष्ट टाइमज़ोन और लोकेल को बनाए रखता है,
+फिर भी प्रॉक्सी निकास IP को रिज़ॉल्व करने के लिए GeoIP मैचिंग का उपयोग करता है:
+
+```bash
+PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
+CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
+CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS='["--fingerprint-timezone=America/New_York","--lang=en-US","--fingerprint-locale=en-US"]' \
+npx -y cloakbrowser-mcp@latest
+```
 
 इस सुविधा का उपयोग वैध QA, स्थानीयकरण, और पर्यावरण की स्थिरता परीक्षण के लिए करें। इसे एक्सेस नियंत्रण या क्षेत्रीय नीति जांचों को बाईपास करने के तरीके के रूप में नहीं माना जाना चाहिए।
 

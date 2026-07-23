@@ -17,11 +17,11 @@ on a consistent proxy, timezone, language, and locale profile.
 
 For a concise end-to-end setup, see [Regional QA Through Proxy](recipes/regional-qa-through-proxy.md).
 
-The bridge does not create or route proxy traffic itself. Proxy routing remains
-owned by upstream Playwright MCP through `PLAYWRIGHT_MCP_PROXY_SERVER`. When
-matching is enabled, CloakBrowser MCP resolves the configured proxy location and
-adds matching CloakBrowser launch flags for timezone, browser language, and
-fingerprint locale.
+The bridge does not create or route proxy traffic itself. It passes
+`PLAYWRIGHT_MCP_PROXY_SERVER` to CloakBrowser's launch preparation. When
+matching is enabled, CloakBrowser resolves the configured proxy's exit location
+and adds matching launch flags for timezone, browser language, fingerprint
+locale, and WebRTC IP.
 
 ## What It Changes
 
@@ -31,6 +31,7 @@ launch flags for CloakBrowser:
 - `--fingerprint-timezone`
 - `--lang`
 - `--fingerprint-locale`
+- `--fingerprint-webrtc-ip`
 
 This helps the browser profile look internally consistent with the proxy region.
 The upstream Playwright MCP tool schemas and browser tools are still forwarded
@@ -58,7 +59,10 @@ npx -y cloakbrowser-mcp@latest
 
 Authenticated HTTP proxies are supported by embedding credentials in
 `PLAYWRIGHT_MCP_PROXY_SERVER`. Percent-encode special characters in credentials,
-for example use `p%40ssword` for `p@ssword`.
+for example use `p%40ssword` for `p@ssword`. Supported CloakBrowser binaries
+use native inline authentication and report the proxy's real exit IP even when
+the proxy requires a strict authenticated CONNECT request. Older binaries keep
+the Playwright proxy object as a compatibility fallback.
 
 ## Docker Setup
 
@@ -162,12 +166,23 @@ project files.
 | Streamable HTTP default | Uses process-level environment variables and CLI flags when no runtime metadata is provided. |
 | Streamable HTTP metadata | `initialize.params._meta["io.github.swimmwatch/cloakbrowser-mcp"]` can override proxy and GeoIP matching for one session. |
 | Existing sessions | Keep the proxy and GeoIP setting captured during `initialize`. |
-| Proxy routing | Remains delegated to upstream Playwright MCP. |
+| Authenticated HTTP proxy | Uses CloakBrowser native inline authentication on supported binaries and the Playwright proxy object on older binaries. |
+| Raw timezone/locale flags | Explicit `--fingerprint-timezone`, `--lang`, and `--fingerprint-locale` values in `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` take precedence over GeoIP-derived values and are not duplicated. |
 | Browser geolocation API | Not configured by this feature; it only aligns CloakBrowser timezone, language, and locale fingerprint flags. |
 
 GeoIP location data is approximate and depends on the proxy IP and CloakBrowser's
 GeoIP database. CloakBrowser downloads and caches that offline database on first
 use when it is needed.
+
+For example, the following keeps the explicit timezone and locale while still
+using GeoIP matching to resolve the proxy exit IP:
+
+```bash
+PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
+CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
+CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS='["--fingerprint-timezone=America/New_York","--lang=en-US","--fingerprint-locale=en-US"]' \
+npx -y cloakbrowser-mcp@latest
+```
 
 Use this feature for legitimate QA, localization, and environment consistency
 testing. It should not be treated as a way to bypass access controls or regional

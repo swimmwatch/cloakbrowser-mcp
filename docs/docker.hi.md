@@ -44,6 +44,33 @@ Docker के अंदर पर्यावरण चर को `/data/profile
 गई Playwright MCP कॉन्फ़िग में लिखता है, और एक ही सर्वर प्रक्रिया में
 डुप्लिकेट सक्रिय प्रोफ़ाइल निर्देशिकाओं को अस्वीकार करता है।
 
+## CloakBrowser लाइसेंस कैश
+
+इमेज CloakBrowser बाइनरी, लाइसेंस स्थिति और सत्यापन कैश को
+`/home/node/.cloakbrowser` में संग्रहीत करती है। कंटेनर बदलने पर भी GitHub
+मुफ़्त स्तर या Pro लॉगिन बनाए रखने के लिए वहाँ एक नामित वॉल्यूम माउंट करें:
+
+```bash
+docker volume create cloakbrowser-cache
+
+docker run --rm -it \
+  --entrypoint node \
+  -v cloakbrowser-cache:/home/node/.cloakbrowser \
+  swimmwatch/cloakbrowser-mcp:latest \
+  /opt/cloakbrowser-mcp/node_modules/cloakbrowser/dist/cli.js login
+
+docker run --rm --init -i \
+  -v cloakbrowser-cache:/home/node/.cloakbrowser \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+सहेजे गए लॉगिन को जाँचने या हटाने के लिए उसी वॉल्यूम के साथ अपस्ट्रीम `info`
+या `logout` कमांड का उपयोग करें। विकल्प के रूप में, कंटेनर के सीक्रेट प्रबंधन
+से `CLOAKBROWSER_LICENSE_KEY` इंजेक्ट करें। लाइसेंस कुंजी को इमेज लेयर, वर्शन
+कंट्रोल में कमिट की गई Compose फ़ाइल या बिल्ड प्रमाण के रूप में कैप्चर किए गए
+कमांड आउटपुट में न रखें।
+
 ## Chrome एक्सटेंशन
 
 Chrome एक्सटेंशन के लिए स्थायी प्रोफ़ाइल आवश्यक है और उन्हें अलग से माउंट करना
@@ -105,6 +132,9 @@ docker run --rm --init -i \
 ```
 
 प्रमाणित प्रॉक्सी के लिए, प्रॉक्सी URL में क्रेडेंशियल एम्बेड करें और उपयोगकर्ता नाम या पासवर्ड में विशेष वर्णों को प्रतिशत-एन्कोड करें।
+
+समर्थित CloakBrowser बाइनरी नेटिव URL-इनलाइन प्रॉक्सी प्रमाणीकरण का उपयोग करती
+हैं; पुरानी बाइनरी Playwright प्रॉक्सी ऑब्जेक्ट पर फ़ॉलबैक करती हैं।
 
 जब कंटेनर स्ट्रीमएबल HTTP चलाता है, तो क्लाइंट `initialize` मेटाडेटा के माध्यम से प्रति MCP सत्र विभिन्न प्रॉक्सी भी चुन सकते हैं। देखें
 रनटाइम प्रॉक्सी मेटाडेटा, बहु-क्षेत्र उपयोग के मामलों, और सीमाओं के लिए [GeoIP Proxy Matching](geoip-proxy-matching.md) देखें।

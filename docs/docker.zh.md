@@ -40,6 +40,31 @@ Docker 内部的环境变量必须使用容器路径，例如 `/data/profiles/de
 而不是主机路径。桥接器会在配置文件目录缺失时创建它，验证其可写，将容器路径写入
 生成的 Playwright MCP 配置，并拒绝同一服务器进程内重复的活动配置文件目录。
 
+## CloakBrowser 许可证缓存
+
+该镜像会将 CloakBrowser 二进制文件、许可证状态和验证缓存存储在
+`/home/node/.cloakbrowser` 中。请在此处挂载命名卷，以便在更换容器时保留
+GitHub 免费层或 Pro 登录状态：
+
+```bash
+docker volume create cloakbrowser-cache
+
+docker run --rm -it \
+  --entrypoint node \
+  -v cloakbrowser-cache:/home/node/.cloakbrowser \
+  swimmwatch/cloakbrowser-mcp:latest \
+  /opt/cloakbrowser-mcp/node_modules/cloakbrowser/dist/cli.js login
+
+docker run --rm --init -i \
+  -v cloakbrowser-cache:/home/node/.cloakbrowser \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+使用同一个卷运行上游 `info` 或 `logout` 命令，即可检查或删除已保存的登录状态。
+也可以通过容器的机密管理注入 `CLOAKBROWSER_LICENSE_KEY`。请勿将许可证密钥写入
+镜像层、提交到版本控制的 Compose 文件，或作为构建证据捕获的命令输出中。
+
 ## Chrome 扩展
 
 Chrome 扩展需要持久化配置文件，并且必须单独挂载。请在环境变量中使用容器路径，
@@ -102,6 +127,9 @@ docker run --rm --init -i \
 ```
 
 对于需要身份验证的代理，请将凭据嵌入代理 URL 中，并对用户名或密码中的特殊字符进行百分比编码。
+
+受支持的 CloakBrowser 二进制文件使用原生 URL 内联代理身份验证；较旧的二进制
+文件会回退到 Playwright 代理对象。
 
 当容器运行 Streamable HTTP 时，客户端还可以通过 `initialize` 元数据，为每个 MCP 会话选择不同的
 代理。请参阅

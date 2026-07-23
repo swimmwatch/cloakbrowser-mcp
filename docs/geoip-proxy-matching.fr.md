@@ -15,11 +15,12 @@ La mise en correspondance des proxys GeoIP permet de synchroniser les paramètre
 utilisé par le MCP Playwright en amont. Cette fonctionnalité est utile lorsque l'assurance qualité régionale dépend
 d'un proxy, d'un fuseau horaire, d'une langue et d'un profil régional cohérents.
 
-Le pont ne génère ni n'achemine lui-même le trafic proxy. Le routage proxy reste
-sous la responsabilité du MCP Playwright en amont via `PLAYWRIGHT_MCP_PROXY_SERVER`. Lorsque
-la correspondance est activée, le MCP CloakBrowser résout l’emplacement de proxy configuré et
-ajoute les indicateurs de lancement CloakBrowser correspondants pour le fuseau horaire, la langue du navigateur et
-la locale de l’empreinte digitale.
+Le pont ne génère ni n'achemine lui-même le trafic proxy. Il transmet
+`PLAYWRIGHT_MCP_PROXY_SERVER` à la préparation du lancement de CloakBrowser.
+Lorsque la correspondance est activée, CloakBrowser résout l'emplacement de
+sortie du proxy configuré et ajoute les indicateurs de lancement correspondants
+pour le fuseau horaire, la langue du navigateur, les paramètres régionaux de
+l'empreinte et l'IP WebRTC.
 
 ## Quels sont les changements ?
 
@@ -29,6 +30,7 @@ indicateurs de lancement pour CloakBrowser :
 - `--fingerprint-timezone`
 - `--lang`
 - `--fingerprint-locale`
+- `--fingerprint-webrtc-ip`
 
 Cela permet d'assurer la cohérence interne du profil de navigateur avec la région du proxy.
 Les schémas de l'outil MCP de Playwright en amont et les outils de navigateur sont toujours transmis
@@ -57,6 +59,11 @@ npx -y cloakbrowser-mcp@latest
 Les proxys HTTP authentifiés sont pris en charge grâce à l'intégration des identifiants dans
 `PLAYWRIGHT_MCP_PROXY_SERVER`. Les caractères spéciaux des identifiants doivent être encodés en pourcentage ;
 par exemple, utilisez `p%40ssword` pour `p@ssword`.
+
+Les binaires CloakBrowser compatibles utilisent l'authentification native
+intégrée à l'URL et indiquent l'IP de sortie réelle du proxy, même lorsque celui-ci
+exige une requête CONNECT authentifiée stricte. Les anciens binaires conservent
+l'objet proxy Playwright comme solution de repli pour la compatibilité.
 
 ## Configuration de Docker
 
@@ -160,12 +167,24 @@ les fichiers du projet.
 | Valeur par défaut Streamable HTTP | Utilise les variables d'environnement et les indicateurs CLI au niveau du processus lorsqu'aucune métadonnée runtime n'est fournie. |
 | Métadonnées Streamable HTTP | `initialize.params._meta["io.github.swimmwatch/cloakbrowser-mcp"]` peut remplacer le proxy et la correspondance GeoIP pour une session. |
 | Sessions existantes | Conservent le proxy et le réglage GeoIP capturés pendant `initialize`. |
-| Routage du proxy | Reste délégué à upstream Playwright MCP. |
-| Browser geolocation API | N'est pas configurée par cette fonctionnalité; elle aligne seulement le fuseau horaire, la langue et les locale fingerprint flags de CloakBrowser. |
+| Proxy HTTP authentifié | Utilise l'authentification native intégrée à l'URL de CloakBrowser sur les binaires compatibles et l'objet proxy Playwright sur les anciens binaires. |
+| Indicateurs bruts de fuseau horaire/paramètres régionaux | Les valeurs explicites `--fingerprint-timezone`, `--lang` et `--fingerprint-locale` de `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` ont priorité sur les valeurs dérivées de GeoIP et ne sont pas dupliquées. |
+| Browser geolocation API | N'est pas configurée par cette fonctionnalité ; elle aligne uniquement les valeurs d'empreinte de fuseau horaire, de langue, de paramètres régionaux et d'IP WebRTC de CloakBrowser. |
 
 Les données de localisation GeoIP sont approximatives et dépendent de l'adresse IP du proxy et de la
 base de données GeoIP de CloakBrowser. CloakBrowser télécharge et met en cache cette base de données hors ligne lors de sa première
 utilisation, lorsque cela s'avère nécessaire.
+
+Par exemple, la configuration suivante conserve le fuseau horaire et les
+paramètres régionaux explicites tout en continuant à utiliser la correspondance
+GeoIP pour résoudre l'IP de sortie du proxy :
+
+```bash
+PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
+CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
+CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS='["--fingerprint-timezone=America/New_York","--lang=en-US","--fingerprint-locale=en-US"]' \
+npx -y cloakbrowser-mcp@latest
+```
 
 Utilisez cette fonctionnalité dans le cadre de tests légitimes d'assurance qualité, de localisation et de cohérence des environnements.
 Elle ne doit pas être considérée comme un moyen de contourner les contrôles d'accès ou les vérifications des politiques régionales.

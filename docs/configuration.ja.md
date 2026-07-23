@@ -51,13 +51,35 @@ Playwright MCP の動作には、アップストリームの `PLAYWRIGHT_MCP_*` 
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | Adds `--no-sandbox` and disables Chromium sandboxing. |
 
+## CloakBrowser ライセンスと GitHub サインイン
+
+ライセンスの設定にはアップストリームの CloakBrowser CLI を使用します。
+`cloakbrowser-mcp` がログインまたはログアウトのコマンドを追加することはありません。
+
+```bash
+npx -y cloakbrowser@latest login
+npx -y cloakbrowser@latest info
+npx -y cloakbrowser@latest logout
+```
+
+`login` は有料キーを受け取るか、無料枠のキーを取得するための GitHub
+サインインを開始します。検証済みのキーは `~/.cloakbrowser/license.key`
+に保存され、`logout` はそのファイルを削除します。`info` は有効なライセンス階層を
+表示し、Pro ライセンスの場合はアクティブなセッション数も表示します。
+
+代わりに、MCP サーバーの環境で `CLOAKBROWSER_LICENSE_KEY` を設定できます。
+ブリッジはその値をログに記録せず、アップストリーム/ブラウザの子プロセスに転送します。
+`CLOAKBROWSER_CACHE_DIR` が `license.key` を含むカスタムキャッシュを指している場合、
+CloakBrowser がキーを解決し、ブリッジは生成されたブラウザ環境からその解決済みキー
+だけを転送します。生成されたその他の環境エントリはコピーされません。
+
 ## GeoIPプロキシのマッチング
 
-`CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` を `PLAYWRIGHT_MCP_PROXY_SERVER` と設定し、
-を組み合わせることで、プロキシの場所からCloakBrowserのタイムゾーン、言語、ロケールのフィンガープリントフラグを導出します。
-このブリッジは、プロキシルーティングをアップストリームのPlaywright
-MCPに委任されたままにし、解決された `--fingerprint-timezone`、`--lang`、および
-`--fingerprint-locale` といった解決済みの起動フラグのみを注入します。
+`CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` を
+`PLAYWRIGHT_MCP_PROXY_SERVER` と一緒に設定すると、プロキシの出口位置から
+CloakBrowser のタイムゾーン、言語、ロケールのフィンガープリントフラグが導出されます。
+対応するバイナリでは CloakBrowser がネイティブの URL 内インライン認証を選択し、
+古いバイナリでは Playwright のプロキシオブジェクトをフォールバックとして保持します。
 
 設定例、実行時の
 ストリーム可能なHTTPプロキシメタデータ、ユースケース、優先順位ルール、および制限事項については、[GeoIPプロキシのマッチング](geoip-proxy-matching.md)を参照してください。
@@ -172,6 +194,11 @@ Streamable HTTP 分離プロファイルを無効にします。ブリッジは�
 認証済みHTTPプロキシの認証情報は、`proxyServer`に埋め込むことができます。
 例えば、`http://user:pass@proxy.example:8080` などです。`@`、
 `:`、`/` など、URL 上で意味を持つ認証情報の文字はパーセントエンコードしてください。 `:`、`/`、 `?`, `#`、および `%`。
+
+対応する CloakBrowser バイナリでは、認証付き HTTP プロキシにネイティブの
+URL 内インライン認証を使用し、ブリッジは重複する Playwright
+プロキシオブジェクトを削除します。古いバイナリでは互換性のため、
+Playwright のプロキシオブジェクトをフォールバックとして保持します。
 
 複数拠点のQAパターンについては、[GeoIPプロキシマッチング](geoip-proxy-matching.md)を参照してください。
 インタラクションのリアリズムに関するパターンについては、[Humanized Input Behavior](humanized-input-behavior.md)を参照してください。

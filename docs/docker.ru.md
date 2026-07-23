@@ -44,6 +44,33 @@ docker run --rm --init -i \
 сгенерированную конфигурацию Playwright MCP и отклоняет дублирующиеся активные
 каталоги профиля внутри одного серверного процесса.
 
+## Кэш лицензии CloakBrowser
+
+Образ хранит бинарные файлы CloakBrowser, состояние лицензии и кэш проверки в
+`/home/node/.cloakbrowser`. Смонтируйте в этот каталог именованный том, чтобы
+сохранять вход бесплатного уровня GitHub или Pro при замене контейнера:
+
+```bash
+docker volume create cloakbrowser-cache
+
+docker run --rm -it \
+  --entrypoint node \
+  -v cloakbrowser-cache:/home/node/.cloakbrowser \
+  swimmwatch/cloakbrowser-mcp:latest \
+  /opt/cloakbrowser-mcp/node_modules/cloakbrowser/dist/cli.js login
+
+docker run --rm --init -i \
+  -v cloakbrowser-cache:/home/node/.cloakbrowser \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Используйте тот же том с исходной командой `info` или `logout`, чтобы проверить
+или удалить сохраненный вход. Вместо этого можно передать
+`CLOAKBROWSER_LICENSE_KEY` через систему управления секретами контейнера. Не
+помещайте лицензионные ключи в слои образа, файлы Compose в системе контроля
+версий или вывод команд, сохраняемый как свидетельство сборки.
+
 ## Расширения Chrome
 
 Расширения Chrome требуют постоянного профиля и должны монтироваться отдельно.
@@ -108,6 +135,10 @@ docker run --rm --init -i \
 
 Для прокси-серверов, требующих аутентификации, встройте учетные данные в URL-адрес прокси и закодируйте специальные символы в имени пользователя или пароле с помощью кодировки «процент»
 .
+
+Поддерживаемые бинарные файлы CloakBrowser используют встроенную
+аутентификацию прокси в URL; старые бинарные файлы переходят на объект прокси
+Playwright.
 
 Когда контейнер запускает Streamable HTTP, клиенты также могут выбирать различные
 прокси для каждого сеанса MCP с помощью метаданных `initialize`. См.

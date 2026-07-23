@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Updated CloakBrowser to 0.5.1 for GitHub free-tier sign-in, tier-aware
+  diagnostics, authenticated HTTP proxy improvements, explicit GeoIP
+  timezone/locale precedence, and the latest Chromium 150 Pro build.
+- Refreshed compatible root npm and Python documentation dependencies and all
+  pinned GitHub Actions, including the Node 24-based setup actions, while
+  retaining ESLint 9 compatibility with the current Vitest lint plugin.
+
+### Fixed
+
+- Preserved CloakBrowser-generated fingerprint and native proxy launch
+  arguments, retained Playwright proxy fallback for older binaries, and
+  forwarded only the resolved CloakBrowser license key to the browser child.
+
 ## [1.8.0] - 2026-07-11
 
 ### Added

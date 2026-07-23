@@ -44,6 +44,11 @@ type PlaywrightProxyOption = {
   username?: string;
   password?: string;
 };
+type ResolvedCloakLaunchOptions = {
+  args: string[];
+  proxy: PlaywrightProxyOption | undefined;
+  licenseKey: string | undefined;
+};
 
 export type BridgeContextOptions = {
   userAgent?: string;
@@ -131,6 +136,7 @@ const inheritedChildEnvNames = new Set([
   'APPDATA',
   'CLOAKBROWSER_AUTO_UPDATE',
   'CLOAKBROWSER_CACHE_DIR',
+  'CLOAKBROWSER_LICENSE_KEY',
   'COMSPEC',
   'DBUS_SESSION_BUS_ADDRESS',
   'DISPLAY',
@@ -328,7 +334,7 @@ async function configureCloakRuntime(
   runtime.launchOptions.executablePath = cloakBinaryPath;
   runtime.childEnv.PLAYWRIGHT_MCP_EXECUTABLE_PATH = cloakBinaryPath;
   runtime.childEnv.CLOAKBROWSER_AUTO_UPDATE = runtime.childEnv.CLOAKBROWSER_AUTO_UPDATE ?? 'false';
-  runtime.launchOptions.args = await resolveCloakLaunchArgs({
+  const cloakLaunchOptions = await resolveCloakLaunchOptions({
     env: runtime.env,
     cloakBinaryPath,
     args: runtime.launchOptions.args ?? [],
@@ -340,6 +346,12 @@ async function configureCloakRuntime(
     buildCloakLaunchOptions: options.buildCloakLaunchOptions ?? buildLaunchOptions,
     geoip: shouldMatchProxyGeoip(runtime.env, options.geoipProxyMatch),
   });
+  runtime.launchOptions.args = cloakLaunchOptions.args;
+  if (cloakLaunchOptions.proxy === undefined) delete runtime.launchOptions.proxy;
+  else runtime.launchOptions.proxy = cloakLaunchOptions.proxy;
+  if (cloakLaunchOptions.licenseKey !== undefined) {
+    runtime.childEnv.CLOAKBROWSER_LICENSE_KEY = cloakLaunchOptions.licenseKey;
+  }
   if (shouldHumanize(runtime.env, options.humanize)) {
     runtime.browserConfig.initPage = [
       ...(runtime.browserConfig.initPage ?? []),
@@ -405,7 +417,7 @@ export function createLaunchArgs(env: EnvReader): string[] {
 
 export class BridgeRuntimeConfigurationError extends Error {}
 
-interface ResolveCloakLaunchArgsOptions {
+interface ResolveCloakLaunchOptionsOptions {
   env: EnvReader;
   cloakBinaryPath: string;
   args: string[];
@@ -418,18 +430,25 @@ interface ResolveCloakLaunchArgsOptions {
   geoip: boolean;
 }
 
-async function resolveCloakLaunchArgs(options: ResolveCloakLaunchArgsOptions): Promise<string[]> {
+async function resolveCloakLaunchOptions(
+  options: ResolveCloakLaunchOptionsOptions,
+): Promise<ResolvedCloakLaunchOptions> {
   const proxy = resolveConfiguredProxy(options.env, options.args, options.proxy);
   const geoip = options.geoip && proxy !== undefined;
   const cloakOptions = createCloakLaunchOptions(options, proxy, geoip);
   const launchOptions = await suppressStdout(() =>
     withCloakBinaryPath(options.cloakBinaryPath, () => options.buildCloakLaunchOptions(cloakOptions)),
   );
-  return mergeLaunchArgs(options.args, extractCloakGeneratedArgs(readStringArray(launchOptions.args)));
+  const generatedLicenseKey = launchOptions.env?.CLOAKBROWSER_LICENSE_KEY;
+  return {
+    args: mergeLaunchArgs(options.args, extractCloakGeneratedArgs(readStringArray(launchOptions.args))),
+    proxy: launchOptions.proxy,
+    licenseKey: typeof generatedLicenseKey === 'string' ? generatedLicenseKey : undefined,
+  };
 }
 
 function createCloakLaunchOptions(
-  options: ResolveCloakLaunchArgsOptions,
+  options: ResolveCloakLaunchOptionsOptions,
   proxy: CloakProxyOption | undefined,
   geoip: boolean,
 ): CloakLaunchOptionsForBridge {
@@ -887,8 +906,11 @@ const exactCloakGeneratedArgs = new Set(['--start-maximized']);
 
 const prefixedCloakGeneratedArgs = [
   '--fingerprint-timezone=',
+  '--fingerprint-webrtc-ip=',
   '--lang=',
   '--fingerprint-locale=',
+  '--proxy-server=',
+  '--proxy-bypass-list=',
   '--load-extension=',
   '--disable-extensions-except=',
 ];

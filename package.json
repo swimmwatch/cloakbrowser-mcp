@@ -86,7 +86,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@playwright/mcp": "^0.0.78",
-    "cloakbrowser": "^0.4.10",
+    "cloakbrowser": "^0.5.1",
     "commander": "^15.0.0",
     "mmdb-lib": "^3.0.2",
     "pino": "^10.3.1",
@@ -102,25 +102,25 @@
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import-x": "^4.17.1",
-    "eslint-plugin-jsdoc": "^63.0.13",
+    "eslint-plugin-jsdoc": "^63.2.0",
     "eslint-plugin-n": "^18.2.2",
     "eslint-plugin-no-secrets": "^2.3.3",
     "eslint-plugin-perfectionist": "^5.10.0",
     "eslint-plugin-promise": "^7.3.0",
     "eslint-plugin-regexp": "^3.1.1",
-    "eslint-plugin-sonarjs": "^4.1.0",
+    "eslint-plugin-sonarjs": "^4.2.0",
     "eslint-plugin-vitest": "^0.5.4",
     "fast-check": "^4.9.0",
-    "prettier": "^3.9.5",
-    "tsx": "^4.23.0",
+    "prettier": "^3.9.6",
+    "tsx": "^4.23.1",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "typescript-eslint": "^8.63.0",
+    "typescript-eslint": "^8.65.0",
     "vitest": "^4.1.10"
   },
   "overrides": {
     "vite": "8.0.16",
     "esbuild": "0.28.1",
-    "@typescript-eslint/utils": "8.63.0"
+    "@typescript-eslint/utils": "8.65.0"
   },
   "keywords": [
     "mcp",

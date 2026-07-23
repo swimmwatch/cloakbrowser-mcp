@@ -15,11 +15,9 @@ GeoIP 代理匹配功能可确保浏览器指纹设置与上游 Playwright MCP
 所使用的代理位置保持一致。当区域质量保证（QA）工作需要
 依赖一致的代理、时区、语言和区域设置配置文件时，此功能非常有用。
 
-该桥接器本身不会创建或路由代理流量。代理路由仍
-由上游 Playwright MCP 通过 `PLAYWRIGHT_MCP_PROXY_SERVER` 负责。 当
-启用匹配功能时，CloakBrowser MCP 会解析配置的代理位置，并
-根据时区、浏览器语言和
-指纹区域设置相应的 CloakBrowser 启动标志。
+该桥接器本身不会创建或路由代理流量。它会将 `PLAYWRIGHT_MCP_PROXY_SERVER`
+传递给 CloakBrowser 的启动准备流程。启用匹配后，CloakBrowser 会解析已配置代理的
+出口位置，并为时区、浏览器语言、指纹区域设置和 WebRTC IP 添加相应的启动标志。
 
 ## 有哪些变化
 
@@ -29,6 +27,7 @@ GeoIP 代理匹配功能可确保浏览器指纹设置与上游 Playwright MCP
 - `--fingerprint-timezone`
 - `--lang`
 - `--fingerprint-locale`
+- `--fingerprint-webrtc-ip`
 
 这有助于使浏览器配置文件在内部与代理区域保持一致。
 上游的 Playwright MCP 工具模式和浏览器工具仍会
@@ -57,6 +56,10 @@ npx -y cloakbrowser-mcp@latest
 通过在
 `PLAYWRIGHT_MCP_PROXY_SERVER` 中嵌入凭据，支持经过身份验证的 HTTP 代理。 请对凭据中的特殊字符进行百分比编码，
 例如，对于 `p@ssword`，请使用 `p%40ssword` 表示 `p@ssword`。
+
+受支持的 CloakBrowser 二进制文件使用原生 URL 内联身份验证，即使代理要求严格的
+身份验证 CONNECT 请求，也会报告代理的真实出口 IP。较旧的二进制文件会保留
+Playwright 代理对象作为兼容性回退。
 
 ## Docker 配置
 
@@ -158,12 +161,22 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
 | Streamable HTTP 默认值 | 未提供 runtime 元数据时，使用进程级环境变量和 CLI 标志。 |
 | Streamable HTTP 元数据 | `initialize.params._meta["io.github.swimmwatch/cloakbrowser-mcp"]` 可为单个会话覆盖代理和 GeoIP 匹配。 |
 | 现有会话 | 保留 `initialize` 期间捕获的代理和 GeoIP 设置。 |
-| 代理路由 | 继续委托给 upstream Playwright MCP。 |
-| Browser geolocation API | 此功能不会配置它；只会对齐 CloakBrowser 的时区、语言和 locale fingerprint flags。 |
+| 经过身份验证的 HTTP 代理 | 在受支持的二进制文件上使用 CloakBrowser 原生 URL 内联身份验证，在较旧的二进制文件上使用 Playwright 代理对象。 |
+| 原始时区/区域设置标志 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` 中显式的 `--fingerprint-timezone`、`--lang` 和 `--fingerprint-locale` 值优先于 GeoIP 派生值，且不会重复。 |
+| Browser geolocation API | 此功能不会配置它；只会对齐 CloakBrowser 的时区、语言、区域设置和 WebRTC IP 指纹值。 |
 
 GeoIP 位置数据仅为近似值，具体取决于代理 IP 地址以及 CloakBrowser 的
 GeoIP 数据库。CloakBrowser 会在首次
 使用时根据需要下载并缓存该离线数据库。
+
+例如，以下配置会保留显式的时区和区域设置，同时仍使用 GeoIP 匹配来解析代理出口 IP：
+
+```bash
+PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
+CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
+CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS='["--fingerprint-timezone=America/New_York","--lang=en-US","--fingerprint-locale=en-US"]' \
+npx -y cloakbrowser-mcp@latest
+```
 
 请将此功能用于正当的质量保证、本地化和环境一致性
 测试。不应将其视为绕过访问控制或区域

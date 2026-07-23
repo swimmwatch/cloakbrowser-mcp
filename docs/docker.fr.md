@@ -45,6 +45,35 @@ le répertoire de profil s'il manque, vérifie qu'il est accessible en écriture
 rejette les répertoires de profil actifs en double dans un même processus
 serveur.
 
+## Cache de licence CloakBrowser
+
+L'image stocke les binaires CloakBrowser, l'état de la licence et le cache de
+validation dans `/home/node/.cloakbrowser`. Montez-y un volume nommé pour
+conserver une connexion GitHub gratuite ou Pro lors du remplacement du
+conteneur :
+
+```bash
+docker volume create cloakbrowser-cache
+
+docker run --rm -it \
+  --entrypoint node \
+  -v cloakbrowser-cache:/home/node/.cloakbrowser \
+  swimmwatch/cloakbrowser-mcp:latest \
+  /opt/cloakbrowser-mcp/node_modules/cloakbrowser/dist/cli.js login
+
+docker run --rm --init -i \
+  -v cloakbrowser-cache:/home/node/.cloakbrowser \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Utilisez le même volume avec la commande en amont `info` ou `logout` pour
+examiner ou supprimer la connexion enregistrée. Vous pouvez aussi injecter
+`CLOAKBROWSER_LICENSE_KEY` par l'intermédiaire de la gestion des secrets du
+conteneur. Ne placez pas de clés de licence dans les couches d'image, les
+fichiers Compose suivis par le contrôle de version ou les sorties de commande
+capturées comme preuve de build.
+
 ## Extensions Chrome
 
 Les extensions Chrome nécessitent un profil persistant et doivent être montées
@@ -111,6 +140,10 @@ docker run --rm --init -i \
 
 Pour les proxys nécessitant une authentification, intégrez les identifiants dans l'URL du proxy et encodez en pourcentage
 les caractères spéciaux présents dans le nom d'utilisateur ou le mot de passe.
+
+Les binaires CloakBrowser compatibles utilisent l'authentification native du
+proxy intégrée à l'URL ; les anciens binaires se replient sur l'objet proxy
+Playwright.
 
 Lorsque le conteneur exécute Streamable HTTP, les clients peuvent également choisir différents
 proxys pour chaque session MCP via les métadonnées `initialize`. Voir

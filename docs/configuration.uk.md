@@ -51,13 +51,37 @@ tags:
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | Adds `--no-sandbox` and disables Chromium sandboxing. |
 
+## Ліцензія CloakBrowser і вхід через GitHub
+
+Для налаштування ліцензії використовується CLI вихідного проєкту CloakBrowser;
+`cloakbrowser-mcp` не додає команд входу або виходу:
+
+```bash
+npx -y cloakbrowser@latest login
+npx -y cloakbrowser@latest info
+npx -y cloakbrowser@latest logout
+```
+
+Команда `login` приймає платний ключ або запускає вхід через GitHub для
+отримання ключа безкоштовного рівня. Перевірений ключ зберігається у
+`~/.cloakbrowser/license.key`; команда `logout` видаляє цей файл. Команда
+`info` повідомляє активний рівень ліцензії, а для ліцензій Pro — кількість
+активних сеансів.
+
+Натомість можна задати `CLOAKBROWSER_LICENSE_KEY` у середовищі MCP-сервера.
+Міст передає цю змінну дочірньому процесу верхнього рівня/браузера, не
+записуючи її до журналу. Якщо `CLOAKBROWSER_CACHE_DIR` указує на користувацький
+кеш із файлом `license.key`, CloakBrowser визначає ключ, а міст передає зі
+згенерованого середовища браузера лише цей визначений ключ. Інші згенеровані
+записи середовища не копіюються.
+
 ## Збіг проксі-серверів за GeoIP
 
-Встановити `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` разом із `PLAYWRIGHT_MCP_PROXY_SERVER`
-для визначення прапорців часового поясу, мови та локалі CloakBrowser на основі
-розташування проксі-сервера. Міст залишає маршрутизацію проксі-сервера за делегованим вищестоящим Playwright
-MCP, і лише вводить вирішені прапори запуску `--fingerprint-timezone`, `--lang` та
-`--fingerprint-locale`.
+Установіть `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` разом із
+`PLAYWRIGHT_MCP_PROXY_SERVER`, щоб визначити прапорці часового поясу, мови та
+локалі CloakBrowser за місцем виходу проксі. Для підтримуваних бінарних файлів
+CloakBrowser вибирає вбудовану автентифікацію в URL, а для старіших бінарних
+файлів зберігає об'єкт проксі Playwright як резервний варіант.
 
 Див. [Збіг проксі-серверів за GeoIP](geoip-proxy-matching.md) для ознайомлення з прикладами налаштування, метаданими
 HTTP-проксі-серверів, що підтримують потокову передачу даних під час виконання, сценаріями використання, правилами пріоритетності та обмеженнями.
@@ -176,6 +200,11 @@ Playwright MCP.
 Повноваження проксі-сервера HTTP з автентифікацією можна вбудувати в `proxyServer`, наприклад,
 `http://user:pass@proxy.example:8080`. Символи облікових даних,
 які мають значення в URL-адресі, слід кодувати у форматі «процент», наприклад `@`, `:`, `/`, `?`, `#`, та `%`.
+
+У підтримуваних бінарних файлах CloakBrowser автентифіковані HTTP-проксі
+використовують вбудовану автентифікацію в URL, а міст видаляє дубльований об'єкт
+проксі Playwright. Старіші бінарні файли зберігають об'єкт проксі Playwright як
+резервний варіант сумісності.
 
 Щодо моделей контролю якості для декількох локацій див. [GeoIP Proxy Matching](geoip-proxy-matching.md).
 Щодо шаблонів реалістичності взаємодії див. [Humanized Input Behavior](humanized-input-behavior.md).
