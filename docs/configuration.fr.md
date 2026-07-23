@@ -51,13 +51,39 @@ La [Référence CLI](generated/cli.md) générée constitue la liste de référe
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | Adds `--no-sandbox` and disables Chromium sandboxing. |
 
+## Licence CloakBrowser et connexion GitHub
+
+La configuration de la licence utilise la CLI CloakBrowser en amont ;
+`cloakbrowser-mcp` n'ajoute pas de commandes de connexion ou de déconnexion :
+
+```bash
+npx -y cloakbrowser@latest login
+npx -y cloakbrowser@latest info
+npx -y cloakbrowser@latest logout
+```
+
+`login` accepte une clé payante ou lance la connexion GitHub afin d'obtenir une
+clé de l'offre gratuite. La clé validée est stockée dans
+`~/.cloakbrowser/license.key` ; `logout` supprime ce fichier. `info` indique le
+niveau de licence actif et, pour les licences Pro, le nombre de sessions
+actives.
+
+Vous pouvez aussi définir `CLOAKBROWSER_LICENSE_KEY` dans l'environnement du
+serveur MCP. Le pont transmet cette variable au processus enfant en
+amont/du navigateur sans la journaliser. Lorsque `CLOAKBROWSER_CACHE_DIR`
+pointe vers un cache personnalisé contenant `license.key`, CloakBrowser résout
+la clé et le pont ne transmet que cette clé résolue depuis l'environnement
+généré du navigateur. Les autres entrées d'environnement générées ne sont pas
+copiées.
+
 ## Correspondance via le proxy GeoIP
 
-Définir `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` avec `PLAYWRIGHT_MCP_PROXY_SERVER`
-afin de déduire les indicateurs de fuseau horaire, de langue et de paramètres régionaux de CloakBrowser à partir de l’
-emplacement du proxy. Le pont conserve le routage du proxy délégué au MCP Playwright
-MCP en amont et n’injecte que les indicateurs de lancement résolus `--fingerprint-timezone`, `--lang` et
-`--fingerprint-locale` résolus.
+Définissez `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` avec
+`PLAYWRIGHT_MCP_PROXY_SERVER` afin de déduire les indicateurs de fuseau horaire,
+de langue et de paramètres régionaux de CloakBrowser à partir de l'emplacement
+de sortie du proxy. CloakBrowser sélectionne l'authentification native intégrée
+à l'URL pour les binaires compatibles et conserve l'objet proxy de Playwright
+comme solution de repli pour les anciens binaires.
 
 Consultez la section [Correspondance de proxy GeoIP](geoip-proxy-matching.md) pour découvrir des exemples de configuration, les métadonnées de proxy HTTP
 Streamable en exécution, les cas d'utilisation, les règles de priorité et les limitations.
@@ -177,6 +203,11 @@ dans la configuration Playwright MCP générée.
 Les identifiants de proxy HTTP authentifiés peuvent être intégrés dans `proxyServer`, par
 exemple `http://user:pass@proxy.example:8080`. Encodez en pourcentage les caractères d’identification
 ayant une signification URL, tels que `@`, `:`, `/`, `?`, `#`, et `%`.
+
+Sur les binaires CloakBrowser compatibles, les proxys HTTP authentifiés utilisent
+l'authentification native intégrée à l'URL et le pont supprime l'objet proxy
+Playwright en double. Les anciens binaires conservent l'objet proxy Playwright
+comme solution de repli pour la compatibilité.
 
 Pour les modèles de contrôle qualité multi-sites, voir [Correspondance de proxy GeoIP](geoip-proxy-matching.md).
 Pour les modèles de réalisme d'interaction, voir [Comportement d'entrée humanisé](humanized-input-behavior.md).

@@ -45,6 +45,33 @@ directory if it is missing, verifies it is writable, writes the container path
 to generated Playwright MCP config, and rejects duplicate active profile
 directories inside one server process.
 
+## CloakBrowser License Cache
+
+The image stores CloakBrowser binaries, license state, and validation cache in
+`/home/node/.cloakbrowser`. Mount a named volume there to retain a GitHub
+free-tier or Pro login across container replacement:
+
+```bash
+docker volume create cloakbrowser-cache
+
+docker run --rm -it \
+  --entrypoint node \
+  -v cloakbrowser-cache:/home/node/.cloakbrowser \
+  swimmwatch/cloakbrowser-mcp:latest \
+  /opt/cloakbrowser-mcp/node_modules/cloakbrowser/dist/cli.js login
+
+docker run --rm --init -i \
+  -v cloakbrowser-cache:/home/node/.cloakbrowser \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Use the same volume with the upstream `info` or `logout` command to inspect or
+remove the saved login. As an alternative, inject
+`CLOAKBROWSER_LICENSE_KEY` through your container secret management. Do not put
+license keys in image layers, Compose files committed to source control, or
+command output captured as build evidence.
+
 ## Chrome Extensions
 
 Chrome extensions require a persistent profile and must be mounted separately.
@@ -110,7 +137,9 @@ docker run --rm --init -i \
 ```
 
 For authenticated proxies, embed credentials in the proxy URL and percent-encode
-special characters in the username or password.
+special characters in the username or password. Supported CloakBrowser binaries
+use native inline proxy authentication; older binaries fall back to the
+Playwright proxy object.
 
 When the container runs Streamable HTTP, clients can also choose different
 proxies per MCP session through `initialize` metadata. See

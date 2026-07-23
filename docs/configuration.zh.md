@@ -51,13 +51,31 @@ tags:
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | Adds `--no-sandbox` and disables Chromium sandboxing. |
 
+## CloakBrowser 许可证与 GitHub 登录
+
+许可证设置使用上游 CloakBrowser CLI；`cloakbrowser-mcp` 不会添加登录或退出命令：
+
+```bash
+npx -y cloakbrowser@latest login
+npx -y cloakbrowser@latest info
+npx -y cloakbrowser@latest logout
+```
+
+`login` 可接受付费密钥，也可启动 GitHub 登录以获取免费层密钥。验证后的密钥存储在
+`~/.cloakbrowser/license.key` 中；`logout` 会删除该文件。`info` 会报告当前许可证
+层级；对于 Pro 许可证，还会报告活动会话数。
+
+也可以在 MCP 服务器环境中设置 `CLOAKBROWSER_LICENSE_KEY`。桥接器会将该变量转发给
+上游/浏览器子进程，但不会记录它。当 `CLOAKBROWSER_CACHE_DIR` 指向包含
+`license.key` 的自定义缓存时，CloakBrowser 会解析密钥，而桥接器只会从生成的浏览器
+环境中转发该解析后的密钥。其他生成的环境条目不会被复制。
+
 ## GeoIP 代理匹配
 
-将 `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` 与 `PLAYWRIGHT_MCP_PROXY_SERVER` 配对
-，从而根据
-代理位置推导出 CloakBrowser 的时区、语言和区域设置指纹标志。该桥接器将代理路由任务委托给上游的 Playwright
-MCP，仅注入已解析的 `--fingerprint-timezone`、`--lang` 以及
-`--fingerprint-locale` 启动标志。
+将 `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` 与
+`PLAYWRIGHT_MCP_PROXY_SERVER` 一起设置，以根据代理出口位置推导 CloakBrowser 的
+时区、语言和区域设置指纹标志。对于受支持的二进制文件，CloakBrowser 会选择原生
+URL 内联身份验证；对于较旧的二进制文件，则保留 Playwright 代理对象作为回退。
 
 有关配置示例、运行时
 可流式传输的 HTTP 代理元数据、用例、优先级规则和限制，请参阅 [GeoIP 代理匹配](geoip-proxy-matching.md)。
@@ -170,6 +188,10 @@ Playwright MCP 配置。
 经过身份验证的 HTTP 代理凭据可以嵌入到 `proxyServer` 中，例如
 `http://user:pass@proxy.example:8080`。对具有 URL 含义的凭据
 字符进行百分比编码，例如 `@`、 `:`、`/`、 `?`、 `#`，以及 `%`。
+
+对于受支持的 CloakBrowser 二进制文件，经过身份验证的 HTTP 代理会使用原生 URL
+内联身份验证，桥接器则会移除重复的 Playwright 代理对象。较旧的二进制文件会保留
+Playwright 代理对象作为兼容性回退。
 
 有关多地点质量保证模式，请参阅 [GeoIP 代理匹配](geoip-proxy-matching.md)。
 有关交互真实性模式，请参阅 [人性化输入行为](humanized-input-behavior.md)。

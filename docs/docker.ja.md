@@ -42,6 +42,33 @@ Docker 内の環境変数には、ホストパスではなく `/data/profiles/de
 作成し、書き込み可能であることを確認し、コンテナパスを生成済みの Playwright MCP
 設定に書き込み、1 つのサーバープロセス内で重複するアクティブなプロファイルディレクトリを拒否します。
 
+## CloakBrowser ライセンスキャッシュ
+
+このイメージは、CloakBrowser のバイナリ、ライセンス状態、検証キャッシュを
+`/home/node/.cloakbrowser` に保存します。コンテナを置き換えても GitHub
+無料枠または Pro のログインを保持するには、ここに名前付きボリュームをマウントします。
+
+```bash
+docker volume create cloakbrowser-cache
+
+docker run --rm -it \
+  --entrypoint node \
+  -v cloakbrowser-cache:/home/node/.cloakbrowser \
+  swimmwatch/cloakbrowser-mcp:latest \
+  /opt/cloakbrowser-mcp/node_modules/cloakbrowser/dist/cli.js login
+
+docker run --rm --init -i \
+  -v cloakbrowser-cache:/home/node/.cloakbrowser \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+保存済みのログインを確認または削除するには、同じボリュームでアップストリームの
+`info` または `logout` コマンドを使用します。代わりに、コンテナのシークレット管理
+から `CLOAKBROWSER_LICENSE_KEY` を注入できます。ライセンスキーをイメージレイヤー、
+バージョン管理に登録する Compose ファイル、またはビルド証拠として記録する
+コマンド出力に含めないでください。
+
 ## Chrome 拡張機能
 
 Chrome 拡張機能には永続プロファイルが必要で、個別にマウントする必要があります。
@@ -105,6 +132,9 @@ docker run --rm --init -i \
 ```
 
 認証が必要なプロキシの場合は、プロキシのURLに認証情報を埋め込み、ユーザー名やパスワードに含まれる特殊文字をパーセントエンコードしてください。
+
+対応する CloakBrowser バイナリはネイティブの URL 内インラインプロキシ認証を
+使用し、古いバイナリは Playwright のプロキシオブジェクトにフォールバックします。
 
 コンテナが Streamable HTTP を実行している場合、クライアントは `initialize` メタデータを通じて、MCP セッションごとに異なる
 プロキシを選択することもできます。

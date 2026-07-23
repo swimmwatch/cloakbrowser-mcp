@@ -43,6 +43,35 @@ Profilverzeichnis bei Bedarf, prüft die Schreibbarkeit, schreibt den
 Containerpfad in die generierte Playwright-MCP-Konfiguration und weist doppelte
 aktive Profilverzeichnisse innerhalb eines Serverprozesses zurück.
 
+## CloakBrowser-Lizenzcache
+
+Das Image speichert CloakBrowser-Binärdateien, Lizenzstatus und
+Validierungscache unter `/home/node/.cloakbrowser`. Mounten Sie dort ein
+benanntes Volume, um eine kostenlose GitHub- oder Pro-Anmeldung beim Ersetzen
+des Containers beizubehalten:
+
+```bash
+docker volume create cloakbrowser-cache
+
+docker run --rm -it \
+  --entrypoint node \
+  -v cloakbrowser-cache:/home/node/.cloakbrowser \
+  swimmwatch/cloakbrowser-mcp:latest \
+  /opt/cloakbrowser-mcp/node_modules/cloakbrowser/dist/cli.js login
+
+docker run --rm --init -i \
+  -v cloakbrowser-cache:/home/node/.cloakbrowser \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Verwenden Sie dasselbe Volume mit dem vorgelagerten Befehl `info` oder
+`logout`, um die gespeicherte Anmeldung zu prüfen oder zu entfernen.
+Alternativ können Sie `CLOAKBROWSER_LICENSE_KEY` über die
+Secret-Verwaltung des Containers einspeisen. Legen Sie Lizenzschlüssel nicht in
+Image-Layern, versionierten Compose-Dateien oder als Buildnachweis erfassten
+Befehlsausgaben ab.
+
 ## Chrome-Erweiterungen
 
 Chrome-Erweiterungen erfordern ein persistentes Profil und müssen separat
@@ -108,6 +137,10 @@ docker run --rm --init -i \
 
 Bei authentifizierten Proxys müssen Sie die Anmeldedaten in die Proxy-URL einbetten und Sonderzeichen
 im Benutzernamen oder Passwort prozentkodieren.
+
+Unterstützte CloakBrowser-Binärdateien verwenden die native
+Inline-Proxy-Authentifizierung in der URL; ältere Binärdateien greifen auf das
+Playwright-Proxyobjekt zurück.
 
 Wenn der Container „Streamable HTTP“ ausführt, können Clients über die Metadaten `initialize` auch unterschiedliche
 Proxys pro MCP-Sitzung auswählen. Siehe

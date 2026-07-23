@@ -52,13 +52,36 @@ For task-focused examples, see the [Recipes](recipes/index.md) section.
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | Adds `--no-sandbox` and disables Chromium sandboxing. |
 
+## CloakBrowser License And GitHub Sign-In
+
+License setup uses the upstream CloakBrowser CLI; `cloakbrowser-mcp` does not
+add login or logout commands:
+
+```bash
+npx -y cloakbrowser@latest login
+npx -y cloakbrowser@latest info
+npx -y cloakbrowser@latest logout
+```
+
+`login` accepts a paid key or starts GitHub sign-in for a free-tier key. It
+stores the validated key in `~/.cloakbrowser/license.key`; `logout` removes that
+file. `info` reports the active license tier and, for Pro licenses, the active
+session count.
+
+You can instead set `CLOAKBROWSER_LICENSE_KEY` in the MCP server environment.
+The bridge forwards that variable to the upstream/browser child without
+logging it. When `CLOAKBROWSER_CACHE_DIR` points to a custom cache containing
+`license.key`, CloakBrowser resolves the key and the bridge forwards only that
+resolved key from the generated browser environment. Other generated
+environment entries are not copied.
+
 ## GeoIP Proxy Matching
 
 Set `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` with `PLAYWRIGHT_MCP_PROXY_SERVER`
 to derive CloakBrowser timezone, language, and locale fingerprint flags from the
-proxy location. The bridge keeps proxy routing delegated to upstream Playwright
-MCP and only injects the resolved `--fingerprint-timezone`, `--lang`, and
-`--fingerprint-locale` launch flags.
+proxy exit location. CloakBrowser selects native inline authentication for
+supported binaries and retains Playwright's proxy object as a fallback for
+older binaries.
 
 See [GeoIP Proxy Matching](geoip-proxy-matching.md) for setup examples, runtime
 Streamable HTTP proxy metadata, use cases, precedence rules, and limitations.
@@ -178,6 +201,10 @@ generated Playwright MCP config.
 Authenticated HTTP proxy credentials can be embedded in `proxyServer`, for
 example `http://user:pass@proxy.example:8080`. Percent-encode credential
 characters that have URL meaning, such as `@`, `:`, `/`, `?`, `#`, and `%`.
+On supported CloakBrowser binaries, authenticated HTTP proxies use native
+inline authentication and the bridge removes the duplicate Playwright proxy
+object. Older binaries retain the Playwright proxy object as a compatibility
+fallback.
 
 For multi-location QA patterns, see [GeoIP Proxy Matching](geoip-proxy-matching.md).
 For interaction realism patterns, see [Humanized Input Behavior](humanized-input-behavior.md).

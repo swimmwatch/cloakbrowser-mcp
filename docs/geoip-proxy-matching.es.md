@@ -15,11 +15,12 @@ La correspondencia de proxy GeoIP mantiene la configuración de la huella digita
 utilizada por el MCP de Playwright de nivel superior. Resulta útil cuando el control de calidad regional depende
 de un proxy, una zona horaria, un idioma y un perfil de configuración regional coherentes.
 
-El puente no crea ni enruta tráfico de proxy por sí mismo. El enrutamiento de proxy sigue
-siendo competencia del MCP de Playwright de nivel superior a través de `PLAYWRIGHT_MCP_PROXY_SERVER`. Cuando
-la coincidencia está habilitada, el MCP de CloakBrowser resuelve la ubicación del proxy configurada y
-añade los indicadores de inicio de CloakBrowser que coincidan con la zona horaria, el idioma del navegador y
-la configuración regional de la huella digital.
+El puente no crea ni enruta tráfico de proxy por sí mismo. Pasa
+`PLAYWRIGHT_MCP_PROXY_SERVER` a la preparación del inicio de CloakBrowser.
+Cuando la coincidencia está habilitada, CloakBrowser resuelve la ubicación de
+salida del proxy configurado y añade los indicadores de inicio correspondientes
+para la zona horaria, el idioma del navegador, la configuración regional de la
+huella y la IP de WebRTC.
 
 ## Qué cambia
 
@@ -29,6 +30,7 @@ parámetros de inicio para CloakBrowser:
 - `--fingerprint-timezone`
 - `--lang`
 - `--fingerprint-locale`
+- `--fingerprint-webrtc-ip`
 
 Esto contribuye a que el perfil del navegador presente una coherencia interna con la región del proxy.
 Los esquemas de la herramienta MCP de Playwright y las herramientas del navegador se siguen reenviando
@@ -57,6 +59,11 @@ npx -y cloakbrowser-mcp@latest
 Los proxies HTTP autenticados son compatibles mediante la incorporación de credenciales en
 `PLAYWRIGHT_MCP_PROXY_SERVER`. Codifica los caracteres especiales de las credenciales en formato «percent»,
 por ejemplo, utiliza `p%40ssword` en lugar de `p@ssword`.
+
+Los binarios de CloakBrowser compatibles usan autenticación nativa integrada en
+la URL y notifican la IP de salida real del proxy, incluso cuando este exige una
+solicitud CONNECT autenticada estricta. Los binarios antiguos conservan el
+objeto proxy de Playwright como alternativa de compatibilidad.
 
 ## Configuración de Docker
 
@@ -160,12 +167,24 @@ los archivos del proyecto.
 | Valor predeterminado de Streamable HTTP | Usa variables de entorno y flags de CLI a nivel de proceso cuando no se proporcionan metadatos runtime. |
 | Metadatos Streamable HTTP | `initialize.params._meta["io.github.swimmwatch/cloakbrowser-mcp"]` puede sobrescribir el proxy y la coincidencia GeoIP para una sesión. |
 | Sesiones existentes | Conservan el proxy y la configuración GeoIP capturados durante `initialize`. |
-| Enrutamiento del proxy | Sigue delegado a upstream Playwright MCP. |
-| Browser geolocation API | No se configura con esta función; solo alinea la zona horaria, el idioma y los locale fingerprint flags de CloakBrowser. |
+| Proxy HTTP autenticado | Usa la autenticación nativa integrada en la URL de CloakBrowser en los binarios compatibles y el objeto proxy de Playwright en los binarios antiguos. |
+| Indicadores de zona horaria/configuración regional sin procesar | Los valores explícitos `--fingerprint-timezone`, `--lang` y `--fingerprint-locale` de `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` tienen prioridad sobre los valores derivados de GeoIP y no se duplican. |
+| Browser geolocation API | No se configura con esta función; solo alinea los valores de huella de zona horaria, idioma, configuración regional e IP de WebRTC de CloakBrowser. |
 
 Los datos de ubicación de GeoIP son aproximados y dependen de la IP del proxy y de la
 base de datos de GeoIP de CloakBrowser. CloakBrowser descarga y almacena en caché esa base de datos sin conexión la primera
 vez que se utiliza, cuando es necesario.
+
+Por ejemplo, la siguiente configuración conserva la zona horaria y la
+configuración regional explícitas mientras sigue usando la coincidencia GeoIP
+para resolver la IP de salida del proxy:
+
+```bash
+PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
+CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
+CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS='["--fingerprint-timezone=America/New_York","--lang=en-US","--fingerprint-locale=en-US"]' \
+npx -y cloakbrowser-mcp@latest
+```
 
 Utiliza esta función para realizar pruebas legítimas de control de calidad, localización y coherencia entre entornos.
 No debe considerarse una forma de eludir los controles de acceso ni las

@@ -51,12 +51,36 @@ Playwright MCP व्यवहार के लिए अपस्ट्री�
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | Adds `--no-sandbox` and disables Chromium sandboxing. |
 
+## CloakBrowser लाइसेंस और GitHub साइन-इन
+
+लाइसेंस सेटअप अपस्ट्रीम CloakBrowser CLI का उपयोग करता है; `cloakbrowser-mcp`
+लॉगिन या लॉगआउट कमांड नहीं जोड़ता:
+
+```bash
+npx -y cloakbrowser@latest login
+npx -y cloakbrowser@latest info
+npx -y cloakbrowser@latest logout
+```
+
+`login` सशुल्क कुंजी स्वीकार करता है या मुफ़्त स्तर की कुंजी के लिए GitHub
+साइन-इन शुरू करता है। सत्यापित कुंजी `~/.cloakbrowser/license.key` में संग्रहीत
+होती है; `logout` उस फ़ाइल को हटा देता है। `info` सक्रिय लाइसेंस स्तर और Pro
+लाइसेंस के लिए सक्रिय सत्रों की संख्या बताता है।
+
+इसके बजाय आप MCP सर्वर परिवेश में `CLOAKBROWSER_LICENSE_KEY` सेट कर सकते हैं।
+ब्रिज उस मान को लॉग किए बिना अपस्ट्रीम/ब्राउज़र चाइल्ड प्रक्रिया में भेजता है।
+जब `CLOAKBROWSER_CACHE_DIR`, `license.key` वाले कस्टम कैश को इंगित करता है, तो
+CloakBrowser कुंजी को रिज़ॉल्व करता है और ब्रिज जेनरेट किए गए ब्राउज़र परिवेश
+से केवल उसी रिज़ॉल्व की गई कुंजी को भेजता है। अन्य जेनरेट की गई परिवेश
+प्रविष्टियाँ कॉपी नहीं की जातीं।
+
 ## GeoIP प्रॉक्सी मिलान
 
-`CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` को `PLAYWRIGHT_MCP_PROXY_SERVER` के साथ सेट करें
-प्रॉक्सी स्थान से CloakBrowser टाइमज़ोन, भाषा और लोकेल फिंगरप्रिंट फ़्लैग प्राप्त करने के लिए। ब्रिज प्रॉक्सी राउटिंग को अपस्ट्रीम Playwright को सौंपे रखता है
-MCP और केवल रिज़ॉल्व किए गए `--fingerprint-timezone`, `--lang`, और
-`--fingerprint-locale` लॉन्च फ़्लैग्स।
+प्रॉक्सी निकास स्थान से CloakBrowser टाइमज़ोन, भाषा और लोकेल फिंगरप्रिंट फ़्लैग
+प्राप्त करने के लिए `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true` को
+`PLAYWRIGHT_MCP_PROXY_SERVER` के साथ सेट करें। समर्थित बाइनरी के लिए CloakBrowser
+नेटिव URL-इनलाइन प्रमाणीकरण चुनता है और पुरानी बाइनरी के लिए Playwright प्रॉक्सी
+ऑब्जेक्ट को फ़ॉलबैक के रूप में बनाए रखता है।
 
 सेटअप उदाहरणों, रनटाइम स्ट्रीमएबल HTTP प्रॉक्सी मेटाडेटा, उपयोग के मामलों, प्राथमिकता नियमों, और सीमाओं के लिए [GeoIP Proxy Matching](geoip-proxy-matching.md) देखें।
 
@@ -163,6 +187,11 @@ Chromium आर्ग्युमेंट `--load-extension` और `--disable-
 
 प्रमाणित HTTP प्रॉक्सी क्रेडेंशियल को `proxyServer` में एम्बेड किया जा सकता है, उदाहरण के लिए `http://user:pass@proxy.example:8080`. प्रतिशत-एनकोड क्रेडेंशियल
 अक्षरों को जो URL का अर्थ रखते हैं, जैसे कि `@`, `:`, `/`, `?`, `#`, और `%`.
+
+समर्थित CloakBrowser बाइनरी में प्रमाणित HTTP प्रॉक्सी नेटिव URL-इनलाइन
+प्रमाणीकरण का उपयोग करती हैं और ब्रिज डुप्लिकेट Playwright प्रॉक्सी ऑब्जेक्ट
+हटा देता है। पुरानी बाइनरी संगतता फ़ॉलबैक के रूप में Playwright प्रॉक्सी
+ऑब्जेक्ट बनाए रखती हैं।
 
 मल्टी-लोकेशन QA पैटर्न के लिए, देखें [GeoIP Proxy Matching](geoip-proxy-matching.md).
 अंतरक्रिया यथार्थवाद पैटर्न के लिए, [मानवीकृत इनपुट व्यवहार](humanized-input-behavior.md) देखें।

@@ -44,6 +44,35 @@ perfil si falta, comprueba que se pueda escribir, escribe la ruta del contenedor
 en la configuración generada de Playwright MCP y rechaza directorios de perfil
 activos duplicados dentro de un mismo proceso del servidor.
 
+## Caché de licencia de CloakBrowser
+
+La imagen almacena los binarios de CloakBrowser, el estado de la licencia y la
+caché de validación en `/home/node/.cloakbrowser`. Monta allí un volumen con
+nombre para conservar un inicio de sesión de nivel gratuito de GitHub o Pro al
+reemplazar el contenedor:
+
+```bash
+docker volume create cloakbrowser-cache
+
+docker run --rm -it \
+  --entrypoint node \
+  -v cloakbrowser-cache:/home/node/.cloakbrowser \
+  swimmwatch/cloakbrowser-mcp:latest \
+  /opt/cloakbrowser-mcp/node_modules/cloakbrowser/dist/cli.js login
+
+docker run --rm --init -i \
+  -v cloakbrowser-cache:/home/node/.cloakbrowser \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Usa el mismo volumen con el comando original `info` o `logout` para consultar o
+eliminar el inicio de sesión guardado. Como alternativa, inyecta
+`CLOAKBROWSER_LICENSE_KEY` mediante la gestión de secretos del contenedor. No
+incluyas claves de licencia en capas de imagen, archivos Compose registrados en
+el control de versiones ni salidas de comandos capturadas como evidencia de
+compilación.
+
 ## Extensiones de Chrome
 
 Las extensiones de Chrome requieren un perfil persistente y deben montarse por
@@ -108,6 +137,10 @@ docker run --rm --init -i \
 
 En el caso de los servidores proxy autenticados, incluye las credenciales en la URL del proxy y codifica mediante el formato «porcentaje»
 los caracteres especiales que aparezcan en el nombre de usuario o la contraseña.
+
+Los binarios de CloakBrowser compatibles usan autenticación proxy nativa
+integrada en la URL; los binarios antiguos recurren al objeto proxy de
+Playwright.
 
 Cuando el contenedor ejecuta Streamable HTTP, los clientes también pueden elegir diferentes
 proxies por sesión de MCP a través de los metadatos `initialize`. Véase

@@ -81,6 +81,7 @@ describe('bridge config generation', () => {
         CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS: 'false',
         CLOAKBROWSER_AUTO_UPDATE: 'true',
         CLOAKBROWSER_CACHE_DIR: path.join(root, 'cloak-cache'),
+        CLOAKBROWSER_LICENSE_KEY: 'test-license-key',
         GITHUB_TOKEN: 'not-forwarded',
         HOME: path.join(root, 'home'),
         LANG: 'C.UTF-8',
@@ -109,6 +110,7 @@ describe('bridge config generation', () => {
     expect(runtime.childEnv.CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS).toBe('false');
     expect(runtime.childEnv.CLOAKBROWSER_CACHE_DIR).toBe(path.join(root, 'cloak-cache'));
     expect(runtime.childEnv.CLOAKBROWSER_AUTO_UPDATE).toBe('true');
+    expect(runtime.childEnv.CLOAKBROWSER_LICENSE_KEY).toBe('test-license-key');
     expect(runtime.childEnv.PLAYWRIGHT_MCP_OUTPUT_DIR).toBe(outputDir);
     expect(runtime.childEnv.AWS_SECRET_ACCESS_KEY).toBeUndefined();
     expect(runtime.childEnv.GITHUB_TOKEN).toBeUndefined();
@@ -469,10 +471,10 @@ describe('bridge config generation', () => {
         expect(options.stealthArgs).toBe(false);
         expect(options.args).toEqual([
           '--no-sandbox',
-          '--lang=en-US',
           '--lang=fr-FR',
           '--alpha',
-          '--fingerprint-locale=en-US',
+          '--fingerprint-locale=fr-FR',
+          '--fingerprint-timezone=Europe/Paris',
         ]);
         expect(options.launchOptions).toEqual({ chromiumSandbox: false });
         return {
@@ -481,9 +483,6 @@ describe('bridge config generation', () => {
           args: [
             ...(options.args ?? []),
             '--proxy-server=http://proxy.example:8080',
-            '--fingerprint-timezone=Europe/Berlin',
-            '--lang=de-DE',
-            '--fingerprint-locale=de-DE',
             '--fingerprint-webrtc-ip=203.0.113.10',
           ],
         };
@@ -494,25 +493,83 @@ describe('bridge config generation', () => {
         PLAYWRIGHT_MCP_PROXY_BYPASS: '.internal',
         CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
         CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS: 'false',
-        CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS: '--lang=en-US,--lang=fr-FR,--alpha,--fingerprint-locale=en-US',
+        CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS:
+          '--lang=fr-FR,--alpha,--fingerprint-locale=fr-FR,--fingerprint-timezone=Europe/Paris',
       },
     });
 
     expect(runtime.config.browser?.launchOptions?.args).toEqual([
       '--no-sandbox',
-      '--lang=de-DE',
+      '--lang=fr-FR',
       '--alpha',
-      '--fingerprint-locale=de-DE',
-      '--fingerprint-timezone=Europe/Berlin',
+      '--fingerprint-locale=fr-FR',
+      '--fingerprint-timezone=Europe/Paris',
+      '--proxy-server=http://proxy.example:8080',
+      '--fingerprint-webrtc-ip=203.0.113.10',
     ]);
+    expect(runtime.config.browser?.launchOptions?.proxy).toBeUndefined();
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_SERVER).toBeUndefined();
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_BYPASS).toBeUndefined();
+
+    runtime.dispose();
+  });
+
+  it('retains the CloakBrowser proxy option when native inline authentication is unavailable', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      buildCloakLaunchOptions: async (options) => ({
+        executablePath: fakeCloakBinaryPath,
+        headless: true,
+        args: options?.args ?? [],
+        proxy: {
+          server: 'http://proxy.example:8080',
+          bypass: '.internal',
+          username: 'user',
+          password: 'pass',
+        },
+      }),
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        PLAYWRIGHT_MCP_PROXY_SERVER: 'http://user:pass@proxy.example:8080',
+        PLAYWRIGHT_MCP_PROXY_BYPASS: '.internal',
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
     expect(runtime.config.browser?.launchOptions?.proxy).toEqual({
       server: 'http://proxy.example:8080',
       bypass: '.internal',
       username: 'user',
       password: 'pass',
     });
-    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_SERVER).toBeUndefined();
-    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_BYPASS).toBeUndefined();
+
+    runtime.dispose();
+  });
+
+  it('forwards only the license key from CloakBrowser-generated browser env', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      buildCloakLaunchOptions: async (options) => ({
+        executablePath: fakeCloakBinaryPath,
+        headless: true,
+        args: options?.args ?? [],
+        env: {
+          AWS_SECRET_ACCESS_KEY: 'not-forwarded',
+          CLOAKBROWSER_LICENSE_KEY: 'resolved-license-key',
+        },
+      }),
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    expect(runtime.childEnv.CLOAKBROWSER_LICENSE_KEY).toBe('resolved-license-key');
+    expect(runtime.childEnv.AWS_SECRET_ACCESS_KEY).toBeUndefined();
 
     runtime.dispose();
   });
