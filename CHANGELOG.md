@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-07-23
+
 ### Changed
 
 - Updated CloakBrowser to 0.5.1 for GitHub free-tier sign-in, tier-aware
@@ -343,7 +345,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.6.1...v1.7.0
 [1.6.1]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.6.0...v1.6.1
