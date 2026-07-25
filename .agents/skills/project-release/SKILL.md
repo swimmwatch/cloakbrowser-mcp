@@ -1,6 +1,6 @@
 ---
 name: project-release
-description: Use when preparing, publishing, verifying, or recovering a cloakbrowser-mcp release. Requires a confirmed target version such as v1.2.8, can propose one from changes since the previous release, and guides branch, version metadata, changelog, PR, GitHub Release, registry, Docker, npm, and docs verification.
+description: Prepare, publish, verify, or recover a cloakbrowser-mcp release only when the user explicitly requests release work. Require a Prompt MCP-confirmed target version and stability, follow the repository's version, changelog, PR, GitHub Release, npm, Docker, MCP Registry, and docs process, and never tag, publish, create/update a release PR, or mutate external release state without separate explicit authorization.
 ---
 
 # Project Release
@@ -9,11 +9,25 @@ Use this skill only for `cloakbrowser-mcp` release work. Require a confirmed
 target version such as `v1.2.8`, and decide whether it is stable or prerelease
 before preparing, publishing, or recovering a release. If the user has not
 provided a target version, propose one from the unreleased changes and ask the
-user to confirm it or choose a different tag before release execution.
+user through Prompt MCP to confirm it or choose a different tag before release
+execution.
 
 Release tags use Semantic Versioning 2.0.0 with the repository's `v` prefix,
 for example `v1.2.8` or `v1.2.8-rc.1`. The pinned specification URL is
 `https://semver.org/spec/v2.0.0.html`.
+
+## Authorization And Interview
+
+- Start or reopen a persistent workspace Prompt MCP interview with a stable ID
+  such as `release:vX.Y.Z` after inspecting the callable schemas.
+- Record target tag and stable/prerelease selection as separate material
+  decisions. Treat only committed answers as confirmation.
+- Release preparation, commit, push, release PR creation/update, merge, tag or
+  GitHub Release creation, npm publication, Docker publication, MCP Registry
+  publication, workflow rerun, and recovery mutations are separate
+  authorization gates.
+- Never infer publish authorization from version confirmation, preparation
+  approval, merged code, or passing checks.
 
 ## Choosing The Target Version
 
@@ -36,8 +50,9 @@ git log --oneline <previous-tag>..HEAD
   - `PATCH` for backward-compatible fixes, dependency updates, docs, CI, or
     packaging-only changes.
 - Present the proposed tag and short rationale, then ask the user to confirm it
-  or choose another tag. Do not run `npm run version:apply` until the tag is
-  confirmed.
+  or choose another tag through Prompt MCP. Do not run
+  `npm run version:apply` until the tag is confirmed and release preparation is
+  explicitly authorized.
 
 ## Preconditions
 
@@ -103,7 +118,7 @@ npm run package:verify
 npm run docker:build
 npm run docker:smoke
 npm run bridge:compare -- cloakbrowser-mcp:dev --report bridge-parity-report.json
-docker run --rm -v "$PWD:/repo" --workdir /repo docker.io/rhysd/actionlint:1.7.12 -color
+docker run --rm -v "$PWD:/repo" --workdir /repo docker.io/rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color
 python3 -m pipx run zizmor --min-severity high .
 npm run docs:build
 npm run docs:seo:validate
@@ -114,14 +129,17 @@ the smallest release-relevant cause and rerun the relevant command.
 
 ## PR And Release Flow
 
-- Commit release preparation as `chore(release): prepare vX.Y.Z`.
+- After explicit commit authorization, commit release preparation as
+  `chore(release): prepare vX.Y.Z`.
 - For release PR creation or updates, also read and follow
   `.agents/skills/project-pull-request/SKILL.md`.
-- Open a PR to `main` with a concise release summary and validation list.
+- After separate PR authorization, open a PR to `main` with a concise release
+  summary and validation list.
 - Call out security-sensitive release workflow changes, especially registry
   credentials, public image publishing, OIDC, or token behavior.
 - Wait for required PR checks to pass before merging.
-- For stable releases, create a published GitHub Release with:
+- After separate publication authorization, create a published GitHub Release
+  for stable releases with:
   - tag `vX.Y.Z`;
   - target `main`;
   - title `vX.Y.Z`;

@@ -1,6 +1,6 @@
 ---
 name: project-pull-request
-description: Use when creating, updating, or reviewing a cloakbrowser-mcp GitHub Pull Request. Defines branch, base/head, assignee, title, required PR body template, mandatory local checks before commit/push, checklist, security review, test evidence, and post-create reporting rules.
+description: Create, update, prepare, or review a cloakbrowser-mcp GitHub Pull Request only when the user explicitly requests PR work. Follow the repository's branch, base/head, assignee, title, template, check, security, and reporting rules; review remains read-only, and commit, push, PR creation/update, readiness changes, merge, and other external mutations each require explicit authorization.
 ---
 
 # Project Pull Request
@@ -8,6 +8,17 @@ description: Use when creating, updating, or reviewing a cloakbrowser-mcp GitHub
 Use this skill for `cloakbrowser-mcp` Pull Request work. The repository's
 `.github/PULL_REQUEST_TEMPLATE.md` is the required PR body format; do not
 replace it with a second template.
+
+## Authorization
+
+- A request to review or prepare a PR does not authorize edits, commits,
+  pushes, PR creation/update, readiness changes, merge, or branch deletion.
+- Before each external mutation, confirm that the user explicitly authorized
+  that action. Use the global Prompt MCP for any unresolved material base,
+  head, assignee, readiness, scope, or execution choice.
+- Never infer push or PR authorization from approval of code, a specification,
+  a plan, local checks, or a commit.
+- Preserve unrelated worktree changes and stage only the intended PR scope.
 
 ## Preconditions
 
@@ -17,11 +28,13 @@ replace it with a second template.
 - Use `main` as the base branch unless the user explicitly gives another base.
 - Before creating a commit for the PR, open and scan
   `https://www.conventionalcommits.org/en/v1.0.0/`.
+- Obtain explicit commit authorization before creating the commit.
 - Run `npm run check` locally after the final edits and before creating a
   commit. If it fails, fix the failure or report the blocker; do not commit.
 - If any file changes after `npm run check`, rerun `npm run check` before
   committing.
-- Push the current feature branch to `origin` before creating the PR.
+- After explicit push authorization, push the current feature branch to
+  `origin` before creating the PR.
 - Run `npm run check` again on the committed branch before pushing. If it
   fails, fix the failure or report the blocker; do not push or create/update
   the PR.
@@ -64,6 +77,8 @@ Do not leave HTML comments or placeholder text in the submitted PR body.
 
 ## Create Or Update
 
+- Obtain explicit authorization for the exact PR creation or update before
+  mutating GitHub.
 - Prefer the available GitHub app or connector. Use `gh` when connector support
   is unavailable or insufficient.
 - If a PR already exists for the branch, update its title/body instead of

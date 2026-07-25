@@ -6,7 +6,7 @@ Operating manual for AI coding agents working in this repository.
 
 `cloakbrowser-mcp` is a stdio MCP bridge for upstream `@playwright/mcp`. It starts upstream Playwright MCP as a child process, injects the CloakBrowser Chromium executable through a generated Playwright MCP config, forwards upstream tools unchanged, and adds only two local introspection tools.
 
-- Runtime: Node.js `>=20`, ES modules, TypeScript `strict` with `NodeNext`.
+- Runtime: Node.js `^22.13.0 || >=24.0.0`, ES modules, TypeScript `strict` with `NodeNext`.
 - Public surface: CLI package only, `bin: cloakbrowser-mcp`.
 - Docker base: pinned official Playwright MCP image from `Dockerfile`.
 
@@ -26,6 +26,10 @@ src/
   server.ts               outer MCP proxy server
   index.ts                metadata export only
   bridge/                 config generation, env parsing, upstream path resolution, local tools
+  cli/                    option handling, diagnostics, singleton cleanup
+  http/                   Streamable HTTP server and session lifecycle
+  logging/                stderr/file logging
+  protocol/               shared protocol constants
   runtime/                console fallback source strings
   project/                project metadata
 tests/
@@ -85,6 +89,49 @@ npm run check
 - Prefer property-based tests for parsers, option normalization, environment
   handling, and other boundary-heavy pure logic.
 
+## Agent Skills And Workflow Routing
+
+Repository-owned skills live under `.agents/skills/`. Use the matching skill
+when its frontmatter description routes the current request; do not invoke a
+specialized workflow merely because its files exist.
+
+- Review and refactoring: `code-review-and-quality`, `code-simplification`,
+  `performance-optimization`, and `security-and-hardening`.
+- Discovery and durable context: `context-engineering`,
+  `documentation-and-adrs`, `project-docs-maintainer`,
+  `doubt-driven-development`, `idea-refine`, and `interview-me`.
+- Specification delivery: `spec-driven-development`,
+  `planning-and-task-breakdown`, and `incremental-implementation`.
+- GitHub delivery: `project-pull-request` and `project-release`.
+
+The authoritative slash-command routes are:
+
+- `/spec` -> `.agents/skills/spec-driven-development/SKILL.md`
+- `/plan` -> `.agents/skills/planning-and-task-breakdown/SKILL.md`
+
+Do not create a second implementation of either route. For substantial
+workstreams, store the contract and execution artifacts under
+`docs/specs/<slug>/` and follow:
+
+- `.agents/references/specification-interview.md` for Prompt MCP interviews,
+  decision persistence, recovery, and specification approval;
+- `.agents/references/task-packets.md` for planning and one-packet execution.
+
+Whenever a repository-owned skill needs a material user decision, use the
+globally configured Prompt MCP instead of a plain-chat multiple-choice
+question. Inspect the callable schema, use the repository's absolute path as
+`workspace_path`, prefer `workspace` persistence for recoverable workflows,
+and use stable semantic IDs. A cancellation, timeout, unavailability,
+conflict, invalid request, or failure is not an answer. Never request or
+persist credentials, tokens, passwords, secrets, or unrelated personal data.
+
+Create `docs/specs/<slug>/decisions.yaml` before the first material `/spec`
+question. The repository ledger is the durable decision authority; Prompt MCP
+persistence is the interaction recovery mechanism. Reload both after
+compaction or handoff. Keep `spec.md` at `Status: Draft` until a separate
+Prompt MCP approval answer explicitly selects `approve`. `/spec` stops before
+planning, and `/plan` stops before implementation.
+
 ## Supply Chain And GitHub Security
 
 - Keep GitHub workflow permissions least-privilege: use top-level
@@ -142,10 +189,6 @@ stale or untranslated content. Run `npm run docs:build`,
 `npm run check` before committing documentation changes.
 
 Compatibility tables are generated from `docs/data/version-compatibility.json`. For release work, add the new compatibility row there, run `npm run docs:compatibility`, and verify both the full table in `docs/version-compatibility.md` and the compact compatibility table in `README.md` are updated. Run `npm run docs:compatibility:check` before finishing so the generated tables in `README.md`, `docs/index.md`, and `docs/version-compatibility.md` cannot drift.
-
-For release preparation, publishing, verification, or recovery requests, read and follow `.agents/skills/project-release/SKILL.md`.
-
-For Pull Request creation, updates, or review-prep requests, read and follow `.agents/skills/project-pull-request/SKILL.md`.
 
 `CHANGELOG.md` must follow Keep a Changelog `1.1.0`. The pinned specification URL is `https://keepachangelog.com/en/1.1.0/`. Before editing release notes, open and scan that specification, then write human-readable entries in reverse chronological order with an `[Unreleased]` section, ISO dates, comparison links, and standard sections such as `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, and `Security`.
 
