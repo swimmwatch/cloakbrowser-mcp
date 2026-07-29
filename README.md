@@ -1,5 +1,7 @@
 # cloakbrowser-mcp
 
+[![MCP Toplist](https://mcptoplist.com/badge/io.github.swimmwatch%2Fcloakbrowser-mcp.svg)](https://mcptoplist.com/server/io.github.swimmwatch%2Fcloakbrowser-mcp)
+
 <p align="center">
   <img src="docs/assets/brand/logo-wordmark.svg" alt="CloakBrowser MCP" width="640" />
 </p>
