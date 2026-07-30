@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.10.0",
+    "playwrightMcp": "^0.0.78",
+    "playwrightMcpDockerBase": "mcr.microsoft.com/playwright/mcp:v0.0.78",
+    "cloakbrowser": "^0.5.3",
+    "node": "^22.13.0 || >=24.0.0",
+    "transports": ["stdio", "Streamable HTTP"],
+    "readmePlatforms": "npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker linux/amd64, linux/arm64",
+    "testedPlatform": "npm on Node.js 22 and 24-26 across Linux x64/arm64, macOS arm64/x64, and Windows x64; Docker linux/amd64, linux/arm64",
+    "parity": "Upstream default browser tools compared against the official Playwright MCP image in CI."
+  },
+  {
     "version": "1.9.0",
     "playwrightMcp": "^0.0.78",
     "playwrightMcpDockerBase": "mcr.microsoft.com/playwright/mcp:v0.0.78",

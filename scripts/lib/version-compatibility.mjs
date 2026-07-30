@@ -106,6 +106,41 @@ export function replaceGeneratedBlock(content, heading, table) {
   return `${content.slice(0, tableStart + 1)}${block}${content.slice(tableEnd)}`;
 }
 
+export function prependLocalizedCompatibilityRow(content, previousRow, currentRow) {
+  if (!hasMatchingLocalizedFields(previousRow, currentRow)) {
+    throw new Error(
+      'localized compatibility rows require a manual translation when non-version values change',
+    );
+  }
+
+  const startIndex = content.indexOf(startMarker);
+  const endIndex = content.indexOf(endMarker);
+  if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
+    throw new Error('localized compatibility table markers are missing or malformed');
+  }
+
+  const tableStart = startIndex + startMarker.length;
+  const table = content.slice(tableStart, endIndex);
+  const lines = table.split('\n');
+  const currentVersion = code(currentRow.version);
+  if (lines.some((line) => line.includes(currentVersion))) {
+    return content;
+  }
+
+  const previousVersion = code(previousRow.version);
+  const previousRowIndex = lines.findIndex((line) => line.includes(previousVersion));
+  if (previousRowIndex === -1) {
+    throw new Error(`localized compatibility table is missing version ${previousRow.version}`);
+  }
+
+  const localizedRow = lines[previousRowIndex]
+    .replace(previousVersion, currentVersion)
+    .replace(code(previousRow.cloakbrowser), code(currentRow.cloakbrowser));
+  lines.splice(previousRowIndex, 0, localizedRow);
+
+  return `${content.slice(0, tableStart)}${lines.join('\n')}${content.slice(endIndex)}`;
+}
+
 export function validateRows(value, dataPath = 'docs/data/version-compatibility.json') {
   if (!Array.isArray(value) || value.length === 0) {
     throw new Error(`${dataPath} must contain at least one compatibility row`);
@@ -130,6 +165,18 @@ export function validateRows(value, dataPath = 'docs/data/version-compatibility.
       throw new Error(`${dataPath}[${index}].transports must be an array of strings`);
     }
   }
+}
+
+function hasMatchingLocalizedFields(previousRow, currentRow) {
+  return (
+    previousRow.playwrightMcp === currentRow.playwrightMcp &&
+    previousRow.playwrightMcpDockerBase === currentRow.playwrightMcpDockerBase &&
+    previousRow.node === currentRow.node &&
+    previousRow.readmePlatforms === currentRow.readmePlatforms &&
+    previousRow.testedPlatform === currentRow.testedPlatform &&
+    previousRow.parity === currentRow.parity &&
+    previousRow.transports.join(',') === currentRow.transports.join(',')
+  );
 }
 
 export function code(value) {

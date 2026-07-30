@@ -68,6 +68,26 @@ interface TemplateModule {
   renderTemplateFile(templatePath: string, values: Record<string, unknown>): Promise<string>;
 }
 
+interface VersionCompatibilityModule {
+  prependLocalizedCompatibilityRow(
+    content: string,
+    previousRow: CompatibilityRow,
+    currentRow: CompatibilityRow,
+  ): string;
+}
+
+interface CompatibilityRow {
+  cloakbrowser: string;
+  node: string;
+  parity: string;
+  playwrightMcp: string;
+  playwrightMcpDockerBase: string;
+  readmePlatforms: string;
+  testedPlatform: string;
+  transports: string[];
+  version: string;
+}
+
 const tempRoots: string[] = [];
 const files = (await import(
   new URL('../../scripts/lib/files.mjs', import.meta.url).href
@@ -93,6 +113,9 @@ const semver = (await import(
 const template = (await import(
   new URL('../../scripts/lib/template.mjs', import.meta.url).href
 )) as unknown as TemplateModule;
+const versionCompatibility = (await import(
+  new URL('../../scripts/lib/version-compatibility.mjs', import.meta.url).href
+)) as unknown as VersionCompatibilityModule;
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -285,6 +308,62 @@ describe('template helper', () => {
     expect(template.renderTemplate('Version {{version}}', { version: '1.0.0' })).toBe('Version 1.0.0');
     await expect(template.renderTemplateFile(templatePath, { name: 'Ada' })).resolves.toBe('Hello Ada');
     expect(() => template.renderTemplate('{{missing}}', {})).toThrow('Missing template value: missing');
+  });
+});
+
+describe('version compatibility helpers', () => {
+  it('adds an identifier-only localized compatibility row', () => {
+    const previous: CompatibilityRow = {
+      cloakbrowser: '^0.5.1',
+      node: '^22.13.0 || >=24.0.0',
+      parity: 'Compared in CI',
+      playwrightMcp: '^0.0.78',
+      playwrightMcpDockerBase: 'mcr.microsoft.com/playwright/mcp:v0.0.78',
+      readmePlatforms: 'npm on Linux',
+      testedPlatform: 'npm on Node.js 22',
+      transports: ['stdio', 'Streamable HTTP'],
+      version: '1.9.0',
+    };
+    const current: CompatibilityRow = { ...previous, cloakbrowser: '^0.5.3', version: '1.10.0' };
+    const content = [
+      '<!-- compatibility-table:start -->',
+      '',
+      '| version | CloakBrowser |',
+      '| ------- | ------------ |',
+      '| `1.9.0` | `^0.5.1`     |',
+      '',
+      '<!-- compatibility-table:end -->',
+    ].join('\n');
+
+    const generated = versionCompatibility.prependLocalizedCompatibilityRow(content, previous, current);
+
+    expect(generated).toContain('| `1.10.0` | `^0.5.3`     |');
+    expect(versionCompatibility.prependLocalizedCompatibilityRow(generated, previous, current)).toBe(
+      generated,
+    );
+  });
+
+  it('rejects localized rows that require translated content', () => {
+    const previous: CompatibilityRow = {
+      cloakbrowser: '^0.5.1',
+      node: '^22.13.0 || >=24.0.0',
+      parity: 'Compared in CI',
+      playwrightMcp: '^0.0.78',
+      playwrightMcpDockerBase: 'mcr.microsoft.com/playwright/mcp:v0.0.78',
+      readmePlatforms: 'npm on Linux',
+      testedPlatform: 'npm on Node.js 22',
+      transports: ['stdio'],
+      version: '1.9.0',
+    };
+    const current: CompatibilityRow = { ...previous, node: '>=24', version: '1.10.0' };
+
+    expect(() =>
+      versionCompatibility.prependLocalizedCompatibilityRow(
+        '<!-- compatibility-table:start -->\n<!-- compatibility-table:end -->',
+        previous,
+        current,
+      ),
+    ).toThrow('manual translation');
   });
 });
 
