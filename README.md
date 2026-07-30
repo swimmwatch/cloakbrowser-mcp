@@ -179,7 +179,7 @@ More examples are in [Getting Started](docs/getting-started.md), with dedicated 
 
 ## Configuration
 
-Use upstream `PLAYWRIGHT_MCP_*` variables for browser, artifacts, timeouts, network, and tool capability settings. Cloak-specific bridge toggles use `CLOAK_PLAYWRIGHT_MCP_*`.
+Use upstream `PLAYWRIGHT_MCP_*` variables for browser, artifacts, timeouts, network, and tool capability settings. Cloak-specific bridge toggles use `CLOAK_PLAYWRIGHT_MCP_*`. Select a Pro Preview browser build before startup with `--release-channel preview` or `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL=preview`; the default is `stable`.
 
 The common variable table now lives in [Configuration](docs/configuration.md). That page also covers persistent profiles, validated context options, Chrome extensions, Streamable HTTP metadata, and HTTPS/auth options. See [GeoIP Proxy Matching](docs/geoip-proxy-matching.md) for regional proxy behavior, [Humanized Input Behavior](docs/humanized-input-behavior.md) for interaction realism, and [Recipes](docs/recipes/index.md) for task-focused configurations.
 

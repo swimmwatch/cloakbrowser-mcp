@@ -174,9 +174,11 @@ locale is deferred. Do not use `npm run docs:translations` or
 `scripts/update-doc-translations.mjs` to bulk-regenerate localized pages unless
 the maintainer explicitly asks for that script. Instead, inspect the English
 `git diff`, identify only the changed human-readable fragments, translate those
-fragments with DeepL MCP `translate_text`, and patch the corresponding localized
-files surgically. Translate changed headings, prose, list items, and table prose;
-remove localized text when the English source removes it. Preserve Markdown
+fragments with DeepL MCP `translate_text` when it is available, and patch the
+corresponding localized files surgically. If DeepL is unavailable, returns a
+quota or service error, or cannot translate a locale, manually translate those
+same fragments with the LLM. Translate changed headings, prose, list items, and
+table prose; remove localized text when the English source removes it. Preserve Markdown
 structure, frontmatter keys, code blocks, inline code, URLs, environment
 variables, CLI flags, JSON keys, tool names, package names, image paths, and
 Material icon tokens exactly. For Markdown tables, translate only prose cells

@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded CloakBrowser to 0.5.3 and added the startup-only Stable/Preview
+  release-channel control.
+- Inherited CloakBrowser's Windows font-profile argument alignment.
+
+### Fixed
+
+- Inherited CloakBrowser 0.5.3 authenticated-proxy GeoIP and per-launch proxy
+  identity corrections.
+
 ## [1.9.0] - 2026-07-23
 
 ### Changed

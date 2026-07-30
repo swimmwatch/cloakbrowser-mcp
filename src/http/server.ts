@@ -41,11 +41,16 @@ import {
   requestPathName,
 } from '#src/http/requests';
 import { endResponse, writeJsonResponse, writeJsonRpcError } from '#src/http/responses';
-import { BridgeRuntimeConfigurationError, type PrepareBridgeRuntimeOptions } from '#src/bridge/config';
+import {
+  BridgeRuntimeConfigurationError,
+  type PrepareBridgeRuntimeOptions,
+  type ReleaseChannel,
+} from '#src/bridge/config';
 
 const allowedMethods = 'GET, POST, DELETE';
 
 export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions {
+  releaseChannel?: ReleaseChannel;
   serverInfo?: Partial<Implementation>;
   runtimeOptions?: Pick<
     PrepareBridgeRuntimeOptions,
@@ -364,6 +369,7 @@ class StreamableHttpBridgeController {
       headless: preferSessionOption(sessionRuntimeOptions.headless, defaults?.headless),
       humanize: preferSessionOption(sessionRuntimeOptions.humanize, defaults?.humanize),
       humanPreset: preferSessionOption(sessionRuntimeOptions.humanPreset, defaults?.humanPreset),
+      releaseChannel: this.#options.releaseChannel,
       userDataDir: preferSessionOption(sessionRuntimeOptions.userDataDir, defaults?.userDataDir),
       contextOptions: mergeContextOptions(defaults?.contextOptions, sessionRuntimeOptions.contextOptions),
       extensionPaths: preferSessionOption(sessionRuntimeOptions.extensionPaths, defaults?.extensionPaths),

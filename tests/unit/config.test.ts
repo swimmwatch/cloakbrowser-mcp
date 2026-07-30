@@ -158,6 +158,46 @@ describe('bridge config generation', () => {
     runtime.dispose();
   });
 
+  it('defaults CloakBrowser to the Stable release channel and forwards Preview', async () => {
+    const root = createTempRoot();
+    const stableRuntime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      buildCloakLaunchOptions: async (options) => {
+        expect(options?.releaseChannel).toBe('stable');
+        return {
+          executablePath: fakeCloakBinaryPath,
+          headless: true,
+          args: options?.args ?? [],
+        };
+      },
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'stable-artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+    stableRuntime.dispose();
+
+    const previewRuntime = await prepareBridgeRuntime({
+      tempRoot: root,
+      releaseChannel: 'preview',
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      buildCloakLaunchOptions: async (options) => {
+        expect(options?.releaseChannel).toBe('preview');
+        return {
+          executablePath: fakeCloakBinaryPath,
+          headless: true,
+          args: options?.args ?? [],
+        };
+      },
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'preview-artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+    previewRuntime.dispose();
+  });
+
   it('adds the console fallback preload when enabled', async () => {
     const root = createTempRoot();
     const runtime = await prepareBridgeRuntime({

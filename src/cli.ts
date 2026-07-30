@@ -27,6 +27,7 @@ async function main(): Promise<void> {
   });
   command.action(async () => {
     const options = readCliOptions(command);
+    const { releaseChannel, ...runtimeOptions } = options.bridge;
     const serverInfo = {
       name: PROJECT_METADATA.mcpName,
       title: PROJECT_METADATA.title,
@@ -41,9 +42,10 @@ async function main(): Promise<void> {
         ? await startStreamableHttpCliBridge({
             ...options.http,
             serverInfo,
-            runtimeOptions: options.bridge,
+            releaseChannel,
+            runtimeOptions,
           })
-        : await startStdioBridge(serverInfo, options.bridge);
+        : await startStdioBridge(serverInfo, { ...runtimeOptions, releaseChannel });
 
     for (const signal of ['SIGINT', 'SIGTERM'] as const) {
       process.once(signal, () => {

@@ -36,6 +36,7 @@ tags:
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | Resolves `PLAYWRIGHT_MCP_PROXY_SERVER` GeoIP and matches CloakBrowser timezone and locale fingerprint flags to that proxy location. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Enables CloakBrowser human-like mouse, keyboard, and scroll behavior. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
+| `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` | `stable` | CloakBrowser 二进制文件发布通道：`stable` 或仅限 Pro 的 `preview`。 |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
@@ -69,6 +70,12 @@ npx -y cloakbrowser@latest logout
 上游/浏览器子进程，但不会记录它。当 `CLOAKBROWSER_CACHE_DIR` 指向包含
 `license.key` 的自定义缓存时，CloakBrowser 会解析密钥，而桥接器只会从生成的浏览器
 环境中转发该解析后的密钥。其他生成的环境条目不会被复制。
+
+## CloakBrowser 发布通道
+
+`CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` 选择 CloakBrowser 二进制文件的发布通道。默认值为 `stable`。`preview` 请求 Pro 浏览器预览构建，且仅适用于 Pro 许可证。显式固定的 `CLOAKBROWSER_VERSION` 优先。如果平台没有可用的 Preview，CloakBrowser 会回退到 Stable。
+
+发布通道在桥接进程启动时选定。它适用于所有 Streamable HTTP 会话，且不能在 initialize 元数据中设置或覆盖。请重启桥接进程以更改它。
 
 ## GeoIP 代理匹配
 

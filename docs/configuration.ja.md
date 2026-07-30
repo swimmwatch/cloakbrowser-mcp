@@ -36,6 +36,7 @@ Playwright MCP の動作には、アップストリームの `PLAYWRIGHT_MCP_*` 
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | Resolves `PLAYWRIGHT_MCP_PROXY_SERVER` GeoIP and matches CloakBrowser timezone and locale fingerprint flags to that proxy location. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Enables CloakBrowser human-like mouse, keyboard, and scroll behavior. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
+| `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` | `stable` | CloakBrowser バイナリのリリースチャネル: `stable` または Pro 限定の `preview`。 |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
@@ -72,6 +73,12 @@ npx -y cloakbrowser@latest logout
 `CLOAKBROWSER_CACHE_DIR` が `license.key` を含むカスタムキャッシュを指している場合、
 CloakBrowser がキーを解決し、ブリッジは生成されたブラウザ環境からその解決済みキー
 だけを転送します。生成されたその他の環境エントリはコピーされません。
+
+## CloakBrowser リリースチャネル
+
+`CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` は CloakBrowser バイナリのリリースチャネルを選択します。既定値は `stable` です。`preview` は Pro 向けのプレビュー版ブラウザビルドを要求し、Pro ライセンスでのみ利用できます。明示的に固定した `CLOAKBROWSER_VERSION` が優先されます。プラットフォームで Preview を利用できない場合、CloakBrowser は Stable にフォールバックします。
+
+リリースチャネルはブリッジプロセスの起動時に選択されます。すべての Streamable HTTP セッションに適用され、initialize メタデータで設定または上書きすることはできません。変更するにはブリッジを再起動してください。
 
 ## GeoIPプロキシのマッチング
 

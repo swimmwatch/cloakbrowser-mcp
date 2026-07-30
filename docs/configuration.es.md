@@ -36,6 +36,7 @@ La [Referencia de la CLI](generated/cli.md) generada es la lista oficial de los 
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | Resolves `PLAYWRIGHT_MCP_PROXY_SERVER` GeoIP and matches CloakBrowser timezone and locale fingerprint flags to that proxy location. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Enables CloakBrowser human-like mouse, keyboard, and scroll behavior. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
+| `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` | `stable` | Canal de lanzamiento del binario de CloakBrowser: `stable` o `preview`, solo para Pro. |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
@@ -74,6 +75,12 @@ navegador sin registrarla. Si `CLOAKBROWSER_CACHE_DIR` apunta a una caché
 personalizada que contiene `license.key`, CloakBrowser resuelve la clave y el
 puente reenvía únicamente esa clave resuelta desde el entorno generado del
 navegador. No se copian otras entradas de entorno generadas.
+
+## Canal de lanzamiento de CloakBrowser
+
+`CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` selecciona el canal de lanzamiento del binario de CloakBrowser. El valor predeterminado es `stable`. `preview` solicita una compilación previa de navegador Pro y solo está disponible con una licencia Pro. Una versión fijada explícitamente mediante `CLOAKBROWSER_VERSION` tiene prioridad. Si Preview no está disponible para la plataforma, CloakBrowser vuelve a Stable.
+
+El canal de lanzamiento se selecciona cuando se inicia el proceso del puente. Se aplica a todas las sesiones de Streamable HTTP y no se puede establecer ni reemplazar en los metadatos de initialize. Reinicie el puente para cambiarlo.
 
 ## Coincidencia de proxy GeoIP
 

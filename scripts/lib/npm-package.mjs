@@ -40,3 +40,38 @@ export function assertPackageFileList(files) {
 export function formatBytes(bytes) {
   return `${Math.round(bytes / 1024)} KiB`;
 }
+
+export function parseNpmPackOutput(raw) {
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error('npm pack --json returned invalid JSON');
+  }
+
+  const entries = Array.isArray(parsed) ? parsed : isRecord(parsed) ? Object.values(parsed) : [];
+
+  if (entries.length !== 1 || !isNpmPackResult(entries[0])) {
+    throw new Error('npm pack --json must describe exactly one package');
+  }
+
+  return entries[0];
+}
+
+function isNpmPackResult(value) {
+  return (
+    isRecord(value) &&
+    typeof value.entryCount === 'number' &&
+    Array.isArray(value.files) &&
+    value.files.every((file) => isRecord(file) && typeof file.path === 'string') &&
+    typeof value.filename === 'string' &&
+    typeof value.name === 'string' &&
+    typeof value.size === 'number' &&
+    typeof value.unpackedSize === 'number' &&
+    typeof value.version === 'string'
+  );
+}
+
+function isRecord(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}

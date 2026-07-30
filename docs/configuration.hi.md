@@ -36,6 +36,7 @@ Playwright MCP व्यवहार के लिए अपस्ट्री�
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | Resolves `PLAYWRIGHT_MCP_PROXY_SERVER` GeoIP and matches CloakBrowser timezone and locale fingerprint flags to that proxy location. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Enables CloakBrowser human-like mouse, keyboard, and scroll behavior. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
+| `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` | `stable` | CloakBrowser बाइनरी रिलीज़ चैनल: `stable` या केवल Pro के लिए `preview`। |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
@@ -73,6 +74,12 @@ npx -y cloakbrowser@latest logout
 CloakBrowser कुंजी को रिज़ॉल्व करता है और ब्रिज जेनरेट किए गए ब्राउज़र परिवेश
 से केवल उसी रिज़ॉल्व की गई कुंजी को भेजता है। अन्य जेनरेट की गई परिवेश
 प्रविष्टियाँ कॉपी नहीं की जातीं।
+
+## CloakBrowser रिलीज़ चैनल
+
+`CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` CloakBrowser बाइनरी रिलीज़ चैनल चुनता है। इसका डिफ़ॉल्ट `stable` है। `preview` Pro ब्राउज़र की Preview बिल्ड का अनुरोध करता है और केवल Pro लाइसेंस के साथ उपलब्ध है। स्पष्ट रूप से पिन किया गया `CLOAKBROWSER_VERSION` प्राथमिकता लेता है। यदि प्लेटफ़ॉर्म के लिए Preview उपलब्ध नहीं है, तो CloakBrowser Stable पर वापस आ जाता है।
+
+रिलीज़ चैनल ब्रिज प्रक्रिया शुरू होने पर चुना जाता है। यह सभी Streamable HTTP सत्रों पर लागू होता है और initialize मेटाडेटा में इसे सेट या ओवरराइड नहीं किया जा सकता। इसे बदलने के लिए ब्रिज को पुनः आरंभ करें।
 
 ## GeoIP प्रॉक्सी मिलान
 
