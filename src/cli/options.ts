@@ -1,5 +1,5 @@
 import { Command, InvalidArgumentError, Option } from 'commander';
-import { type HumanPreset, humanPresets } from '#src/bridge/config';
+import { type HumanPreset, humanPresets, type ReleaseChannel, releaseChannels } from '#src/bridge/config';
 import {
   BRIDGE_TRANSPORT_STDIO,
   type BridgeTransportMode,
@@ -24,6 +24,7 @@ interface CommanderCliOptions {
   geoipProxyMatch: boolean;
   humanize: boolean;
   humanPreset: HumanPreset;
+  releaseChannel: ReleaseChannel;
   httpProtocol: HttpProtocol;
   httpHost: string;
   httpPort: number;
@@ -93,6 +94,15 @@ export const cliOptionDefinitions: readonly CliOptionDefinition[] = [
     group: 'Bridge',
     defaultValue: defaultBridgeOptions.humanPreset,
     choices: humanPresets,
+  },
+  {
+    name: 'releaseChannel',
+    flags: '--release-channel <channel>',
+    description: 'CloakBrowser binary release channel.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL',
+    group: 'Bridge',
+    defaultValue: defaultBridgeOptions.releaseChannel,
+    choices: releaseChannels,
   },
   {
     name: 'httpProtocol',
@@ -304,6 +314,7 @@ function toCliOptions(options: CommanderCliOptions, command: Command): CliOption
       ),
       humanize: normalizeBoolean(options.humanize, readRawBooleanEnv(command, 'humanize')),
       humanPreset: options.humanPreset,
+      releaseChannel: options.releaseChannel,
     },
     http: {
       protocol: options.httpProtocol,

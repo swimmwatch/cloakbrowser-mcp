@@ -52,6 +52,7 @@ describe('HTTP request helpers', () => {
           headless: false,
           humanize: true,
           humanPreset: 'careful',
+          releaseChannel: 'preview',
           userDataDir: ' /tmp/profile ',
           contextOptions: {
             viewport: { width: 1280, height: 720 },
@@ -78,6 +79,10 @@ describe('HTTP request helpers', () => {
       },
       extensionPaths: ['/tmp/ext-one', '/tmp/ext-two'],
     });
+
+    expect(
+      readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ releaseChannel: 'preview' })),
+    ).toEqual({});
 
     expect(readBridgeRuntimeOptionsFromInitialize(createInitializeRequest())).toEqual({});
     expect(readBridgeRuntimeOptionsFromInitialize({ method: 'tools/list' })).toEqual({});

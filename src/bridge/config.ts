@@ -31,6 +31,8 @@ import { consoleFallbackInitScript, consoleFallbackPreloadScript } from '#src/ru
 export type BrowserEngine = 'cloak' | 'playwright';
 export const humanPresets = ['default', 'careful'] as const;
 export type HumanPreset = (typeof humanPresets)[number];
+export const releaseChannels = ['stable', 'preview'] as const;
+export type ReleaseChannel = (typeof releaseChannels)[number];
 type CloakBuildLaunchOptions = typeof buildLaunchOptions;
 type CloakLaunchOptions = NonNullable<Parameters<CloakBuildLaunchOptions>[0]>;
 type CloakLaunchOptionsWithExtensions = CloakLaunchOptions & { extensionPaths?: string[] };
@@ -105,6 +107,7 @@ export interface PrepareBridgeRuntimeOptions {
   humanize?: boolean;
   humanPreset?: HumanPreset;
   proxy?: BridgeRuntimeProxy;
+  releaseChannel?: ReleaseChannel;
   userDataDir?: string;
 }
 
@@ -345,6 +348,7 @@ async function configureCloakRuntime(
     contextOptions: runtime.browserConfig.contextOptions,
     buildCloakLaunchOptions: options.buildCloakLaunchOptions ?? buildLaunchOptions,
     geoip: shouldMatchProxyGeoip(runtime.env, options.geoipProxyMatch),
+    releaseChannel: resolveReleaseChannel(runtime.env, options.releaseChannel),
   });
   runtime.launchOptions.args = cloakLaunchOptions.args;
   if (cloakLaunchOptions.proxy === undefined) delete runtime.launchOptions.proxy;
@@ -428,6 +432,7 @@ interface ResolveCloakLaunchOptionsOptions {
   contextOptions?: BridgeContextOptions;
   buildCloakLaunchOptions: CloakBuildLaunchOptions;
   geoip: boolean;
+  releaseChannel: ReleaseChannel;
 }
 
 async function resolveCloakLaunchOptions(
@@ -458,6 +463,7 @@ function createCloakLaunchOptions(
     args: options.args,
     ...(proxy === undefined ? {} : { proxy }),
     ...(geoip ? { geoip: true } : {}),
+    releaseChannel: options.releaseChannel,
     ...(options.extensionPaths.length === 0 ? {} : { extensionPaths: options.extensionPaths }),
     ...(options.contextOptions?.viewport === undefined ? {} : { viewport: options.contextOptions.viewport }),
     launchOptions:
@@ -836,6 +842,19 @@ export function parseHumanPreset(value: string): HumanPreset {
 
 function isHumanPreset(value: string): value is HumanPreset {
   return humanPresets.includes(value as HumanPreset);
+}
+
+function parseReleaseChannel(value: string): ReleaseChannel {
+  if (isReleaseChannel(value)) return value;
+  throw new Error(`CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL must be "stable" or "preview", got "${value}"`);
+}
+
+function resolveReleaseChannel(env: EnvReader, explicit: ReleaseChannel | undefined): ReleaseChannel {
+  return explicit ?? parseReleaseChannel(envString(env, 'CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL', 'stable'));
+}
+
+function isReleaseChannel(value: string): value is ReleaseChannel {
+  return releaseChannels.includes(value as ReleaseChannel);
 }
 
 function resolveHumanizeInitPagePath(): string {

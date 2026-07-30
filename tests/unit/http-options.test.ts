@@ -28,6 +28,7 @@ describe('Commander CLI options', () => {
       expect(options.bridge.geoipProxyMatch).toBe(false);
       expect(options.bridge.humanize).toBe(false);
       expect(options.bridge.humanPreset).toBe('default');
+      expect(options.bridge.releaseChannel).toBe('stable');
       expect(options.http).toMatchObject({
         protocol: HTTP_PROTOCOL_HTTP,
         host: defaultStreamableHttpOptions.host,
@@ -78,6 +79,13 @@ describe('Commander CLI options', () => {
     withCliEnv({ CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET: 'careful' }, () => {
       expect(parseCliOptions([]).bridge.humanPreset).toBe('careful');
       expect(parseCliOptions(['--human-preset', 'default']).bridge.humanPreset).toBe('default');
+    });
+  });
+
+  it('reads the release channel from env and CLI flags', () => {
+    withCliEnv({ CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL: 'preview' }, () => {
+      expect(parseCliOptions([]).bridge.releaseChannel).toBe('preview');
+      expect(parseCliOptions(['--release-channel', 'stable']).bridge.releaseChannel).toBe('stable');
     });
   });
 
@@ -136,6 +144,14 @@ describe('Commander CLI options', () => {
     });
     withCliEnv({ CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET: 'fast' }, () => {
       expect(() => parseCliOptions([])).toThrow('Allowed choices are default, careful');
+    });
+    withCliEnv({ CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL: 'canary' }, () => {
+      expect(() => parseCliOptions([])).toThrow('Allowed choices are stable, preview');
+    });
+    withCliEnv({}, () => {
+      expect(() => parseCliOptions(['--release-channel', 'canary'])).toThrow(
+        'Allowed choices are stable, preview',
+      );
     });
   });
 
@@ -269,6 +285,7 @@ describe('Commander CLI options', () => {
     expect(help).toContain('Playwright MCP bridge backed by CloakBrowser');
     expect(help).toContain('--transport <mode>');
     expect(help).toContain('--geoip-proxy-match');
+    expect(help).toContain('--release-channel <channel>');
     expect(help).toContain('doctor');
     expect(help).toContain('--http-protocol <protocol>');
     expect(help).toContain('--https-cert <path>');
@@ -277,6 +294,7 @@ describe('Commander CLI options', () => {
     expect(reference).toContain('# CLI Reference');
     expect(reference).toContain('### `doctor`');
     expect(reference).toContain('CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH');
+    expect(reference).toContain('CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL');
     expect(reference).toContain('--json');
     expect(reference).toContain('| `--http-auth-token <token>` |');
     expect(reference).toContain('`streamable-http`');
