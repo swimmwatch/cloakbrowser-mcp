@@ -1,7 +1,5 @@
 # cloakbrowser-mcp
 
-[![MCP Toplist](https://mcptoplist.com/badge/io.github.swimmwatch%2Fcloakbrowser-mcp.svg)](https://mcptoplist.com/server/io.github.swimmwatch%2Fcloakbrowser-mcp)
-
 <p align="center">
   <img src="docs/assets/brand/logo-wordmark.svg" alt="CloakBrowser MCP" width="640" />
 </p>
@@ -30,6 +28,7 @@
 [![MCP transports](https://img.shields.io/badge/MCP%20transports-stdio%20%7C%20Streamable%20HTTP-7C3AED)](docs/configuration.md)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](docs/docker.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![MCP Toplist](https://mcptoplist.com/badge/io.github.swimmwatch%2Fcloakbrowser-mcp.svg)](https://mcptoplist.com/server/io.github.swimmwatch%2Fcloakbrowser-mcp)
 
 `cloakbrowser-mcp` is a drop-in Playwright MCP-compatible browser automation server with unchanged upstream tools, [CloakBrowser](https://github.com/CloakHQ/CloakBrowser) Chromium, and production-ready npm, Docker, and Streamable HTTP packaging. It runs upstream [`@playwright/mcp`](https://github.com/microsoft/playwright-mcp) as the canonical tool surface and points that runtime at CloakBrowser.
 
