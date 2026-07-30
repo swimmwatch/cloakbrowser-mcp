@@ -34,7 +34,18 @@ interface IndexNowModule {
 interface NpmPackageModule {
   assertPackageFileList(files: string[]): void;
   formatBytes(bytes: number): string;
+  parseNpmPackOutput(raw: string): NpmPackResult;
   requiredPackageFiles: string[];
+}
+
+interface NpmPackResult {
+  entryCount: number;
+  filename: string;
+  files: Array<{ path: string }>;
+  name: string;
+  size: number;
+  unpackedSize: number;
+  version: string;
 }
 
 interface ParityModule {
@@ -216,6 +227,42 @@ describe('npm package helpers', () => {
       npmPackage.assertPackageFileList([...npmPackage.requiredPackageFiles, 'src/private.ts']),
     ).toThrow('npm package contains non-runtime files');
     expect(npmPackage.formatBytes(2048)).toBe('2 KiB');
+  });
+
+  it('parses npm pack JSON from supported npm formats', () => {
+    const packed: NpmPackResult = {
+      entryCount: 1,
+      filename: 'cloakbrowser-mcp-1.9.0.tgz',
+      files: [{ path: 'package.json' }],
+      name: 'cloakbrowser-mcp',
+      size: 1024,
+      unpackedSize: 2048,
+      version: '1.9.0',
+    };
+
+    expect(npmPackage.parseNpmPackOutput(JSON.stringify([packed]))).toEqual(packed);
+    expect(npmPackage.parseNpmPackOutput(JSON.stringify({ 'cloakbrowser-mcp': packed }))).toEqual(packed);
+  });
+
+  it('rejects invalid npm pack JSON output', () => {
+    const packed: NpmPackResult = {
+      entryCount: 1,
+      filename: 'cloakbrowser-mcp-1.9.0.tgz',
+      files: [{ path: 'package.json' }],
+      name: 'cloakbrowser-mcp',
+      size: 1024,
+      unpackedSize: 2048,
+      version: '1.9.0',
+    };
+
+    expect(() => npmPackage.parseNpmPackOutput('not json')).toThrow('invalid JSON');
+    expect(() => npmPackage.parseNpmPackOutput(JSON.stringify([]))).toThrow('exactly one package');
+    expect(() => npmPackage.parseNpmPackOutput(JSON.stringify([packed, packed]))).toThrow(
+      'exactly one package',
+    );
+    expect(() => npmPackage.parseNpmPackOutput(JSON.stringify({ 'cloakbrowser-mcp': {} }))).toThrow(
+      'exactly one package',
+    );
   });
 });
 

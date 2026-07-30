@@ -6,7 +6,7 @@ import process from 'node:process';
 import { runCommand } from '#scripts/lib/command';
 import { readJson } from '#scripts/lib/files';
 import { appendGithubOutput } from '#scripts/lib/github-output';
-import { assertPackageFileList, formatBytes } from '#scripts/lib/npm-package';
+import { assertPackageFileList, formatBytes, parseNpmPackOutput } from '#scripts/lib/npm-package';
 
 const root = process.cwd();
 const packageJsonPath = path.join(root, 'package.json');
@@ -35,11 +35,7 @@ function packProject() {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'inherit'],
   });
-  const results = JSON.parse(raw);
-  if (!Array.isArray(results) || results.length !== 1) {
-    throw new Error(`expected npm pack to return one package, got ${raw}`);
-  }
-  return results[0];
+  return parseNpmPackOutput(raw);
 }
 
 function verifyInstall(packageFile) {
