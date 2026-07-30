@@ -36,6 +36,7 @@ A [Referência da CLI](generated/cli.md) gerada é a lista oficial dos sinalizad
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | Resolves `PLAYWRIGHT_MCP_PROXY_SERVER` GeoIP and matches CloakBrowser timezone and locale fingerprint flags to that proxy location. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Enables CloakBrowser human-like mouse, keyboard, and scroll behavior. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
+| `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` | `stable` | Canal de lançamento do binário do CloakBrowser: `stable` ou `preview`, disponível apenas no Pro. |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
@@ -73,6 +74,12 @@ sem registrá-la em logs. Quando `CLOAKBROWSER_CACHE_DIR` aponta para um cache
 personalizado que contém `license.key`, o CloakBrowser resolve a chave e a
 ponte encaminha apenas essa chave resolvida a partir do ambiente gerado do
 navegador. Outras entradas de ambiente geradas não são copiadas.
+
+## Canal de lançamento do CloakBrowser
+
+`CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` seleciona o canal de lançamento do binário do CloakBrowser. O padrão é `stable`. `preview` solicita uma versão de prévia do navegador Pro e está disponível apenas com uma licença Pro. Uma versão fixada explicitamente em `CLOAKBROWSER_VERSION` tem precedência. Se o Preview não estiver disponível para a plataforma, o CloakBrowser volta para Stable.
+
+O canal de lançamento é selecionado quando o processo da ponte é iniciado. Ele se aplica a todas as sessões de Streamable HTTP e não pode ser definido nem substituído nos metadados de initialize. Reinicie a ponte para alterá-lo.
 
 ## Correspondência de proxy GeoIP
 

@@ -36,6 +36,7 @@ La [Référence CLI](generated/cli.md) générée constitue la liste de référe
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | Resolves `PLAYWRIGHT_MCP_PROXY_SERVER` GeoIP and matches CloakBrowser timezone and locale fingerprint flags to that proxy location. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Enables CloakBrowser human-like mouse, keyboard, and scroll behavior. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
+| `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` | `stable` | Canal de publication du binaire CloakBrowser : `stable` ou `preview`, réservé à Pro. |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
@@ -75,6 +76,12 @@ pointe vers un cache personnalisé contenant `license.key`, CloakBrowser résout
 la clé et le pont ne transmet que cette clé résolue depuis l'environnement
 généré du navigateur. Les autres entrées d'environnement générées ne sont pas
 copiées.
+
+## Canal de publication de CloakBrowser
+
+`CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` sélectionne le canal de publication du binaire CloakBrowser. La valeur par défaut est `stable`. `preview` demande une version Preview du navigateur Pro et est disponible uniquement avec une licence Pro. Un verrouillage explicite de `CLOAKBROWSER_VERSION` est prioritaire. Si Preview n'est pas disponible pour la plateforme, CloakBrowser revient à Stable.
+
+Le canal de publication est choisi au démarrage du processus de pont. Il s'applique à toutes les sessions Streamable HTTP et ne peut pas être défini ni remplacé dans les métadonnées initialize. Redémarrez le pont pour le modifier.
 
 ## Correspondance via le proxy GeoIP
 

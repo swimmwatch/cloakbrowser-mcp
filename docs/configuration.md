@@ -37,6 +37,7 @@ For task-focused examples, see the [Recipes](recipes/index.md) section.
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | Resolves `PLAYWRIGHT_MCP_PROXY_SERVER` GeoIP and matches CloakBrowser timezone and locale fingerprint flags to that proxy location. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Enables CloakBrowser human-like mouse, keyboard, and scroll behavior. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
+| `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` | `stable` | CloakBrowser binary release channel: `stable` or Pro-only `preview`. |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
@@ -74,6 +75,18 @@ logging it. When `CLOAKBROWSER_CACHE_DIR` points to a custom cache containing
 `license.key`, CloakBrowser resolves the key and the bridge forwards only that
 resolved key from the generated browser environment. Other generated
 environment entries are not copied.
+
+## CloakBrowser Release Channel
+
+`CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` selects the CloakBrowser binary release
+channel. It defaults to `stable`. `preview` requests a Pro Preview browser
+build and is available only with a Pro license. An explicit
+`CLOAKBROWSER_VERSION` pin takes precedence. If Preview is unavailable for the
+platform, CloakBrowser falls back to Stable.
+
+The release channel is selected when the bridge process starts. It applies to
+all Streamable HTTP sessions and cannot be set or overridden in initialize
+metadata. Restart the bridge to change it.
 
 ## GeoIP Proxy Matching
 

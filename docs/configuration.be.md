@@ -36,6 +36,7 @@ tags:
 | `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | Resolves `PLAYWRIGHT_MCP_PROXY_SERVER` GeoIP and matches CloakBrowser timezone and locale fingerprint flags to that proxy location. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Enables CloakBrowser human-like mouse, keyboard, and scroll behavior. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
+| `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` | `stable` | Канал выпуску бінарнага файла CloakBrowser: `stable` або даступны толькі для Pro `preview`. |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
@@ -74,6 +75,12 @@ npx -y cloakbrowser@latest logout
 кэш з файлам `license.key`, CloakBrowser вызначае ключ, а мост перадае са
 згенераванага асяроддзя браўзера толькі гэты вызначаны ключ. Іншыя
 згенераваныя запісы асяроддзя не капіруюцца.
+
+## Канал выпуску CloakBrowser
+
+`CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` выбірае канал выпуску бінарнага файла CloakBrowser. Па змаўчанні выкарыстоўваецца `stable`. `preview` запытвае папярэднюю зборку браўзера Pro і даступны толькі з ліцэнзіяй Pro. Яўна зададзеная версія `CLOAKBROWSER_VERSION` мае прыярытэт. Калі Preview недаступны для платформы, CloakBrowser вяртаецца да Stable.
+
+Канал выпуску выбіраецца пры запуску працэсу моста. Ён прымяняецца да ўсіх сеансаў Streamable HTTP і не можа задавацца або пераазначацца ў метададзеных initialize. Каб змяніць яго, перазапусціце мост.
 
 ## Супастаўленне GeoIP-праксі
 
