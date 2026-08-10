@@ -153,7 +153,6 @@ multi-region use cases, limitations, and the [regional QA recipe](recipes/region
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `/data` |
-| `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` |
 | `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset |
 | `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` |
 | `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` |

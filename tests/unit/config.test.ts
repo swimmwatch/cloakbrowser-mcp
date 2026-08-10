@@ -48,7 +48,6 @@ describe('bridge config generation', () => {
       env: {
         PLAYWRIGHT_MCP_OUTPUT_DIR: outputDir,
         PLAYWRIGHT_MCP_HEADLESS: 'false',
-        PLAYWRIGHT_MCP_OUTPUT_MODE: 'file',
         CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
         CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS: 'false',
         CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS: '--foo,--bar=baz',
@@ -59,7 +58,7 @@ describe('bridge config generation', () => {
     expect(runtime.cloakBinaryPath).toBe(fakeCloakBinaryPath);
     expect(runtime.outputDir).toBe(outputDir);
     expect(runtime.childEnv.PLAYWRIGHT_MCP_EXECUTABLE_PATH).toBe(fakeCloakBinaryPath);
-    expect(runtime.childEnv.PLAYWRIGHT_MCP_OUTPUT_MODE).toBe('file');
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_OUTPUT_MODE).toBeUndefined();
     expect(runtime.config.browser?.launchOptions).toMatchObject({
       executablePath: fakeCloakBinaryPath,
       headless: false,
@@ -68,6 +67,90 @@ describe('bridge config generation', () => {
     });
 
     runtime.dispose();
+  });
+
+  it.each(['typescript', 'python', 'java', 'csharp', 'none'] as const)(
+    'writes %s as the generated Playwright MCP codegen language',
+    async (codegen) => {
+      const root = createTempRoot();
+      const runtime = await prepareBridgeRuntime({
+        tempRoot: root,
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
+        env: {
+          PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+          PLAYWRIGHT_MCP_CODEGEN: codegen,
+          CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        },
+      });
+
+      expect(runtime.config.codegen).toBe(codegen);
+
+      runtime.dispose();
+    },
+  );
+
+  it.each([
+    ['true', true],
+    ['false', false],
+  ] as const)('writes snapshot boxes %s into generated config', async (value, expected) => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        PLAYWRIGHT_MCP_SNAPSHOT_BOXES: value,
+        PLAYWRIGHT_MCP_TIMEOUT_SETTLE: '750',
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    expect(runtime.config.snapshot).toEqual({ boxes: expected });
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_TIMEOUT_SETTLE).toBe('750');
+
+    runtime.dispose();
+  });
+
+  it('omits unset Playwright MCP config additions and preserves upstream defaults', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      env: {
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    expect(runtime.config.codegen).toBeUndefined();
+    expect(runtime.config.snapshot).toBeUndefined();
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_TIMEOUT_SETTLE).toBeUndefined();
+
+    runtime.dispose();
+  });
+
+  it.each(['javascript', 'Python', ''])('rejects invalid codegen language %j', async (codegen) => {
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: createTempRoot(),
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
+        env: {
+          PLAYWRIGHT_MCP_CODEGEN: codegen,
+        },
+      }),
+    ).rejects.toThrow('PLAYWRIGHT_MCP_CODEGEN must be one of');
+  });
+
+  it.each(['1', 'yes', 'TRUE', ''])('rejects invalid snapshot boxes value %j', async (boxes) => {
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: createTempRoot(),
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
+        env: {
+          PLAYWRIGHT_MCP_SNAPSHOT_BOXES: boxes,
+        },
+      }),
+    ).rejects.toThrow('PLAYWRIGHT_MCP_SNAPSHOT_BOXES must be "true" or "false"');
   });
 
   it('builds the child env from an explicit allowlist', async () => {

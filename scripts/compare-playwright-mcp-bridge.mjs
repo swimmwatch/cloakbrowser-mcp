@@ -17,7 +17,7 @@ import {
 const { image, reportPath } = parseArgs(process.argv.slice(2));
 const baselineImage =
   process.env.PLAYWRIGHT_MCP_BASELINE_IMAGE ??
-  'mcr.microsoft.com/playwright/mcp:v0.0.78@sha256:3d871c22ea2d4cca0966e2cfb1860e1cb03eb7353725a3d6cffd133296fb04eb';
+  'mcr.microsoft.com/playwright/mcp:v0.0.79@sha256:18c0a9c934004fe9580cc79f1e8e6e6cde7c667348b215335e8a23fd3e509804';
 
 const fixtureServer = await startFixtureServer();
 const baseline = await startMcpContainer('playwright', baselineImage, false);
@@ -78,7 +78,11 @@ async function startMcpContainer(mode, containerImage, useCloakWrapper) {
       '-e',
       'PLAYWRIGHT_MCP_OUTPUT_DIR=/data',
       '-e',
-      'PLAYWRIGHT_MCP_OUTPUT_MODE=stdout',
+      ['PLAYWRIGHT_MCP_CODEGEN', 'python'].join('='),
+      '-e',
+      'PLAYWRIGHT_MCP_SNAPSHOT_BOXES=true',
+      '-e',
+      'PLAYWRIGHT_MCP_TIMEOUT_SETTLE=750',
       '-e',
       'PLAYWRIGHT_MCP_VIEWPORT_SIZE=1280x720',
       '-e',
@@ -93,8 +97,11 @@ async function startMcpContainer(mode, containerImage, useCloakWrapper) {
       '--headless',
       '--output-dir',
       '/data',
-      '--output-mode',
-      'stdout',
+      '--codegen',
+      'python',
+      '--snapshot-boxes',
+      '--timeout-settle',
+      '750',
       '--viewport-size',
       '1280x720',
       '--ignore-https-errors',
@@ -125,6 +132,7 @@ async function runScenario(target, fixtureUrl) {
   const { tools } = await target.client.listTools();
   const toolNames = tools.map((tool) => tool.name).sort();
   const upstreamToolNames = toolNames.filter((name) => !localToolNames.includes(name));
+  const screenshotSchema = assertScreenshotSchemaSupportsWebp(tools, target.mode);
   const calls = [];
 
   assertEqual(upstreamToolNames, expectedDefaultTools, `${target.mode} upstream tool list`);
@@ -164,7 +172,8 @@ async function runScenario(target, fixtureUrl) {
 
   await call('browser_resize', { width: 1280, height: 720 });
   await call('browser_navigate', { url: fixtureUrl });
-  await call('browser_snapshot');
+  const snapshot = await call('browser_snapshot');
+  assertSnapshotIncludesBoxes(snapshot, target.mode);
   await call('browser_find', { text: 'Cloak MCP fixture' });
   await call('browser_console_messages', { level: 'info', all: true });
   await call('browser_wait_for', { text: 'Cloak MCP fixture' });
@@ -184,7 +193,7 @@ async function runScenario(target, fixtureUrl) {
   await call('browser_drop', { target: '#drop-target', data: { 'text/plain': 'dropped payload' } });
   await call('browser_click', { target: '#file-input' });
   await call('browser_file_upload', { paths: [target.uploadPath] });
-  await call('browser_take_screenshot', { type: 'png', filename: 'page.png' });
+  await call('browser_take_screenshot', { type: 'webp', filename: 'page.webp' });
   await call('browser_network_requests', { static: false });
   await call('browser_network_request', { index: 1, part: 'response-body' });
   await call('browser_run_code_unsafe', { code: 'async (page) => await page.title()' });
@@ -201,11 +210,32 @@ async function runScenario(target, fixtureUrl) {
   const covered = [...new Set(calls.map((entry) => entry.name))].sort();
   assertEqual(covered, expectedDefaultTools, `${target.mode} covered tools`);
 
-  return { mode: target.mode, tools: upstreamToolNames, calls };
+  return { mode: target.mode, tools: upstreamToolNames, screenshotSchema, calls };
+}
+
+function assertScreenshotSchemaSupportsWebp(tools, mode) {
+  const screenshotTool = tools.find((tool) => tool.name === 'browser_take_screenshot');
+  const typeSchema = screenshotTool?.inputSchema?.properties?.type;
+  if (!Array.isArray(typeSchema?.enum) || !typeSchema.enum.includes('webp')) {
+    throw new Error(`${mode} browser_take_screenshot schema does not support WebP`);
+  }
+  return screenshotTool.inputSchema;
+}
+
+function assertSnapshotIncludesBoxes(result, mode) {
+  const text =
+    result.content
+      ?.filter((item) => item.type === 'text')
+      .map((item) => item.text)
+      .join('\n') ?? '';
+  if (!text.includes('[box=')) {
+    throw new Error(`${mode} browser_snapshot response does not include bounding boxes`);
+  }
 }
 
 function compareRuns(baselineRun, cloakRun) {
   assertEqual(cloakRun.tools, baselineRun.tools, 'upstream tool list parity');
+  assertEqual(cloakRun.screenshotSchema, baselineRun.screenshotSchema, 'screenshot schema parity');
   assertEqual(
     cloakRun.calls.map((call) => call.name),
     baselineRun.calls.map((call) => call.name),

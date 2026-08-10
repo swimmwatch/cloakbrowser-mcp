@@ -40,7 +40,9 @@ Playwright MCP の動作には、アップストリームの `PLAYWRIGHT_MCP_*` 
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
-| `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` | Upstream output mode, either `stdout` or `file`. |
+| `PLAYWRIGHT_MCP_CODEGEN` | `typescript` | コード生成の対象言語: `typescript`、`python`、`java`、`csharp`、または `none`。ブリッジは値を検証し、生成する Playwright MCP 設定の `codegen` に書き込みます。 |
+| `PLAYWRIGHT_MCP_SNAPSHOT_BOXES` | `false` | `true` または `false`。スナップショットに各要素の境界ボックスを `[box=x,y,width,height]` として含めます。ブリッジは値を検証し、生成する Playwright MCP 設定の `snapshot.boxes` に書き込みます。 |
+| `PLAYWRIGHT_MCP_TIMEOUT_SETTLE` | `500` | アクション後、発生した処理が安定するまで待機する上流の時間（ミリ秒）。Playwright MCP に直接転送されます。 |
 | `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | Default action timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |

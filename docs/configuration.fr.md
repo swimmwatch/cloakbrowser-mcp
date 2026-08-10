@@ -40,7 +40,9 @@ La [Référence CLI](generated/cli.md) générée constitue la liste de référe
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
-| `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` | Upstream output mode, either `stdout` or `file`. |
+| `PLAYWRIGHT_MCP_CODEGEN` | `typescript` | Langage cible pour la génération de code : `typescript`, `python`, `java`, `csharp` ou `none`. Le pont valide la valeur et écrit `codegen` dans sa configuration Playwright MCP générée. |
+| `PLAYWRIGHT_MCP_SNAPSHOT_BOXES` | `false` | `true` ou `false` ; inclut la boîte englobante de chaque élément sous la forme `[box=x,y,width,height]` dans les instantanés. Le pont valide la valeur et écrit `snapshot.boxes` dans sa configuration Playwright MCP générée. |
+| `PLAYWRIGHT_MCP_TIMEOUT_SETTLE` | `500` | Attente upstream en millisecondes après une action, le temps que le travail déclenché se stabilise. Transmise directement à Playwright MCP. |
 | `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | Default action timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |

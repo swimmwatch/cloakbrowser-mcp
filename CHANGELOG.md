@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-08-10
+
+### Added
+
+- Added validated `PLAYWRIGHT_MCP_CODEGEN` support for TypeScript, Python,
+  Java, C#, and disabled code generation, plus validated
+  `PLAYWRIGHT_MCP_SNAPSHOT_BOXES` generated-config support.
+- Added Playwright MCP 0.0.79 WebP screenshot schema and runtime parity
+  coverage, including the upstream settle timeout configuration.
+
+### Changed
+
+- Updated Playwright MCP to 0.0.79 and CloakBrowser to 0.5.6, retaining the
+  existing humanized browser and persistent-context integrations.
+- Refreshed supported npm, demo, Docker base-image, and pinned GitHub Action
+  dependencies.
+- Allowed compatibility generation to preserve an already manually translated
+  localized row when package-version fields change.
+
+### Removed
+
+- Removed the obsolete `PLAYWRIGHT_MCP_OUTPUT_MODE` bridge and Docker default;
+  it is no longer documented as a supported upstream setting.
+
 ## [1.10.0] - 2026-07-30
 
 ### Changed
@@ -358,7 +382,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.10.0...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.11.0...HEAD
+[1.11.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.7.0...v1.8.0
