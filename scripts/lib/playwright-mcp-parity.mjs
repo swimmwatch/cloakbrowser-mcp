@@ -32,6 +32,10 @@ export function normalizeToolResponseText(value) {
     .replaceAll(/\n### Events\n(?:- .*(?:\n|$))+/g, '')
     .replaceAll(/\/data\/[^\s)"']+/g, '/data/<artifact>')
     .replaceAll(/page-\d+\.(png|jpeg|pdf)/g, 'page-<timestamp>.$1')
+    .replaceAll(
+      /\[box=-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?\]/g,
+      '[box=<coordinates>]',
+    )
     .replaceAll(/\d{3,}ms/g, '<duration>ms');
 }
 

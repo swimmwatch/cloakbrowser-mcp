@@ -1,12 +1,13 @@
 # syntax=docker/dockerfile:1.7
 
-ARG NODE_IMAGE_REF=node:22-bookworm-slim@sha256:53ada149d435c38b14476cb57e4a7da73c15595aba79bd6971b547ceb6d018bf
-ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.78@sha256:3d871c22ea2d4cca0966e2cfb1860e1cb03eb7353725a3d6cffd133296fb04eb
+ARG NODE_IMAGE_REF=node:22-bookworm-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436
+ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.79@sha256:18c0a9c934004fe9580cc79f1e8e6e6cde7c667348b215335e8a23fd3e509804
 
 FROM ${NODE_IMAGE_REF} AS deps
 WORKDIR /src
 ENV NPM_CONFIG_UPDATE_NOTIFIER=false
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+RUN npm install --global npm@11.6.2
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm,sharing=locked \
     npm ci --no-audit --no-fund --ignore-scripts
@@ -22,7 +23,7 @@ RUN npm prune --omit=dev --ignore-scripts \
  && npm cache clean --force
 
 FROM ${PLAYWRIGHT_MCP_IMAGE} AS runtime
-ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.78@sha256:3d871c22ea2d4cca0966e2cfb1860e1cb03eb7353725a3d6cffd133296fb04eb
+ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.79@sha256:18c0a9c934004fe9580cc79f1e8e6e6cde7c667348b215335e8a23fd3e509804
 ARG PLAYWRIGHT_MCP_IMAGE_DIGEST=unknown
 ARG RELEASE_VERSION=0.0.0
 ARG RELEASE_VERSION_TAG=v0.0.0
@@ -66,7 +67,6 @@ ENV PLAYWRIGHT_MCP_CLI_PATH=/app/cli.js
 ENV PLAYWRIGHT_MCP_BROWSER_ENGINE=cloak
 ENV PLAYWRIGHT_MCP_HEADLESS=true
 ENV PLAYWRIGHT_MCP_OUTPUT_DIR=/data
-ENV PLAYWRIGHT_MCP_OUTPUT_MODE=stdout
 ENV MCP_SERVER_VERSION=${RELEASE_VERSION}
 ENV MCP_SERVER_VERSION_TAG=${RELEASE_VERSION_TAG}
 ENV MCP_SERVER_REVISION=${VCS_REF}

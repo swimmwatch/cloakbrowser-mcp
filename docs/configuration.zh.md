@@ -40,7 +40,9 @@ tags:
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
-| `PLAYWRIGHT_MCP_OUTPUT_MODE` | `stdout` | Upstream output mode, either `stdout` or `file`. |
+| `PLAYWRIGHT_MCP_CODEGEN` | `typescript` | 代码生成目标语言：`typescript`、`python`、`java`、`csharp` 或 `none`。桥接会验证该值，并将 `codegen` 写入生成的 Playwright MCP 配置。 |
+| `PLAYWRIGHT_MCP_SNAPSHOT_BOXES` | `false` | `true` 或 `false`；在快照中以 `[box=x,y,width,height]` 包含每个元素的边界框。桥接会验证该值，并将 `snapshot.boxes` 写入生成的 Playwright MCP 配置。 |
+| `PLAYWRIGHT_MCP_TIMEOUT_SETTLE` | `500` | 操作后等待触发工作稳定的上游时间（毫秒）。直接转发给 Playwright MCP。 |
 | `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | Default action timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |

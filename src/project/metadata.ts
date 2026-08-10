@@ -16,7 +16,7 @@ const requireFromHere = createRequire(import.meta.url);
 
 export const PLAYWRIGHT_MCP_PACKAGE = '@playwright/mcp';
 export const PLAYWRIGHT_MCP_VERSION = readDependencyVersion(PLAYWRIGHT_MCP_PACKAGE);
-export const PLAYWRIGHT_MCP_BROWSER_TOOL_COUNT = 23;
+export const PLAYWRIGHT_MCP_BROWSER_TOOL_COUNT = 24;
 export const CLOAKBROWSER_TOOL_COUNT = 2;
 
 export const PROJECT_METADATA = Object.freeze({

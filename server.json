@@ -3,7 +3,7 @@
   "name": "io.github.swimmwatch/cloakbrowser-mcp",
   "title": "CloakBrowser MCP",
   "description": "Playwright MCP-compatible browser automation bridge for CloakBrowser Chromium.",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "websiteUrl": "https://swimmwatch.github.io/cloakbrowser-mcp/",
   "repository": {
     "url": "https://github.com/swimmwatch/cloakbrowser-mcp",
@@ -21,7 +21,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "cloakbrowser-mcp",
-      "version": "1.10.0",
+      "version": "1.11.0",
       "transport": {
         "type": "stdio"
       },
@@ -45,10 +45,22 @@
           "default": ".playwright-mcp"
         },
         {
-          "name": "PLAYWRIGHT_MCP_OUTPUT_MODE",
-          "description": "Return snapshots, console logs, and network logs through stdout or files.",
+          "name": "PLAYWRIGHT_MCP_CODEGEN",
+          "description": "Generate code in typescript, python, java, csharp, or none.",
           "format": "string",
-          "default": "stdout"
+          "default": "typescript"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_SNAPSHOT_BOXES",
+          "description": "Include element bounding boxes in browser snapshots.",
+          "format": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_TIMEOUT_SETTLE",
+          "description": "Milliseconds to wait after actions for triggered work to settle.",
+          "format": "number",
+          "default": "500"
         },
         {
           "name": "PLAYWRIGHT_MCP_USER_DATA_DIR",
@@ -88,7 +100,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "cloakbrowser-mcp",
-      "version": "1.10.0",
+      "version": "1.11.0",
       "packageArguments": [
         {
           "type": "named",
@@ -162,10 +174,22 @@
           "default": ".playwright-mcp"
         },
         {
-          "name": "PLAYWRIGHT_MCP_OUTPUT_MODE",
-          "description": "Return snapshots, console logs, and network logs through stdout or files.",
+          "name": "PLAYWRIGHT_MCP_CODEGEN",
+          "description": "Generate code in typescript, python, java, csharp, or none.",
           "format": "string",
-          "default": "stdout"
+          "default": "typescript"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_SNAPSHOT_BOXES",
+          "description": "Include element bounding boxes in browser snapshots.",
+          "format": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_TIMEOUT_SETTLE",
+          "description": "Milliseconds to wait after actions for triggered work to settle.",
+          "format": "number",
+          "default": "500"
         },
         {
           "name": "PLAYWRIGHT_MCP_USER_DATA_DIR",
@@ -203,7 +227,7 @@
     },
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/swimmwatch/cloakbrowser-mcp:1.10.0",
+      "identifier": "ghcr.io/swimmwatch/cloakbrowser-mcp:1.11.0",
       "transport": {
         "type": "stdio"
       },
@@ -227,10 +251,22 @@
           "default": "/data"
         },
         {
-          "name": "PLAYWRIGHT_MCP_OUTPUT_MODE",
-          "description": "Return snapshots, console logs, and network logs through stdout or files.",
+          "name": "PLAYWRIGHT_MCP_CODEGEN",
+          "description": "Generate code in typescript, python, java, csharp, or none.",
           "format": "string",
-          "default": "stdout"
+          "default": "typescript"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_SNAPSHOT_BOXES",
+          "description": "Include element bounding boxes in browser snapshots.",
+          "format": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_TIMEOUT_SETTLE",
+          "description": "Milliseconds to wait after actions for triggered work to settle.",
+          "format": "number",
+          "default": "500"
         },
         {
           "name": "PLAYWRIGHT_MCP_USER_DATA_DIR",
@@ -268,7 +304,7 @@
     },
     {
       "registryType": "oci",
-      "identifier": "docker.io/swimmwatch/cloakbrowser-mcp:1.10.0",
+      "identifier": "docker.io/swimmwatch/cloakbrowser-mcp:1.11.0",
       "transport": {
         "type": "stdio"
       },
@@ -292,10 +328,22 @@
           "default": "/data"
         },
         {
-          "name": "PLAYWRIGHT_MCP_OUTPUT_MODE",
-          "description": "Return snapshots, console logs, and network logs through stdout or files.",
+          "name": "PLAYWRIGHT_MCP_CODEGEN",
+          "description": "Generate code in typescript, python, java, csharp, or none.",
           "format": "string",
-          "default": "stdout"
+          "default": "typescript"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_SNAPSHOT_BOXES",
+          "description": "Include element bounding boxes in browser snapshots.",
+          "format": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "PLAYWRIGHT_MCP_TIMEOUT_SETTLE",
+          "description": "Milliseconds to wait after actions for triggered work to settle.",
+          "format": "number",
+          "default": "500"
         },
         {
           "name": "PLAYWRIGHT_MCP_USER_DATA_DIR",

@@ -107,12 +107,6 @@ export function replaceGeneratedBlock(content, heading, table) {
 }
 
 export function prependLocalizedCompatibilityRow(content, previousRow, currentRow) {
-  if (!hasMatchingLocalizedFields(previousRow, currentRow)) {
-    throw new Error(
-      'localized compatibility rows require a manual translation when non-version values change',
-    );
-  }
-
   const startIndex = content.indexOf(startMarker);
   const endIndex = content.indexOf(endMarker);
   if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
@@ -125,6 +119,12 @@ export function prependLocalizedCompatibilityRow(content, previousRow, currentRo
   const currentVersion = code(currentRow.version);
   if (lines.some((line) => line.includes(currentVersion))) {
     return content;
+  }
+
+  if (!hasMatchingLocalizedFields(previousRow, currentRow)) {
+    throw new Error(
+      'localized compatibility rows require a manual translation when non-version values change',
+    );
   }
 
   const previousVersion = code(previousRow.version);

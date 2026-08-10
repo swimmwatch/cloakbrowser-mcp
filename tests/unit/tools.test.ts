@@ -31,21 +31,21 @@ describe('local Cloak tools', () => {
   });
 
   it('returns structured bridge metadata', () => {
-    const result = callLocalTool(LOCAL_TOOL_BRIDGE_INFO, runtime, 23);
+    const result = callLocalTool(LOCAL_TOOL_BRIDGE_INFO, runtime, 24);
 
     expect(result.structuredContent).toMatchObject({
       runtime: 'playwright-mcp-bridge',
       browserEngine: 'cloak',
       upstream: {
         package: '@playwright/mcp',
-        toolCount: 23,
+        toolCount: 24,
       },
     });
     expect(result.content[0]?.type).toBe('text');
   });
 
   it('returns structured binary metadata', () => {
-    const result = callLocalTool(LOCAL_TOOL_BINARY_INFO, runtime, 23);
+    const result = callLocalTool(LOCAL_TOOL_BINARY_INFO, runtime, 24);
 
     expect(result.structuredContent).toMatchObject({
       browserEngine: 'cloak',

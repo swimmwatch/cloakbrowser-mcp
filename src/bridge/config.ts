@@ -33,6 +33,8 @@ export const humanPresets = ['default', 'careful'] as const;
 export type HumanPreset = (typeof humanPresets)[number];
 export const releaseChannels = ['stable', 'preview'] as const;
 export type ReleaseChannel = (typeof releaseChannels)[number];
+const codegenLanguages = ['typescript', 'python', 'java', 'csharp', 'none'] as const;
+type CodegenLanguage = (typeof codegenLanguages)[number];
 type CloakBuildLaunchOptions = typeof buildLaunchOptions;
 type CloakLaunchOptions = NonNullable<Parameters<CloakBuildLaunchOptions>[0]>;
 type CloakLaunchOptionsWithExtensions = CloakLaunchOptions & { extensionPaths?: string[] };
@@ -127,6 +129,10 @@ export interface PlaywrightMcpBridgeConfig {
     contextOptions?: BridgeContextOptions;
     initPage?: string[];
     initScript?: string[];
+  };
+  codegen?: CodegenLanguage;
+  snapshot?: {
+    boxes?: boolean;
   };
 }
 
@@ -246,6 +252,8 @@ function createPreparedBridgeRuntimeBase(
   const browserEngine = parseBrowserEngine(envString(env, 'PLAYWRIGHT_MCP_BROWSER_ENGINE', 'cloak'));
   const useCloak = browserEngine === 'cloak';
   const headless = options.headless ?? envBool(env, 'PLAYWRIGHT_MCP_HEADLESS', true);
+  const codegen = readCodegenLanguage(env);
+  const snapshotBoxes = readSnapshotBoxes(env);
   const humanPreset =
     options.humanPreset ?? parseHumanPreset(envString(env, 'CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET', 'default'));
   const childEnv = createChildEnv(env, outputDir, options.proxy, headless, humanPreset);
@@ -273,7 +281,11 @@ function createPreparedBridgeRuntimeBase(
     chromiumSandbox,
     launchOptions,
     browserConfig,
-    config: { browser: browserConfig },
+    config: {
+      browser: browserConfig,
+      ...(codegen === undefined ? {} : { codegen }),
+      ...(snapshotBoxes === undefined ? {} : { snapshot: { boxes: snapshotBoxes } }),
+    },
   };
 }
 
@@ -999,7 +1011,6 @@ export function createChildEnv(
   result.PLAYWRIGHT_MCP_HEADLESS = String(headless);
   result.CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET = humanPreset;
   result.PLAYWRIGHT_MCP_OUTPUT_DIR = outputDir;
-  result.PLAYWRIGHT_MCP_OUTPUT_MODE = envString(env, 'PLAYWRIGHT_MCP_OUTPUT_MODE', 'stdout');
   result.PLAYWRIGHT_MCP_TIMEOUT_ACTION = String(envInt(env, 'PLAYWRIGHT_MCP_TIMEOUT_ACTION', 5000));
   result.PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION = String(envInt(env, 'PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION', 60000));
   result.CLOAKBROWSER_AUTO_UPDATE = envString(env, 'CLOAKBROWSER_AUTO_UPDATE', 'false');
@@ -1009,6 +1020,25 @@ export function createChildEnv(
   }
   if (runtimeProxy) applyRuntimeProxyEnv(result, runtimeProxy);
   return result;
+}
+
+function readCodegenLanguage(env: EnvReader): CodegenLanguage | undefined {
+  const value = env.PLAYWRIGHT_MCP_CODEGEN;
+  if (value === undefined) return undefined;
+  if (codegenLanguages.includes(value as CodegenLanguage)) return value as CodegenLanguage;
+  throw new BridgeRuntimeConfigurationError(
+    `PLAYWRIGHT_MCP_CODEGEN must be one of "typescript", "python", "java", "csharp", or "none", got "${value}"`,
+  );
+}
+
+function readSnapshotBoxes(env: EnvReader): boolean | undefined {
+  const value = env.PLAYWRIGHT_MCP_SNAPSHOT_BOXES;
+  if (value === undefined) return undefined;
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  throw new BridgeRuntimeConfigurationError(
+    `PLAYWRIGHT_MCP_SNAPSHOT_BOXES must be "true" or "false", got "${value}"`,
+  );
 }
 
 function shouldInheritChildEnv(key: string): boolean {

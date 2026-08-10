@@ -365,6 +365,39 @@ describe('version compatibility helpers', () => {
       ),
     ).toThrow('manual translation');
   });
+
+  it('preserves a manually translated localized row when package versions change', () => {
+    const previous: CompatibilityRow = {
+      cloakbrowser: '^0.5.3',
+      node: '^22.13.0 || >=24.0.0',
+      parity: 'Compared in CI',
+      playwrightMcp: '^0.0.78',
+      playwrightMcpDockerBase: 'mcr.microsoft.com/playwright/mcp:v0.0.78',
+      readmePlatforms: 'npm on Linux',
+      testedPlatform: 'npm on Node.js 22',
+      transports: ['stdio', 'Streamable HTTP'],
+      version: '1.10.0',
+    };
+    const current: CompatibilityRow = {
+      ...previous,
+      cloakbrowser: '^0.5.6',
+      playwrightMcp: '^0.0.79',
+      playwrightMcpDockerBase: 'mcr.microsoft.com/playwright/mcp:v0.0.79',
+      version: '1.11.0',
+    };
+    const content = [
+      '<!-- compatibility-table:start -->',
+      '',
+      '| version | CloakBrowser |',
+      '| ------- | ------------ |',
+      '| `1.11.0` | `^0.5.6`     |',
+      '| `1.10.0` | `^0.5.3`     |',
+      '',
+      '<!-- compatibility-table:end -->',
+    ].join('\n');
+
+    expect(versionCompatibility.prependLocalizedCompatibilityRow(content, previous, current)).toBe(content);
+  });
 });
 
 describe('Playwright MCP parity helpers', () => {
@@ -374,9 +407,9 @@ describe('Playwright MCP parity helpers', () => {
     expect(parity.expectedDefaultTools).toContain('browser_snapshot');
     expect(
       parity.normalizeToolResponseText(
-        'saved /data/path/page-123456.png in 1234ms\n### Events\n- unstable event\nDone',
+        'saved /data/path/page-123456.png in 1234ms\n[box=12,34,56,78]\n### Events\n- unstable event\nDone',
       ),
-    ).toBe('saved /data/<artifact> in <duration>msDone');
+    ).toBe('saved /data/<artifact> in <duration>ms\n[box=<coordinates>]Done');
     expect(() => parity.assertEqual({ a: 1 }, { a: 2 }, 'value')).toThrow('value mismatch');
   });
 });
