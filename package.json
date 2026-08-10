@@ -120,7 +120,9 @@
   "overrides": {
     "vite": "8.2.1",
     "esbuild": "0.28.2",
-    "@typescript-eslint/utils": "8.66.0"
+    "@typescript-eslint/utils": "8.66.0",
+    "fast-uri": "3.1.5",
+    "ip-address": "10.5.0"
   },
   "keywords": [
     "mcp",
