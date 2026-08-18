@@ -39,6 +39,7 @@ tags:
 
 | cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base                 | CloakBrowser | Transport              | Parity         |
 | ---------------- | --------------- | ------------------------------------------ | ------------ | ---------------------- | -------------- |
+| `1.12.0`          | `^0.0.79`       | `mcr.microsoft.com/playwright/mcp:v0.0.79` | `^0.5.7`    | stdio, Streamable HTTP | CI में तुलना की गई |
 | `1.11.0`          | `^0.0.79`       | `mcr.microsoft.com/playwright/mcp:v0.0.79` | `^0.5.6`    | stdio, Streamable HTTP | CI में तुलना की गई |
 | `1.10.0`          | `^0.0.78`       | `mcr.microsoft.com/playwright/mcp:v0.0.78` | `^0.5.3`    | stdio, Streamable HTTP | CI में तुलना की गई |
 | `1.9.0`          | `^0.0.78`       | `mcr.microsoft.com/playwright/mcp:v0.0.78` | `^0.5.1`    | stdio, Streamable HTTP | CI में तुलना की गई |

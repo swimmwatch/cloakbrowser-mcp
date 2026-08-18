@@ -14,7 +14,7 @@ permissions:
 env:
   CI_DOCKER_IMAGE: cloakbrowser-mcp:ci
   DOCKER_CACHE_SCOPE: cloakbrowser-mcp-docker
-  NPM_VERSION: '11.6.2'
+  NPM_VERSION: '11.19.0'
   NODE_CHECK_VERSIONS: '["22", "24", "25", "26"]'
   NODE_IMAGE_REF: node:22-bookworm-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436
   PLAYWRIGHT_MCP_IMAGE: mcr.microsoft.com/playwright/mcp:v0.0.79@sha256:18c0a9c934004fe9580cc79f1e8e6e6cde7c667348b215335e8a23fd3e509804

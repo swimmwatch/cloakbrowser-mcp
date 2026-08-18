@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-08-18
+
+### Changed
+
+- Updated CloakBrowser to 0.5.7, retaining the bridge's humanized browser and
+  persistent-context integrations while inheriting nested-frame humanization
+  and caller-specified key-press delay preservation.
+- Refreshed supported root and demo dependencies, including ESLint 10, the
+  maintained Vitest ESLint plugin, npm 11.19.0, and Remotion 4.0.512.
+- Extended the Docker-backed upstream parity scenario to cover a delayed key
+  press in a nested frame with CloakBrowser humanization enabled.
+
 ## [1.11.0] - 2026-08-10
 
 ### Added
@@ -382,7 +394,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.11.0...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.12.0...HEAD
+[1.12.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.8.0...v1.9.0

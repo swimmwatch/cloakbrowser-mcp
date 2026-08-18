@@ -11,22 +11,22 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@remotion/animated-emoji": "4.0.507",
-    "@remotion/cli": "4.0.507",
-    "@remotion/effects": "4.0.507",
-    "@remotion/google-fonts": "4.0.507",
-    "@remotion/lottie": "4.0.507",
-    "@remotion/motion-blur": "4.0.507",
-    "@remotion/noise": "4.0.507",
-    "@remotion/shapes": "4.0.507",
-    "@remotion/transitions": "4.0.507",
+    "@remotion/animated-emoji": "4.0.512",
+    "@remotion/cli": "4.0.512",
+    "@remotion/effects": "4.0.512",
+    "@remotion/google-fonts": "4.0.512",
+    "@remotion/lottie": "4.0.512",
+    "@remotion/motion-blur": "4.0.512",
+    "@remotion/noise": "4.0.512",
+    "@remotion/shapes": "4.0.512",
+    "@remotion/transitions": "4.0.512",
     "@types/node": "26.2.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "lottie-web": "5.13.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "remotion": "4.0.507",
+    "remotion": "4.0.512",
     "typescript": "7.0.2"
   }
 }

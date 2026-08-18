@@ -7,7 +7,7 @@ FROM ${NODE_IMAGE_REF} AS deps
 WORKDIR /src
 ENV NPM_CONFIG_UPDATE_NOTIFIER=false
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-RUN npm install --global npm@11.6.2
+RUN npm install --global npm@11.19.0
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm,sharing=locked \
     npm ci --no-audit --no-fund --ignore-scripts

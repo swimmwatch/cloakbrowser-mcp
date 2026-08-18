@@ -19,7 +19,7 @@ permissions: {}
 env:
   NODE_VERSION: '22'
   NPM_NODE_VERSION: '24'
-  NPM_VERSION: '11.6.2'
+  NPM_VERSION: '11.19.0'
   NPM_CONFIG_AUDIT: 'false'
   NPM_CONFIG_FUND: 'false'
   NODE_IMAGE_REF: node:22-bookworm-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436
