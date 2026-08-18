@@ -1,4 +1,4 @@
-// Flat config for ESLint v9.
+// Flat config for ESLint v10.
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
@@ -10,7 +10,7 @@ import perfectionist from 'eslint-plugin-perfectionist';
 import promise from 'eslint-plugin-promise';
 import { configs as regexpConfigs } from 'eslint-plugin-regexp';
 import sonarjs from 'eslint-plugin-sonarjs';
-import vitest from 'eslint-plugin-vitest';
+import vitest from '@vitest/eslint-plugin';
 
 export default tseslint.config(
   {

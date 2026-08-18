@@ -22,17 +22,20 @@ const baselineImage =
 const fixtureServer = await startFixtureServer();
 const baseline = await startMcpContainer('playwright', baselineImage, false);
 const cloak = await startMcpContainer('cloak', image, true);
+const cloakHumanized = await startMcpContainer('cloak-humanized', image, true, true);
 
 try {
   const baselineRun = await runScenario(baseline, fixtureServer.url);
   const cloakRun = await runScenario(cloak, fixtureServer.url);
   compareRuns(baselineRun, cloakRun);
   await assertLocalTools(cloak);
-  if (reportPath) writeReport(reportPath, createReport(baselineRun, cloakRun));
-  printSummary(baselineRun, cloakRun);
+  const humanizationRun = await runHumanizationScenario(cloakHumanized, fixtureServer.url);
+  if (reportPath) writeReport(reportPath, createReport(baselineRun, cloakRun, humanizationRun));
+  printSummary(baselineRun, cloakRun, humanizationRun);
 } finally {
   await baseline.close();
   await cloak.close();
+  await cloakHumanized.close();
   await fixtureServer.close();
 }
 
@@ -65,7 +68,7 @@ function parseArgs(args) {
   return parsed;
 }
 
-async function startMcpContainer(mode, containerImage, useCloakWrapper) {
+async function startMcpContainer(mode, containerImage, useCloakWrapper, humanize = false) {
   const dataDir = mkdtempSync(path.join(tmpdir(), `pwmcp-${mode}-`));
   chmodSync(dataDir, 0o777);
   writeFileSync(path.join(dataDir, 'upload.txt'), `upload from ${mode}\n`);
@@ -91,6 +94,9 @@ async function startMcpContainer(mode, containerImage, useCloakWrapper) {
       'PLAYWRIGHT_MCP_IGNORE_HTTPS_ERRORS=true',
       containerImage,
     );
+    if (humanize) {
+      dockerArgs.splice(-1, 0, '-e', 'CLOAK_PLAYWRIGHT_MCP_HUMANIZE=true');
+    }
   } else {
     dockerArgs.push(
       containerImage,
@@ -213,6 +219,77 @@ async function runScenario(target, fixtureUrl) {
   return { mode: target.mode, tools: upstreamToolNames, screenshotSchema, calls };
 }
 
+async function runHumanizationScenario(target, fixtureUrl) {
+  const { tools } = await target.client.listTools();
+  const upstreamToolNames = tools
+    .map((tool) => tool.name)
+    .filter((name) => !localToolNames.includes(name))
+    .sort();
+  assertEqual(upstreamToolNames, expectedDefaultTools, `${target.mode} upstream tool list`);
+
+  const calls = [];
+  const call = async (name, args = {}) => {
+    const started = Date.now();
+    const result = await target.client.callTool({ name, arguments: args });
+    const text =
+      result.content?.map((item) => (item.type === 'text' ? item.text : `[${item.type}]`)).join('\n') ?? '';
+    calls.push({
+      name,
+      ok: !result.isError,
+      ms: Date.now() - started,
+      text: normalizeToolResponseText(text),
+    });
+    if (result.isError) throw new Error(`${name} returned an MCP error: ${text}`);
+    return result;
+  };
+
+  await call('browser_resize', { width: 1280, height: 720 });
+  await call('browser_navigate', { url: fixtureUrl });
+  const nestedKeyPress = await call('browser_run_code_unsafe', { code: nestedDelayedKeyPressCode() });
+  const nestedKeyPressText = normalizeToolResponseText(
+    nestedKeyPress.content?.map((item) => (item.type === 'text' ? item.text : `[${item.type}]`)).join('\n') ??
+      '',
+  );
+  if (!nestedKeyPressText.includes('nested delayed key press preserved')) {
+    throw new Error(`nested delayed key press result was unexpected: ${nestedKeyPressText}`);
+  }
+  await call('browser_close');
+
+  return { calls };
+}
+
+function nestedDelayedKeyPressCode() {
+  return `async (page) => {
+  const frame = page.frames().find((candidate) => candidate.url().endsWith('/nested-inner'));
+  if (!frame) throw new Error('nested fixture frame was not found');
+  await frame.evaluate(() => {
+    const input = document.querySelector('#nested-key-input');
+    if (!(input instanceof HTMLInputElement)) throw new Error('nested fixture input was not found');
+    globalThis.__cloakbrowserMcpKeyEvents = [];
+    input.addEventListener('keydown', () => globalThis.__cloakbrowserMcpKeyEvents.push(performance.now()), {
+      once: true,
+    });
+    input.addEventListener('keyup', () => globalThis.__cloakbrowserMcpKeyEvents.push(performance.now()), {
+      once: true,
+    });
+    input.focus();
+  });
+  await frame.locator('#nested-key-input').press('x', { delay: 100 });
+  const result = await frame.evaluate(() => {
+    const input = document.querySelector('#nested-key-input');
+    const events = globalThis.__cloakbrowserMcpKeyEvents;
+    return {
+      delay: Array.isArray(events) && events.length === 2 ? events[1] - events[0] : 0,
+      value: input instanceof HTMLInputElement ? input.value : '',
+    };
+  });
+  if (result.value !== 'x' || result.delay < 60) {
+    throw new Error('nested delayed key press failed: ' + JSON.stringify(result));
+  }
+  return 'nested delayed key press preserved';
+}`;
+}
+
 function assertScreenshotSchemaSupportsWebp(tools, mode) {
   const screenshotTool = tools.find((tool) => tool.name === 'browser_take_screenshot');
   const typeSchema = screenshotTool?.inputSchema?.properties?.type;
@@ -263,7 +340,7 @@ async function assertLocalTools(target) {
   }
 }
 
-function printSummary(baselineRun, cloakRun) {
+function printSummary(baselineRun, cloakRun, humanizationRun) {
   const width = Math.max(...baselineRun.calls.map((call) => call.name.length));
   process.stdout.write(
     `Compared ${baselineRun.tools.length} upstream Playwright MCP tools\nBaseline image: ${baselineImage}\nCloak image: ${image}\n`,
@@ -277,12 +354,17 @@ function printSummary(baselineRun, cloakRun) {
       } ${String(cloakCall.ms).padStart(5)}ms\n`,
     );
   }
+  process.stdout.write(
+    `Humanization: nested delayed key press verified (${
+      humanizationRun.calls.find((call) => call.name === 'browser_run_code_unsafe')?.ms
+    }ms)\n`,
+  );
   if (reportPath) {
     process.stdout.write(`Parity report: ${reportPath}\n`);
   }
 }
 
-function createReport(baselineRun, cloakRun) {
+function createReport(baselineRun, cloakRun, humanizationRun) {
   return {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
@@ -294,6 +376,12 @@ function createReport(baselineRun, cloakRun) {
     result: {
       matched: true,
       comparedCalls: baselineRun.calls.length,
+    },
+    humanization: {
+      nestedDelayedKeyPress: {
+        verified: true,
+        durationMs: humanizationRun.calls.find((call) => call.name === 'browser_run_code_unsafe')?.ms,
+      },
     },
     calls: baselineRun.calls.map((baselineCall, index) => {
       const cloakCall = cloakRun.calls[index];
@@ -323,6 +411,16 @@ async function startFixtureServer() {
     if (url.pathname === '/api/data') {
       response.writeHead(200, { 'content-type': 'application/json' });
       response.end(JSON.stringify({ ok: true, path: url.pathname }));
+      return;
+    }
+    if (url.pathname === '/nested-outer') {
+      response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+      response.end(nestedOuterFixtureHtml());
+      return;
+    }
+    if (url.pathname === '/nested-inner') {
+      response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+      response.end(nestedInnerFixtureHtml());
       return;
     }
     response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
@@ -373,6 +471,7 @@ function fixtureHtml() {
     <button id="dialog-button" type="button">Dialog</button>
     <div id="drag-source" draggable="true">Drag source</div>
     <div id="drop-target">Drop target</div>
+    <iframe id="nested-outer" src="/nested-outer" title="Nested fixture"></iframe>
     <pre id="status">ready</pre>
     <script>
       console.log('fixture-loaded');
@@ -398,6 +497,24 @@ function fixtureHtml() {
           event.dataTransfer.getData('text/plain') || 'dropped';
       });
     </script>
+  </body>
+</html>`;
+}
+
+function nestedOuterFixtureHtml() {
+  return `<!doctype html>
+<html>
+  <body>
+    <iframe id="nested-inner" src="/nested-inner" title="Deep nested fixture"></iframe>
+  </body>
+</html>`;
+}
+
+function nestedInnerFixtureHtml() {
+  return `<!doctype html>
+<html>
+  <body>
+    <label>Nested key input <input id="nested-key-input" /></label>
   </body>
 </html>`;
 }
