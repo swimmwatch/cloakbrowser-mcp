@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 ARG NODE_IMAGE_REF=node:22-bookworm-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436
-ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.79@sha256:18c0a9c934004fe9580cc79f1e8e6e6cde7c667348b215335e8a23fd3e509804
+ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.80@sha256:dda1f7f9b812e22946635c8af7df9288b96d3b9e3f0f1b8576d6823e2031c1de
 
 FROM ${NODE_IMAGE_REF} AS deps
 WORKDIR /src
@@ -23,7 +23,7 @@ RUN npm prune --omit=dev --ignore-scripts \
  && npm cache clean --force
 
 FROM ${PLAYWRIGHT_MCP_IMAGE} AS runtime
-ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.79@sha256:18c0a9c934004fe9580cc79f1e8e6e6cde7c667348b215335e8a23fd3e509804
+ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.80@sha256:dda1f7f9b812e22946635c8af7df9288b96d3b9e3f0f1b8576d6823e2031c1de
 ARG PLAYWRIGHT_MCP_IMAGE_DIGEST=unknown
 ARG RELEASE_VERSION=0.0.0
 ARG RELEASE_VERSION_TAG=v0.0.0
@@ -46,9 +46,10 @@ LABEL org.opencontainers.image.vendor="swimmwatch"
 LABEL org.opencontainers.image.base.name="${PLAYWRIGHT_MCP_IMAGE}"
 LABEL org.opencontainers.image.base.digest="${PLAYWRIGHT_MCP_IMAGE_DIGEST}"
 
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fonts-urw-base35 \
  && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
  && rm -rf /var/lib/apt/lists/*
 

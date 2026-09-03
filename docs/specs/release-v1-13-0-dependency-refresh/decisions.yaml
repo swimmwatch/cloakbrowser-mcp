@@ -1,0 +1,362 @@
+schema_version: 1
+spec_slug: release-v1-13-0-dependency-refresh
+decisions:
+  - id: release.target
+    revision: 1
+    category: release
+    state: answered
+    provenance: user
+    evidence:
+      - User implementation plan dated 2026-09-03
+    question:
+      text: Which release version and stability should this preparation use?
+      kind: single
+      options:
+        - id: v1.13.0-stable
+          label: Prepare stable v1.13.0
+          description: Apply the v1.13.0 version only in the release-preparation change set.
+    answer:
+      selected_ids:
+        - v1.13.0-stable
+      text: ''
+      rationale: The requested release branch and version are release/v1.13.0 and v1.13.0.
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids:
+      - REL-01
+      - REL-02
+  - id: release.stability
+    revision: 1
+    category: release
+    state: answered
+    provenance: user
+    evidence:
+      - Prompt MCP release:v1.13.0, release.stability revision 1
+    question:
+      text: Should v1.13.0 be prepared as a stable release?
+      kind: single
+      options:
+        - id: stable
+          label: Stable
+          description: Prepare a normal v1.13.0 release without a prerelease suffix.
+    answer:
+      selected_ids:
+        - stable
+      text: ''
+    rationale: The user confirmed a stable release through Prompt MCP.
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids:
+      - REL-01
+  - id: release.preparation
+    revision: 1
+    category: authorization
+    state: answered
+    provenance: user
+    evidence:
+      - Prompt MCP release:v1.13.0, release.preparation revision 1
+    question:
+      text: Is local v1.13.0 release preparation authorized?
+      kind: single
+      options:
+        - id: authorize
+          label: Authorize local preparation
+          description: Update local release files without external delivery mutations.
+    answer:
+      selected_ids:
+        - authorize
+      text: ''
+    rationale: The user authorized local preparation only; external delivery remains gated.
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids:
+      - REL-01
+      - REL-02
+  - id: compatibility.policy
+    revision: 1
+    category: compatibility
+    state: answered
+    provenance: user
+    evidence:
+      - User implementation plan dated 2026-09-03
+    question:
+      text: Which public compatibility policy applies to this refresh?
+      kind: single
+      options:
+        - id: preserve-contracts
+          label: Preserve public contracts
+          description: Keep CLI, MCP, HTTP, Node, platform, and transport contracts compatible.
+    answer:
+      selected_ids:
+        - preserve-contracts
+      text: ''
+      rationale: The plan explicitly preserves public CLI, MCP, and HTTP contracts.
+    last_tool_status: answered-from-request
+    supersedes_revision: null
+    requirement_ids:
+      - COMP-01
+      - COMP-02
+  - id: dependency.targets
+    revision: 1
+    category: dependencies
+    state: answered
+    provenance: user
+    evidence:
+      - User implementation plan dated 2026-09-03
+    question:
+      text: Which dependency and workflow versions must the release include?
+      kind: multiple
+      options:
+        - id: pinned-2026-09-03
+          label: Apply supplied dependency targets
+          description: Update all dependencies and action pins listed in the implementation plan.
+    answer:
+      selected_ids:
+        - pinned-2026-09-03
+      text: ''
+      rationale: The target versions, image digest, and action commits are supplied explicitly.
+    last_tool_status: answered-from-request
+    supersedes_revision: null
+    requirement_ids:
+      - DEP-01
+      - DEP-02
+      - CI-01
+      - DOCKER-01
+  - id: cloakbrowser.integration
+    revision: 1
+    category: integration
+    state: answered
+    provenance: user
+    evidence:
+      - User implementation plan dated 2026-09-03
+    question:
+      text: Which CloakBrowser v0.5.10 integration boundaries apply?
+      kind: multiple
+      options:
+        - id: public-api-only
+          label: Use public APIs only
+          description: Preserve use of ensureBinary, binaryInfo, buildLaunchOptions, getDefaultStealthArgs, and humanizeBrowser.
+        - id: no-session-seats-tool
+          label: Exclude SessionSeats tool
+          description: Do not expose a tool for a CloakBrowser API absent from its public entry point.
+        - id: document-fail-closed
+          label: Document fail-closed errors
+          description: Document GeoIP, 20-second timeout, and invalid or unavailable license errors.
+    answer:
+      selected_ids:
+        - public-api-only
+        - no-session-seats-tool
+        - document-fail-closed
+      text: ''
+      rationale: These restrictions and documentation duties are explicitly required.
+    last_tool_status: answered-from-request
+    supersedes_revision: null
+    requirement_ids:
+      - CLOAK-01
+      - CLOAK-02
+      - CLOAK-03
+      - CLOAK-04
+  - id: playwright.integration
+    revision: 1
+    category: integration
+    state: answered
+    provenance: user
+    evidence:
+      - User implementation plan dated 2026-09-03
+    question:
+      text: Which Playwright MCP v0.0.80 integration boundaries apply?
+      kind: multiple
+      options:
+        - id: upstream-tool-parity
+          label: Preserve upstream tool parity
+          description: Keep the 24 default upstream tools unchanged.
+        - id: devtools-parity
+          label: Add devtools parity coverage
+          description: Compare schemas with PLAYWRIGHT_MCP_CAPS=devtools, including recording tools.
+        - id: no-bridge-caps-flag
+          label: Do not add a bridge caps flag
+          description: Rely on existing PLAYWRIGHT_MCP environment inheritance.
+    answer:
+      selected_ids:
+        - upstream-tool-parity
+        - devtools-parity
+        - no-bridge-caps-flag
+      text: ''
+      rationale: These compatibility boundaries are explicitly required.
+    last_tool_status: answered-from-request
+    supersedes_revision: null
+    requirement_ids:
+      - PW-01
+      - PW-02
+      - PW-03
+  - id: github.cleanup
+    revision: 1
+    category: delivery
+    state: answered
+    provenance: user
+    evidence:
+      - User implementation plan dated 2026-09-03
+    question:
+      text: Which GitHub cleanup and delivery operations are in scope?
+      kind: multiple
+      options:
+        - id: no-external-mutations-now
+          label: Keep external mutations manual
+          description: Do not commit, push, create a PR, close issues or PRs, merge, tag, or publish without separate authorization.
+        - id: supersede-after-green-pr
+          label: Define post-PR cleanup
+          description: Close only listed Dependabot PRs and obsolete issues after the replacement PR is green.
+    answer:
+      selected_ids:
+        - no-external-mutations-now
+        - supersede-after-green-pr
+      text: ''
+      rationale: The plan marks every GitHub mutation as a manual gate.
+    last_tool_status: answered-from-request
+    supersedes_revision: null
+    requirement_ids:
+      - GH-01
+      - GH-02
+      - GH-03
+  - id: approval.spec
+    revision: 1
+    category: approval
+    state: needs_user
+    provenance: null
+    evidence:
+      - docs/specs/release-v1-13-0-dependency-refresh/spec.md
+    question:
+      text: Do you approve the v1.13.0 dependency-refresh implementation contract?
+      kind: single
+      options:
+        - id: approve
+          label: Approve draft
+          description: Approve this contract for task planning and implementation.
+        - id: request-changes
+          label: Request changes
+          description: Keep the contract in Draft and revise the requested parts.
+        - id: leave-draft
+          label: Leave draft
+          description: Stop with the contract unapproved.
+    answer:
+      selected_ids: []
+      text: ''
+      rationale: ''
+    last_tool_status: cancelled
+    supersedes_revision: null
+    requirement_ids: []
+  - id: approval.spec.retry
+    revision: 1
+    category: approval
+    state: answered
+    provenance: user
+    evidence:
+      - docs/specs/release-v1-13-0-dependency-refresh/spec.md
+      - Prompt MCP approval.spec revision 1 was cancelled before an answer
+    question:
+      text: Do you approve the v1.13.0 dependency-refresh implementation contract?
+      kind: single
+      options:
+        - id: approve
+          label: Approve draft
+          description: Approve this contract for task planning and implementation.
+        - id: request-changes
+          label: Request changes
+          description: Keep the contract in Draft and revise the requested parts.
+        - id: leave-draft
+          label: Leave draft
+          description: Stop with the contract unapproved.
+    answer:
+      selected_ids:
+        - approve
+      text: ''
+    rationale: The user explicitly approved the draft through Prompt MCP.
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids: []
+  - id: approval.plan
+    revision: 1
+    category: approval
+    state: answered
+    provenance: user
+    evidence:
+      - docs/specs/release-v1-13-0-dependency-refresh/tasks/plan.md
+    question:
+      text: Do you approve the v1.13.0 task packets?
+      kind: single
+      options:
+        - id: approve
+          label: Approve packets
+          description: Approve the packet order, file boundaries, checks, and manual gates.
+        - id: request-changes
+          label: Request changes
+          description: Revise the packets before implementation.
+        - id: leave-planned
+          label: Leave planned
+          description: Stop without starting implementation.
+    answer:
+      selected_ids:
+        - approve
+      text: ''
+    rationale: The user explicitly approved the task packets through Prompt MCP.
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids: []
+  - id: authorization.execution.01
+    revision: 1
+    category: authorization
+    state: answered
+    provenance: user
+    evidence:
+      - docs/specs/release-v1-13-0-dependency-refresh/tasks/01_dependency-and-supply-chain-refresh.md
+    question:
+      text: May implementation begin with packet 01 only?
+      kind: single
+      options:
+        - id: authorize
+          label: Authorize packet 01
+          description: Make local dependency, Docker, and workflow changes and run its checks; do not commit or continue to another packet.
+        - id: defer
+          label: Defer implementation
+          description: Keep the approved plan without changing repository implementation files.
+    answer:
+      selected_ids:
+        - authorize
+      text: ''
+    rationale: The user explicitly authorized packet 01 only through Prompt MCP.
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids:
+      - DEP-01
+      - DEP-02
+      - CI-01
+      - DOCKER-01
+  - id: authorization.commit.01
+    revision: 1
+    category: authorization
+    state: answered
+    provenance: user
+    evidence:
+      - docs/specs/release-v1-13-0-dependency-refresh/tasks/handoff.md
+    question:
+      text: May packet 01 be committed locally now?
+      kind: single
+      options:
+        - id: authorize
+          label: Authorize commit
+          description: Create one local Conventional Commit for the completed packet 01 only; do not push or create a PR.
+        - id: keep-uncommitted
+          label: Keep uncommitted
+          description: Leave packet 01 staged nowhere and do not create a commit.
+    answer:
+      selected_ids:
+        - authorize
+      text: ''
+    rationale: The user explicitly authorized one local commit for packet 01 through Prompt MCP.
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids:
+      - DEP-01
+      - DEP-02
+      - CI-01
+      - DOCKER-01
