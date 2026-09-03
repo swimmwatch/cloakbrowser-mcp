@@ -360,3 +360,67 @@ decisions:
       - DEP-02
       - CI-01
       - DOCKER-01
+  - id: authorization.execution.02
+    revision: 1
+    category: authorization
+    state: answered
+    provenance: user
+    evidence:
+      - docs/specs/release-v1-13-0-dependency-refresh/tasks/02_bridge-parity-and-integration-coverage.md
+    question:
+      text: May implementation begin with packet 02 only?
+      kind: single
+      options:
+        - id: authorize
+          label: Authorize packet 02
+          description: Add local bridge-parity and integration coverage, run its focused checks, and stop before committing or starting another packet.
+        - id: defer
+          label: Defer implementation
+          description: Keep packet 02 planned and do not change implementation files.
+    answer:
+      selected_ids:
+        - authorize
+      text: ''
+    rationale: The user explicitly authorized packet 02 through Prompt MCP.
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids:
+      - CLOAK-01
+      - CLOAK-02
+      - CLOAK-03
+      - PW-01
+      - PW-02
+      - PW-03
+      - COMP-01
+  - id: authorization.commit.02
+    revision: 1
+    category: authorization
+    state: answered
+    provenance: user
+    evidence:
+      - docs/specs/release-v1-13-0-dependency-refresh/tasks/handoff.md
+    question:
+      text: May packet 02 be committed locally now?
+      kind: single
+      options:
+        - id: authorize
+          label: Authorize commit
+          description: Create one local Conventional Commit for completed packet 02 only; do not push or create a PR.
+        - id: keep-uncommitted
+          label: Keep uncommitted
+          description: Leave packet 02 staged nowhere and do not create a commit.
+    answer:
+      selected_ids:
+        - authorize
+      text: ''
+    rationale: The user explicitly authorized one local commit for packet 02 through Prompt MCP.
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids:
+      - CLOAK-01
+      - CLOAK-02
+      - CLOAK-03
+      - PW-01
+      - PW-02
+      - PW-03
+      - COMP-01

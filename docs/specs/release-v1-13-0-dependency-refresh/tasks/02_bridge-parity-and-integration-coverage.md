@@ -56,7 +56,7 @@ push, PR, GitHub mutations, merge, tag, and publication are MANUAL GATE.
 
 ## Completion checklist and handoff
 
-- [ ] CloakBrowser public integration and cleanup error regression covered.
-- [ ] Default and devtools upstream parity covered.
-- [ ] Focused checks completed.
-- [ ] `todo.md` and `handoff.md` updated; packet 03 is next.
+- [x] CloakBrowser public integration and cleanup error regression covered.
+- [x] Default and devtools upstream parity covered.
+- [x] Focused checks completed.
+- [x] `todo.md` and `handoff.md` updated; packet 03 is next.

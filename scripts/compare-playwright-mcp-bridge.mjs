@@ -17,12 +17,20 @@ import {
 const { image, reportPath } = parseArgs(process.argv.slice(2));
 const baselineImage =
   process.env.PLAYWRIGHT_MCP_BASELINE_IMAGE ??
-  'mcr.microsoft.com/playwright/mcp:v0.0.79@sha256:18c0a9c934004fe9580cc79f1e8e6e6cde7c667348b215335e8a23fd3e509804';
+  'mcr.microsoft.com/playwright/mcp:v0.0.80@sha256:dda1f7f9b812e22946635c8af7df9288b96d3b9e3f0f1b8576d6823e2031c1de';
 
 const fixtureServer = await startFixtureServer();
 const baseline = await startMcpContainer('playwright', baselineImage, false);
 const cloak = await startMcpContainer('cloak', image, true);
 const cloakHumanized = await startMcpContainer('cloak-humanized', image, true, true);
+const baselineDevtools = await startMcpContainer(
+  'playwright-devtools',
+  baselineImage,
+  false,
+  false,
+  'devtools',
+);
+const cloakDevtools = await startMcpContainer('cloak-devtools', image, true, false, 'devtools');
 
 try {
   const baselineRun = await runScenario(baseline, fixtureServer.url);
@@ -30,12 +38,19 @@ try {
   compareRuns(baselineRun, cloakRun);
   await assertLocalTools(cloak);
   const humanizationRun = await runHumanizationScenario(cloakHumanized, fixtureServer.url);
-  if (reportPath) writeReport(reportPath, createReport(baselineRun, cloakRun, humanizationRun));
-  printSummary(baselineRun, cloakRun, humanizationRun);
+  const baselineDevtoolsRun = await runDevtoolsSchemaScenario(baselineDevtools);
+  const cloakDevtoolsRun = await runDevtoolsSchemaScenario(cloakDevtools);
+  compareDevtoolsSchemaRuns(baselineDevtoolsRun, cloakDevtoolsRun);
+  if (reportPath) {
+    writeReport(reportPath, createReport(baselineRun, cloakRun, humanizationRun, baselineDevtoolsRun));
+  }
+  printSummary(baselineRun, cloakRun, humanizationRun, baselineDevtoolsRun);
 } finally {
   await baseline.close();
   await cloak.close();
   await cloakHumanized.close();
+  await baselineDevtools.close();
+  await cloakDevtools.close();
   await fixtureServer.close();
 }
 
@@ -68,12 +83,13 @@ function parseArgs(args) {
   return parsed;
 }
 
-async function startMcpContainer(mode, containerImage, useCloakWrapper, humanize = false) {
+async function startMcpContainer(mode, containerImage, useCloakWrapper, humanize = false, caps) {
   const dataDir = mkdtempSync(path.join(tmpdir(), `pwmcp-${mode}-`));
   chmodSync(dataDir, 0o777);
   writeFileSync(path.join(dataDir, 'upload.txt'), `upload from ${mode}\n`);
 
   const dockerArgs = ['run', '--rm', '--init', '-i', '--network', 'host', '-v', `${dataDir}:/data`];
+  if (caps) dockerArgs.push('-e', `PLAYWRIGHT_MCP_CAPS=${caps}`);
   if (useCloakWrapper) {
     dockerArgs.push(
       '-e',
@@ -245,6 +261,8 @@ async function runHumanizationScenario(target, fixtureUrl) {
 
   await call('browser_resize', { width: 1280, height: 720 });
   await call('browser_navigate', { url: fixtureUrl });
+  await call('browser_select_option', { target: '#role', values: ['admin'] });
+  await call('browser_click', { target: '#login' });
   const nestedKeyPress = await call('browser_run_code_unsafe', { code: nestedDelayedKeyPressCode() });
   const nestedKeyPressText = normalizeToolResponseText(
     nestedKeyPress.content?.map((item) => (item.type === 'text' ? item.text : `[${item.type}]`)).join('\n') ??
@@ -256,6 +274,27 @@ async function runHumanizationScenario(target, fixtureUrl) {
   await call('browser_close');
 
   return { calls };
+}
+
+async function runDevtoolsSchemaScenario(target) {
+  const { tools } = await target.client.listTools();
+  const upstreamTools = tools
+    .filter((tool) => !localToolNames.includes(tool.name))
+    .map((tool) => ({ name: tool.name, inputSchema: tool.inputSchema }))
+    .sort((left, right) => left.name.localeCompare(right.name));
+  const recordingToolNames = ['browser_start_recording', 'browser_stop_recording'];
+
+  for (const name of recordingToolNames) {
+    if (!upstreamTools.some((tool) => tool.name === name)) {
+      throw new Error(`${target.mode} devtools tool list is missing ${name}`);
+    }
+  }
+
+  return { tools: upstreamTools };
+}
+
+function compareDevtoolsSchemaRuns(baselineRun, cloakRun) {
+  assertEqual(cloakRun.tools, baselineRun.tools, 'devtools upstream tool schema parity');
 }
 
 function nestedDelayedKeyPressCode() {
@@ -340,7 +379,7 @@ async function assertLocalTools(target) {
   }
 }
 
-function printSummary(baselineRun, cloakRun, humanizationRun) {
+function printSummary(baselineRun, cloakRun, humanizationRun, devtoolsRun) {
   const width = Math.max(...baselineRun.calls.map((call) => call.name.length));
   process.stdout.write(
     `Compared ${baselineRun.tools.length} upstream Playwright MCP tools\nBaseline image: ${baselineImage}\nCloak image: ${image}\n`,
@@ -359,12 +398,15 @@ function printSummary(baselineRun, cloakRun, humanizationRun) {
       humanizationRun.calls.find((call) => call.name === 'browser_run_code_unsafe')?.ms
     }ms)\n`,
   );
+  process.stdout.write(
+    `Devtools schemas: matched ${devtoolsRun.tools.length} upstream tools including browser_start_recording and browser_stop_recording\n`,
+  );
   if (reportPath) {
     process.stdout.write(`Parity report: ${reportPath}\n`);
   }
 }
 
-function createReport(baselineRun, cloakRun, humanizationRun) {
+function createReport(baselineRun, cloakRun, humanizationRun, devtoolsRun) {
   return {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
@@ -378,10 +420,18 @@ function createReport(baselineRun, cloakRun, humanizationRun) {
       comparedCalls: baselineRun.calls.length,
     },
     humanization: {
+      actionAfterNavigation: true,
       nestedDelayedKeyPress: {
         verified: true,
         durationMs: humanizationRun.calls.find((call) => call.name === 'browser_run_code_unsafe')?.ms,
       },
+      selectOption: true,
+    },
+    devtools: {
+      caps: 'devtools',
+      recordingTools: ['browser_start_recording', 'browser_stop_recording'],
+      toolSchemaCount: devtoolsRun.tools.length,
+      schemasMatched: true,
     },
     calls: baselineRun.calls.map((baselineCall, index) => {
       const cloakCall = cloakRun.calls[index];
