@@ -74,6 +74,48 @@ Blockers: no technical blocker. Stop before packet 03, commit, push, PR
 creation, GitHub cleanup, merge, tag, or publication without their separate
 manual gates.
 
+## Packet 04 verification failure update
+
+Security remediation update (2026-09-04): production audit exposed a high
+`fast-uri` advisory and related Hono advisories after the registry recovered.
+The existing `overrides` mechanism now resolves `fast-uri` `3.1.7`, `hono`
+`4.13.5`, and `@hono/node-server` `1.19.15`; npm `11.19.0` regenerated the
+lockfile and `npm ci --ignore-scripts --no-audit` synchronized the local
+dependencies. A standalone `npm run audit:prod` passed after the update.
+`npm run package:verify`, Docker build and smoke, the runtime font query, and
+bridge parity also passed on the updated dependency graph. The bridge report
+again confirmed 24 default tools and 37 matching `devtools` schemas and was
+removed.
+
+Retry update (2026-09-04): the explicitly authorized second
+`npm run check:ci` attempt reached the same npm audit endpoint and failed
+with the same network timeout. The retry again passed every preceding static,
+documentation, build, and test step; coverage was not reached. No GitHub
+operation is authorized or was performed.
+
+Current state: packet 04 remains incomplete. `npm run check:ci` failed only
+because `npm audit --omit=dev --audit-level=high` timed out at
+`https://registry.npmjs.org/-/npm/v1/security/advisories/bulk`; all checks
+before the audit passed, while coverage was not reached. This environmental
+failure remains a failed required check and blocks all GitHub operations.
+
+Other packet 04 results passed: `npm run package:verify`, `npm run
+docker:build`, `npm run docker:smoke`, `npm run bridge:compare --
+cloakbrowser-mcp:dev --report bridge-parity-report.json`, all four required
+documentation checks, actionlint, and zizmor. The runtime image reports
+`fonts-urw-base35` as `install ok installed 20200910-7`. The parity report
+confirmed 24 default upstream tools and 37 matching `devtools` schemas,
+including both recording tools, then was removed.
+
+Correction: Prettier mechanically formatted
+`docs/data/version-compatibility.json` without changing its content. This
+uncommitted correction and this handoff update require a separate local commit
+authorization. The user-owned untracked `.trackerignore` remains untouched.
+
+Next action: resolve or explicitly accept the failed `npm audit` check in a
+targeted packet, then rerun the required full verification. Do not push,
+create a PR, close GitHub PRs or issues, merge, tag, or publish.
+
 ## Packet 03 completion update
 
 Current state: packet 03 is verified; local release preparation remains

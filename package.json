@@ -118,10 +118,12 @@
     "vitest": "^5.0.0"
   },
   "overrides": {
+    "@hono/node-server": "1.19.15",
     "vite": "8.2.1",
     "esbuild": "0.28.2",
     "@typescript-eslint/utils": "8.67.0",
-    "fast-uri": "3.1.5",
+    "fast-uri": "3.1.7",
+    "hono": "4.13.5",
     "ip-address": "10.5.0"
   },
   "keywords": [
