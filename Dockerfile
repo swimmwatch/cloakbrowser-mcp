@@ -49,7 +49,7 @@ LABEL org.opencontainers.image.base.digest="${PLAYWRIGHT_MCP_IMAGE_DIGEST}"
  RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fonts-urw-base35 \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fonts-urw-base35=20200910-7 \
  && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
  && rm -rf /var/lib/apt/lists/*
 
