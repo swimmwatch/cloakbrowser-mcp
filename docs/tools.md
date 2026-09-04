@@ -21,6 +21,18 @@ the child process. The bridge has no `--caps` flag and forwards the resulting
 upstream tools and schemas unchanged, including `browser_start_recording` and
 `browser_stop_recording`.
 
+!!! warning "Recording limitation with the public CloakBrowser v146 binary"
+    The recording tools are available, but the public no-key Chromium 146
+    binary used by CloakBrowser 0.5.10 intentionally disables Playwright's
+    page-to-host binding for stealth. As a result, `browser_stop_recording` may
+    return partial code: navigation is recorded while successful input and
+    click actions are omitted. Review generated recordings before reuse.
+
+    Opt-in compatibility is tracked in [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532).
+    The underlying binding decision is discussed in
+    [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) and
+    [#176](https://github.com/CloakHQ/CloakBrowser/issues/176).
+
 This project treats upstream Playwright MCP as authoritative and does not maintain a copied schema reference.
 
 ## Local Tools

@@ -24,6 +24,19 @@ enfant sans option `--caps` propre au pont ; les outils et schémas upstream qui
 en résultent sont transmis sans modification, y compris
 `browser_start_recording` et `browser_stop_recording`.
 
+!!! warning "Limitation d'enregistrement avec le binaire public CloakBrowser v146"
+    Les outils d'enregistrement sont disponibles, mais le binaire public Chromium 146
+    sans clé utilisé par CloakBrowser 0.5.10 désactive volontairement la liaison Playwright
+    entre la page et l'hôte pour préserver la furtivité. Par conséquent,
+    `browser_stop_recording` peut renvoyer du code partiel : la navigation est enregistrée,
+    tandis que les saisies et les clics réussis sont omis. Vérifiez les enregistrements
+    générés avant de les réutiliser.
+
+    La compatibilité activable explicitement est suivie dans [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532).
+    La décision sous-jacente concernant la liaison est abordée dans
+    [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) et
+    [#176](https://github.com/CloakHQ/CloakBrowser/issues/176).
+
 ## Outils locaux
 
 ### `cloakbrowser_binary_info`

@@ -23,6 +23,18 @@ passa a capacidade `devtools` ao processo filho sem uma opção `--caps` da
 ponte; as ferramentas e os esquemas upstream resultantes são encaminhados sem
 alterações, incluindo `browser_start_recording` e `browser_stop_recording`.
 
+!!! warning "Limitação de gravação com o binário público CloakBrowser v146"
+    As ferramentas de gravação estão disponíveis, mas o binário público do Chromium 146
+    sem chave usado pelo CloakBrowser 0.5.10 desativa intencionalmente a ligação do Playwright
+    entre a página e o host para preservar a furtividade. Como resultado, `browser_stop_recording`
+    pode retornar código parcial: a navegação é gravada, enquanto entradas de texto e cliques
+    concluídos com sucesso são omitidos. Revise as gravações geradas antes de reutilizá-las.
+
+    A compatibilidade com ativação explícita é acompanhada em [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532).
+    A decisão subjacente sobre a ligação é discutida em
+    [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) e
+    [#176](https://github.com/CloakHQ/CloakBrowser/issues/176).
+
 ## Ferramentas locais
 
 ### `cloakbrowser_binary_info`

@@ -24,6 +24,19 @@ Kindprozess; die resultierenden Upstream-Tools und -Schemas werden unverändert
 weitergeleitet, einschließlich `browser_start_recording` und
 `browser_stop_recording`.
 
+!!! warning "Aufzeichnungseinschränkung mit der öffentlichen CloakBrowser-v146-Binärdatei"
+    Die Aufzeichnungswerkzeuge sind verfügbar, aber die von CloakBrowser 0.5.10
+    verwendete öffentliche, schlüsselfreie Chromium-146-Binärdatei deaktiviert aus
+    Stealth-Gründen absichtlich die Playwright-Verbindung zwischen Seite und Host.
+    Dadurch kann `browser_stop_recording` unvollständigen Code zurückgeben: Die Navigation
+    wird aufgezeichnet, erfolgreiche Eingaben und Klicks werden jedoch ausgelassen.
+    Prüfen Sie erzeugte Aufzeichnungen vor der Wiederverwendung.
+
+    Die explizit aktivierbare Kompatibilität wird in [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532) verfolgt.
+    Die zugrunde liegende Entscheidung zur Verbindung wird in
+    [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) und
+    [#176](https://github.com/CloakHQ/CloakBrowser/issues/176) diskutiert.
+
 ## Lokale Tools
 
 ### `cloakbrowser_binary_info`

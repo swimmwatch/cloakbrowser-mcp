@@ -23,6 +23,18 @@ bridge-विशिष्ट `--caps` विकल्प के बिना `de
 पहुंचाता है; परिणामस्वरूप upstream tools और schemas बिना बदलाव के आगे भेजे जाते हैं,
 जिनमें `browser_start_recording` और `browser_stop_recording` शामिल हैं।
 
+!!! warning "सार्वजनिक CloakBrowser v146 बाइनरी के साथ रिकॉर्डिंग की सीमा"
+    रिकॉर्डिंग टूल उपलब्ध हैं, लेकिन CloakBrowser 0.5.10 द्वारा उपयोग की जाने वाली बिना कुंजी वाली
+    सार्वजनिक Chromium 146 बाइनरी stealth बनाए रखने के लिए Playwright के page-to-host binding को
+    जानबूझकर अक्षम करती है। परिणामस्वरूप, `browser_stop_recording` अधूरा कोड लौटा सकता है:
+    नेविगेशन रिकॉर्ड होता है, लेकिन सफल टेक्स्ट इनपुट और क्लिक छूट जाते हैं। दोबारा उपयोग करने से
+    पहले जनरेट की गई रिकॉर्डिंग की समीक्षा करें।
+
+    स्पष्ट रूप से सक्षम की जाने वाली compatibility को [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532) में ट्रैक किया गया है।
+    मूल binding संबंधी निर्णय पर
+    [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) और
+    [#176](https://github.com/CloakHQ/CloakBrowser/issues/176) में चर्चा की गई है।
+
 ## स्थानीय tools
 
 ### `cloakbrowser_binary_info`

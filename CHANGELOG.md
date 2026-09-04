@@ -12,6 +12,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Updated Playwright MCP to 0.0.80 and CloakBrowser to 0.5.10, retaining the
   existing public CLI, MCP, HTTP, Node.js, platform, and transport contracts.
+- Documented that Playwright MCP recordings can omit successful input and click
+  actions with CloakBrowser's public v146 binary, tracked upstream in
+  [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532).
 - Aligned the Docker baseline with Playwright MCP 0.0.80 and added
   `fonts-urw-base35` for CloakBrowser's upstream font fallback.
 - Refreshed supported npm, documentation, and pinned GitHub Action dependencies.

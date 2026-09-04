@@ -23,6 +23,18 @@ tags:
 результирующие upstream-инструменты и схемы передаются без изменений, включая
 `browser_start_recording` и `browser_stop_recording`.
 
+!!! warning "Ограничение записи с публичным бинарным файлом CloakBrowser v146"
+    Инструменты записи доступны, однако публичный бинарный файл Chromium 146 без ключа,
+    используемый CloakBrowser 0.5.10, намеренно отключает связь Playwright между страницей
+    и хостом ради скрытности. Поэтому `browser_stop_recording` может возвращать неполный
+    код: навигация записывается, а успешно выполненные ввод и клики пропускаются.
+    Проверяйте сгенерированные записи перед повторным использованием.
+
+    Совместимость с явным включением отслеживается в [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532).
+    Решение об отключении базовой связи обсуждается в
+    [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) и
+    [#176](https://github.com/CloakHQ/CloakBrowser/issues/176).
+
 ## Локальные инструменты
 
 ### `cloakbrowser_binary_info`

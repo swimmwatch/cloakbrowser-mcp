@@ -23,6 +23,17 @@ tags:
 和模式将不作更改地转发，其中包括 `browser_start_recording` 和
 `browser_stop_recording`。
 
+!!! warning "使用公开 CloakBrowser v146 二进制文件时的录制限制"
+    录制工具可以正常使用，但 CloakBrowser 0.5.10 使用的无密钥公开 Chromium 146
+    二进制文件会为保持隐蔽性而有意禁用 Playwright 的页面到主机绑定。因此，
+    `browser_stop_recording` 可能返回不完整的代码：导航会被记录，但已成功执行的
+    文本输入和点击会被省略。重复使用生成的录制代码前，请先进行检查。
+
+    显式启用兼容性的进展记录在 [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532)。
+    有关底层绑定决策的讨论见
+    [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) 和
+    [#176](https://github.com/CloakHQ/CloakBrowser/issues/176)。
+
 ## 本地工具
 
 ### `cloakbrowser_binary_info`

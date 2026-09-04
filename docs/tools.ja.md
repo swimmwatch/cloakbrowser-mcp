@@ -24,6 +24,18 @@ tags:
 変更せずに転送され、`browser_start_recording` と
 `browser_stop_recording` も含まれます。
 
+!!! warning "公開 CloakBrowser v146 バイナリでの記録制限"
+    記録ツールは利用できますが、CloakBrowser 0.5.10 が使用するキー不要の公開
+    Chromium 146 バイナリは、ステルス性を保つため Playwright のページからホストへの
+    バインディングを意図的に無効化します。そのため `browser_stop_recording` が返す
+    コードは不完全になる場合があります。ナビゲーションは記録されますが、正常に実行された
+    テキスト入力やクリックは省略されます。生成された記録は再利用前に確認してください。
+
+    明示的に有効化する互換性対応は [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532) で追跡されています。
+    基盤となるバインディングの判断については
+    [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) と
+    [#176](https://github.com/CloakHQ/CloakBrowser/issues/176) で議論されています。
+
 ## ローカルツール
 
 ### `cloakbrowser_binary_info`

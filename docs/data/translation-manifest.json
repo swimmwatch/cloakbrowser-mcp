@@ -1170,77 +1170,77 @@
       }
     },
     "tools.md": {
-      "sourceHash": "96c0b969d4752a095806c54a927c4937a34b0e9b62f23afca795a21097406ee5",
+      "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
       "translations": {
         "ru": {
           "path": "tools.ru.md",
-          "sourceHash": "96c0b969d4752a095806c54a927c4937a34b0e9b62f23afca795a21097406ee5",
-          "translationHash": "b6b0b08324a06ec9415f459355c7462878ba1c6485ce7b740658731bdf97e588",
-          "translator": "manual targeted macro update",
-          "updatedAt": "2026-06-30T11:40:05.767Z"
+          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
+          "translationHash": "070d8b43bd6290ae54e164a7f72f85b4f37cf39aa3191a53d77fb28f51f5d128",
+          "translator": "manual targeted recorder limitation update",
+          "updatedAt": "2026-09-04T16:03:35.851Z"
         },
         "be": {
           "path": "tools.be.md",
-          "sourceHash": "96c0b969d4752a095806c54a927c4937a34b0e9b62f23afca795a21097406ee5",
-          "translationHash": "dba87612381e85dc25a906c139e0e52fa76b737da5d3c1f34ef63b0d73086c70",
-          "translator": "manual targeted macro update",
-          "updatedAt": "2026-06-30T11:40:05.767Z"
+          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
+          "translationHash": "af044eb3b2bf904ae79a479ffbf1207d65edbab1d188d447464b9f9e802db14a",
+          "translator": "manual targeted recorder limitation update",
+          "updatedAt": "2026-09-04T16:03:35.851Z"
         },
         "uk": {
           "path": "tools.uk.md",
-          "sourceHash": "96c0b969d4752a095806c54a927c4937a34b0e9b62f23afca795a21097406ee5",
-          "translationHash": "cf3565c11e3a8322ce4dce14950f87a6a33eb42c226c26a63eccbfc2a12db5bd",
-          "translator": "manual targeted macro update",
-          "updatedAt": "2026-06-30T11:40:05.767Z"
+          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
+          "translationHash": "1500b5ecccbe5ef77094f23c2f2d59cb956d424798e05da2354e463be4d459c5",
+          "translator": "manual targeted recorder limitation update",
+          "updatedAt": "2026-09-04T16:03:35.851Z"
         },
         "es": {
           "path": "tools.es.md",
-          "sourceHash": "96c0b969d4752a095806c54a927c4937a34b0e9b62f23afca795a21097406ee5",
-          "translationHash": "68a82e7af8e4515df7f5691a6793ed4caa1f974b559d76b5fdce6e9f23a858a3",
-          "translator": "manual targeted macro update",
-          "updatedAt": "2026-06-30T11:40:05.767Z"
+          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
+          "translationHash": "9f39309f7be5c097aa3b416e83e1c4eba07070af8a99b027b1bda6160877ba43",
+          "translator": "manual targeted recorder limitation update",
+          "updatedAt": "2026-09-04T16:03:35.851Z"
         },
         "pt-BR": {
           "path": "tools.pt-BR.md",
-          "sourceHash": "96c0b969d4752a095806c54a927c4937a34b0e9b62f23afca795a21097406ee5",
-          "translationHash": "b0e2d34445450f7be22a2b15def1b6805eb7c4b88e662fde400e2a5e6abc22fa",
-          "translator": "manual targeted macro update",
-          "updatedAt": "2026-06-30T11:40:05.767Z"
+          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
+          "translationHash": "b29822cfe8ada667ce19f290a989ff1e1f797fb93eb210ffd80cff6bda5d2fa1",
+          "translator": "manual targeted recorder limitation update",
+          "updatedAt": "2026-09-04T16:03:35.851Z"
         },
         "zh": {
           "path": "tools.zh.md",
-          "sourceHash": "96c0b969d4752a095806c54a927c4937a34b0e9b62f23afca795a21097406ee5",
-          "translationHash": "9efd1f77c997ed24c6354ac6ed976af9386bb8742ed10de30279b7a3fd62449d",
-          "translator": "manual targeted macro update",
-          "updatedAt": "2026-06-30T11:40:05.767Z"
+          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
+          "translationHash": "490c1271d3708b7b2c08493bf6c4120aade3f5ca2bc26ccda701c1c1e42da9fa",
+          "translator": "manual targeted recorder limitation update",
+          "updatedAt": "2026-09-04T16:03:35.851Z"
         },
         "ja": {
           "path": "tools.ja.md",
-          "sourceHash": "96c0b969d4752a095806c54a927c4937a34b0e9b62f23afca795a21097406ee5",
-          "translationHash": "5fc5e0b6b526f4e4f07737c0c21ba4211161eaf1ea8f79bae5f2b525ddc31661",
-          "translator": "manual targeted macro update",
-          "updatedAt": "2026-06-30T11:40:05.767Z"
+          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
+          "translationHash": "0f47f72df8b7dae08fff5ddd7ed5eac739443bc8ed38510b93e1cb7e85ef6392",
+          "translator": "manual targeted recorder limitation update",
+          "updatedAt": "2026-09-04T16:03:35.851Z"
         },
         "de": {
           "path": "tools.de.md",
-          "sourceHash": "96c0b969d4752a095806c54a927c4937a34b0e9b62f23afca795a21097406ee5",
-          "translationHash": "948c0586b815d05db776388a914a9ad4f3ed95a3ae76e797c291fb30e320f026",
-          "translator": "manual targeted macro update",
-          "updatedAt": "2026-06-30T11:40:05.767Z"
+          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
+          "translationHash": "bfad112c713db147065b98f3065104d554b5ce54884ff7b8c4a03e848abac107",
+          "translator": "manual targeted recorder limitation update",
+          "updatedAt": "2026-09-04T16:03:35.851Z"
         },
         "fr": {
           "path": "tools.fr.md",
-          "sourceHash": "96c0b969d4752a095806c54a927c4937a34b0e9b62f23afca795a21097406ee5",
-          "translationHash": "d9edf2e8066be95e0429bf4941c5baa6c8101607f8b77828036f57682b7f34c0",
-          "translator": "manual targeted macro update",
-          "updatedAt": "2026-06-30T11:40:05.767Z"
+          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
+          "translationHash": "0bb7176c132ad399c0e9c1769b4c47b44953080d1289bfbf7eebd243bd9fa554",
+          "translator": "manual targeted recorder limitation update",
+          "updatedAt": "2026-09-04T16:03:35.851Z"
         },
         "hi": {
           "path": "tools.hi.md",
-          "sourceHash": "96c0b969d4752a095806c54a927c4937a34b0e9b62f23afca795a21097406ee5",
-          "translationHash": "6d8115c1b30d301dd0751c8bc39774dfc178a18ca6afba1a2e6776f918d5e7c1",
-          "translator": "manual targeted macro update",
-          "updatedAt": "2026-06-30T11:40:05.767Z"
+          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
+          "translationHash": "cc74d54631ae931d6d80923361ce7143b6fbe2adfff42ee88dd2494a3c0dfe62",
+          "translator": "manual targeted recorder limitation update",
+          "updatedAt": "2026-09-04T16:03:35.851Z"
         }
       }
     },
