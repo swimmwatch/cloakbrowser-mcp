@@ -79,6 +79,12 @@ verweist, löst CloakBrowser den Schlüssel auf und die Bridge leitet aus der
 generierten Browserumgebung nur diesen aufgelösten Schlüssel weiter. Andere
 generierte Umgebungseinträge werden nicht kopiert.
 
+Wenn CloakBrowser einen bereitgestellten Lizenzschlüssel ablehnt, ihn nicht
+prüfen kann oder den Lizenzserver nicht erreicht, schlägt der Start mit dem
+eindeutigen CloakBrowser-Fehler fehl. Die Bridge bewahrt diesen Fehler; sie
+maskiert ihn nicht und wechselt nicht stillschweigend zu einem anderen Browser
+oder einer anderen Lizenzstufe.
+
 ## CloakBrowser-Release-Kanal
 
 `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` wählt den Release-Kanal des CloakBrowser-Binärprogramms. Die Vorgabe ist `stable`. `preview` fordert einen Pro-Preview-Browser-Build an und ist nur mit einer Pro-Lizenz verfügbar. Eine explizite Festlegung von `CLOAKBROWSER_VERSION` hat Vorrang. Ist Preview für die Plattform nicht verfügbar, fällt CloakBrowser auf Stable zurück.
@@ -96,6 +102,12 @@ Binärdateien die native Inline-Authentifizierung in der URL und behält bei
 
 Beispiele zur Konfiguration, zur Laufzeit
 von „Streamable HTTP Proxy“-Metadaten, Anwendungsfälle, Prioritätsregeln und Einschränkungen finden Sie unter [GeoIP Proxy Matching](geoip-proxy-matching.md).
+
+Die Zuordnung arbeitet fail-closed: Kann CloakBrowser die Proxy-Ausgangs-IP,
+die GeoIP-Datenbank, die Zeitzone oder das Gebietsschema nicht auflösen, startet
+der Browser nicht mit einem nur teilweise passenden Fingerabdruck. Die
+GeoIP-Auflösung ist auf höchstens 20 Sekunden begrenzt; der erste Download der
+Offline-GeoIP-Datenbank erfolgt getrennt und kann länger dauern.
 
 ## Menschliches Eingabeverhalten
 
@@ -235,6 +247,10 @@ Die Bridge leitet die Einstellungen von `PLAYWRIGHT_MCP_*` an den vorgelagerten 
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
 
 Die vollständige Übersicht über die Optionen des Upstream-Projekts finden Sie in der Playwright-MCP-Dokumentation des Upstream-Projekts.
+
+`PLAYWRIGHT_MCP_CAPS=devtools` wird an den Upstream-Kindprozess vererbt und
+aktiviert die von dieser Fähigkeit gesteuerten Tools ohne bridge-eigene
+Option `--caps`.
 
 ## Protokollierung
 

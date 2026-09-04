@@ -14,9 +14,14 @@ tags:
 
 Default upstream browser tool surface को pinned Playwright MCP dependency से मेल खाना चाहिए। इसमें navigation, snapshot, click, typing, screenshots, tabs, console messages, network inspection, file upload, dialogs और unsafe evaluation tools जैसे core browser tools शामिल हैं।
 
-स्थिर upstream reference के लिए exact package commit पर pinned Playwright MCP `{{ project.playwright_mcp_package_tag }}` capability test देखें: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/36ec986b8b1fc6b4d11f2b6971147755e1b0bc84/tests/capabilities.spec.ts#L19-L77)।
+स्थिर upstream reference के लिए exact package commit पर pinned Playwright MCP `{{ project.playwright_mcp_package_tag }}` capability test देखें: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/4c1fb03bad3bae379b0ae0e3d81d2660de56bd91/tests/capabilities.spec.ts#L19-L77)।
 
 यह project upstream Playwright MCP को authoritative मानता है और copied schema reference maintain नहीं करता।
+
+डिफ़ॉल्ट सेट में 24 upstream tools हैं। `PLAYWRIGHT_MCP_CAPS=devtools`
+bridge-विशिष्ट `--caps` विकल्प के बिना `devtools` क्षमता को child process तक
+पहुंचाता है; परिणामस्वरूप upstream tools और schemas बिना बदलाव के आगे भेजे जाते हैं,
+जिनमें `browser_start_recording` और `browser_stop_recording` शामिल हैं।
 
 ## स्थानीय tools
 
@@ -33,6 +38,10 @@ Structured bridge metadata लौटाता है:
 - upstream Playwright MCP package और version;
 - upstream tool count;
 - local Cloak-specific tool names.
+
+स्थानीय tool surface इन्हीं दो निदान tools तक सीमित रहता है। `SessionSeats` और
+`getSessionSeats` MCP tool के रूप में उपलब्ध नहीं हैं, क्योंकि CloakBrowser 0.5.10
+इस API को अपने public entry point से export नहीं करता है।
 
 ## Parity
 

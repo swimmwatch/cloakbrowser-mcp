@@ -77,6 +77,11 @@ personalizado que contém `license.key`, o CloakBrowser resolve a chave e a
 ponte encaminha apenas essa chave resolvida a partir do ambiente gerado do
 navegador. Outras entradas de ambiente geradas não são copiadas.
 
+Se o CloakBrowser rejeitar a chave de licença fornecida, não puder validá-la ou
+não conseguir alcançar o servidor de licenças, a inicialização falhará com o
+erro explícito do CloakBrowser. A ponte preserva esse erro: não o mascara nem
+alterna silenciosamente para outro navegador ou nível de licença.
+
 ## Canal de lançamento do CloakBrowser
 
 `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` seleciona o canal de lançamento do binário do CloakBrowser. O padrão é `stable`. `preview` solicita uma versão de prévia do navegador Pro e está disponível apenas com uma licença Pro. Uma versão fixada explicitamente em `CLOAKBROWSER_VERSION` tem precedência. Se o Preview não estiver disponível para a plataforma, o CloakBrowser volta para Stable.
@@ -94,6 +99,12 @@ binários antigos.
 
 Consulte [Correspondência de proxy GeoIP](geoip-proxy-matching.md) para exemplos de configuração, metadados de proxy HTTP
 transmissíveis em tempo de execução, casos de uso, regras de precedência e limitações.
+
+A correspondência funciona em fail-closed: se o CloakBrowser não puder resolver
+o IP de saída do proxy, o banco de dados GeoIP, o fuso horário ou a localidade,
+o navegador não inicia com uma impressão digital parcialmente correspondente. A
+resolução de GeoIP tem no máximo 20 segundos; o primeiro download do banco de
+dados GeoIP offline é separado e pode levar mais tempo.
 
 ## Comportamento humanizado de entrada
 
@@ -230,6 +241,10 @@ A ponte encaminha as configurações de `PLAYWRIGHT_MCP_*` para o Playwright MCP
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
 
 Consulte a documentação do Playwright MCP do projeto original para conhecer todas as opções disponíveis.
+
+`PLAYWRIGHT_MCP_CAPS=devtools` é herdado pelo processo filho upstream e habilita
+as ferramentas controladas por essa capacidade sem uma opção `--caps` própria
+da ponte.
 
 ## Registro
 

@@ -79,6 +79,11 @@ la clé et le pont ne transmet que cette clé résolue depuis l'environnement
 généré du navigateur. Les autres entrées d'environnement générées ne sont pas
 copiées.
 
+Si CloakBrowser rejette la clé de licence fournie, ne peut pas la vérifier ou
+ne peut pas joindre son serveur de licences, le démarrage échoue avec l'erreur
+explicite de CloakBrowser. Le pont préserve cette erreur : il ne la masque pas
+et ne bascule pas silencieusement vers un autre navigateur ou niveau de licence.
+
 ## Canal de publication de CloakBrowser
 
 `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` sélectionne le canal de publication du binaire CloakBrowser. La valeur par défaut est `stable`. `preview` demande une version Preview du navigateur Pro et est disponible uniquement avec une licence Pro. Un verrouillage explicite de `CLOAKBROWSER_VERSION` est prioritaire. Si Preview n'est pas disponible pour la plateforme, CloakBrowser revient à Stable.
@@ -96,6 +101,13 @@ comme solution de repli pour les anciens binaires.
 
 Consultez la section [Correspondance de proxy GeoIP](geoip-proxy-matching.md) pour découvrir des exemples de configuration, les métadonnées de proxy HTTP
 Streamable en exécution, les cas d'utilisation, les règles de priorité et les limitations.
+
+La correspondance fonctionne en fail-closed : si CloakBrowser ne peut pas
+résoudre l'IP de sortie du proxy, la base GeoIP, le fuseau horaire ou les
+paramètres régionaux, le navigateur ne démarre pas avec une empreinte
+partiellement correspondante. La résolution GeoIP est limitée à 20 secondes ;
+le premier téléchargement de la base GeoIP hors ligne est distinct et peut
+prendre plus de temps.
 
 ## Comportement d'entrée humanisé
 
@@ -235,6 +247,10 @@ Le pont transmet les paramètres `PLAYWRIGHT_MCP_*` au MCP Playwright en amont. 
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
 
 Consultez la documentation officielle de Playwright MCP pour découvrir l'ensemble des options disponibles.
+
+`PLAYWRIGHT_MCP_CAPS=devtools` est hérité par le processus enfant upstream et
+active les outils contrôlés par cette capacité sans option `--caps` propre au
+pont.
 
 ## Journalisation
 

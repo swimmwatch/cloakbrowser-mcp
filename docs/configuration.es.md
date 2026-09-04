@@ -78,6 +78,11 @@ personalizada que contiene `license.key`, CloakBrowser resuelve la clave y el
 puente reenvía únicamente esa clave resuelta desde el entorno generado del
 navegador. No se copian otras entradas de entorno generadas.
 
+Si CloakBrowser rechaza la clave de licencia proporcionada, no puede validarla
+o no puede comunicarse con su servidor de licencias, el inicio falla con el
+error explícito de CloakBrowser. El puente conserva ese error: no lo oculta ni
+cambia silenciosamente a otro navegador o nivel de licencia.
+
 ## Canal de lanzamiento de CloakBrowser
 
 `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` selecciona el canal de lanzamiento del binario de CloakBrowser. El valor predeterminado es `stable`. `preview` solicita una compilación previa de navegador Pro y solo está disponible con una licencia Pro. Una versión fijada explícitamente mediante `CLOAKBROWSER_VERSION` tiene prioridad. Si Preview no está disponible para la plataforma, CloakBrowser vuelve a Stable.
@@ -95,6 +100,13 @@ como alternativa para los binarios antiguos.
 
 Consulta [Coincidencia de proxies GeoIP](geoip-proxy-matching.md) para ver ejemplos de configuración, metadatos de proxy HTTP
 transmisibles en tiempo de ejecución, casos de uso, reglas de prioridad y limitaciones.
+
+La coincidencia funciona en modo fail-closed: si CloakBrowser no puede resolver
+la IP de salida del proxy, la base de datos GeoIP, la zona horaria o la
+configuración regional, el navegador no se inicia con una huella parcialmente
+coincidente. La resolución de GeoIP tiene un máximo de 20 segundos; la primera
+descarga de la base de datos GeoIP sin conexión es independiente y puede tardar
+más.
 
 ## Comportamiento de entrada humanizado
 
@@ -233,6 +245,10 @@ El puente reenvía la configuración de `PLAYWRIGHT_MCP_*` al MCP de Playwright 
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
 
 Consulta la documentación de Playwright MCP del proyecto original para conocer todas las opciones disponibles.
+
+`PLAYWRIGHT_MCP_CAPS=devtools` se hereda en el proceso hijo upstream y habilita
+las herramientas controladas por esa capacidad sin una opción `--caps` propia
+del puente.
 
 ## Registro
 

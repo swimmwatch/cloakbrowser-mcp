@@ -78,6 +78,11 @@ logging it. When `CLOAKBROWSER_CACHE_DIR` points to a custom cache containing
 resolved key from the generated browser environment. Other generated
 environment entries are not copied.
 
+If CloakBrowser rejects a supplied license key, cannot verify it, or cannot
+reach its license server, startup fails with the explicit CloakBrowser error.
+The bridge preserves that error; it does not mask it or silently fall back to a
+different browser or license tier.
+
 ## CloakBrowser Release Channel
 
 `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` selects the CloakBrowser binary release
@@ -101,6 +106,12 @@ older binaries.
 See [GeoIP Proxy Matching](geoip-proxy-matching.md) for setup examples, runtime
 Streamable HTTP proxy metadata, use cases, precedence rules, and limitations.
 For a concise task path, see [Regional QA Through Proxy](recipes/regional-qa-through-proxy.md).
+
+Matching is fail-closed: if CloakBrowser cannot resolve the proxy exit IP, GeoIP
+database, timezone, or locale, the browser does not start with a partially
+matched fingerprint. GeoIP lookup uses a maximum 20-second resolution timeout;
+the first download of the offline GeoIP database is separate and can take
+longer.
 
 ## Humanized Input Behavior
 
@@ -239,6 +250,10 @@ The bridge forwards `PLAYWRIGHT_MCP_*` settings to upstream Playwright MCP. That
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
 
 Refer to the upstream Playwright MCP documentation for the full upstream option surface.
+
+`PLAYWRIGHT_MCP_CAPS=devtools` is inherited by the upstream child process; it
+enables the upstream capability-gated tools without a bridge-specific `--caps`
+flag.
 
 ## Logging
 

@@ -14,9 +14,15 @@ tags:
 
 既定の upstream ブラウザーツール表面は、固定された Playwright MCP 依存関係と一致することが期待されます。これには、ナビゲーション、snapshot、クリック、入力、スクリーンショット、タブ、コンソールメッセージ、ネットワーク検査、ファイルアップロード、ダイアログ、安全でない評価ツールなどの主要ブラウザーツールが含まれます。
 
-安定した upstream 参照として、正確なパッケージ commit に固定された Playwright MCP `{{ project.playwright_mcp_package_tag }}` の capability test を参照してください：[default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/36ec986b8b1fc6b4d11f2b6971147755e1b0bc84/tests/capabilities.spec.ts#L19-L77)。
+安定した upstream 参照として、正確なパッケージ commit に固定された Playwright MCP `{{ project.playwright_mcp_package_tag }}` の capability test を参照してください：[default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/4c1fb03bad3bae379b0ae0e3d81d2660de56bd91/tests/capabilities.spec.ts#L19-L77)。
 
 このプロジェクトは upstream Playwright MCP を権威ある情報源として扱い、schema 参照のコピーは保守しません。
+
+既定のセットには 24 個の upstream ツールがあります。
+`PLAYWRIGHT_MCP_CAPS=devtools` はブリッジの `--caps` オプションなしで
+`devtools` 機能を子プロセスへ渡します。結果の upstream ツールとスキーマは
+変更せずに転送され、`browser_start_recording` と
+`browser_stop_recording` も含まれます。
 
 ## ローカルツール
 
@@ -33,6 +39,11 @@ CloakBrowser パッケージ、現在のプラットフォーム、キャッシ�
 - upstream Playwright MCP パッケージとバージョン；
 - upstream ツール数；
 - ローカル Cloak-specific ツール名。
+
+ローカルのツール表面は引き続きこの 2 つの診断ツールに限定されます。
+`SessionSeats` と `getSessionSeats` は、CloakBrowser 0.5.10 がその API を
+公開エントリポイントからエクスポートしていないため、MCP ツールとして公開
+されません。
 
 ## 互換性
 

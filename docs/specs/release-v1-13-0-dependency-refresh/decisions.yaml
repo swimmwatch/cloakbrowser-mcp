@@ -424,3 +424,32 @@ decisions:
       - PW-02
       - PW-03
       - COMP-01
+  - id: authorization.execution.03
+    revision: 1
+    category: authorization
+    state: answered
+    provenance: user
+    evidence:
+      - docs/specs/release-v1-13-0-dependency-refresh/tasks/03_release-metadata-and-documentation.md
+    question:
+      text: May implementation begin with packet 03 only?
+      kind: single
+      options:
+        - id: authorize
+          label: Authorize packet 03
+          description: Apply local version, changelog, compatibility, documentation, translations, and their checks; do not commit, push, create a PR, tag, or publish.
+        - id: defer
+          label: Defer implementation
+          description: Keep packet 03 planned and do not change release metadata or public documentation.
+    answer:
+      selected_ids:
+        - authorize
+      text: ''
+    rationale: The user explicitly authorized packet 03 through Prompt MCP.
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids:
+      - CLOAK-04
+      - COMP-02
+      - REL-01
+      - REL-02

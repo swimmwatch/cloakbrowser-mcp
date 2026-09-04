@@ -2,7 +2,7 @@
 
 - [x] 01 Dependency and supply-chain refresh
 - [x] 02 Bridge parity and integration coverage
-- [ ] 03 Release metadata and documentation
+- [x] 03 Release metadata and documentation
 - [ ] 04 Full release verification
 - [ ] 05 Manual GitHub delivery gates
 

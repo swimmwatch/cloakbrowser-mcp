@@ -76,6 +76,11 @@ npx -y cloakbrowser@latest logout
 CloakBrowser がキーを解決し、ブリッジは生成されたブラウザ環境からその解決済みキー
 だけを転送します。生成されたその他の環境エントリはコピーされません。
 
+指定したライセンスキーが CloakBrowser に拒否された場合、検証できない場合、
+またはライセンスサーバーに接続できない場合、起動は明示的な CloakBrowser
+エラーで失敗します。ブリッジはそのエラーを保持し、別のブラウザーやライセンス
+階層へ黙って切り替えたり、エラーを隠したりしません。
+
 ## CloakBrowser リリースチャネル
 
 `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` は CloakBrowser バイナリのリリースチャネルを選択します。既定値は `stable` です。`preview` は Pro 向けのプレビュー版ブラウザビルドを要求し、Pro ライセンスでのみ利用できます。明示的に固定した `CLOAKBROWSER_VERSION` が優先されます。プラットフォームで Preview を利用できない場合、CloakBrowser は Stable にフォールバックします。
@@ -92,6 +97,12 @@ CloakBrowser のタイムゾーン、言語、ロケールのフィンガープ�
 
 設定例、実行時の
 ストリーム可能なHTTPプロキシメタデータ、ユースケース、優先順位ルール、および制限事項については、[GeoIPプロキシのマッチング](geoip-proxy-matching.md)を参照してください。
+
+マッチングは fail-closed です。CloakBrowser がプロキシ出口 IP、GeoIP
+データベース、タイムゾーン、またはロケールを解決できない場合、部分的にしか
+一致しないフィンガープリントでブラウザーは起動しません。GeoIP の解決時間は
+最大 20 秒です。オフライン GeoIP データベースの初回ダウンロードは別処理のため、
+さらに時間がかかることがあります。
 
 ## 人間らしい入力行動
 
@@ -226,6 +237,9 @@ Playwright のプロキシオブジェクトをフォールバックとして保
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
 
 アップストリームのオプションの全一覧については、Playwright MCPのアップストリームドキュメントを参照してください。
+
+`PLAYWRIGHT_MCP_CAPS=devtools` は上流の子プロセスに継承され、ブリッジ固有の
+`--caps` フラグなしで、その機能により制御されるツールを有効にします。
 
 ## ログ記録
 

@@ -73,3 +73,43 @@ unchanged.
 Blockers: no technical blocker. Stop before packet 03, commit, push, PR
 creation, GitHub cleanup, merge, tag, or publication without their separate
 manual gates.
+
+## Packet 03 completion update
+
+Current state: packet 03 is verified; local release preparation remains
+uncommitted. Completed packets: 01 Dependency and supply-chain refresh; 02
+Bridge parity and integration coverage; 03 Release metadata and documentation.
+
+Packet 03 changes:
+
+- Applied local version `v1.13.0` to `package.json`, `package-lock.json`, and
+  `server.json` with `npm run version:apply -- v1.13.0`.
+- Added the `1.13.0` compatibility row for Playwright MCP `^0.0.80`, Docker
+  `mcr.microsoft.com/playwright/mcp:v0.0.80`, and CloakBrowser `^0.5.10` while
+  preserving Node.js, platform, and transport contracts.
+- Added the dated `1.13.0` changelog entry and compare links; retained an empty
+  `[Unreleased]` section.
+- Documented fail-closed GeoIP matching, its 20-second resolution timeout,
+  explicit CloakBrowser license failures, the public-entry-point limitation for
+  `SessionSeats`/`getSessionSeats`, the 24 default upstream tools, and inherited
+  `PLAYWRIGHT_MCP_CAPS=devtools` without a bridge `--caps` option.
+- Updated English and ten localized configuration, GeoIP, and tools pages,
+  compatibility tables, generated `llms.txt`, and the affected translation
+  manifest entries.
+
+Packet 03 verification:
+
+- `npm run docs:compatibility:check` -> passed
+- `npm run docs:translations:check` -> passed
+- `npm run docs:build` -> passed (MkDocs emitted its upstream Material 2.0
+  migration notice; no build failure)
+- `npm run docs:seo:validate` -> passed
+- `git diff --check` -> passed
+
+Next packet: 04 Full release verification. It requires its own explicit
+authorization. Packet 03 must remain uncommitted unless the user separately
+authorizes its commit after a Conventional Commits review.
+
+Unrelated worktree state: the user-owned untracked `.trackerignore` remains
+unchanged. Stop before packet 04, commit, push, PR creation, GitHub cleanup,
+merge, tag, or publication without separate manual gates.
