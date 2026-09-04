@@ -174,6 +174,12 @@ GeoIP location data is approximate and depends on the proxy IP and CloakBrowser'
 GeoIP database. CloakBrowser downloads and caches that offline database on first
 use when it is needed.
 
+GeoIP matching is fail-closed. If CloakBrowser cannot resolve the proxy exit IP,
+download or read the GeoIP database, or derive a timezone or locale, browser
+startup fails instead of continuing with a partially matched fingerprint. The
+GeoIP resolution timeout is at most 20 seconds; the initial offline database
+download is outside that timeout and can take longer.
+
 For example, the following keeps the explicit timezone and locale while still
 using GeoIP matching to resolve the proxy exit IP:
 

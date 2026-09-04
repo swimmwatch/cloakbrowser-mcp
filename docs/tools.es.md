@@ -14,9 +14,27 @@ tags:
 
 Se espera que la superficie predeterminada de herramientas de navegador upstream coincida con la dependencia fijada de Playwright MCP. Incluye herramientas principales como navegación, snapshots, clics, escritura, capturas de pantalla, pestañas, mensajes de consola, inspección de red, subida de archivos, diálogos y herramientas de evaluación insegura.
 
-Como referencia upstream estable, consulta la prueba de capacidades de Playwright MCP `{{ project.playwright_mcp_package_tag }}` fijada al commit exacto del paquete: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/36ec986b8b1fc6b4d11f2b6971147755e1b0bc84/tests/capabilities.spec.ts#L19-L77).
+Como referencia upstream estable, consulta la prueba de capacidades de Playwright MCP `{{ project.playwright_mcp_package_tag }}` fijada al commit exacto del paquete: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/4c1fb03bad3bae379b0ae0e3d81d2660de56bd91/tests/capabilities.spec.ts#L19-L77).
 
 Este proyecto trata a upstream Playwright MCP como fuente autorizada y no mantiene una copia de referencia de esquemas.
+
+El conjunto predeterminado contiene 24 herramientas upstream.
+`PLAYWRIGHT_MCP_CAPS=devtools` pasa la capacidad `devtools` al proceso hijo sin
+una opción `--caps` del puente; las herramientas y los esquemas upstream
+resultantes se reenvían sin cambios, incluidos `browser_start_recording` y
+`browser_stop_recording`.
+
+!!! warning "Limitación de grabación con el binario público CloakBrowser v146"
+    Las herramientas de grabación están disponibles, pero el binario público de Chromium 146
+    sin clave que utiliza CloakBrowser 0.5.10 desactiva deliberadamente el enlace de Playwright
+    entre la página y el host para preservar el sigilo. Por ello, `browser_stop_recording` puede
+    devolver código parcial: la navegación se graba, mientras que se omiten las entradas de texto
+    y los clics realizados correctamente. Revisa las grabaciones generadas antes de reutilizarlas.
+
+    La compatibilidad de activación explícita se sigue en [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532).
+    La decisión subyacente sobre el enlace se analiza en
+    [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) y
+    [#176](https://github.com/CloakHQ/CloakBrowser/issues/176).
 
 ## Herramientas locales
 
@@ -33,6 +51,10 @@ Devuelve metadatos estructurados del puente:
 - paquete y versión de upstream Playwright MCP;
 - cantidad de herramientas upstream;
 - nombres de herramientas locales específicas de Cloak.
+
+La superficie local sigue limitada a estas dos herramientas de diagnóstico.
+`SessionSeats` y `getSessionSeats` no se exponen como una herramienta MCP porque
+CloakBrowser 0.5.10 no exporta esa API desde su punto de entrada público.
 
 ## Paridad
 

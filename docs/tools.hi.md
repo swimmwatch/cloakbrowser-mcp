@@ -14,9 +14,26 @@ tags:
 
 Default upstream browser tool surface को pinned Playwright MCP dependency से मेल खाना चाहिए। इसमें navigation, snapshot, click, typing, screenshots, tabs, console messages, network inspection, file upload, dialogs और unsafe evaluation tools जैसे core browser tools शामिल हैं।
 
-स्थिर upstream reference के लिए exact package commit पर pinned Playwright MCP `{{ project.playwright_mcp_package_tag }}` capability test देखें: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/36ec986b8b1fc6b4d11f2b6971147755e1b0bc84/tests/capabilities.spec.ts#L19-L77)।
+स्थिर upstream reference के लिए exact package commit पर pinned Playwright MCP `{{ project.playwright_mcp_package_tag }}` capability test देखें: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/4c1fb03bad3bae379b0ae0e3d81d2660de56bd91/tests/capabilities.spec.ts#L19-L77)।
 
 यह project upstream Playwright MCP को authoritative मानता है और copied schema reference maintain नहीं करता।
+
+डिफ़ॉल्ट सेट में 24 upstream tools हैं। `PLAYWRIGHT_MCP_CAPS=devtools`
+bridge-विशिष्ट `--caps` विकल्प के बिना `devtools` क्षमता को child process तक
+पहुंचाता है; परिणामस्वरूप upstream tools और schemas बिना बदलाव के आगे भेजे जाते हैं,
+जिनमें `browser_start_recording` और `browser_stop_recording` शामिल हैं।
+
+!!! warning "सार्वजनिक CloakBrowser v146 बाइनरी के साथ रिकॉर्डिंग की सीमा"
+    रिकॉर्डिंग टूल उपलब्ध हैं, लेकिन CloakBrowser 0.5.10 द्वारा उपयोग की जाने वाली बिना कुंजी वाली
+    सार्वजनिक Chromium 146 बाइनरी stealth बनाए रखने के लिए Playwright के page-to-host binding को
+    जानबूझकर अक्षम करती है। परिणामस्वरूप, `browser_stop_recording` अधूरा कोड लौटा सकता है:
+    नेविगेशन रिकॉर्ड होता है, लेकिन सफल टेक्स्ट इनपुट और क्लिक छूट जाते हैं। दोबारा उपयोग करने से
+    पहले जनरेट की गई रिकॉर्डिंग की समीक्षा करें।
+
+    स्पष्ट रूप से सक्षम की जाने वाली compatibility को [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532) में ट्रैक किया गया है।
+    मूल binding संबंधी निर्णय पर
+    [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) और
+    [#176](https://github.com/CloakHQ/CloakBrowser/issues/176) में चर्चा की गई है।
 
 ## स्थानीय tools
 
@@ -33,6 +50,10 @@ Structured bridge metadata लौटाता है:
 - upstream Playwright MCP package और version;
 - upstream tool count;
 - local Cloak-specific tool names.
+
+स्थानीय tool surface इन्हीं दो निदान tools तक सीमित रहता है। `SessionSeats` और
+`getSessionSeats` MCP tool के रूप में उपलब्ध नहीं हैं, क्योंकि CloakBrowser 0.5.10
+इस API को अपने public entry point से export नहीं करता है।
 
 ## Parity
 

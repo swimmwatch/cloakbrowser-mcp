@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -67,6 +67,27 @@ describe('bridge config generation', () => {
     });
 
     runtime.dispose();
+  });
+
+  it('propagates buildLaunchOptions failures and removes the temporary runtime', async () => {
+    const root = createTempRoot();
+    const error = new Error('CloakBrowser buildLaunchOptions failed');
+
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: root,
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
+        buildCloakLaunchOptions: async () => {
+          throw error;
+        },
+        env: {
+          PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+          CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        },
+      }),
+    ).rejects.toBe(error);
+
+    expect(readdirSync(root).filter((entry) => entry.startsWith('cloakbrowser-mcp-'))).toEqual([]);
   });
 
   it.each(['typescript', 'python', 'java', 'csharp', 'none'] as const)(

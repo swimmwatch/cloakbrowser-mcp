@@ -37,7 +37,7 @@ const locales = [
 ];
 
 const localeSuffixes = createLocaleSuffixSet(locales);
-const excludedDirectories = new Set(['assets', 'data', 'generated', 'hooks', 'overrides']);
+const excludedDirectories = new Set(['assets', 'data', 'generated', 'hooks', 'overrides', 'specs']);
 const excludedFiles = new Set(['dockerhub-readme.md']);
 
 const invalidLocalizedContentPatterns = [

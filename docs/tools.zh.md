@@ -14,9 +14,25 @@ tags:
 
 默认 upstream 浏览器工具表面应与固定的 Playwright MCP 依赖保持一致。它包括导航、snapshot、点击、输入、截图、标签页、控制台消息、网络检查、文件上传、对话框以及不安全求值工具等核心浏览器工具。
 
-稳定的 upstream 参考见 Playwright MCP `{{ project.playwright_mcp_package_tag }}` capability test，该测试固定到准确的包 commit：[default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/36ec986b8b1fc6b4d11f2b6971147755e1b0bc84/tests/capabilities.spec.ts#L19-L77)。
+稳定的 upstream 参考见 Playwright MCP `{{ project.playwright_mcp_package_tag }}` capability test，该测试固定到准确的包 commit：[default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/4c1fb03bad3bae379b0ae0e3d81d2660de56bd91/tests/capabilities.spec.ts#L19-L77)。
 
 本项目将 upstream Playwright MCP 视为权威来源，不维护复制的 schema 参考。
+
+默认集合包含 24 个 upstream 工具。`PLAYWRIGHT_MCP_CAPS=devtools` 会将
+`devtools` 能力传递给子进程，无需桥接的 `--caps` 选项；产生的 upstream 工具
+和模式将不作更改地转发，其中包括 `browser_start_recording` 和
+`browser_stop_recording`。
+
+!!! warning "使用公开 CloakBrowser v146 二进制文件时的录制限制"
+    录制工具可以正常使用，但 CloakBrowser 0.5.10 使用的无密钥公开 Chromium 146
+    二进制文件会为保持隐蔽性而有意禁用 Playwright 的页面到主机绑定。因此，
+    `browser_stop_recording` 可能返回不完整的代码：导航会被记录，但已成功执行的
+    文本输入和点击会被省略。重复使用生成的录制代码前，请先进行检查。
+
+    显式启用兼容性的进展记录在 [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532)。
+    有关底层绑定决策的讨论见
+    [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) 和
+    [#176](https://github.com/CloakHQ/CloakBrowser/issues/176)。
 
 ## 本地工具
 
@@ -33,6 +49,9 @@ tags:
 - upstream Playwright MCP 包和版本；
 - upstream 工具数量；
 - 本地 Cloak-specific 工具名称。
+
+本地工具表面仍仅限于这两个诊断工具。`SessionSeats` 和 `getSessionSeats`
+不会作为 MCP 工具公开，因为 CloakBrowser 0.5.10 未从其公共入口点导出该 API。
 
 ## 兼容性
 

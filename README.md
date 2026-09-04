@@ -190,6 +190,7 @@ The common variable table now lives in [Configuration](docs/configuration.md). T
 
 | cloakbrowser-mcp | @playwright/mcp | CloakBrowser | Node.js                | Platform                                                                                  |
 | ---------------- | --------------- | ------------ | ---------------------- | ----------------------------------------------------------------------------------------- |
+| `1.13.0`         | `^0.0.80`       | `^0.5.10`    | `^22.13.0 || >=24.0.0` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
 | `1.12.0`         | `^0.0.79`       | `^0.5.7`     | `^22.13.0 || >=24.0.0` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
 | `1.11.0`         | `^0.0.79`       | `^0.5.6`     | `^22.13.0 || >=24.0.0` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |
 | `1.10.0`         | `^0.0.78`       | `^0.5.3`     | `^22.13.0 || >=24.0.0` | npm on Linux x64/arm64, macOS arm64/x64, Windows x64; Docker `linux/amd64`, `linux/arm64` |

@@ -189,6 +189,13 @@ npx -y cloakbrowser-mcp@latest
 Utilize esse recurso para testes legítimos de controle de qualidade, localização e consistência de ambiente.
 Ele não deve ser tratado como uma forma de contornar controles de acesso ou verificações de políticas regionais.
 
+A correspondência GeoIP funciona em fail-closed. Se o CloakBrowser não puder
+resolver o IP de saída do proxy, baixar ou ler o banco de dados GeoIP, ou obter
+um fuso horário ou localidade, a inicialização do navegador falha em vez de
+continuar com uma impressão digital parcialmente correspondente. A resolução
+GeoIP é limitada a 20 segundos; o primeiro download do banco GeoIP offline é
+separado e pode levar mais tempo.
+
 ## Configuração relacionada
 
 - [Configuração](configuration.md) lista todas as variáveis de ambiente da ponte e do upstream.

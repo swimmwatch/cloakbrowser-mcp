@@ -14,9 +14,26 @@ tags:
 
 Очікується, що стандартна поверхня upstream-інструментів браузера відповідає закріпленій залежності Playwright MCP. Вона включає основні браузерні інструменти: навігацію, snapshot, кліки, введення тексту, скриншоти, вкладки, повідомлення консолі, перевірку мережі, завантаження файлів, діалоги та небезпечні інструменти виконання.
 
-Для стабільного upstream-посилання див. capability test Playwright MCP `{{ project.playwright_mcp_package_tag }}`, закріплений на точному коміті пакета: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/36ec986b8b1fc6b4d11f2b6971147755e1b0bc84/tests/capabilities.spec.ts#L19-L77).
+Для стабільного upstream-посилання див. capability test Playwright MCP `{{ project.playwright_mcp_package_tag }}`, закріплений на точному коміті пакета: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/4c1fb03bad3bae379b0ae0e3d81d2660de56bd91/tests/capabilities.spec.ts#L19-L77).
 
 Цей проект вважає upstream Playwright MCP авторитетним джерелом і не підтримує скопійований довідник схем.
+
+Базовий набір містить 24 upstream-інструменти. `PLAYWRIGHT_MCP_CAPS=devtools`
+передає можливість `devtools` дочірньому процесу без прапорця моста `--caps`;
+отримані upstream-інструменти та схеми передаються без змін, зокрема
+`browser_start_recording` і `browser_stop_recording`.
+
+!!! warning "Обмеження записування з публічним бінарним файлом CloakBrowser v146"
+    Інструменти записування доступні, але публічний бінарний файл Chromium 146 без ключа,
+    який використовує CloakBrowser 0.5.10, навмисно вимикає зв'язок Playwright між
+    сторінкою та хостом заради прихованості. Тому `browser_stop_recording` може повертати
+    неповний код: навігація записується, а успішні введення та натискання пропускаються.
+    Перевіряйте згенеровані записи перед повторним використанням.
+
+    Сумісність із явним увімкненням відстежується в [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532).
+    Рішення про вимкнення базового зв'язку обговорюється в
+    [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) і
+    [#176](https://github.com/CloakHQ/CloakBrowser/issues/176).
 
 ## Локальні інструменти
 
@@ -33,6 +50,11 @@ tags:
 - пакет і версію upstream Playwright MCP;
 - кількість upstream-інструментів;
 - імена локальних Cloak-specific інструментів.
+
+Набір локальних інструментів і далі обмежений цими двома інструментами
+діагностики. `SessionSeats` і `getSessionSeats` не надаються як MCP-інструмент,
+оскільки CloakBrowser 0.5.10 не експортує цей API зі своєї публічної точки
+входу.
 
 ## Сумісність
 

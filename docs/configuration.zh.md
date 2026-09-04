@@ -73,6 +73,10 @@ npx -y cloakbrowser@latest logout
 `license.key` 的自定义缓存时，CloakBrowser 会解析密钥，而桥接器只会从生成的浏览器
 环境中转发该解析后的密钥。其他生成的环境条目不会被复制。
 
+如果 CloakBrowser 拒绝提供的许可证密钥、无法验证该密钥或无法连接许可证
+服务器，启动会因明确的 CloakBrowser 错误而失败。桥接会保留该错误；它不会
+掩盖错误，也不会静默切换到其他浏览器或许可证级别。
+
 ## CloakBrowser 发布通道
 
 `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` 选择 CloakBrowser 二进制文件的发布通道。默认值为 `stable`。`preview` 请求 Pro 浏览器预览构建，且仅适用于 Pro 许可证。显式固定的 `CLOAKBROWSER_VERSION` 优先。如果平台没有可用的 Preview，CloakBrowser 会回退到 Stable。
@@ -88,6 +92,10 @@ URL 内联身份验证；对于较旧的二进制文件，则保留 Playwright �
 
 有关配置示例、运行时
 可流式传输的 HTTP 代理元数据、用例、优先级规则和限制，请参阅 [GeoIP 代理匹配](geoip-proxy-matching.md)。
+
+匹配采用 fail-closed 行为：如果 CloakBrowser 无法解析代理出口 IP、GeoIP
+数据库、时区或区域设置，浏览器不会以部分匹配的指纹启动。GeoIP 解析最长为
+20 秒；首次下载离线 GeoIP 数据库独立进行，可能需要更长时间。
 
 ## 拟人化的输入行为
 
@@ -219,6 +227,9 @@ Playwright 代理对象作为兼容性回退。
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
 
 有关完整的上游选项列表，请参阅上游 Playwright MCP 文档。
+
+`PLAYWRIGHT_MCP_CAPS=devtools` 会由上游子进程继承，并启用该能力控制的
+工具，无需桥接专用的 `--caps` 标志。
 
 ## 日志记录
 

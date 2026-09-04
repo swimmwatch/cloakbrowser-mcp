@@ -36,7 +36,7 @@ env:
   MCP_SERVER_NAME: io.github.swimmwatch/cloakbrowser-mcp
   DOCKER_PLATFORMS: linux/amd64,linux/arm64
   DOCKER_CACHE_SCOPE: cloakbrowser-mcp-docker
-  PLAYWRIGHT_MCP_IMAGE: mcr.microsoft.com/playwright/mcp:v0.0.79@sha256:18c0a9c934004fe9580cc79f1e8e6e6cde7c667348b215335e8a23fd3e509804
+  PLAYWRIGHT_MCP_IMAGE: mcr.microsoft.com/playwright/mcp:v0.0.80@sha256:dda1f7f9b812e22946635c8af7df9288b96d3b9e3f0f1b8576d6823e2031c1de
   MCP_REGISTRY_API_URL: https://registry.modelcontextprotocol.io/v0.1
 
 jobs:
@@ -193,7 +193,7 @@ jobs:
 
       - uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
 
-      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
 
       - id: base
         name: Resolve Playwright MCP base digest

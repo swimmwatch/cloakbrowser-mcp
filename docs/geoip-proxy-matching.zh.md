@@ -182,6 +182,11 @@ npx -y cloakbrowser-mcp@latest
 测试。不应将其视为绕过访问控制或区域
 策略检查的手段。
 
+GeoIP 匹配采用 fail-closed 行为。如果 CloakBrowser 无法解析代理出口 IP、下载或
+读取 GeoIP 数据库，或无法得出时区或区域设置，浏览器启动将失败，而不会以部分
+匹配的指纹继续。GeoIP 解析限制为 20 秒；首次下载离线 GeoIP 数据库独立进行，
+可能需要更长时间。
+
 ## 相关配置
 
 - [配置](configuration.md) 列出了所有桥接和上游环境变量。

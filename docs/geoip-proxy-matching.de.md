@@ -190,6 +190,13 @@ Nutzen Sie diese Funktion für legitime Qualitätssicherung, Lokalisierung und T
 Konsistenz der Umgebungen. Sie sollte nicht als Möglichkeit zur Umgehung von Zugriffskontrollen oder regionalen
 Richtlinienprüfungen betrachtet werden.
 
+Die GeoIP-Zuordnung arbeitet fail-closed. Kann CloakBrowser die
+Proxy-Ausgangs-IP nicht auflösen, die GeoIP-Datenbank nicht herunterladen oder
+lesen oder keine Zeitzone beziehungsweise kein Gebietsschema ableiten, schlägt
+der Browserstart fehl, statt mit einem nur teilweise passenden Fingerabdruck
+fortzufahren. Die GeoIP-Auflösung ist auf 20 Sekunden begrenzt; der erste
+Download der Offline-GeoIP-Datenbank erfolgt getrennt und kann länger dauern.
+
 ## Zugehörige Konfiguration
 
 - [Konfiguration](configuration.md) listet alle Bridge- und Upstream-Umgebungsvariablen auf.

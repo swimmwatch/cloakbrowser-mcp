@@ -190,6 +190,13 @@ Utiliza esta función para realizar pruebas legítimas de control de calidad, lo
 No debe considerarse una forma de eludir los controles de acceso ni las
 comprobaciones de políticas regionales.
 
+La coincidencia GeoIP funciona en modo fail-closed. Si CloakBrowser no puede
+resolver la IP de salida del proxy, descargar o leer la base de datos GeoIP, o
+derivar una zona horaria o configuración regional, el inicio del navegador
+falla en vez de continuar con una huella parcialmente coincidente. La
+resolución GeoIP está limitada a 20 segundos; la primera descarga de la base
+GeoIP sin conexión es independiente y puede tardar más.
+
 ## Configuración relacionada
 
 - [Configuración](configuration.md) enumera todas las variables de entorno del puente y del entorno de origen.
