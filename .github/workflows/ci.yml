@@ -262,3 +262,22 @@ jobs:
         uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
         with:
           sarif_file: trivy-results.sarif
+
+  required-ci:
+    name: required-ci
+    if: ${{ always() }}
+    needs:
+      - npm-audit
+      - quality
+      - e2e
+      - coverage
+      - docs
+      - docker
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify required jobs succeeded
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          node -e "const needs = JSON.parse(process.env.NEEDS_JSON); const failed = Object.entries(needs).filter(([, job]) => job.result !== 'success').map(([name, job]) => name + ': ' + job.result); if (failed.length > 0) { console.error('Required CI jobs did not succeed: ' + failed.join(', ')); process.exit(1); }"
