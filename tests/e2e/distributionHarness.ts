@@ -190,6 +190,12 @@ export async function expectDistributionStdioBridge(command: DistributionCommand
     });
 
     expect(stderr.text).not.toMatch(/fatal:|Unhandled|Error:/iu);
+  } catch (error) {
+    if (stderr.text.trim().length === 0) {
+      throw error;
+    }
+
+    throw new Error(`${command.label} stderr:\n${stderr.text}`, { cause: error });
   } finally {
     await client.close().catch(() => undefined);
   }
