@@ -1,6 +1,4 @@
 import { spawnSync } from 'node:child_process';
-import { chmodSync, mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -11,7 +9,6 @@ const fakeUpstreamContainerDir = '/opt/cloakbrowser-mcp/tests/fixtures';
 const fakeUpstreamContainerPath = `${fakeUpstreamContainerDir}/fake-upstream-mcp.mjs`;
 const fakeUpstreamFixtureDir = path.join(repoRoot, 'tests', 'fixtures');
 const containerNames: string[] = [];
-const tempRoots: string[] = [];
 
 export interface DockerCommandResult {
   readonly status: number | null;
@@ -22,9 +19,6 @@ export interface DockerCommandResult {
 export function cleanupDockerE2e(): void {
   for (const containerName of containerNames.splice(0)) {
     runDocker(['rm', '--force', containerName], { allowFailure: true });
-  }
-  for (const root of tempRoots.splice(0)) {
-    rmSync(root, { recursive: true, force: true });
   }
 }
 
@@ -84,7 +78,6 @@ export function inspectDockerImage(): {
 }
 
 export function startFakeUpstreamDockerContainer(): string {
-  const dataDir = createTempRoot('cloakbrowser-mcp-docker-data-');
   const containerName = `cloakbrowser-mcp-e2e-${process.pid}-${Date.now()}`;
   containerNames.push(containerName);
   runDocker([
@@ -95,8 +88,8 @@ export function startFakeUpstreamDockerContainer(): string {
     containerName,
     '--mount',
     `type=bind,source=${fakeUpstreamFixtureDir},target=${fakeUpstreamContainerDir},readonly`,
-    '--mount',
-    `type=bind,source=${dataDir},target=/data`,
+    '--tmpfs',
+    '/data:rw,nosuid,nodev,mode=1777',
     '--env',
     `PLAYWRIGHT_MCP_CLI_PATH=${fakeUpstreamContainerPath}`,
     '--env',
@@ -124,7 +117,6 @@ export function startHttpDockerContainer(
     sessionMax?: number;
   } = {},
 ): { containerName: string; url: string } {
-  const dataDir = createTempRoot('cloakbrowser-mcp-docker-http-data-');
   const containerName = `cloakbrowser-mcp-http-e2e-${process.pid}-${Date.now()}`;
   containerNames.push(containerName);
   const args = [
@@ -135,8 +127,8 @@ export function startHttpDockerContainer(
     containerName,
     '--publish',
     '127.0.0.1::3000',
-    '--mount',
-    `type=bind,source=${dataDir},target=/data`,
+    '--tmpfs',
+    '/data:rw,nosuid,nodev,mode=1777',
     '--env',
     'PLAYWRIGHT_MCP_OUTPUT_DIR=/data',
     '--env',
@@ -245,13 +237,6 @@ export async function waitForDockerHealth(
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   throw new Error(`Docker health did not become ${expected}`);
-}
-
-function createTempRoot(prefix: string): string {
-  const root = mkdtempSync(path.join(tmpdir(), prefix));
-  chmodSync(root, 0o777);
-  tempRoots.push(root);
-  return root;
 }
 
 function runDocker(args: string[], options: { allowFailure?: boolean } = {}): DockerCommandResult {

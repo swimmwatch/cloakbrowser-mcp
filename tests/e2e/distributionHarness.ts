@@ -88,7 +88,6 @@ export function packAndInstallCurrentPackage(): DistributionCommand {
 export function createDockerDistributionCommand(
   options: { dockerInit?: boolean; headless?: boolean; restrictedRuntime?: boolean } = {},
 ): DistributionCommand {
-  const dataDir = createTempRoot('cloakbrowser-mcp-docker-data-');
   return {
     label: 'Docker image',
     command: 'docker',
@@ -110,8 +109,8 @@ export function createDockerDistributionCommand(
         : []),
       '--mount',
       `type=bind,source=${fakeUpstreamFixtureDir},target=${fakeUpstreamContainerDir},readonly`,
-      '--mount',
-      `type=bind,source=${dataDir},target=/data`,
+      '--tmpfs',
+      '/data:rw,nosuid,nodev,mode=1777',
       '-e',
       `PLAYWRIGHT_MCP_CLI_PATH=${fakeUpstreamContainerPath}`,
       '-e',

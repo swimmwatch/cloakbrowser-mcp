@@ -1,7 +1,4 @@
 import { createServer } from 'node:http';
-import { chmodSync, mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import path from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
@@ -333,8 +330,6 @@ describe('Docker image distribution E2E', () => {
 
   it('launches a real headed CloakBrowser browser over stdio', async () => {
     const fixture = await startFixtureServer();
-    const dataDir = mkdtempSync(path.join(tmpdir(), 'cloakbrowser-mcp-headed-docker-'));
-    chmodSync(dataDir, 0o777);
     const transport = new StdioClientTransport({
       command: 'docker',
       args: [
@@ -343,8 +338,8 @@ describe('Docker image distribution E2E', () => {
         '-i',
         '--network',
         'host',
-        '--mount',
-        `type=bind,source=${dataDir},target=/data`,
+        '--tmpfs',
+        '/data:rw,nosuid,nodev,mode=1777',
         '--env',
         'PLAYWRIGHT_MCP_HEADLESS=false',
         '--env',
@@ -363,7 +358,6 @@ describe('Docker image distribution E2E', () => {
       await client.callTool({ name: 'browser_close', arguments: {} }).catch(() => undefined);
       await client.close().catch(() => undefined);
       await fixture.close();
-      rmSync(dataDir, { recursive: true, force: true });
     }
   });
 });
