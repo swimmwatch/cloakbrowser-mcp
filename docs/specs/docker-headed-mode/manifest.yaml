@@ -1,0 +1,40 @@
+schema_version: 1
+depth: standard
+confirmed: true
+rationale:
+  - Standard is warranted because the bounded Docker fix crosses browser launch, container process lifecycle, per-session runtime overrides, multi-architecture publication, and security-sensitive display isolation.
+  - The user already selected an always-on Xvfb direction so both environment defaults and per-session headless:false requests are supported.
+  - No separate contract artifact is proposed; observable requirements and acceptance criteria fit in spec.md.
+profiles:
+  - id: core
+    reason: The fix changes observable Docker/CLI runtime behavior while preserving the existing PLAYWRIGHT_MCP_HEADLESS and per-session headless contracts.
+    state: active
+  - id: operations
+    reason: A virtual X server must be available for the container lifetime with defined startup, readiness, signal, exit, and cleanup behavior on both published architectures.
+    state: active
+  - id: security
+    reason: The added display service must remain container-local, run without unnecessary privilege, and avoid exposing a TCP listener.
+    state: active
+  - id: ui
+    reason: No visible product UI or accessibility interaction is introduced.
+    state: not_applicable
+  - id: backend
+    reason: No HTTP or MCP schema changes are required; existing initialize metadata remains unchanged.
+    state: not_applicable
+  - id: events
+    reason: No asynchronous event contract is added or changed.
+    state: not_applicable
+  - id: data
+    reason: No persistent data, migration, retention, or rollback contract is involved.
+    state: not_applicable
+  - id: cross-surface
+    reason: The same Docker runtime enables existing stdio and HTTP paths; no separately evolving cross-surface user journey is introduced.
+    state: not_applicable
+planning_artifacts: []
+extensions:
+  workflow_mcp_receipts:
+    - id: 38043201ca6e3f5282a6ef997b20be8b965a76e5f69fd35a57f1dda1b5fb302b
+      result:
+        confirmed: true
+        depth: standard
+        next: Load only the confirmed active profile references.
