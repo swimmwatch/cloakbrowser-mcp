@@ -17,6 +17,8 @@ La prueba smoke detecta dependencias runtime faltantes antes de conectar un clie
 npx -y cloakbrowser-mcp@latest doctor --json
 ```
 
+Esto verifica Node.js, los metadatos del paquete, la CLI efectiva de Playwright MCP upstream, las versiones y rutas de paquete resueltas de `@playwright/mcp`, `playwright` y `playwright-core`, la ruta efectiva del core bundle y los metadatos del binario de CloakBrowser sin iniciar el puente.
+
 ## Sonda Streamable HTTP
 
 ```bash

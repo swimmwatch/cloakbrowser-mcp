@@ -645,75 +645,75 @@
       }
     },
     "getting-started.md": {
-      "sourceHash": "1dfdfaf25bb46ce64258bb47d7db9110edbba56cd4660a5bcfa26bdac7978efa",
+      "sourceHash": "492a48d09f30ffe0bae0404b76c99396dd35566a9aad94030a3fcd91e168e7fc",
       "translations": {
         "ru": {
           "path": "getting-started.ru.md",
-          "sourceHash": "1dfdfaf25bb46ce64258bb47d7db9110edbba56cd4660a5bcfa26bdac7978efa",
-          "translationHash": "57c76e94dc2c93df16f56c6883780016d5722b807abdf8f943383cd888ed43fc",
+          "sourceHash": "492a48d09f30ffe0bae0404b76c99396dd35566a9aad94030a3fcd91e168e7fc",
+          "translationHash": "b12251bad5e093a21be8c93d8bb7b5ec22db9fbccda24c76421ca221cb94326e",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:21:49.348Z"
         },
         "be": {
           "path": "getting-started.be.md",
-          "sourceHash": "1dfdfaf25bb46ce64258bb47d7db9110edbba56cd4660a5bcfa26bdac7978efa",
-          "translationHash": "d0fd5facae7d73620a858c7e96f94b1580b1e33f8b71e9193a9066e395f530ae",
+          "sourceHash": "492a48d09f30ffe0bae0404b76c99396dd35566a9aad94030a3fcd91e168e7fc",
+          "translationHash": "5d245a933b72df4aea96a7bca6d4285b5fda09fba17024a2028da4ae0c20db8b",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:22:12.297Z"
         },
         "uk": {
           "path": "getting-started.uk.md",
-          "sourceHash": "1dfdfaf25bb46ce64258bb47d7db9110edbba56cd4660a5bcfa26bdac7978efa",
-          "translationHash": "57992b5247b55d3f12725fe87889551cf60ca70dbfd4f353081f335b6702f0e7",
+          "sourceHash": "492a48d09f30ffe0bae0404b76c99396dd35566a9aad94030a3fcd91e168e7fc",
+          "translationHash": "5279560e156db844e78800daa1c15e4cce78da2ebd578f8375e2beba15eb90cb",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:22:51.329Z"
         },
         "es": {
           "path": "getting-started.es.md",
-          "sourceHash": "1dfdfaf25bb46ce64258bb47d7db9110edbba56cd4660a5bcfa26bdac7978efa",
-          "translationHash": "bb57e00c49aa96755a5ff4cb6003a624b6eb9f9a0c53926e5db1d2fb395fd437",
+          "sourceHash": "492a48d09f30ffe0bae0404b76c99396dd35566a9aad94030a3fcd91e168e7fc",
+          "translationHash": "e4676a6e2fa2be54adf28695bd2e6610b2ea6200f6955f899685cda1fde43b3c",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:23:04.023Z"
         },
         "pt-BR": {
           "path": "getting-started.pt-BR.md",
-          "sourceHash": "1dfdfaf25bb46ce64258bb47d7db9110edbba56cd4660a5bcfa26bdac7978efa",
-          "translationHash": "1fdf03d1ce4ca7362341c53e1c5bea06cd13446a3b2db9479e9cd33a5e6b313b",
+          "sourceHash": "492a48d09f30ffe0bae0404b76c99396dd35566a9aad94030a3fcd91e168e7fc",
+          "translationHash": "028f0366ade79196753a1f458d0c680ca4a07db7ca9711aa024fcd428a6c7dce",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:23:28.533Z"
         },
         "zh": {
           "path": "getting-started.zh.md",
-          "sourceHash": "1dfdfaf25bb46ce64258bb47d7db9110edbba56cd4660a5bcfa26bdac7978efa",
-          "translationHash": "4f92a8d142d5bbf5d9155c05549c8447d1d7c686325910cf5def354bfa576d98",
+          "sourceHash": "492a48d09f30ffe0bae0404b76c99396dd35566a9aad94030a3fcd91e168e7fc",
+          "translationHash": "979b270f78aca23326c8294804fec60703d155937512313977e32f812f54bdb9",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:23:53.292Z"
         },
         "ja": {
           "path": "getting-started.ja.md",
-          "sourceHash": "1dfdfaf25bb46ce64258bb47d7db9110edbba56cd4660a5bcfa26bdac7978efa",
-          "translationHash": "a23c4c130c09cfdac299919cd09d2761a4a34e9193eeeab15baad0b9087552c9",
+          "sourceHash": "492a48d09f30ffe0bae0404b76c99396dd35566a9aad94030a3fcd91e168e7fc",
+          "translationHash": "6a63545815fce163b8ab146f9e2a5e891471afeedbdc596d93055f6700f45230",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:24:16.353Z"
         },
         "de": {
           "path": "getting-started.de.md",
-          "sourceHash": "1dfdfaf25bb46ce64258bb47d7db9110edbba56cd4660a5bcfa26bdac7978efa",
-          "translationHash": "82e95c5285848f6fda852dd1c528a4a6ec50635f3991a97fba65cd833849219f",
+          "sourceHash": "492a48d09f30ffe0bae0404b76c99396dd35566a9aad94030a3fcd91e168e7fc",
+          "translationHash": "3518f594b1cba1c7d8bad99108820d7e16cfb5e30ea8514827c33c8195cc0b1a",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:24:39.362Z"
         },
         "fr": {
           "path": "getting-started.fr.md",
-          "sourceHash": "1dfdfaf25bb46ce64258bb47d7db9110edbba56cd4660a5bcfa26bdac7978efa",
-          "translationHash": "fbb78ae458940105320bd364fb3cbd8e78e64f43e13ebe57e7e03b1a0bac346b",
+          "sourceHash": "492a48d09f30ffe0bae0404b76c99396dd35566a9aad94030a3fcd91e168e7fc",
+          "translationHash": "43bda54762230c14f2500fa6d52b3b89780641bd431e19271ab3368faf88d0b6",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:25:00.925Z"
         },
         "hi": {
           "path": "getting-started.hi.md",
-          "sourceHash": "1dfdfaf25bb46ce64258bb47d7db9110edbba56cd4660a5bcfa26bdac7978efa",
-          "translationHash": "3763867be85c5b8042afcc380a48b1691ab6908b921bc09c4b643daa40669d82",
+          "sourceHash": "492a48d09f30ffe0bae0404b76c99396dd35566a9aad94030a3fcd91e168e7fc",
+          "translationHash": "6db38e8fde019486dd0715f26152a7bd7bb2514f949e77dcb500d40dc2ab0425",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-06-27T13:25:25.436Z"
         }
@@ -1395,75 +1395,75 @@
       }
     },
     "recipes/ci-smoke-test.md": {
-      "sourceHash": "6cb4da70b807e50432d3174f89728617bd61b590c723cafa3fca47bfafb24a60",
+      "sourceHash": "fe7a0ca40238b037e99f0c3f957f6beed2ade454b9949befde41985dd346f169",
       "translations": {
         "ru": {
           "path": "recipes/ci-smoke-test.ru.md",
-          "sourceHash": "6cb4da70b807e50432d3174f89728617bd61b590c723cafa3fca47bfafb24a60",
-          "translationHash": "8a7496a2e2faaf559ebeb3f5780c28df65c787907caaae63f096fb50c892e41a",
+          "sourceHash": "fe7a0ca40238b037e99f0c3f957f6beed2ade454b9949befde41985dd346f169",
+          "translationHash": "3527814d9af01623118b5d6471ed6743be101d9add1102d1f880b57d90ddde62",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-07-06T18:50:42.386Z"
         },
         "be": {
           "path": "recipes/ci-smoke-test.be.md",
-          "sourceHash": "6cb4da70b807e50432d3174f89728617bd61b590c723cafa3fca47bfafb24a60",
-          "translationHash": "f8f99d0f2cd4a23fe83561268d54c9096359342e6b02be0a0a20c2df5a270227",
+          "sourceHash": "fe7a0ca40238b037e99f0c3f957f6beed2ade454b9949befde41985dd346f169",
+          "translationHash": "024c6945f4bce8506e6e6a082fbeea074b14767687c12e7e415e47f5f948c80e",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-07-06T18:50:42.386Z"
         },
         "uk": {
           "path": "recipes/ci-smoke-test.uk.md",
-          "sourceHash": "6cb4da70b807e50432d3174f89728617bd61b590c723cafa3fca47bfafb24a60",
-          "translationHash": "c08196955a9c44c2ef3855d3c5c1cf61516d5167d0e17a88c7286842424a8b26",
+          "sourceHash": "fe7a0ca40238b037e99f0c3f957f6beed2ade454b9949befde41985dd346f169",
+          "translationHash": "bbd995ad8985620f280660a98f67bfa2db79dc71a36fae84ac0e99eb49dba99f",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-07-06T18:50:42.386Z"
         },
         "es": {
           "path": "recipes/ci-smoke-test.es.md",
-          "sourceHash": "6cb4da70b807e50432d3174f89728617bd61b590c723cafa3fca47bfafb24a60",
-          "translationHash": "2162d2458c7169442554889d9fd1a46c2b3951d5c5a7159b87c9c8228ec6519f",
+          "sourceHash": "fe7a0ca40238b037e99f0c3f957f6beed2ade454b9949befde41985dd346f169",
+          "translationHash": "db343d0388177a2377d38f60e44c2806acbe07442899d7170ae0e02787631246",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-07-06T18:50:42.386Z"
         },
         "pt-BR": {
           "path": "recipes/ci-smoke-test.pt-BR.md",
-          "sourceHash": "6cb4da70b807e50432d3174f89728617bd61b590c723cafa3fca47bfafb24a60",
-          "translationHash": "abe161d3f4c348fc7b9fac8c31960064f1c09f8c4b23c0e9da9891f404421639",
+          "sourceHash": "fe7a0ca40238b037e99f0c3f957f6beed2ade454b9949befde41985dd346f169",
+          "translationHash": "8370999f281be062549775d2b1080a33349554602f62ac435e81addb328526ed",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-07-06T18:50:42.386Z"
         },
         "zh": {
           "path": "recipes/ci-smoke-test.zh.md",
-          "sourceHash": "6cb4da70b807e50432d3174f89728617bd61b590c723cafa3fca47bfafb24a60",
-          "translationHash": "f04ee7a2796d24aec9ab443fe59ecd5390074afcd8a378a183f17bf3c2c8cc99",
+          "sourceHash": "fe7a0ca40238b037e99f0c3f957f6beed2ade454b9949befde41985dd346f169",
+          "translationHash": "a67058bb0b2a37ab661ce0aad5ea978ce6ee9e41d5e3a54848ae6d39e31b9f3a",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-07-06T18:50:42.386Z"
         },
         "ja": {
           "path": "recipes/ci-smoke-test.ja.md",
-          "sourceHash": "6cb4da70b807e50432d3174f89728617bd61b590c723cafa3fca47bfafb24a60",
-          "translationHash": "92dfe92595ad1956edfadc2eba826c47ae4e28ca98c12f1b498169bf3bb3fd71",
+          "sourceHash": "fe7a0ca40238b037e99f0c3f957f6beed2ade454b9949befde41985dd346f169",
+          "translationHash": "fccc131d6be7454196a438c26da2723b5d49494fd808640caea2bfc28d4ab3b5",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-07-06T18:50:42.386Z"
         },
         "de": {
           "path": "recipes/ci-smoke-test.de.md",
-          "sourceHash": "6cb4da70b807e50432d3174f89728617bd61b590c723cafa3fca47bfafb24a60",
-          "translationHash": "2cdcd5298a3c1cdda5af45f577a22a3c9e598da7685893602d4aa60cc45e52d2",
+          "sourceHash": "fe7a0ca40238b037e99f0c3f957f6beed2ade454b9949befde41985dd346f169",
+          "translationHash": "7de42f51ee755314740f2f4491af56cd94c4d58a398823c6cc5e6198c9306fc8",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-07-06T18:50:42.386Z"
         },
         "fr": {
           "path": "recipes/ci-smoke-test.fr.md",
-          "sourceHash": "6cb4da70b807e50432d3174f89728617bd61b590c723cafa3fca47bfafb24a60",
-          "translationHash": "b343288c45c0d2732fe0cae703452a6068de363930a878f65486c932d7106773",
+          "sourceHash": "fe7a0ca40238b037e99f0c3f957f6beed2ade454b9949befde41985dd346f169",
+          "translationHash": "8455acdc73d71785b1ddda7bae0019c5e779785b22b34683f4d0a5dcb97a58ce",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-07-06T18:50:42.387Z"
         },
         "hi": {
           "path": "recipes/ci-smoke-test.hi.md",
-          "sourceHash": "6cb4da70b807e50432d3174f89728617bd61b590c723cafa3fca47bfafb24a60",
-          "translationHash": "250fd5808428ad12985f1c720d1cea6c606c43ab767b4befd31e7541b1f18b07",
+          "sourceHash": "fe7a0ca40238b037e99f0c3f957f6beed2ade454b9949befde41985dd346f169",
+          "translationHash": "0cffa04cb68d670cf4f0bab930ce9c45b67a31e6ddba0e53e6cc1fe9411587cc",
           "translator": "deepl-mcp translate-text",
           "updatedAt": "2026-07-06T18:50:42.387Z"
         }

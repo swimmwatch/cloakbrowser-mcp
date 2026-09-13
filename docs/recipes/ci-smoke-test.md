@@ -17,7 +17,7 @@ Use a smoke test to catch missing runtime dependencies before an MCP client trie
 npx -y cloakbrowser-mcp@latest doctor --json
 ```
 
-This verifies Node.js, package metadata, upstream Playwright MCP CLI resolution, and CloakBrowser binary metadata without starting the bridge.
+This verifies Node.js, package metadata, the effective upstream Playwright MCP CLI, the resolved `@playwright/mcp`, `playwright`, and `playwright-core` versions and package paths, the effective core bundle path, and CloakBrowser binary metadata without starting the bridge.
 
 ## Streamable HTTP Probe
 

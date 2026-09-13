@@ -197,7 +197,6 @@ async function runScenario(target, fixtureUrl) {
   const snapshot = await call('browser_snapshot');
   assertSnapshotIncludesBoxes(snapshot, target.mode);
   await call('browser_find', { text: 'Cloak MCP fixture' });
-  await call('browser_console_messages', { level: 'info', all: true });
   await call('browser_wait_for', { text: 'Cloak MCP fixture' });
   await call('browser_evaluate', { function: '() => document.title' });
   await call('browser_fill_form', {
@@ -227,6 +226,9 @@ async function runScenario(target, fixtureUrl) {
   await call('browser_navigate_back');
   await call('browser_click', { target: '#dialog-button' });
   await call('browser_handle_dialog', { accept: true, promptText: 'accepted' });
+  const consoleMessages = await call('browser_console_messages', { level: 'debug', all: true });
+  assertConsoleMethods(consoleMessages, target.mode);
+  await call('browser_evaluate', { function: '() => document.body.dataset.consoleProbe' });
   await call('browser_close');
 
   const covered = [...new Set(calls.map((entry) => entry.name))].sort();
@@ -349,6 +351,19 @@ function assertSnapshotIncludesBoxes(result, mode) {
   }
 }
 
+function assertConsoleMethods(result, mode) {
+  const text =
+    result.content
+      ?.filter((item) => item.type === 'text')
+      .map((item) => item.text)
+      .join('\n') ?? '';
+  for (const method of ['log', 'warn', 'error', 'info', 'debug']) {
+    if (!text.includes(`console-probe-${method}`)) {
+      throw new Error(`${mode} console probe is missing console.${method}`);
+    }
+  }
+}
+
 function compareRuns(baselineRun, cloakRun) {
   assertEqual(cloakRun.tools, baselineRun.tools, 'upstream tool list parity');
   assertEqual(cloakRun.screenshotSchema, baselineRun.screenshotSchema, 'screenshot schema parity');
@@ -361,6 +376,8 @@ function compareRuns(baselineRun, cloakRun) {
   for (const [index, call] of cloakRun.calls.entries()) {
     const baseline = baselineRun.calls[index];
     if (baseline.ok !== call.ok) throw new Error(`${call.name} success mismatch at call ${index + 1}`);
+    // Console history differs by browser engine; assertConsoleMethods validates the current page output.
+    if (call.name === 'browser_console_messages') continue;
     if (baseline.text !== call.text) {
       throw new Error(
         `${call.name} response mismatch at call ${index + 1}\n` +
@@ -524,7 +541,12 @@ function fixtureHtml() {
     <iframe id="nested-outer" src="/nested-outer" title="Nested fixture"></iframe>
     <pre id="status">ready</pre>
     <script>
-      console.log('fixture-loaded');
+    console.log('console-probe-log');
+    console.warn('console-probe-warn');
+    console.error('console-probe-error');
+    console.info('console-probe-info');
+    console.debug('console-probe-debug');
+    document.body.dataset.consoleProbe = 'complete';
       fetch('/api/data').then(r => r.json()).then(data => {
         document.querySelector('#status').textContent = 'api:' + data.ok;
       });

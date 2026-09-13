@@ -32,7 +32,7 @@ npx -y {{ project.npm_pin }}
 
 该 npm 包需要 Node.js 22.x 系列中的 22.13 或更高版本，或 Node.js 24 或更高版本。CloakBrowser 在首次使用时会下载其 Chromium 二进制文件，除非该文件已被缓存。
 
-在连接客户端之前，请使用 `doctor` 来验证本地 Node.js 运行时、包元数据、上游 Playwright MCP CLI 的解析情况以及 CloakBrowser 二进制文件的元数据。 该命令不会启动桥接服务，也不会下载浏览器。
+在连接客户端之前，请使用 `doctor` 验证本地 Node.js 运行时、包元数据、实际使用的 upstream Playwright MCP CLI、已解析的 `@playwright/mcp`、`playwright` 和 `playwright-core` 版本及包路径、实际的 core bundle 路径，以及 CloakBrowser 二进制文件元数据。该命令不会启动桥接服务，也不会下载浏览器。
 
 默认传输方式为 stdio。当您的 MCP 客户端连接到 HTTP 端点时，请使用 `--transport streamable-http`，而不是启动一个 stdio 进程。 HTTP 端点默认设置为 `http://127.0.0.1:3000/mcp`，其中 `GET /healthz` 和 `GET /readyz` 探测位于同一主机和端口上。请使用 `--http-protocol https` 时，应将其与 `--https-cert` 以及 `--https-key` 或 `--https-pfx`，当桥接器需直接终止 TLS 时。
 请参阅生成的 [CLI 参考](generated/cli.md)，以获取完整的标志列表及对应的环境变量。

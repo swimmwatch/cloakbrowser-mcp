@@ -17,6 +17,8 @@ tags:
 npx -y cloakbrowser-mcp@latest doctor --json
 ```
 
+此命令在不启动桥接服务的情况下验证 Node.js、包元数据、实际使用的 upstream Playwright MCP CLI、已解析的 `@playwright/mcp`、`playwright` 和 `playwright-core` 版本及包路径、实际的 core bundle 路径，以及 CloakBrowser 二进制文件元数据。
+
 ## Streamable HTTP 探针
 
 ```bash

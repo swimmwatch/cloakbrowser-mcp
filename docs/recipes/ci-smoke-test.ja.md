@@ -17,6 +17,8 @@ tags:
 npx -y cloakbrowser-mcp@latest doctor --json
 ```
 
+このコマンドは、ブリッジを起動せずに、Node.js、パッケージメタデータ、実際に使用される upstream Playwright MCP CLI、解決された `@playwright/mcp`、`playwright`、`playwright-core` のバージョンとパッケージパス、実際の core bundle パス、および CloakBrowser バイナリのメタデータを確認します。
+
 ## Streamable HTTP プローブ
 
 ```bash

@@ -32,7 +32,7 @@ npx -y {{ project.npm_pin }}
 
 El paquete npm requiere Node.js 22.13+ en la línea 22.x, o Node.js 24+. CloakBrowser descarga su binario de Chromium la primera vez que se utiliza, a menos que ya esté almacenado en la caché.
 
-Utiliza `doctor` para verificar el entorno de ejecución local de Node.js, los metadatos del paquete, la resolución de la CLI de Playwright MCP (upstream) y los metadatos del binario de CloakBrowser antes de conectar un cliente. El comando no inicia el puente ni descarga ningún navegador.
+Utiliza `doctor` antes de conectar un cliente para verificar el entorno de ejecución local de Node.js, los metadatos del paquete, la CLI efectiva de Playwright MCP upstream, las versiones y rutas de paquete resueltas de `@playwright/mcp`, `playwright` y `playwright-core`, la ruta efectiva del core bundle y los metadatos del binario de CloakBrowser. El comando no inicia el puente ni descarga ningún navegador.
 
 El transporte predeterminado es stdio. Utiliza `--transport streamable-http` cuando tu cliente MCP se conecte a un punto final HTTP en lugar de iniciar un proceso stdio. El punto final HTTP es, por defecto, `http://127.0.0.1:3000/mcp`, con sondas fijas `GET /healthz` y `GET /readyz` en el mismo host y puerto. Utilice `--http-protocol https` junto con `--https-cert` y `--https-key` o `--https-pfx` cuando el puente deba finalizar TLS directamente.
 Consulte la [Referencia de la CLI](generated/cli.md) generada para ver la lista completa de indicadores y las variables de entorno correspondientes.

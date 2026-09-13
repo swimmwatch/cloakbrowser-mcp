@@ -30,6 +30,7 @@ export const expectedDefaultTools = [
 export function normalizeToolResponseText(value) {
   return value
     .replaceAll(/\n### Events\n(?:- .*(?:\n|$))+/g, '')
+    .replaceAll(/\n- Console: \d+ errors?, \d+ warnings?/g, '')
     .replaceAll(/\/data\/[^\s)"']+/g, '/data/<artifact>')
     .replaceAll(/page-\d+\.(png|jpeg|pdf)/g, 'page-<timestamp>.$1')
     .replaceAll(

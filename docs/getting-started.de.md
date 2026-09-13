@@ -32,7 +32,7 @@ npx -y {{ project.npm_pin }}
 
 Das npm-Paket erfordert Node.js 22.13+ in der 22.x-Reihe oder Node.js 24+. CloakBrowser lädt bei der ersten Verwendung die Chromium-Binärdatei herunter, sofern diese nicht bereits im Cache vorhanden ist.
 
-Verwenden Sie `doctor`, um die lokale Node.js-Laufzeitumgebung, die Paketmetadaten, die Auflösung der Upstream-Playwright-MCP-CLI und die Metadaten der CloakBrowser-Binärdatei zu überprüfen, bevor Sie eine Verbindung zu einem Client herstellen. Der Befehl startet weder die Bridge noch lädt er einen Browser herunter.
+Verwenden Sie `doctor`, um vor dem Verbinden eines Clients die lokale Node.js-Laufzeitumgebung, die Paketmetadaten, die tatsächlich verwendete Upstream-Playwright-MCP-CLI, die aufgelösten Versionen und Paketpfade von `@playwright/mcp`, `playwright` und `playwright-core`, den effektiven Core-Bundle-Pfad sowie die Metadaten der CloakBrowser-Binärdatei zu überprüfen. Der Befehl startet weder die Bridge noch lädt er einen Browser herunter.
 
 Der Standardtransport ist stdio. Verwenden Sie `--transport streamable-http`, wenn Ihr MCP-Client eine Verbindung zu einem HTTP-Endpunkt herstellt, anstatt einen stdio-Prozess zu starten. Der HTTP-Endpunkt ist standardmäßig auf `http://127.0.0.1:3000/mcp` eingestellt, mit festen `GET /healthz` und `GET /readyz`-Probes auf demselben Host und Port. Verwenden Sie `--http-protocol https` zusammen mit `--https-cert` und `--https-key` oder `--https-pfx`, wenn die Bridge TLS direkt beenden soll.
 Die vollständige Liste der Flags und die entsprechenden Umgebungsvariablen finden Sie in der generierten [CLI-Referenz](generated/cli.md).

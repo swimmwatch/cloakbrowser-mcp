@@ -17,7 +17,7 @@ tags:
 npx -y cloakbrowser-mcp@latest doctor --json
 ```
 
-Гэта правярае Node.js, метададзеныя пакета, дазвол Playwright MCP CLI уверх па плыні і двайковыя метададзеныя CloakBrowser без запуску моста.
+Гэта правярае Node.js, метаданыя пакета, фактычны upstream CLI Playwright MCP, вызначаныя версіі і шляхі пакетаў `@playwright/mcp`, `playwright` і `playwright-core`, фактычны шлях да core bundle і метаданыя бінарнага файла CloakBrowser без запуску брыджа.
 
 ## Зонд Streamable HTTP
 
