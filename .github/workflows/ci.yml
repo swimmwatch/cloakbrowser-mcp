@@ -227,8 +227,8 @@ jobs:
             RELEASE_VERSION=${{ steps.package.outputs.version }}
             RELEASE_VERSION_TAG=${{ steps.package.outputs.version_tag }}
             VCS_REF=${{ github.sha }}
-          cache-from: type=gha,scope=${{ env.DOCKER_CACHE_SCOPE }}
-          cache-to: type=gha,mode=max,scope=${{ env.DOCKER_CACHE_SCOPE }},ignore-error=true
+          cache-from: type=gha,scope=${{ env.DOCKER_CACHE_SCOPE }}-${{ matrix.platform_slug }}
+          cache-to: type=gha,mode=max,scope=${{ env.DOCKER_CACHE_SCOPE }}-${{ matrix.platform_slug }},ignore-error=true
       - name: Smoke (--help)
         run: docker run --rm "${{ matrix.image_tag }}" --help
       - name: Docker E2E acceptance
