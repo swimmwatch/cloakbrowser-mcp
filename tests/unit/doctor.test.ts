@@ -67,14 +67,14 @@ describe('CLI doctor diagnostics', () => {
 
     expect(report.upstream).toMatchObject({
       resolvedVersion: '9.9.9',
-      packagePath: fixture.mcpPackagePath,
+      packagePath: realpathSync.native(fixture.mcpPackagePath),
       playwright: {
         version: '1.2.3',
-        packagePath: fixture.playwrightPackagePath,
+        packagePath: realpathSync.native(fixture.playwrightPackagePath),
       },
       playwrightCore: {
         version: '1.2.3',
-        packagePath: fixture.playwrightCorePackagePath,
+        packagePath: realpathSync.native(fixture.playwrightCorePackagePath),
         bundlePath: fixture.coreBundlePath,
       },
     });

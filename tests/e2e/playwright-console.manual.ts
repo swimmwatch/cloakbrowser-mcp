@@ -68,6 +68,7 @@ async function runConsoleProbe(fixtureUrl: string, attempt: number): Promise<Con
     PLAYWRIGHT_MCP_ISOLATED: 'true',
     PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(runtimeRoot, 'output'),
     CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+    ...(process.platform === 'linux' ? { CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS: '--no-sandbox' } : {}),
   } as Record<string, string>;
   delete env.PLAYWRIGHT_MCP_CLI_PATH;
   delete env.CLOAK_PLAYWRIGHT_MCP_CORE_BUNDLE_PATH;

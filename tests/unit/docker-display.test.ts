@@ -29,7 +29,7 @@ afterEach(async () => {
   }
 });
 
-describe('DockerDisplayManager', () => {
+describe.skipIf(process.platform === 'win32')('DockerDisplayManager', () => {
   it('shares one active readiness attempt between concurrent headed admissions', async () => {
     let spawnCount = 0;
     let probeCount = 0;

@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { createServer, type Server } from 'node:net';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import process from 'node:process';
 import { afterEach, describe, expect, it } from 'vitest';
 import { probeDockerLauncherHealth } from '@/docker/health.js';
 
@@ -20,7 +21,7 @@ afterEach(async () => {
   for (const root of temporaryRoots.splice(0)) rmSync(root, { force: true, recursive: true });
 });
 
-describe('probeDockerLauncherHealth', () => {
+describe.skipIf(process.platform === 'win32')('probeDockerLauncherHealth', () => {
   it('accepts only a current successful launcher response', async () => {
     const socketPath = await startHealthServer('{"ok":true}\n');
 
