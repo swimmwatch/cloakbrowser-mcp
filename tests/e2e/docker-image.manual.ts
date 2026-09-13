@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { chmodSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -334,6 +334,7 @@ describe('Docker image distribution E2E', () => {
   it('launches a real headed CloakBrowser browser over stdio', async () => {
     const fixture = await startFixtureServer();
     const dataDir = mkdtempSync(path.join(tmpdir(), 'cloakbrowser-mcp-headed-docker-'));
+    chmodSync(dataDir, 0o777);
     const transport = new StdioClientTransport({
       command: 'docker',
       args: [

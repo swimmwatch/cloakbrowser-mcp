@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -33,6 +33,7 @@ export interface DistributionCommand {
 
 export function createTempRoot(prefix: string): string {
   const root = mkdtempSync(path.join(tmpdir(), prefix));
+  chmodSync(root, 0o777);
   tempRoots.push(root);
   return root;
 }
