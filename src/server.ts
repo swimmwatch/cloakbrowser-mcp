@@ -21,6 +21,7 @@ import { callLocalTool, createLocalTools, isLocalTool } from '#src/bridge/tools'
 import { MCP_SERVER_INSTRUCTIONS, PROJECT_METADATA } from '#src/project/metadata';
 
 export interface StartBridgeOptions {
+  beforeConnect?: (runtime: BridgeRuntime) => Promise<void>;
   serverInfo?: Partial<Implementation>;
   runtimeOptions?: Pick<
     PrepareBridgeRuntimeOptions,
@@ -50,7 +51,9 @@ export interface BridgeServer {
 }
 
 export async function startBridge(options: StartBridgeOptions = {}): Promise<BridgeServer> {
-  const bridge = await createBridgeServer(options);
+  const runtime = await prepareBridgeRuntime(options.runtimeOptions);
+  await options.beforeConnect?.(runtime);
+  const bridge = await createBridgeServer({ ...options, runtime });
   await bridge.start(options.transport);
   return bridge;
 }

@@ -5,6 +5,8 @@ import type { Implementation } from '@modelcontextprotocol/sdk/types.js';
 import { createDoctorReport, renderDoctorReport } from '#src/cli/doctor';
 import { createCliCommand, readCliOptions } from '#src/cli/options';
 import { cleanStaleSingletonLocks } from '#src/cli/singleton-lock-cleanup';
+import { createDockerCliHealthResponder } from '#src/docker/cli-health';
+import { createDockerDisplayController } from '#src/docker/control';
 import { BRIDGE_TRANSPORT_STREAMABLE_HTTP, type BridgeOptions } from '#src/http/options';
 import { startStreamableHttpBridge } from '#src/http/server';
 import { createBridgeLogger } from '#src/logging/logger';
@@ -28,6 +30,8 @@ async function main(): Promise<void> {
   command.action(async () => {
     const options = readCliOptions(command);
     const { releaseChannel, ...runtimeOptions } = options.bridge;
+    const dockerHealthResponder = createDockerCliHealthResponder();
+    const dockerDisplayController = createDockerDisplayController();
     const serverInfo = {
       name: PROJECT_METADATA.mcpName,
       title: PROJECT_METADATA.title,
@@ -44,11 +48,13 @@ async function main(): Promise<void> {
             serverInfo,
             releaseChannel,
             runtimeOptions,
+            ensureDockerDisplay: () => dockerDisplayController.ensureDisplayForHeadedRuntime(false),
           })
-        : await startStdioBridge(serverInfo, { ...runtimeOptions, releaseChannel });
+        : await startStdioBridge(serverInfo, { ...runtimeOptions, releaseChannel }, dockerDisplayController);
 
     for (const signal of ['SIGINT', 'SIGTERM'] as const) {
       process.once(signal, () => {
+        dockerHealthResponder.dispose();
         void running.close().finally(() => process.exit(0));
       });
     }
@@ -59,9 +65,19 @@ async function main(): Promise<void> {
 async function startStdioBridge(
   serverInfo: Partial<Implementation>,
   runtimeOptions: BridgeOptions,
+  dockerDisplayController: ReturnType<typeof createDockerDisplayController>,
 ): Promise<{ close(): Promise<void> }> {
   cleanStaleSingletonLocks();
-  const bridge = await startBridge({ serverInfo, runtimeOptions });
+  const bridge = await startBridge({
+    beforeConnect: async (runtime) => {
+      await dockerDisplayController.ensureDisplayForHeadedRuntime(
+        runtime.config.browser?.launchOptions?.headless,
+      );
+      if (process.env.DISPLAY !== undefined) runtime.childEnv.DISPLAY = process.env.DISPLAY;
+    },
+    serverInfo,
+    runtimeOptions,
+  });
   return {
     close: () => bridge.dispose(),
   };

@@ -45,6 +45,7 @@ import {
   BridgeRuntimeConfigurationError,
   type PrepareBridgeRuntimeOptions,
   type ReleaseChannel,
+  resolveEffectiveHeadless,
 } from '#src/bridge/config';
 
 const allowedMethods = 'GET, POST, DELETE';
@@ -63,6 +64,7 @@ export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions 
     | 'proxy'
     | 'userDataDir'
   >;
+  ensureDockerDisplay?: () => Promise<void>;
   sessionStore?: SessionStore;
   logger?: BridgeLogger;
 }
@@ -286,11 +288,15 @@ class StreamableHttpBridgeController {
     const sessionId = randomUUID();
     const record = this.#createSessionRecord(sessionId, Date.now());
     const transport = this.#createSessionTransport(sessionId, record);
+    const runtimeOptions = this.#createRuntimeOptionsForSession(sessionRuntimeOptions);
 
     try {
+      if (!resolveEffectiveHeadless(runtimeOptions)) {
+        await this.#options.ensureDockerDisplay?.();
+      }
       const bridge = await createBridgeServer({
         serverInfo: this.#options.serverInfo,
-        runtimeOptions: this.#createRuntimeOptionsForSession(sessionRuntimeOptions),
+        runtimeOptions,
       });
       this.#sessions.set(sessionId, { id: sessionId, bridge, transport });
       await bridge.start(transport);

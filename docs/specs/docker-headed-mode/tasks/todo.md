@@ -1,21 +1,19 @@
+---
+render_macros: false
+---
+
 # Docker Headed Mode Todo
 
-Pinned source version:
-`aaaeebcaeeebeee6c002e06b1288b222ad86806b2727cde376f6f790f4f87993`
+Pinned source version: `c1ab3860964447a4de50068144ce5de0905c12f2282e58e4f5ee6fe21fd33ddb`
 
-- [ ] Packet 01 — implement and locally verify the S6/Xvfb runtime lifecycle.
-- [ ] Packet 01 — record RED, GREEN, and required PROVE evidence in the packet
-      and current handoff.
-- [ ] Packet 02 — run the Docker E2E suite in both CI architecture jobs without
-      weakening existing parity or security checks.
-- [ ] Packet 02 — obtain successful `linux/amd64` and `linux/arm64` CI evidence.
-- [ ] Packet 03 — update Docker documentation, affected locale pages, and the
-      translation manifest.
-- [ ] Final — rerun `specification_check_state` with the pinned source version.
-- [ ] Final — run all required repository, Docker, documentation, actionlint,
-      and zizmor checks listed in the packets.
-- [ ] Final — review the complete diff and confirm unrelated user changes were
-      preserved.
-
-Do not check an item when its required command is unavailable or failing.
-Record the concrete blocker and owner in `handoff.md` instead.
+- [x] Packet 01 — replace partial S6 work with pinned Tini and narrow launcher.
+- [x] Packet 01 — prove demand-started, single-flight, retained Xvfb and bounded CLI/display lifecycle through RED, GREEN, PROVE evidence.
+- [x] Packet 02 — implement private active Docker health without using MCP stdio or changing public HTTP probe schemas.
+- [x] Packet 02 — observe Docker healthy/unhealthy/recovered transitions for CLI and X11 failures; record RED, GREEN, PROVE evidence.
+- [ ] Packet 03 — complete real-browser stdio/HTTP concurrency, cancellation, isolation, lifecycle, restricted-runtime acceptance coverage.
+- [ ] Packet 03 — run the same Docker suite in both CI architecture jobs without weakening parity, Trivy, SARIF, or permissions.
+- [ ] Packet 03 — obtain successful `linux/amd64` and `linux/arm64` CI evidence.
+- [ ] Packet 04 — update authoritative Docker/configuration/security documentation, all affected locales, generated output, and translation manifest entries.
+- [ ] Final — reopen the specification and rerun `specification_check_state` against the pinned source version.
+- [ ] Final — run every repository, Docker, documentation, actionlint, and zizmor check listed in the packets.
+- [ ] Final — review the complete diff and confirm unrelated user changes are preserved.

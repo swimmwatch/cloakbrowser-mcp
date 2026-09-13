@@ -536,266 +536,240 @@ decisions:
     context_reason: null
     requirement_ids:
       - DHM-010
+  - category: architecture
+    state: instructed
+    provenance: user
+    instruction:
+      text: Давай тогда обнови спецификацию с учетом решения Tini с узким модулем управления Xvfb и MCP.
+      source: User message in the current Codex task on 2026-09-13; replaces the previous S6-only architecture, without authorizing implementation.
+      kind: follow_up
+    related_decisions:
+      - id: b1e871e5-3702-4695-985b-eb65e6899c63
+        revision: 2
+      - id: e314a971-95ec-4aad-bd21-53a34168f348
+        revision: 1
+    requirement_ids:
+      - DHM-001
+      - DHM-003
+      - DHM-004
+      - DHM-005
+      - DHM-006
+      - DHM-007
+      - DHM-008
+      - DHM-009
+      - DHM-010
+    question: null
+    answer: null
+    id: b1e871e5-3702-4695-985b-eb65e6899c63
+    revision: 3
+    supersedes_revision: 2
+  - category: operations
+    state: instructed
+    provenance: user
+    instruction:
+      text: Проверять также отзывчивость MCP
+      source: Explicit request_user_input_async selection in the current Codex task on 2026-09-13. The question contrasted active MCP responsiveness with process/display-only health and disclosed a private local response channel for stdio and additional tests.
+      kind: follow_up
+    related_decisions:
+      - id: b1e871e5-3702-4695-985b-eb65e6899c63
+        revision: 3
+    requirement_ids:
+      - DHM-006
+      - DHM-009
+      - DHM-011
+    question: null
+    answer: null
+    id: operations.health-depth
+    revision: 1
+    supersedes_revision: null
+  - category: operations
+    state: instructed
+    provenance: user
+    instruction:
+      text: 'Доделай необходимые изменения. Также учти в спецификации, нужна ли вообще утилита xvbf, если Playwright запускается с параметром `headless: true`. Определи, есть ли в этом необходимость, и обеспечь, чтобы процесс в таком случае либо корректно завершался, либо не запускался.'
+      source: Current user message in this Codex task
+      kind: follow_up
+    related_decisions:
+      - id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+        revision: 3
+    requirement_ids:
+      - DHM-001
+      - DHM-002
+      - DHM-003
+      - DHM-004
+      - DHM-008
+      - DHM-010
+      - DHM-011
+    question: null
+    answer: null
+    id: aafbb781-c8ff-4025-8499-1264b79bfa04
+    revision: 1
+    supersedes_revision: null
+  - category: operations
+    state: needs_user
+    provenance: user
+    question:
+      text: 'Для HTTP фиксируем запуск Xvfb при первой headed-сессии и остановку после закрытия последней такой сессии, или оставляем его работать до завершения контейнера после первого запуска? Рекомендую первый вариант: проверка CloakBrowser показала, что headless работает без DISPLAY и Xvfb, а отдельные HTTP-сессии могут выбирать headed независимо от настройки процесса. В stdio headless Xvfb вообще не запускается. Цена первого варианта — координация одновременных сессий, ожидание готовности дисплея и дополнительные тесты запуска/остановки; второй проще, но сохраняет ненужный процесс после закрытия headed-сессий.'
+      kind: single_choice
+      options:
+        - id: on_demand
+          label: Останавливать после последней headed-сессии
+        - id: keep_started
+          label: Оставлять до завершения контейнера
+    answer: null
+    status: prepared
+    context_reason: null
+    requirement_ids:
+      - DHM-001
+      - DHM-002
+    id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+    revision: 4
+    supersedes_revision: 3
+    question_origin:
+      id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+      revision: 4
+  - category: behavior
+    state: observed
+    provenance: repository
+    fact: On 2026-09-13 an isolated linux/amd64 probe against local image sha256:1bb03d275cd4d757cc8e8323a66658388f21164631cc0088c2869c0d381b0a65 launched the bundled CloakBrowser Chromium 146.0.7680.177 with Playwright 1.63.0-alpha-2026-08-31, headless:true, no DISPLAY or WAYLAND_DISPLAY and no Xvfb process. A data URL loaded and returned title headless-without-xvfb, then browser.close completed (exit 0). The S6 entrypoint was bypassed; this is evidence of browser headless independence, not acceptance of the future Tini launcher. Current config resolves options.headless before the process environment, and HTTP session metadata overrides only that session. Official Playwright CI documentation describes Xvfb for headed Linux execution.
+    evidence:
+      - src/bridge/config.ts:254
+      - src/http/server.ts:369
+      - Dockerfile
+      - docs/specs/docker-headed-mode/spec.md
+    question: null
+    answer: null
+    id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb
+    revision: 1
+    supersedes_revision: null
+  - category: operations
+    state: answered
+    provenance: user
+    question:
+      text: 'Для HTTP фиксируем запуск Xvfb при первой headed-сессии и остановку после закрытия последней такой сессии, или оставляем его работать до завершения контейнера после первого запуска? Рекомендую первый вариант: проверка CloakBrowser показала, что headless работает без DISPLAY и Xvfb, а отдельные HTTP-сессии могут выбирать headed независимо от настройки процесса. В stdio headless Xvfb вообще не запускается. Цена первого варианта — координация одновременных сессий, ожидание готовности дисплея и дополнительные тесты запуска/остановки; второй проще, но сохраняет ненужный процесс после закрытия headed-сессий.'
+      kind: single_choice
+      options:
+        - id: on_demand
+          label: Останавливать после последней headed-сессии
+        - id: keep_started
+          label: Оставлять до завершения контейнера
+    answer:
+      text: Оставлять до завершения контейнера
+      selected_ids:
+        - keep_started
+    status: answered
+    context_reason: null
+    requirement_ids:
+      - DHM-001
+      - DHM-002
+    id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+    revision: 5
+    supersedes_revision: 4
+    question_origin:
+      id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+      revision: 4
+    answer_source: Actual request_user_input_async answer in the current Codex task
+    answered_question:
+      id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+      revision: 4
+  - category: operations
+    state: instructed
+    provenance: user
+    instruction:
+      text: А у нас тут не возникнет проблем, если будет несколько запросов по HTTP варианту и не будет ли никакого конфликта или гонки данных в XVFB?
+      source: Current user follow-up about concurrent HTTP requests and Xvfb races
+      kind: follow_up
+    related_decisions:
+      - id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+        revision: 5
+    requirement_ids:
+      - DHM-001
+      - DHM-003
+      - DHM-006
+      - DHM-008
+      - DHM-010
+      - DHM-011
+    question: null
+    answer: null
+    id: 9e486951-5dbb-468a-84f6-19a66ec12341
+    revision: 1
+    supersedes_revision: null
+  - category: behavior
+    state: observed
+    provenance: repository
+    fact: On 2026-09-13 an isolated linux/amd64 probe against local image sha256:1bb03d275cd4d757cc8e8323a66658388f21164631cc0088c2869c0d381b0a65 launched the bundled CloakBrowser Chromium 146.0.7680.177 with Playwright 1.63.0-alpha-2026-08-31, headless:true, no DISPLAY or WAYLAND_DISPLAY and no Xvfb process. A data URL loaded and returned title headless-without-xvfb, then browser.close completed (exit 0). The S6 entrypoint was bypassed; this is evidence of browser headless independence, not acceptance of the future Tini launcher. Current config resolves options.headless before the process environment, and HTTP session metadata overrides only that session. Official Playwright CI documentation describes Xvfb for headed Linux execution.
+    evidence:
+      - src/bridge/config.ts:254
+      - src/http/server.ts:369
+      - Dockerfile
+      - docs/specs/docker-headed-mode/spec.md
+    question: null
+    answer: null
+    id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - DHM-001
+      - DHM-002
+      - DHM-003
+      - DHM-006
+      - DHM-008
+      - DHM-011
+  - category: operations
+    state: answered
+    provenance: user
+    question:
+      text: 'Для HTTP фиксируем запуск Xvfb при первой headed-сессии и остановку после закрытия последней такой сессии, или оставляем его работать до завершения контейнера после первого запуска? Рекомендую первый вариант: проверка CloakBrowser показала, что headless работает без DISPLAY и Xvfb, а отдельные HTTP-сессии могут выбирать headed независимо от настройки процесса. В stdio headless Xvfb вообще не запускается. Цена первого варианта — координация одновременных сессий, ожидание готовности дисплея и дополнительные тесты запуска/остановки; второй проще, но сохраняет ненужный процесс после закрытия headed-сессий.'
+      kind: single_choice
+      options:
+        - id: on_demand
+          label: Останавливать после последней headed-сессии
+        - id: keep_started
+          label: Оставлять до завершения контейнера
+    answer:
+      text: Оставлять до завершения контейнера
+      selected_ids:
+        - keep_started
+    status: answered
+    context_reason: null
+    requirement_ids:
+      - DHM-001
+      - DHM-002
+      - DHM-003
+      - DHM-004
+      - DHM-008
+      - DHM-009
+      - DHM-010
+      - DHM-011
+    id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+    revision: 6
+    supersedes_revision: 5
+    question_origin:
+      id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+      revision: 4
+    answer_source: Actual request_user_input_async answer in the current Codex task
+    answered_question:
+      id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+      revision: 4
 extensions:
+  specification_amendments:
+    - date: '2026-09-13'
+      status: draft
+      architecture_ref:
+        id: b1e871e5-3702-4695-985b-eb65e6899c63
+        revision: 3
+      health_ref:
+        id: operations.health-depth
+        revision: 1
+      historical_review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+      note: Prior S6 instructions, observed capability facts, approval, and review receipts are historical; they do not approve or validate this Tini revision. The current manifest depth and profiles remain unchanged. Existing S6 task packets require replanning after specification review and approval.
+      workflow_check:
+        tool: specification_open
+        status: unavailable
+        error_code: INVALID_INPUT
+        note: The callable project/specification schema was rejected before a version-bound context was returned. No MCP review or approval is claimed; the explicit user instructions were appended locally without altering historical receipts.
   workflow_mcp_receipts:
-    - id: 016648e057eac85dd230683717ec12889ec3fadb13674cbbb72aee3a1a2f9a96
-      result:
-        review_ref: f99d0353-5770-423b-89e0-20c3cb8c27a9
-        item_index: 20
-        verdict: covered
-        recorded_items: 21
-    - id: 138a50bb60f362b7179e67fdc432f41a023d2391475edb7ca44e902d0dd88460
-      result:
-        review_ref: f99d0353-5770-423b-89e0-20c3cb8c27a9
-        item_index: 21
-        verdict: covered
-        recorded_items: 22
-    - id: 3ebe1d7ba2c257690b00d0860c792d38bd212b3f1f02d8dff6606bc4f90461cf
-      result:
-        review_ref: f99d0353-5770-423b-89e0-20c3cb8c27a9
-        coverage_status: reviewed
-        source_version: 2e6429cd0d40a17f9178b7e2993ea87aa608af77e0da08747719b416757551fe
-        semantic_correctness_proven: false
-        reviewer_independence_authenticated: false
-        approved_by_tool: false
-    - id: bb4afb1ecf2fe80ca1a7b07b3a5759e110abd826669a0db22b295d5ff45cdd90
-      result:
-        review_ref: f99d0353-5770-423b-89e0-20c3cb8c27a9
-        approval_observed: true
-    - id: 21a99af8e6994e0ed277914a204f26d57e94e1280d915474007d49cabd831eb5
-      result:
-        decision_ref:
-          id: b1e871e5-3702-4695-985b-eb65e6899c63
-          revision: 1
-        state: instructed
-    - id: d5b39f42067be53585472a5fb233a2a78b75fac76f5387ac4b9af5c32127cda0
-      result:
-        decision_ref:
-          id: b1e871e5-3702-4695-985b-eb65e6899c63
-          revision: 2
-        requirement_ids:
-          - DHM-001
-          - DHM-003
-          - DHM-004
-          - DHM-005
-          - DHM-007
-          - DHM-008
-          - DHM-010
-    - id: 162e48828fc3dae9af9b4c7b2e00a6cd239a59a4bccf16c31daceeab66fd7592
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        source_version: 5086a1776ccb2353d76ace40df0e44d8e5d1291b72bd83107a5cd73e5402b86b
-        total_items: 24
-        recorded_items: 0
-        mechanical_status: pass
-        mechanical_issues: []
-        total_mechanical_issues: 0
-        next: Use a separate context to read every item completely and record an evidence-based verdict.
-    - id: d63ddfec86ac0176530bdb72125d09c51943aae13544ad1feaa19f34cc6114b0
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 0
-        verdict: covered
-        recorded_items: 1
-    - id: f195f54ca8236121c59946d0f81cf2ef795fd96881a69bbcd74b7095d8e564ff
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 1
-        verdict: covered
-        recorded_items: 2
-    - id: 1d2e8e66a5424521026be427ceeea727bd52313167194b4963087940f4b5aa31
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 2
-        verdict: covered
-        recorded_items: 3
-    - id: 58fe1ab3031d489fd9ff241a900e2b7e1acdd55714cee3963cf158ec337d4177
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 3
-        verdict: covered
-        recorded_items: 4
-    - id: 3dc581311bc1ff9d39b76fdd369a1eb7cd8ab6d7314850636c6f18e0d2d1a212
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 4
-        verdict: covered
-        recorded_items: 5
-    - id: 8039d4fd1f7f7e6002cb18595a01dc82f7a5bb2f966b4dac174a4d4e2dbc314d
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 5
-        verdict: covered
-        recorded_items: 6
-    - id: 1d81bd035986f1b34f909075320b76e60f35e3855d05d3cff12f78355730b721
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 6
-        verdict: covered
-        recorded_items: 7
-    - id: 6806d288dd70176811e4fe344ec1fcd787e75d8442d294cfe6c971ddb177abd6
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 7
-        verdict: covered
-        recorded_items: 8
-    - id: a3b6e94d4b28a10ef8be19797768e567a3051bdaa8b49d77b9b020452fa66f3a
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 8
-        verdict: covered
-        recorded_items: 9
-    - id: 9c6ea6084b8003b85d69f1ace98abdf41c189ce8652d5a72431479438633a91c
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 9
-        verdict: conflict
-        recorded_items: 10
-    - id: c707c5efb9f0c91cae3db6dbe07dd176bb8d257fa7590091bb23b3185c8fd8f7
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 10
-        verdict: covered
-        recorded_items: 11
-    - id: b2e87a11778c90866e51c6474df75eedcd2d5dcedbe068bbcd0b9d83aa2a239b
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 11
-        verdict: covered
-        recorded_items: 12
-    - id: 5c4197725d1ee57b51051191b609406826323a69497ddf0e3606a1bbf77e6952
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 12
-        verdict: covered
-        recorded_items: 13
-    - id: b795e00b7316c15b4dbd2a072bdfd8d5149e411b6ba215a84966e56282aa6116
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 13
-        verdict: covered
-        recorded_items: 14
-    - id: ebe92c797363f91f592681384cbe2fd13c5b5416d866be2acd2c16f58b50ec65
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 14
-        verdict: covered
-        recorded_items: 15
-    - id: ff6f8e4188c6dc3e57e338ea1e07c05985933c6a56d2ac450062f8549c05bbbc
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 15
-        verdict: covered
-        recorded_items: 16
-    - id: b6f2a4afea65f0be126ac0742447b440147ceea30e2269136fc3372df5da1842
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 16
-        verdict: covered
-        recorded_items: 17
-    - id: c68e770dbd3e9ccf40f07d95f63987e94bfc60a0996efa34f4713b93ed2115d1
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 17
-        verdict: covered
-        recorded_items: 18
-    - id: 1c02313273de3fe7df93e1fae3defb84fb21e619d5717fa655815ba4088eef83
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 18
-        verdict: covered
-        recorded_items: 19
-    - id: 0e58f06dc1fa8439c63dcc7783455f6bb9b21bbc9bf963d5fa7f9173dcde59cf
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 19
-        verdict: conflict
-        recorded_items: 20
-    - id: a5bf5f7eecb3862b8dea9d23086a56cfbd9243ca4299a7d49345e7f818a90109
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 20
-        verdict: gap
-        recorded_items: 21
-    - id: 16c7b5271f4f5179f5e720a349796832c5acc36ffce00bc4b338b87e7948026a
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 21
-        verdict: covered
-        recorded_items: 22
-    - id: ad95f0999462a06526314e06fd2136a63db06abac947bab4b0bbef2ee553e32e
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 22
-        verdict: covered
-        recorded_items: 23
-    - id: 9e155ec3da93fc632d5e22bbb515e8929ba8260a3b01dc1b9608d733b8ef52a4
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        item_index: 23
-        verdict: conflict
-        recorded_items: 24
-    - id: ec45bc67250bab1090512c2a5bb88744ffdf00d372b26677d314680fce6c785a
-      result:
-        review_ref: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
-        coverage_status: gaps
-        source_version: 5086a1776ccb2353d76ace40df0e44d8e5d1291b72bd83107a5cd73e5402b86b
-        semantic_correctness_proven: false
-        reviewer_independence_authenticated: false
-        approved_by_tool: false
-    - id: 9a23ef76e59e9be0ca60aebf8e903beb257875018bdf99e1678c2a3116d4e050
-      result:
-        decision_ref:
-          id: e314a971-95ec-4aad-bd21-53a34168f348
-          revision: 1
-        state: instructed
-    - id: 89f5821d8dbc5e932a2257c99ba30ba8518a6c8583f6a92e9356df792184f982
-      result:
-        decision_ref:
-          id: ebfc6fbe-0948-47fc-8238-c49232499c0b
-          revision: 1
-        state: observed
-    - id: 359f46db1743b9b354019d95dd5f7db7463368cddee3cbcf460efc33c1cf59aa
-      result:
-        decision_ref:
-          id: ebfc6fbe-0948-47fc-8238-c49232499c0b
-          revision: 2
-        requirement_ids:
-          - DHM-010
-    - id: 819cf817991865d20a3f8032a7f36c413f23fab9a1a37515df5a61e952d7c54d
-      result:
-        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
-        source_version: aaaeebcaeeebeee6c002e06b1288b222ad86806b2727cde376f6f790f4f87993
-        total_items: 26
-        recorded_items: 0
-        mechanical_status: pass
-        mechanical_issues: []
-        total_mechanical_issues: 0
-        next: Use a separate context to read every item completely and record an evidence-based verdict.
-    - id: 92449dbdf9d91eff3a00d60edbfc90300bafad2f8c3913cfb97a28659c77c177
-      result:
-        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
-        item_index: 0
-        verdict: covered
-        recorded_items: 1
-    - id: e2b8047996b1823a459ab0fabe0c4cc81348ef53880dfe16c2919675ccd86179
-      result:
-        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
-        item_index: 1
-        verdict: covered
-        recorded_items: 2
-    - id: da0ef0f83291ae09cb3c8c469640b03b3207593deaad28310bd46e940e745fea
-      result:
-        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
-        item_index: 2
-        verdict: covered
-        recorded_items: 3
-    - id: 43a1141058a1e4e65f547568e977eb06e3b7dc08b82e22612a5a1669762419e2
-      result:
-        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
-        item_index: 3
-        verdict: covered
-        recorded_items: 4
     - id: e66678a8c62d69c3af4e531b9e95890b5d2e1c0d086e4654e5887331367de53f
       result:
         review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
@@ -939,6 +913,300 @@ extensions:
     - id: dc0fa95c07f23d491f5ef33989017baf7a757cf388f42171ee0f758caa90e01b
       result:
         review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        approval_observed: true
+    - id: 619d67e9bccf65570d70e18bcb02cc072ef65153b20b3271ac4696d378f37d3a
+      result:
+        decision_ref:
+          id: aafbb781-c8ff-4025-8499-1264b79bfa04
+          revision: 1
+        state: instructed
+    - id: b4ecfd88a3235dc117174669b366b3b1010c93562cbda06f6dffad89366a778f
+      result:
+        question_ref:
+          id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+          revision: 4
+        question:
+          text: 'Для HTTP фиксируем запуск Xvfb при первой headed-сессии и остановку после закрытия последней такой сессии, или оставляем его работать до завершения контейнера после первого запуска? Рекомендую первый вариант: проверка CloakBrowser показала, что headless работает без DISPLAY и Xvfb, а отдельные HTTP-сессии могут выбирать headed независимо от настройки процесса. В stdio headless Xvfb вообще не запускается. Цена первого варианта — координация одновременных сессий, ожидание готовности дисплея и дополнительные тесты запуска/остановки; второй проще, но сохраняет ненужный процесс после закрытия headed-сессий.'
+          kind: single_choice
+          options:
+            - id: on_demand
+              label: Останавливать после последней headed-сессии
+            - id: keep_started
+              label: Оставлять до завершения контейнера
+        next: Ask the saved question with the callable host-native question tool.
+    - id: 7bd737bd48715337dc23df7d3608a7a60ec42ac1cce376a33078ef3435284f93
+      result:
+        decision_ref:
+          id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb
+          revision: 1
+        state: observed
+    - id: 4e5b2bee2505134db5a8cea444a3b5087e1928da90f486f046bf7f9738e5a167
+      result:
+        decision_ref:
+          id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+          revision: 5
+        state: answered
+    - id: 1d7a89756f113ac5ef155a382f457eabe11d3dd9381a7a5397564116dfab902a
+      result:
+        decision_ref:
+          id: 9e486951-5dbb-468a-84f6-19a66ec12341
+          revision: 1
+        state: instructed
+    - id: 739c88091a3fcbcdbd6d991479d280158a88100372b77b38e55cb5fb508265dd
+      result:
+        items:
+          - decision_ref:
+              id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb
+              revision: 2
+            previous_requirement_ids: []
+            added:
+              - DHM-001
+              - DHM-002
+              - DHM-003
+              - DHM-006
+              - DHM-008
+              - DHM-011
+            removed: []
+            requirement_ids:
+              - DHM-001
+              - DHM-002
+              - DHM-003
+              - DHM-006
+              - DHM-008
+              - DHM-011
+            operation_applied: true
+          - decision_ref:
+              id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+              revision: 6
+            previous_requirement_ids:
+              - DHM-001
+              - DHM-002
+            added:
+              - DHM-003
+              - DHM-004
+              - DHM-008
+              - DHM-009
+              - DHM-010
+              - DHM-011
+            removed: []
+            requirement_ids:
+              - DHM-001
+              - DHM-002
+              - DHM-003
+              - DHM-004
+              - DHM-008
+              - DHM-009
+              - DHM-010
+              - DHM-011
+            operation_applied: true
+        operation_applied: true
+    - id: 259428a38e696c3f873283c57cc9a6c754ac21a57b9fd3a1acc55774355d20cd
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        source_version: c1ab3860964447a4de50068144ce5de0905c12f2282e58e4f5ee6fe21fd33ddb
+        total_items: 31
+        recorded_items: 0
+        mechanical_status: pass
+        mechanical_issues: []
+        total_mechanical_issues: 0
+        next: Use a separate context to read every item completely and record an evidence-based verdict.
+    - id: c7ab4f760ab607cfbe1e0c5bff6a9e15c972277dd3dc05911afc1bc732e5e807
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 0
+        verdict: covered
+        recorded_items: 1
+    - id: 7436cd02abeade81ca754d0475edc224e610268a3e135775a0f861a43920395c
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 1
+        verdict: covered
+        recorded_items: 2
+    - id: 27c123569d43c5207356a46a4e2102e51e86c28be3e5fec2b592d21530834711
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 2
+        verdict: covered
+        recorded_items: 3
+    - id: a903fc2ea32cf99b34600ba64280e0cf893673b2f9711d2ad7b4360b3e8b7b5d
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 3
+        verdict: covered
+        recorded_items: 4
+    - id: 90596229c7af06eaaf00370caff49d64e706208012053b4cc4a5397c2d72eec7
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 4
+        verdict: covered
+        recorded_items: 5
+    - id: 3bd29303147e3ebe07bb7541581e4571131108a8eedf29b63727ef52bf7a4a17
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 5
+        verdict: covered
+        recorded_items: 6
+    - id: 4bb33c4493f14dbffa93245f1245f20b3be6107590abb3c769605491ead00046
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 6
+        verdict: covered
+        recorded_items: 7
+    - id: ea7ce59e999bd22236ee2698f47ed1314a812233c83299a0547bc6e17be0e96b
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 7
+        verdict: covered
+        recorded_items: 8
+    - id: 43c7fa2acf85a0ecbd8afd2246c84eb6e1f555284ca6c7cbb89683a2acdf6af7
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 8
+        verdict: covered
+        recorded_items: 9
+    - id: 868a8f5b3934ae9e880899007b582db430efd9a49aa19af34a19560fab937788
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 9
+        verdict: covered
+        recorded_items: 10
+    - id: d20047dc16e357ac885f21334eceb3d732b2160accab63baa9ea000a9f449d18
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 10
+        verdict: covered
+        recorded_items: 11
+    - id: eeb50f47e1f875291907e0fbeeb0ac1a2a165f67f0525a1bd7f04b26dc442e2f
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 11
+        verdict: covered
+        recorded_items: 12
+    - id: fbdf87c604892740ddf7d41440ba3413320f58e2ea82200a9dae6e2775e9d40d
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 12
+        verdict: covered
+        recorded_items: 13
+    - id: 08190a5dc1e8bad82e4418ef9f617c2d862d68ed8ab25edda36c50c9325ddb91
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 13
+        verdict: covered
+        recorded_items: 14
+    - id: 8fbec7c44b75d02345e45f26c3a6337e2f51bc6d80f159e7dac7354b08a85cd6
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 14
+        verdict: covered
+        recorded_items: 15
+    - id: de5d70a1e4f0dd22f2d6ef7248249b0b36dc855d33801d2adb30b44787e50a3e
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 15
+        verdict: covered
+        recorded_items: 16
+    - id: 188a50286b01b4edeadc8b49376a607d72522e9f9262e71fde8fa78adb94e871
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 16
+        verdict: covered
+        recorded_items: 17
+    - id: 9bf4feb4e2bb75a4c707f3afd61758c5af0932c7ff83e8850b510c934cbdd382
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 17
+        verdict: covered
+        recorded_items: 18
+    - id: a6fa79b041b118d3f6dc650d262ba3833dfa30ef213b28c1b8edd6d67f8aa9ec
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 18
+        verdict: covered
+        recorded_items: 19
+    - id: cf16928ac84745036d882bb0b25b88e2f364c6abc78aa55231f4d8ea31ed9333
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 19
+        verdict: covered
+        recorded_items: 20
+    - id: 1983cc913b0c826eb675c3c280781d2cc0029dfec9879a18504aa546b35e8455
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 20
+        verdict: covered
+        recorded_items: 21
+    - id: 2665f471e9468227fa7e83ae7d43a5cb64cf9714d8f4f36e1791ed52dbc8538d
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 21
+        verdict: covered
+        recorded_items: 22
+    - id: 005c164997f715eb822d104cd4d495cad0326af7c8a7e760dc962e7f5a2cb8f4
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 22
+        verdict: covered
+        recorded_items: 23
+    - id: 038bd96a4fe46ce4c9f2a795f0449b44247a317fba0d2a175312ae60785adec9
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 23
+        verdict: covered
+        recorded_items: 24
+    - id: d3d897378c8e551700638edc7029e38172642fba8e6b1b31dcebef6770ecf592
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 24
+        verdict: covered
+        recorded_items: 25
+    - id: 2e698967939b1826108e36a3fc367c572614339b4fc6e141c6c6a7fe2a169a37
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 25
+        verdict: covered
+        recorded_items: 26
+    - id: 248150d30d581b813e8f031747b2a3ada2175a6c55abe55f78c5923740834e33
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 26
+        verdict: covered
+        recorded_items: 27
+    - id: 5755522892486f2fddc28c0b7ca7877c1d6b53c469a6fbd15a35980c3f2ed2d4
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 27
+        verdict: covered
+        recorded_items: 28
+    - id: 489f55b5e7d58f579fc84fb031c610c62085d739e38f116d0befa9f82b5417c9
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 28
+        verdict: covered
+        recorded_items: 29
+    - id: 91c1d95fe40bdc17ea29329c3043aead48f25e8f8c413204adc8bf4f5a004f1c
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 29
+        verdict: covered
+        recorded_items: 30
+    - id: b89ad3527c3279a5ff23d74d3725936e7c6f894aa3667d08dd376459451ce046
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 30
+        verdict: covered
+        recorded_items: 31
+    - id: 201f908507d59f6237f74d83564b6be9e934695210558b72a52987dbfe1a11eb
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        coverage_status: reviewed
+        source_version: c1ab3860964447a4de50068144ce5de0905c12f2282e58e4f5ee6fe21fd33ddb
+        semantic_correctness_proven: false
+        reviewer_independence_authenticated: false
+        approved_by_tool: false
+    - id: 9b29f19c9bd56a1032e779e9022d92c098c5e40dc3dde4cd6e6ccfdb058a76b7
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
         approval_observed: true
 specification_reviews:
   version: 1
@@ -1914,4 +2182,414 @@ specification_reviews:
             source_refs: [],
           },
         ]
+      approval_observed: true
+    - id: 5444e611-25dd-48d2-bf22-4523cda23641
+      source_version: c1ab3860964447a4de50068144ce5de0905c12f2282e58e4f5ee6fe21fd33ddb
+      specification_version: 9624ca40590114349de4999ccf1a35af771e602b7726e277a068e60d8b918931
+      status_at_start: Draft
+      created_at: 2026-09-13T13:08:24.569Z
+      completed: true
+      outcome: reviewed
+      results:
+        [
+          {
+            item_index: 0,
+            item_key: source:563b9e5f-3865-45ec-b69d-d3e5d1f6595b,
+            verdict: covered,
+            explanation: 'The request to specify the Docker headed-browser defect is realized by DHM-001 through DHM-009: headed display availability, preserved configuration and protocols, bounded failure/cleanup, non-root isolation, both published architectures, real-browser regression evidence, and operator documentation. The draft explicitly withholds implementation authorization.',
+            requirement_ids: [DHM-001, DHM-002, DHM-003, DHM-004, DHM-005, DHM-006, DHM-007, DHM-009],
+            source_refs: [{ id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 }],
+          },
+          {
+            item_index: 1,
+            item_key: source:f941f0a9-01ed-45b9-bf1a-78b693c6e432,
+            verdict: covered,
+            explanation: 'The complete revised question and keep_started answer replace initial always-on startup with first effective headed demand and retention until container shutdown. DHM-001 preserves headless-only absence, session-specific mode, one shared concurrent startup, and retention after cancellation/close; DHM-003/004 preserve shared failure and cleanup; DHM-008/010/011 test concurrency and phase-aware health.',
+            requirement_ids: [DHM-001, DHM-002, DHM-003, DHM-004, DHM-008, DHM-009, DHM-010, DHM-011],
+            source_refs: [{ id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 }],
+          },
+          {
+            item_index: 2,
+            item_key: source:645787f8-0199-400c-b65a-ffe6cb127fab,
+            verdict: covered,
+            explanation: The preserved environment/session precedence is stated in DHM-002 and applied after effective mode resolution in DHM-001. DHM-006 preserves per-session configuration and DHM-008 exercises a headed override under a headless process default. Current config.ts:254 and server.ts:369 support the referenced precedence.,
+            requirement_ids: [DHM-001, DHM-002, DHM-006, DHM-008],
+            source_refs: [{ id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 }],
+          },
+          {
+            item_index: 3,
+            item_key: source:76e979ed-b096-443e-91af-a958037ed7fc,
+            verdict: covered,
+            explanation: 'The original missing display boundary is addressed by DHM-001 effective-demand startup, DHM-003 real readiness and bounded terminal failure, and DHM-004 shared container cleanup. This historical Docker observation is not treated as a claim that the current draft has already been implemented.',
+            requirement_ids: [DHM-001, DHM-003, DHM-004],
+            source_refs: [{ id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 }],
+          },
+          {
+            item_index: 4,
+            item_key: source:327a11ee-9474-46fd-bf71-3d28908e5276,
+            verdict: covered,
+            explanation: 'The existing published amd64 and arm64 surface is retained by DHM-007, including equivalent failure/security outcomes, real-browser evidence on each architecture, and rejection of reduced support.',
+            requirement_ids: [DHM-007],
+            source_refs: [{ id: 327a11ee-9474-46fd-bf71-3d28908e5276, revision: 2 }],
+          },
+          {
+            item_index: 5,
+            item_key: source:7cc8baab-a0dc-46d7-a123-33b55e68d247,
+            verdict: covered,
+            explanation: The fake-upstream coverage limitation is explicitly remedied by DHM-008 real Docker stdio and per-session HTTP browser checks while retaining deterministic fake-upstream protocol coverage.,
+            requirement_ids: [DHM-008],
+            source_refs: [{ id: 7cc8baab-a0dc-46d7-a123-33b55e68d247, revision: 2 }],
+          },
+          {
+            item_index: 6,
+            item_key: source:scope.manifest,
+            verdict: covered,
+            explanation: 'The confirmed Standard scope and active core/operations/security profiles remain represented, with no extra planning artifact. Its initial always-on rationale is explicitly historical in the specification context; the later user headless amendment and keep_started answer replace that lifecycle detail while preserving platform, protocol and isolation obligations.',
+            requirement_ids:
+              [
+                DHM-001,
+                DHM-002,
+                DHM-003,
+                DHM-004,
+                DHM-005,
+                DHM-006,
+                DHM-007,
+                DHM-008,
+                DHM-009,
+                DHM-010,
+                DHM-011,
+              ],
+            source_refs: [{ id: scope.manifest, revision: 2 }],
+          },
+          {
+            item_index: 7,
+            item_key: source:9dc642d9-c960-49a1-9c24-41eaee392a43,
+            verdict: covered,
+            explanation: 'The non-root runtime and default headless=true observations are preserved by DHM-002 and DHM-005. Acceptance checks the final runtime user and unchanged security policies, rather than requiring a host display or privileges.',
+            requirement_ids: [DHM-002, DHM-005],
+            source_refs: [{ id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 }],
+          },
+          {
+            item_index: 8,
+            item_key: source:3217bbd3-735c-4ef5-a5c0-ee169dcece3d,
+            verdict: covered,
+            explanation: 'The amd64-only feasibility observation remains an assumption with an explicit arm64 verification boundary. DHM-007 and DHM-008 require real-browser evidence on both architectures and prohibit silently lowering support, so the assumption is not promoted to completed acceptance.',
+            requirement_ids: [DHM-007, DHM-008],
+            source_refs: [{ id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 }],
+          },
+          {
+            item_index: 9,
+            item_key: source:b1e871e5-3702-4695-985b-eb65e6899c63,
+            verdict: covered,
+            explanation: "The user's explicit Tini plus narrow Xvfb/MCP module instruction supersedes the older S6 architecture. DHM-010 divides reaping/signals from display readiness and lifecycle, limits the launcher to Docker and two owned children, prohibits a generic supervisor/restarts/public configuration, and retains protocol, privilege, platform and cleanup constraints across DHM-001/003/004/005/006/007/008/009.",
+            requirement_ids:
+              [DHM-001, DHM-003, DHM-004, DHM-005, DHM-006, DHM-007, DHM-008, DHM-009, DHM-010],
+            source_refs: [{ id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 }],
+          },
+          {
+            item_index: 10,
+            item_key: source:e314a971-95ec-4aad-bd21-53a34168f348,
+            verdict: covered,
+            explanation: 'The earlier go-ahead belongs to the S6 specification revision, not current implementation authority. The later explicit Tini replacement is controlling; DHM-010 supplies the replacement architecture and the context explicitly requires fresh review/approval and replanning before implementation. No remaining independent behavioral obligation is lost.',
+            requirement_ids: [DHM-010],
+            source_refs: [{ id: e314a971-95ec-4aad-bd21-53a34168f348, revision: 1 }],
+          },
+          {
+            item_index: 11,
+            item_key: source:ebfc6fbe-0948-47fc-8238-c49232499c0b,
+            verdict: covered,
+            explanation: 'The S6 suitability observation is historical evidence for the superseded architecture, not a continuing requirement to use S6. The later explicit Tini instruction and DHM-010 replace init/lifecycle ownership while preserving shutdown, non-root, signals and two-platform outcomes. The specification explicitly identifies previous S6 evidence as historical.',
+            requirement_ids: [DHM-010],
+            source_refs: [{ id: ebfc6fbe-0948-47fc-8238-c49232499c0b, revision: 2 }],
+          },
+          {
+            item_index: 12,
+            item_key: source:operations.health-depth,
+            verdict: covered,
+            explanation: 'The user selected active MCP responsiveness beyond process/display-only health. DHM-011 requires a fresh reply from the actual CLI event loop, owner-only private stdio probing, identity/freshness checks, no public session or protocol interference, and tests for SIGSTOP and a blocked event loop. DHM-006 preserves streams and DHM-009 documents the precise health limit.',
+            requirement_ids: [DHM-006, DHM-009, DHM-011],
+            source_refs: [{ id: operations.health-depth, revision: 1 }],
+          },
+          {
+            item_index: 13,
+            item_key: source:aafbb781-c8ff-4025-8499-1264b79bfa04,
+            verdict: covered,
+            explanation: 'The headless amendment asks to avoid or stop an unnecessary Xvfb process. DHM-001 forbids startup for headless-only operation and evaluates effective per-session mode. The later explicit keep_started choice narrows the stop alternative after first headed use; DHM-003/004/008/010/011 preserve startup absence, retention, bounded cleanup and correct health phases.',
+            requirement_ids: [DHM-001, DHM-002, DHM-003, DHM-004, DHM-008, DHM-010, DHM-011],
+            source_refs: [{ id: aafbb781-c8ff-4025-8499-1264b79bfa04, revision: 1 }],
+          },
+          {
+            item_index: 14,
+            item_key: source:538acfd4-709d-4f8d-b0f4-4b90b06fc7bb,
+            verdict: covered,
+            explanation: "The isolated amd64 browser result supports absence of a display for headless work, not acceptance of the future launcher. DHM-001/002 preserve effective mode and require headless-only absence; DHM-003 avoids waiting for Xvfb; DHM-008 repeats real-image positive/negative evidence; DHM-011 keeps absent display healthy before first headed admission. The context preserves the probe's platform and entrypoint limitations.",
+            requirement_ids: [DHM-001, DHM-002, DHM-003, DHM-006, DHM-008, DHM-011],
+            source_refs: [{ id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb, revision: 2 }],
+          },
+          {
+            item_index: 15,
+            item_key: source:9e486951-5dbb-468a-84f6-19a66ec12341,
+            verdict: covered,
+            explanation: 'The HTTP concurrency concern is addressed by one shared startup/outcome, admission before display demand, cancellation independence and retention in DHM-001/003, existing browser/page isolation and explicit X11 shared-desktop limits in DHM-006, simultaneous two-headed/one-headless real-browser acceptance and pending capacity assertions in DHM-008, ordered shutdown in DHM-010, and phase-consistent concurrent probes in DHM-011.',
+            requirement_ids: [DHM-001, DHM-003, DHM-006, DHM-008, DHM-010, DHM-011],
+            source_refs: [{ id: 9e486951-5dbb-468a-84f6-19a66ec12341, revision: 1 }],
+          },
+          {
+            item_index: 16,
+            item_key: requirement:DHM-001,
+            verdict: covered,
+            explanation: 'DHM-001 faithfully combines the latest keep_started answer and headless amendment with observed per-session precedence. First headed admission, validation/authentication/capacity ordering, single startup, cancellation-independent retention and application/launcher ownership address the explicit concurrency question without adding idle shutdown or a new public control.',
+            requirement_ids: [DHM-001],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+                { id: aafbb781-c8ff-4025-8499-1264b79bfa04, revision: 1 },
+                { id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb, revision: 2 },
+                { id: 9e486951-5dbb-468a-84f6-19a66ec12341, revision: 1 },
+              ],
+          },
+          {
+            item_index: 17,
+            item_key: requirement:DHM-002,
+            verdict: covered,
+            explanation: DHM-002 preserves the observed Docker default and environment/session configuration contract. Its no-new-public-option invariant is consistent with the bounded Docker bug fix and both later amendments.,
+            requirement_ids: [DHM-002],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 },
+                { id: aafbb781-c8ff-4025-8499-1264b79bfa04, revision: 1 },
+                { id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb, revision: 2 },
+              ],
+          },
+          {
+            item_index: 18,
+            item_key: requirement:DHM-003,
+            verdict: covered,
+            explanation: 'DHM-003 supplies the required readiness/failure boundary for the accepted narrow lifecycle module and concurrent headed admissions: finite readiness, no PID-only success, shared outcome independent of disconnect, terminal failure and protocol-safe diagnostics. It preserves headless independence.',
+            requirement_ids: [DHM-003],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 },
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+                { id: aafbb781-c8ff-4025-8499-1264b79bfa04, revision: 1 },
+                { id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb, revision: 2 },
+                { id: 9e486951-5dbb-468a-84f6-19a66ec12341, revision: 1 },
+              ],
+          },
+          {
+            item_index: 19,
+            item_key: requirement:DHM-004,
+            verdict: covered,
+            explanation: 'DHM-004 expresses the container lifecycle responsibilities implied by Tini plus the owned Xvfb/CLI launcher while retaining the later keep-started policy. It distinguishes never-started display, expected cleanup and unexpected retained-display loss; signals, exit status and race cleanup are testable.',
+            requirement_ids: [DHM-004],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 },
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+                { id: aafbb781-c8ff-4025-8499-1264b79bfa04, revision: 1 },
+              ],
+          },
+          {
+            item_index: 20,
+            item_key: requirement:DHM-005,
+            verdict: covered,
+            explanation: 'DHM-005 preserves the existing non-root security boundary and restricts the added local display rather than expanding privilege or public access. Its TCP, credentials/resource and unchanged security-policy acceptance aligns with the confirmed security profile.',
+            requirement_ids: [DHM-005],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+              ],
+          },
+          {
+            item_index: 21,
+            item_key: requirement:DHM-006,
+            verdict: covered,
+            explanation: 'DHM-006 preserves the original upstream/transport contracts and session options while responding to the explicit concurrent-HTTP and active-health decisions. It distinguishes Playwright page/context isolation from shared native X11 facilities, preserves bytes/EOF, and leaves public interfaces unchanged.',
+            requirement_ids: [DHM-006],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+                { id: operations.health-depth, revision: 1 },
+                { id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb, revision: 2 },
+                { id: 9e486951-5dbb-468a-84f6-19a66ec12341, revision: 1 },
+              ],
+          },
+          {
+            item_index: 22,
+            item_key: requirement:DHM-007,
+            verdict: covered,
+            explanation: 'DHM-007 retains the observed published platform surface, while the explicit feasibility assumption keeps arm64 acceptance unresolved until tested. The requirement demands equivalent positive and negative runtime/security evidence rather than claiming current proof.',
+            requirement_ids: [DHM-007],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 327a11ee-9474-46fd-bf71-3d28908e5276, revision: 2 },
+                { id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+              ],
+          },
+          {
+            item_index: 23,
+            item_key: requirement:DHM-008,
+            verdict: covered,
+            explanation: 'DHM-008 derives from the recorded real-browser testing gap, headless probe limitation and explicit concurrency concern. Its simultaneous sessions, absence control, lifecycle fault checks and retained fake-upstream tests verify independent obligations rather than equating sequential launch success with concurrency safety.',
+            requirement_ids: [DHM-008],
+            source_refs:
+              [
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 7cc8baab-a0dc-46d7-a123-33b55e68d247, revision: 2 },
+                { id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+                { id: aafbb781-c8ff-4025-8499-1264b79bfa04, revision: 1 },
+                { id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb, revision: 2 },
+                { id: 9e486951-5dbb-468a-84f6-19a66ec12341, revision: 1 },
+              ],
+          },
+          {
+            item_index: 24,
+            item_key: requirement:DHM-009,
+            verdict: covered,
+            explanation: 'DHM-009 documents the externally observable Docker change, accepted demand/retention policy, Tini responsibilities and active-health selection. It accurately limits virtual display to internal headed execution and retains repository localization obligations without adding a remote desktop product.',
+            requirement_ids: [DHM-009],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+                { id: operations.health-depth, revision: 1 },
+              ],
+          },
+          {
+            item_index: 25,
+            item_key: requirement:DHM-010,
+            verdict: covered,
+            explanation: 'DHM-010 implements the explicitly selected Tini/narrow-module architectural constraint at specification level. It assigns reaping to Tini, display/CLI lifecycle to the launcher and sessions to the application; pinned binaries, ordered signals, exit precedence, bounded process-group cleanup, non-root restrictions, external-init compatibility and stdout safety are coherent with those boundaries. Earlier S6 sources are explicitly superseded, not current proof of Tini acceptance.',
+            requirement_ids: [DHM-010],
+            source_refs:
+              [
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+                { id: e314a971-95ec-4aad-bd21-53a34168f348, revision: 1 },
+                { id: ebfc6fbe-0948-47fc-8238-c49232499c0b, revision: 2 },
+                { id: aafbb781-c8ff-4025-8499-1264b79bfa04, revision: 1 },
+                { id: 9e486951-5dbb-468a-84f6-19a66ec12341, revision: 1 },
+              ],
+          },
+          {
+            item_index: 26,
+            item_key: requirement:DHM-011,
+            verdict: covered,
+            explanation: 'DHM-011 faithfully implements the active MCP responsiveness selection and later lazy/retained-display policy. It distinguishes fresh CLI-event-loop and display responses from PID/cached evidence, never-started/starting/retained phases, stale identities, capacity readiness and health, channel failure and non-Docker inactivity. It defines unhealthy detection and operator-owned recovery without unrequested restart behavior.',
+            requirement_ids: [DHM-011],
+            source_refs:
+              [
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 },
+                { id: operations.health-depth, revision: 1 },
+                { id: aafbb781-c8ff-4025-8499-1264b79bfa04, revision: 1 },
+                { id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb, revision: 2 },
+                { id: 9e486951-5dbb-468a-84f6-19a66ec12341, revision: 1 },
+              ],
+          },
+          {
+            item_index: 27,
+            item_key: profile:core,
+            verdict: covered,
+            explanation: 'The core profile is covered for this bounded Docker CLI change: effective configuration/defaults/validation and per-session precedence; exact argument, byte-stream, EOF, stderr and exit behavior; cancellation/concurrency; public-interface preservation; non-Docker compatibility; both target architectures; and explicit real-image acceptance. Existing interfaces are referenced and available in config.ts and http/server.ts. No new schema or artifact is needed.',
+            requirement_ids:
+              [
+                DHM-001,
+                DHM-002,
+                DHM-003,
+                DHM-004,
+                DHM-005,
+                DHM-006,
+                DHM-007,
+                DHM-008,
+                DHM-009,
+                DHM-010,
+                DHM-011,
+              ],
+            source_refs: [],
+          },
+          {
+            item_index: 28,
+            item_key: profile:operations,
+            verdict: covered,
+            explanation: 'The operations profile is covered by demand/readiness, bounded startup and shutdown, retained-display loss, ordered cleanup, failure diagnostics, active health, concurrent transitions, image/platform rollout evidence and operator restart/rollback guidance. Numeric internal deadlines and Docker probe settings must be finite and documented with shutdown within the default stop grace; selecting exact values is an implementation detail, not a missing user behavior. No state migration or backup workflow is introduced.',
+            requirement_ids:
+              [
+                DHM-001,
+                DHM-002,
+                DHM-003,
+                DHM-004,
+                DHM-005,
+                DHM-006,
+                DHM-007,
+                DHM-008,
+                DHM-009,
+                DHM-010,
+                DHM-011,
+              ],
+            source_refs: [],
+          },
+          {
+            item_index: 29,
+            item_key: profile:security,
+            verdict: covered,
+            explanation: 'The security profile is covered for the added display and private lifecycle/health boundary: non-root node, no extra capabilities or host display, no X11 TCP exposure, owner-only channels/resources, authentication/admission before demand, fresh identities, redacted diagnostics, cleanup and restricted-container acceptance on both platforms. Existing HTTP/TLS/sandbox/session policies remain intact; shared native X11 is explicitly not a hostile-tenant isolation boundary.',
+            requirement_ids:
+              [
+                DHM-001,
+                DHM-002,
+                DHM-003,
+                DHM-004,
+                DHM-005,
+                DHM-006,
+                DHM-007,
+                DHM-008,
+                DHM-009,
+                DHM-010,
+                DHM-011,
+              ],
+            source_refs: [],
+          },
+          {
+            item_index: 30,
+            item_key: context:specification,
+            verdict: covered,
+            explanation: 'The non-requirement prose consistently states demand-started/retained Xvfb, Tini plus a narrow Docker-only launcher, unchanged interfaces and platforms, terminal recovery, and explicit non-goals. It explains the historical always-on scope rationale and S6 revisions without treating them as current instructions. Prior probes and Docker E2E failure are not represented as final acceptance; Draft status and review/approval/replanning boundaries remain explicit.',
+            requirement_ids:
+              [
+                DHM-001,
+                DHM-002,
+                DHM-003,
+                DHM-004,
+                DHM-005,
+                DHM-006,
+                DHM-007,
+                DHM-008,
+                DHM-009,
+                DHM-010,
+                DHM-011,
+              ],
+            source_refs: [],
+          },
+        ]
+      input_snapshot: d3f7e1c33b49a6936bd561e6ae7875bedd0e67278c725718606fae75f10385d4
       approval_observed: true

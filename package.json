@@ -46,7 +46,8 @@
     "test:e2e": "npm run build && npm run test:e2e:run && npm run test:e2e:playwright-console:run",
     "test:e2e:run": "vitest run --config vitest.e2e.config.ts",
     "test:e2e:npm-package": "npm run build && vitest run --config vitest.distribution-e2e.config.mjs tests/e2e/npm-package.manual.ts",
-    "test:e2e:docker": "npm run docker:build && vitest run --config vitest.distribution-e2e.config.mjs tests/e2e/docker-image.manual.ts",
+    "test:e2e:docker": "npm run docker:build && npm run test:e2e:docker:run",
+    "test:e2e:docker:run": "vitest run --config vitest.distribution-e2e.config.mjs tests/e2e/docker-image.manual.ts",
     "test:e2e:playwright-console": "npm run build && npm run test:e2e:playwright-console:run",
     "test:e2e:playwright-console:run": "vitest run --config vitest.distribution-e2e.config.mjs tests/e2e/playwright-console.manual.ts",
     "test:e2e:distributions": "npm run test:e2e:npm-package && npm run test:e2e:docker",
@@ -75,7 +76,7 @@
     "package:verify": "npm run build && npm run server:validate && node scripts/verify-npm-package.mjs",
     "docker:build": "docker buildx build --load -t cloakbrowser-mcp:dev --build-arg RELEASE_VERSION=$npm_package_version --build-arg RELEASE_VERSION_TAG=v$npm_package_version .",
     "docker:lint": "docker run --rm -v \"$PWD:/repo:ro\" --workdir /repo docker.io/hadolint/hadolint:v2.14.0@sha256:27086352fd5e1907ea2b934eb1023f217c5ae087992eb59fde121dce9c9ff21e /bin/hadolint Dockerfile",
-    "docker:smoke": "docker run --rm --init cloakbrowser-mcp:dev --help",
+    "docker:smoke": "docker run --rm cloakbrowser-mcp:dev --help",
     "bridge:compare": "node scripts/compare-playwright-mcp-bridge.mjs",
     "upstream:check": "npm run upstream:check:playwright && npm run upstream:check:cloakbrowser",
     "upstream:check:playwright": "node scripts/check-playwright-mcp-updates.mjs",
@@ -120,13 +121,14 @@
     "vitest": "^5.0.0"
   },
   "overrides": {
-    "@hono/node-server": "1.19.15",
+    "@hono/node-server": "1.19.17",
     "vite": "8.2.1",
     "esbuild": "0.28.2",
     "@typescript-eslint/utils": "8.67.0",
     "fast-uri": "3.1.7",
     "hono": "4.13.5",
-    "ip-address": "10.5.0"
+    "ip-address": "10.5.0",
+    "brace-expansion": "5.0.9"
   },
   "keywords": [
     "mcp",

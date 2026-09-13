@@ -84,7 +84,9 @@ export function packAndInstallCurrentPackage(): DistributionCommand {
   };
 }
 
-export function createDockerDistributionCommand(): DistributionCommand {
+export function createDockerDistributionCommand(
+  options: { dockerInit?: boolean; headless?: boolean; restrictedRuntime?: boolean } = {},
+): DistributionCommand {
   const dataDir = createTempRoot('cloakbrowser-mcp-docker-data-');
   return {
     label: 'Docker image',
@@ -92,8 +94,19 @@ export function createDockerDistributionCommand(): DistributionCommand {
     args: [
       'run',
       '--rm',
-      '--init',
       '-i',
+      ...(options.dockerInit ? ['--init'] : []),
+      ...(options.restrictedRuntime
+        ? [
+            '--cap-drop=ALL',
+            '--security-opt=no-new-privileges',
+            '--read-only',
+            '--tmpfs',
+            '/tmp:rw,nosuid,nodev,noexec,mode=1777',
+            '--tmpfs',
+            '/tmp/.X11-unix:rw,nosuid,nodev,noexec,mode=1777,uid=1000,gid=1000',
+          ]
+        : []),
       '--mount',
       `type=bind,source=${fakeUpstreamFixtureDir},target=${fakeUpstreamContainerDir},readonly`,
       '--mount',
@@ -108,6 +121,7 @@ export function createDockerDistributionCommand(): DistributionCommand {
       'PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default',
       '-e',
       'CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK=false',
+      ...(options.headless === false ? ['-e', 'PLAYWRIGHT_MCP_HEADLESS=false'] : []),
       dockerImageTag,
     ],
     env: process.env as Record<string, string>,

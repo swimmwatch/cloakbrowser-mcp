@@ -88,7 +88,7 @@ async function startMcpContainer(mode, containerImage, useCloakWrapper, humanize
   chmodSync(dataDir, 0o777);
   writeFileSync(path.join(dataDir, 'upload.txt'), `upload from ${mode}\n`);
 
-  const dockerArgs = ['run', '--rm', '--init', '-i', '--network', 'host', '-v', `${dataDir}:/data`];
+  const dockerArgs = ['run', '--rm', '-i', '--network', 'host', '-v', `${dataDir}:/data`];
   if (caps) dockerArgs.push('-e', `PLAYWRIGHT_MCP_CAPS=${caps}`);
   if (useCloakWrapper) {
     dockerArgs.push(

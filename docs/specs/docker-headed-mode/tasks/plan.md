@@ -1,181 +1,194 @@
+---
+render_macros: false
+---
+
 # Docker Headed Mode Implementation Plan
 
 Status: Planned
 
 ## Workflow Inputs
 
-- Specification: `docs/specs/docker-headed-mode/spec.md` (`Status: Approved`)
-- Depth: `Standard`
-- Active profiles: `core`, `operations`, `security`
-- Planning artifacts: none beyond this task bundle
-- Source version: `aaaeebcaeeebeee6c002e06b1288b222ad86806b2727cde376f6f790f4f87993`
-- Specification version: `fad6bcccd0eac43e8a19841c851a8425a69f51cd2bcd14a21f9c83d2c07fe5a6`
-- Completeness review: `3c616247-2370-4c25-9165-043ac7bfdb39`
+- Specification: `docs/specs/docker-headed-mode/spec.md` (`Status: Approved`).
+- Depth: `Standard`.
+- Active profiles: `core`, `operations`, `security`.
+- Planning artifacts: task bundle only.
+- Source version: `c1ab3860964447a4de50068144ce5de0905c12f2282e58e4f5ee6fe21fd33ddb`.
+- Specification version: `9624ca40590114349de4999ccf1a35af771e602b7726e277a068e60d8b918931`.
+- Completeness review: `5444e611-25dd-48d2-bf22-4523cda23641`.
+- Workflow state at planning: `pass`; coverage: `reviewed`.
 
-Planning must stop and return to specification work if
-`specification_check_state` no longer returns `status: pass`,
-`coverage_status: reviewed`, and the source version above.
+Before every packet, reopen the specification and call `specification_check_state`
+with the pinned source version. Stop on stale, unapproved, or unreviewed state.
 
-## Outcome
+## Planning Basis
 
-The Docker image starts S6 Overlay as its entrypoint, uses an `s6-rc` dependency
-to hold the MCP CLI until Xvfb is ready, preserves the CLI command contract, and
-fails the whole container when the required display fails. Real CloakBrowser
-checks prove headed stdio and per-session Streamable HTTP behavior on both
-published architectures. Documentation stops recommending Docker's external
-`--init` because S6 owns the container PID 1 role.
+### Approved behavior
 
-No runtime TypeScript or public MCP, CLI, or configuration contract changes are
-planned.
+- The image uses Tini `v0.19.0` as init and a narrow Docker-only Node.js/TypeScript
+  launcher as Tini's main child. Tini forwards signals and reaps adopted children;
+  the launcher owns ordered CLI/Xvfb lifecycle and exit classification.
+- The launcher passes file descriptors 0, 1, and 2 directly to the CLI. MCP stdio
+  traffic is never consumed, buffered, or relayed by the launcher.
+- Xvfb is demand-started. A headless-only container never starts it. The first
+  effective headed admission starts one shared, bounded readiness attempt. Once ready,
+  the same process remains required until container shutdown.
+- HTTP authentication, initialize metadata validation, and capacity admission happen
+  before a request can trigger Xvfb. Concurrent headed requests share one startup;
+  cancelling one waiter does not cancel it for the others.
+- Unexpected Xvfb exit after display demand is terminal. There is no restart or
+  fallback to headless mode.
+- Docker health uses an owner-only local channel, a fresh CLI event-loop response, and,
+  after display demand, a fresh X11 protocol response. It does not use MCP stdin/stdout,
+  create sessions, start a browser, or start Xvfb.
+- Existing HTTP `/healthz` and `/readyz` schemas and authentication remain unchanged.
+  Capacity exhaustion alone does not make Docker health fail.
+- A shared X server is not a tenant boundary. Existing Playwright page/context
+  isolation remains required, but native X11 focus, clipboard, and display capture are
+  not promised as per-session isolation.
 
-## Repository Evidence
+### Repository evidence
 
-- `Dockerfile:25-85` owns runtime assembly, keeps `USER node`, defaults
-  `PLAYWRIGHT_MCP_HEADLESS=true`, and currently starts the Node CLI directly.
-- `.dockerignore:1-28` excludes every path except an explicit allowlist, so a new
-  Docker root filesystem directory must be added deliberately.
-- `tests/e2e/docker-image.manual.ts:12-15` currently exercises only the fake
-  upstream stdio bridge.
-- `tests/e2e/distributionHarness.ts:87-117` constructs that Docker command and
-  currently inserts an external `--init`.
-- `scripts/compare-playwright-mcp-bridge.mjs:86-140` already exercises the real
-  browser boundary in headless stdio mode but also inserts `--init`.
-- `tests/integration/streamable-http.test.ts:218-229` proves per-session
-  `headless` metadata with a fake upstream; it is the behavioral pattern for the
-  Docker real-browser HTTP check.
-- `package.json:46-83` owns local E2E, Docker build, smoke, parity, and final
-  repository commands.
-- `.github/workflows/ci.yml:167-264` already builds and runs the Docker image for
-  `linux/amd64` and `linux/arm64`; only amd64 currently runs browser parity.
-- `docs/docker.md:15-27`, `docs/getting-started.md:40-96`, and
-  `README.md:76-93` currently recommend `--init`, which would put another init
-  process in front of the selected S6 entrypoint.
-- `docs/configuration.md:201-203` currently tells headed users to supply their
-  own display and must distinguish the project image from generic Linux hosts.
+- `Dockerfile:25-123` contains an incomplete S6 Overlay implementation that must be
+  removed rather than adapted.
+- `docker/s6-overlay/**` and the S6-specific assertions in
+  `tests/e2e/docker-image.manual.ts:25-55` are obsolete partial work.
+- `src/bridge/config.ts:254` resolves effective `headless` using the existing option
+  override and environment default.
+- `src/server.ts:61-63` prepares runtime configuration before connecting the upstream
+  stdio child. This is the stdio headed-admission boundary.
+- `src/http/server.ts:276-301` validates metadata and reserves capacity before creating
+  a session bridge; `src/http/server.ts:350-377` applies per-session option precedence;
+  `src/http/server.ts:445-451` owns session disposal.
+- `src/http/server.ts:453-490` owns the public health/readiness schemas that must not
+  change.
+- `src/cli.ts:14-56` owns CLI transport startup and application signal handling.
+- `tests/integration/streamable-http.test.ts:218-229` already verifies independent
+  per-session headless metadata with the fake upstream.
+- `tests/e2e/dockerHarness.ts` is an untracked, partial S6-oriented harness;
+  `tests/e2e/distributionHarness.ts` and
+  `scripts/compare-playwright-mcp-bridge.mjs` contain current Docker invocation paths.
+- `.github/workflows/ci.yml:167-265` already builds separate `linux/amd64` and
+  `linux/arm64` images and retains parity, Trivy, SARIF, and required-job checks.
+- Public Docker commands still recommend external `--init` across the English and
+  localized documentation set.
 
-Relevant paths already contain user changes: `.github/workflows/ci.yml`,
-`package.json`, `docs/getting-started.md` and all its locale variants,
-`docs/data/translation-manifest.json`, and the CI smoke recipe locale set.
-Execution must re-read their current diffs and patch only the lines owned by the
-packet. It must not replace or normalize unrelated edits.
+All line references are from the planning snapshot. The worktree contains unrelated
+user changes. Every executor must reread the scoped diff and patch only packet-owned
+lines.
 
-## Verified External Inputs
+## Verified External Input
 
-S6 Overlay `v3.2.3.2` publishes the required assets with these GitHub release
-digests:
+Tini `v0.19.0` official release assets are pinned per target architecture:
 
-| Asset                       | SHA-256                                                            |
-| --------------------------- | ------------------------------------------------------------------ |
-| `s6-overlay-noarch.tar.xz`  | `5379750ed30a84bbd2e2dd74847ba6b5bd29cd0b2e3ea2ec58049b57eb2eda12` |
-| `s6-overlay-x86_64.tar.xz`  | `e6befcc96a437a3831386ecfc51808c5d3e939dc5fe3c02ae9284599e8aa2408` |
-| `s6-overlay-aarch64.tar.xz` | `b17f17a82e7a515c682a91edaf2ffdabb73f891981b6c1fd712115693a2f8b4c` |
+| Target | Asset | SHA-256 |
+| --- | --- | --- |
+| `amd64` | `tini-amd64` | `93dcc18adc78c65a028a84799ecf8ad40c936fdfc5f2a57b1acda5a8117fa82c` |
+| `arm64` | `tini-arm64` | `07952557df20bfd2a95f9bef198b445e006171969499a1d361bd9e6f8e5e0e81` |
 
 Authoritative references:
 
-- `https://github.com/just-containers/s6-overlay/releases/tag/v3.2.3.2`
-- `https://raw.githubusercontent.com/just-containers/s6-overlay/v3.2.3.2/README.md`
-- `https://raw.githubusercontent.com/just-containers/s6-overlay/v3.2.3.2/doc/init.txt`
-- `https://skarnet.org/software/s6-rc/s6-rc-compile.html`
-- `https://skarnet.org/software/s6/s6-supervise.html`
-- `https://skarnet.org/software/s6/s6-svstat.html`
-- `https://manpages.debian.org/bookworm/xserver-common/Xserver.1.en.html`
+- `https://github.com/krallin/tini/releases/tag/v0.19.0`
+- `https://github.com/krallin/tini/tree/v0.19.0`
+- `https://github.com/krallin/tini/blob/v0.19.0/src/tini.c`
 
-The implementation must re-check the release asset names and digests before
-editing the Dockerfile. A mismatch blocks the packet; it must not be converted
-into an unpinned download.
+Run bundled Tini with `-s` so it registers as a subreaper when an external
+`docker --init` places it below PID 1. Do not use `-g`; the launcher owns ordered
+forwarding and escalation. Keep Tini verbose output disabled because it can use
+`stdout`.
 
-## Architecture
-
-| Unit                        | Boundary and responsibility                                                                                                                                                                                                              | Inputs and outputs                                                                 | Lifecycle, errors, and invariants                                                                                                                                                                           | Requirements                                | Verification                                                                                       |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| S6 asset build stage        | Downloads and verifies the noarch archive plus exactly one architecture archive, extracts them into an isolated root, and copies only the extracted overlay into the runtime image.                                                      | `TARGETARCH`, version, three pinned digests; extracted S6 filesystem.              | `amd64 -> x86_64`, `arm64 -> aarch64`; any other value or checksum mismatch fails the build. Download and extraction tooling does not enter the runtime image.                                              | DHM-007, DHM-010                            | Build-time negative digest and unsupported-architecture checks; amd64 and arm64 CI builds.         |
-| Runtime image contract      | Installs the S6 root filesystem and project service definitions, exports the fixed local display, retains `USER node`, and changes the image contract from the Node entrypoint to `ENTRYPOINT ["/init"]` plus the existing CLI as `CMD`. | Existing runtime files and Docker CLI arguments; S6 init tree and CLI process.     | `S6_CMD_ARG0=node`, `S6_CMD_RECEIVE_SIGNALS=1`, quiet S6 diagnostics, unchanged CLI argv and exit status, no new capability or host mount.                                                                  | DHM-002, DHM-004, DHM-005, DHM-006, DHM-010 | Image config inspection, help/error exit checks, signal checks, fake-upstream protocol regression. |
-| `xvfb` s6-rc longrun        | Owns one Xvfb process on fixed display `:99`, with screen `1280x720x24`, Unix socket only, and readiness notification on fd 3 via Xserver `-displayfd`.                                                                                  | S6 start/stop transition; `DISPLAY=:99`; local X11 socket and readiness event.     | Depends on S6 `base`; has bounded `timeout-up`; never listens on TCP; runs as the image's non-root user.                                                                                                    | DHM-001, DHM-003, DHM-005, DHM-010          | Immediate first browser action, startup-failure injection, `ss`/process/user inspection.           |
-| `xvfb-ready` s6-rc oneshot  | Depends on the ready longrun, creates an owner-only readiness marker after successful transition, and removes it before planned shutdown.                                                                                                | Xvfb readiness; `/run/cloakbrowser-mcp/xvfb-ready`.                                | The marker distinguishes failed startup and unexpected post-ready exit from intentional service teardown. `/run/cloakbrowser-mcp` is owned by `node` and is not world-writable.                             | DHM-003, DHM-004, DHM-005, DHM-010          | Marker permission, startup failure, normal shutdown, and forced Xvfb termination checks.           |
-| Xvfb finish policy          | Handles longrun termination and checks both the readiness marker and `s6-svstat -o wantedup`.                                                                                                                                            | Xvfb exit code/signal and current desired state.                                   | If still wanted, writes a concise startup or lost-display diagnostic to `stderr`, records a non-zero container result, and invokes S6 halt. If not wanted, exits silently so shutdown is not misclassified. | DHM-003, DHM-004, DHM-010                   | Forced pre-ready and post-ready failure tests plus a clean SIGTERM/SIGINT control.                 |
-| Docker E2E harness          | Owns Docker CLI process creation, unique container names, separate stdout/stderr capture, HTTP port discovery, MCP clients, inspection, bounded waits, and cleanup.                                                                      | Selected image from `CLOAKBROWSER_MCP_DOCKER_IMAGE`; structured test observations. | No shell interpolation of untrusted values; cleanup runs on all terminal paths; timeouts kill only the owned container. No new runtime dependency.                                                          | DHM-001 through DHM-008, DHM-010            | Vitest Docker manual suite with RED/GREEN/PROVE evidence.                                          |
-| Docker CI matrix            | Runs the already-built image's Docker E2E suite for both declared platforms and retains parity/security scanning.                                                                                                                        | Matrix image tag and platform; test and scan results.                              | No architecture may be silently skipped. Existing pinned actions and least-privilege permissions remain unchanged.                                                                                          | DHM-006, DHM-007, DHM-008, DHM-010          | actionlint, zizmor, both matrix jobs, retained Trivy and parity outputs.                           |
-| Public Docker documentation | Describes built-in headed execution and removes the now-conflicting external init recommendation from every affected example.                                                                                                            | English source pages and locale counterparts; accurate Docker commands.            | Xvfb is not presented as a visible desktop, VNC, noVNC, host X11, or remote GUI. Identifiers and commands remain untranslated.                                                                              | DHM-002, DHM-005, DHM-009, DHM-010          | docs build, SEO validation, translation check, repository search for stale `--init` usage.         |
-
-### Runtime dependency flow
+## Target Architecture
 
 ```text
-Docker starts /init
-  -> s6-rc starts xvfb
-     -> Xvfb writes readiness on fd 3
-        -> xvfb-ready records ready state
-           -> S6 starts CMD: node /opt/cloakbrowser-mcp/dist/cli.js <args>
+container PID 1: tini -s -- node dist/docker/launcher.js <original CLI args>
+                           |
+                           +-- CLI (inherited fd 0/1/2, private IPC fd)
+                           |     |
+                           |     +-- existing stdio or Streamable HTTP bridge
+                           |
+                           +-- Xvfb (only after effective headed demand)
 
-unexpected Xvfb exit while wanted
-  -> finish policy writes stderr diagnostic
-  -> S6 records non-zero result and halts the container
+Docker HEALTHCHECK
+  -> owner-only Unix socket in launcher
+     -> fresh CLI event-loop ping over private IPC
+     -> fresh X11 setup handshake only when launcher state is not never-started
 ```
 
-## Platform Coverage
+The launcher is the single authority for display phase:
+`never_started -> starting -> ready -> stopping`, with terminal `failed` behavior.
+All simultaneous headed admissions await the same startup promise. A session may stop
+waiting without changing that shared attempt. No public configuration or protocol
+surface is added.
 
-| Environment                | Planned evidence                                                                              | Availability                                                                                                     |
-| -------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Local `linux/amd64` Docker | Build, lifecycle suite, real headed stdio, real headed HTTP, default-headless control, parity | Available through the current Docker daemon.                                                                     |
-| CI `linux/amd64`           | Same Docker manual suite against the matrix image plus Trivy and parity                       | Existing Docker matrix job.                                                                                      |
-| CI `linux/arm64`           | Same Docker manual suite against the arm64 matrix image plus Trivy                            | Existing Docker matrix job under QEMU. Local buildx currently advertises only amd64, so CI is required evidence. |
+## Implementation Units
 
-If QEMU cannot run the arm64 real-browser scenario reliably, packet 02 remains
-incomplete. The implementation must preserve the arm64 requirement and return
-the observed failure for a runner decision; it must not skip or downgrade the
-test.
+| Unit | Ownership | Main dependencies | Requirements | Evidence |
+| --- | --- | --- | --- | --- |
+| Tini image contract | Downloads and verifies one official binary, makes Tini the image entrypoint, removes S6 assets/configuration, preserves non-root runtime and CLI arguments. | `Dockerfile`, `.dockerignore`, packaged CLI build. | DHM-002, DHM-004, DHM-005, DHM-010 | Image config, process tree, help/error exits, normal and external-init signal checks. |
+| Docker launcher | Owns CLI/Xvfb child groups, display state, single-flight startup, readiness, terminal failure, bounded ordered shutdown, cleanup, and exit status. | Tini, Xvfb, internal control protocol. | DHM-001, DHM-003, DHM-004, DHM-005, DHM-010 | Unit lifecycle state tests plus local Docker fault injection. |
+| Headed admission gate | Requests display only after effective mode is known; integrates stdio before upstream connection and HTTP after validation/capacity admission but before bridge creation. | Existing config precedence and launcher IPC. | DHM-001, DHM-002, DHM-003, DHM-006 | Unit/integration concurrency and cancellation tests. |
+| Active health | Runs read-only bounded probes through an owner-only socket, a fresh CLI event-loop ping, and conditional X11 setup handshake. | Launcher identity/state, CLI IPC, X11 protocol. | DHM-004, DHM-005, DHM-006, DHM-011 | Direct probe tests and observed Docker health transitions. |
+| Docker acceptance | Exercises real CloakBrowser stdio/HTTP, concurrent session isolation, faults, restricted runtime, and both architectures. | Completed launcher and health behavior. | DHM-001-DHM-008, DHM-010, DHM-011 | Local amd64 E2E and required remote amd64/arm64 jobs. |
+| Operator documentation | Removes external-init guidance and documents demand-start, retention, limits, health guarantees, writable paths, and recovery. | Proven image behavior and health settings. | DHM-002, DHM-005, DHM-009-DHM-011 | Built English/localized docs and stale-guidance search. |
 
 ## Packet Order
 
-1. `01_s6_runtime_and_lifecycle.md` — write Docker behavioral checks first,
-   implement S6/Xvfb lifecycle, and prove the local image contract.
-2. `02_multiarch_ci.md` — wire the run-only Docker suite into both CI matrix
-   entries and retain workflow security checks.
-3. `03_documentation.md` — update the authoritative Docker guidance, every
-   affected locale, and generated documentation state after behavior is proven.
+1. `01_tini_launcher_and_display_lifecycle.md` — replace S6 with Tini and implement
+   the narrow launcher, demand-started Xvfb, stdio/HTTP admission gate, and bounded
+   lifecycle.
+2. `02_active_health_and_failure_handling.md` — add private active health plumbing,
+   conditional X11 probing, Docker health declaration, and health/failure evidence.
+3. `03_multiarch_acceptance_and_ci.md` — finish real-browser concurrency and
+   restricted-runtime coverage, run the same image suite in both architecture jobs,
+   and retain existing CI security/parity steps.
+4. `04_documentation.md` — update public Docker guidance, all affected localizations,
+   generated documentation, and the durable lifecycle/health explanation.
 
-Packet 02 depends on packet 01. Packet 03 also depends on packet 01 and may be
-executed independently of packet 02, but workstream completion requires all
-three packets and the remote architecture evidence.
+Packet 02 depends on packet 01. Packet 03 depends on packets 01 and 02. Packet 04 may
+prepare prose after packets 01 and 02 pass locally, but the workstream cannot complete
+until packet 03 has both architecture results.
 
 ## Requirement Coverage
 
 | Requirement | Owning packet(s) |
-| ----------- | ---------------- |
-| DHM-001     | 01, 02           |
-| DHM-002     | 01, 03           |
-| DHM-003     | 01               |
-| DHM-004     | 01               |
-| DHM-005     | 01, 02, 03       |
-| DHM-006     | 01, 02           |
-| DHM-007     | 01, 02           |
-| DHM-008     | 01, 02           |
-| DHM-009     | 03               |
-| DHM-010     | 01, 02, 03       |
+| --- | --- |
+| DHM-001 | 01, 03 |
+| DHM-002 | 01, 03, 04 |
+| DHM-003 | 01, 03 |
+| DHM-004 | 01, 02, 03 |
+| DHM-005 | 01, 02, 03, 04 |
+| DHM-006 | 01, 02, 03 |
+| DHM-007 | 03 |
+| DHM-008 | 03 |
+| DHM-009 | 04 |
+| DHM-010 | 01, 02, 03, 04 |
+| DHM-011 | 02, 03, 04 |
 
 ## Compatibility, Recovery, and Rollback
 
-- Existing stdio and Streamable HTTP MCP contracts, tool names, configuration
-  precedence, and the two local introspection tools remain unchanged.
-- The current headless default remains the control path; always-on Xvfb is
-  infrastructure, not a new public toggle.
-- Startup fails closed if Xvfb cannot become ready. Post-readiness display loss
-  shuts down the CLI and container non-zero instead of restarting invisibly.
-- Rollback is an image rollback to the previous release. There is no persisted
-  data migration. Existing `/data` and CloakBrowser cache mounts remain valid.
-- S6 and Xvfb diagnostics use `stderr`; stdio `stdout` remains exclusively MCP
-  protocol output.
+- Existing CLI options, environment variables, MCP schema, tool forwarding, local
+  tools, output paths, profiles, proxies, extensions, HTTP authentication, TLS, and
+  session capacity semantics stay unchanged.
+- Runtime diagnostics stay on `stderr`; stdio `stdout` remains MCP-only. Internal
+  control channels are absent and inactive outside the project Docker launcher.
+- Xvfb startup or post-start loss fails the container. Health failures do not restart
+  services; orchestration recovery is outside the image contract.
+- Rollback is image rollback to the preceding release. There is no data migration;
+  existing `/data` and CloakBrowser cache mounts remain compatible.
 
 ## Durable Documentation Decision
 
-Durable documentation is warranted. The change crosses Docker image assembly,
-PID 1 supervision, Xvfb readiness, the MCP CLI, CI, and operator commands; the
-reason an external `--init` must no longer be used would otherwise be expensive
-to rediscover. The nearest authoritative documents already exist, so packet 03
-updates them rather than creating a new architecture document.
+Durable documentation is required because the behavior spans image init, launcher/CLI
+ownership, per-session HTTP admission, active health, shutdown deadlines, and a
+non-obvious keep-started display policy. Packet 04 updates the nearest authoritative
+Docker/configuration/security pages and their localized counterparts. No separate ADR
+is planned: the approved specification already records the selected architecture and
+rejected S6/custom-init alternatives.
 
 ## Manual Gates
 
 - GitHub CI must report successful Docker jobs for both `linux/amd64` and
-  `linux/arm64` before DHM-007 and the workstream can be marked complete.
-- Pushing a branch, opening a pull request, and any release action require
-  separate user authorization and are outside these packets.
+  `linux/arm64` before DHM-007 and the workstream can be complete. A QEMU or
+  architecture-specific real-browser failure remains a failure; do not skip or
+  downgrade the required scenario.
+- Commit, push, pull request, approval, merge, publication, and release actions require
+  separate explicit user authorization and are outside these packets.
