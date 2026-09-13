@@ -76,6 +76,15 @@ manual gates.
 
 ## Packet 04 verification failure update
 
+Completion update (2026-09-04): a Node POST probe to the bulk audit endpoint
+returned `200` in 0.49 seconds, and the subsequent full `npm run check:ci`
+passed, including production audit and coverage. Packet 04 is complete.
+All required package, Docker, parity, documentation, actionlint, zizmor, and
+runtime-font checks are recorded as passed; `bridge-parity-report.json` was
+removed after inspection. The next packet is 05 Manual GitHub delivery gates.
+Do not push, create a PR, close GitHub PRs or issues, merge, tag, or publish
+without separate explicit authorization.
+
 Security remediation update (2026-09-04): production audit exposed a high
 `fast-uri` advisory and related Hono advisories after the registry recovered.
 The existing `overrides` mechanism now resolves `fast-uri` `3.1.7`, `hono`
@@ -86,6 +95,13 @@ dependencies. A standalone `npm run audit:prod` passed after the update.
 bridge parity also passed on the updated dependency graph. The bridge report
 again confirmed 24 default tools and 37 matching `devtools` schemas and was
 removed.
+
+Final verification retry (2026-09-04): after the security-remediation commit,
+another full `npm run check:ci` attempt again passed every step before
+`npm audit --omit=dev --audit-level=high`, then timed out at the registry
+bulk-advisories endpoint. Do not repeat this check until external registry
+availability changes; the packet remains incomplete and GitHub operations
+remain blocked.
 
 Retry update (2026-09-04): the explicitly authorized second
 `npm run check:ci` attempt reached the same npm audit endpoint and failed
