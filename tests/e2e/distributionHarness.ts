@@ -14,7 +14,7 @@ export const fakeUpstreamPath = fileURLToPath(new URL('../fixtures/fake-upstream
 export const fakeUpstreamFixtureDir = fileURLToPath(new URL('../fixtures', import.meta.url));
 export const fakeUpstreamContainerDir = '/opt/cloakbrowser-mcp/tests/fixtures';
 export const fakeUpstreamContainerPath = `${fakeUpstreamContainerDir}/fake-upstream-mcp.mjs`;
-export const dockerImageTag = 'cloakbrowser-mcp:dev';
+export const dockerImageTag = process.env.CLOAKBROWSER_MCP_DOCKER_IMAGE ?? 'cloakbrowser-mcp:dev';
 
 const localToolNames = [LOCAL_TOOL_BINARY_INFO, LOCAL_TOOL_BRIDGE_INFO] as const;
 const expectedBridgeToolNames = [...fakeUpstreamToolNames, ...localToolNames];
