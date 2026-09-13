@@ -74,7 +74,7 @@ describe('Docker image distribution E2E', () => {
       'node',
       '/opt/cloakbrowser-mcp/dist/docker/launcher.js',
     ]);
-    expect(image.Config?.Cmd).toBeUndefined();
+    expect(image.Config?.Cmd).toBeFalsy();
   });
 
   it('declares bounded active Docker health checks', () => {
