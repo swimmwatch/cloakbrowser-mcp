@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events';
+import process from 'node:process';
 import { describe, expect, it, vi } from 'vitest';
 import {
   dockerDisplayEnsureRequestType,
@@ -60,7 +61,7 @@ class FakeChild extends EventEmitter {
   });
 }
 
-describe('Docker lifecycle launcher', () => {
+describe.skipIf(process.platform === 'win32')('Docker lifecycle launcher', () => {
   it('serves an active CLI health probe and preserves clean CLI exit', async () => {
     const child = prepareChild();
     const completion = runDockerLifecycleLauncher([]);
