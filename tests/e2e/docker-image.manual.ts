@@ -336,17 +336,18 @@ describe('Docker image distribution E2E', () => {
     ]);
 
     const controller = new AbortController();
-    const cancelled = initializeHttpSession(url, false, undefined, controller.signal);
+    const cancelled = initializeHttpSession(url, false, '/data/profiles/cancelled', controller.signal);
+    const cancellation = cancelled.catch((error: unknown) => error);
     await waitForDockerExec(containerName, ['sh', '-c', 'test -f /tmp/xvfb-started']);
     controller.abort();
-    const admitted = await initializeHttpSession(url, false);
+    const admitted = await initializeHttpSession(url, false, '/data/profiles/admitted');
 
-    await expect(cancelled).rejects.toBeInstanceOf(Error);
+    await expect(cancellation).resolves.toBeInstanceOf(Error);
     expect(admitted.status).toBe(200);
     await waitForDockerExec(containerName, [
       'sh',
       '-c',
-      'count=0; for process in /proc/[0-9]*; do [ -r "$process/cmdline" ] || continue; if tr "\\000" " " < "$process/cmdline" | grep -q "[/]usr/bin/Xvfb"; then count=$((count + 1)); fi; done; test "$count" -eq 1',
+      'count=0; for process in /proc/[0-9]*; do [ -r "$process/cmdline" ] || continue; if tr "\\000" " " < "$process/cmdline" | grep -q "[/]Xvfb"; then count=$((count + 1)); fi; done; test "$count" -eq 1',
     ]);
     await closeHttpSession(url, admitted.headers.get('mcp-session-id'));
   });
