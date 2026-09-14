@@ -53,7 +53,8 @@ Si tu cliente MCP introduce credenciales en las sesiones del navegador, da prefe
 
 ## Docker
 
-Se recomienda utilizar Docker cuando se busque aislamiento y que las dependencias del navegador sean reproducibles. Monta solo el directorio de artefactos que necesites y utiliza `--init` para que los procesos secundarios del navegador se eliminen correctamente.
+Se recomienda Docker para el aislamiento y las dependencias reproducibles del navegador. Monta solo el directorio de artefactos necesario; la imagen ya incluye Tini, que recoge correctamente los procesos hijos del navegador. En un contenedor reforzado de solo lectura, mantén `/data` montado y proporciona montajes temporales con escritura en `/tmp` y `/tmp/.X11-unix` si pueden existir sesiones con interfaz gráfica.
+
 
 Al publicar Streamable HTTP desde Docker, es preferible utilizar `-p 127.0.0.1:3000:3000`. La publicación directa en una interfaz pública permite a cualquier navegador de cliente al que se pueda acceder realizar tareas de automatización, a menos que se añadan controles de autenticación y de red.
 

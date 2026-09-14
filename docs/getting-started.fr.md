@@ -32,7 +32,7 @@ npx -y {{ project.npm_pin }}
 
 Le paquet npm nécessite Node.js 22.13+ dans la branche 22.x, ou Node.js 24+. CloakBrowser télécharge son binaire Chromium lors de la première utilisation, à moins qu'il ne soit déjà en cache.
 
-Utilisez `doctor` pour vérifier l'environnement d'exécution Node.js local, les métadonnées du paquet, la résolution de la CLI MCP de Playwright en amont et les métadonnées du binaire CloakBrowser avant de connecter un client. Cette commande ne lance pas le pont et ne télécharge pas de navigateur.
+Utilisez `doctor` avant de connecter un client pour vérifier l'environnement d'exécution Node.js local, les métadonnées du paquet, la CLI Playwright MCP upstream effectivement utilisée, les versions et chemins de paquet résolus de `@playwright/mcp`, `playwright` et `playwright-core`, le chemin effectif du core bundle ainsi que les métadonnées du binaire CloakBrowser. Cette commande ne lance pas le pont et ne télécharge pas de navigateur.
 
 Le transport par défaut est stdio. Utilisez `--transport streamable-http` lorsque votre client MCP se connecte à un point de terminaison HTTP au lieu de lancer un processus stdio. Le point de terminaison HTTP est par défaut `http://127.0.0.1:3000/mcp`, avec des sondes fixes `GET /healthz` et `GET /readyz` sur le même hôte et le même port. Utilisez `--http-protocol https` avec `--https-cert` et `--https-key` ou `--https-pfx` lorsque le pont doit mettre fin directement à la connexion TLS.
 Consultez la [Référence CLI](generated/cli.md) générée pour obtenir la liste complète des indicateurs et les variables d'environnement correspondantes.
@@ -41,7 +41,7 @@ Consultez la [Référence CLI](generated/cli.md) générée pour obtenir la list
 
 ```bash
 docker pull swimmwatch/cloakbrowser-mcp:latest
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
@@ -52,7 +52,7 @@ Ces mêmes balises sont également publiées sous `ghcr.io/swimmwatch/cloakbrows
 Pour une diffusion HTTP locale via Streamable avec Docker, publiez le port sur la boucle de retour et liez le serveur à l'intérieur du conteneur :
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -64,7 +64,7 @@ curl http://127.0.0.1:3000/readyz
 Pour une connexion HTTPS directe depuis Docker, montez vos fichiers de certificats et sélectionnez HTTPS :
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/certs:/certs:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -78,10 +78,12 @@ Le mode HTTP « Streamable » affiche l'URL du point de terminaison MCP en écou
 
 ```bash
 docker pull {{ project.docker_image }}
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   {{ project.docker_image }}
 ```
+
+Utilisez Docker pour un environnement d'exécution reproductible. Conservez `-i` pour que stdio reste connecté ; l'image inclut déjà Tini, qui récupère correctement les processus enfants du navigateur. Pour les clients Streamable HTTP, démarrez le serveur séparément et configurez l'URL du client comme `http://127.0.0.1:3000/mcp` ou `https://127.0.0.1:3000/mcp`. Si `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` ou `--http-auth-token` est défini, envoyez le même jeton Bearer à `/mcp`, `/healthz` et `/readyz`.
 
 ## Configuration du client MCP
 
@@ -91,7 +93,6 @@ La plupart des clients MCP locaux fonctionnent mieux avec stdio et npm :
 npx -y cloakbrowser-mcp@latest
 ```
 
-Utilisez Docker lorsque vous souhaitez un environnement d'exécution reproductible. Conservez `-i` afin que stdio reste connecté, et ajoutez `--init` pour que les processus enfants du navigateur soient correctement récupérés.
 
 Pour les clients HTTP Streamable, lancez le serveur séparément et configurez l'URL du client comme suit : `http://127.0.0.1:3000/mcp` ou `https://127.0.0.1:3000/mcp`. Si `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` ou `--http-auth-token` est défini, envoyez le même jeton Bearer à `/mcp`, `/healthz` et `/readyz`.
 
@@ -264,7 +265,6 @@ Pour les clients HTTP Streamable, lancez le serveur séparément et configurez l
           "args": [
             "run",
             "--rm",
-            "--init",
             "-i",
             "-v",
             "/tmp/cloakbrowser-artifacts:/data",

@@ -179,9 +179,7 @@ PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
 ，但本身不会启用人性化行为。 现有
 会话将保留在 `initialize` 期间捕获的行为。
 
-`headless` 可为该会话启用或禁用无头浏览器模式。 将
-`headless` 设置为 `false` 需要可用的显示环境，特别是在
-Docker 或 Linux 服务器部署中。
+在 Docker 中，`headless: false` 会按需启动私有虚拟显示器。在镜像外，有头会话仍需要可用的显示环境。
 
 `userDataDir` 为该会话启用持久化 Chromium 配置文件，并覆盖
 `PLAYWRIGHT_MCP_USER_DATA_DIR`。桥接器会将目录解析为平台原生绝对路径，

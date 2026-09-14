@@ -53,7 +53,8 @@ Si votre client MCP injecte des identifiants dans les sessions navigateur, préf
 
 ## Docker
 
-Docker est recommandé lorsque vous voulez de l'isolation et des dépendances navigateur reproductibles. Montez uniquement le répertoire d'artefacts requis et utilisez `--init` pour nettoyer correctement les processus enfants du navigateur.
+Docker est recommandé pour l'isolation et des dépendances de navigateur reproductibles. Ne montez que le répertoire d'artefacts nécessaire ; l'image inclut déjà Tini, qui récupère correctement les processus enfants du navigateur. Dans un conteneur renforcé en lecture seule, gardez `/data` monté et fournissez des montages temporaires accessibles en écriture pour `/tmp` et `/tmp/.X11-unix` si des sessions avec interface graphique sont possibles.
+
 
 Lorsque vous publiez Streamable HTTP depuis Docker, préférez `-p 127.0.0.1:3000:3000`. Une publication directe sur une interface publique donne des capacités d'automatisation navigateur à tout client joignable, sauf si vous ajoutez authentification et contrôles réseau.
 

@@ -70,7 +70,7 @@ npx -y cloakbrowser-mcp@latest
 менеджері секретів або у середовищі клієнта MCP.
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
   -e CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
   -v "$PWD/artifacts:/data" \
@@ -81,7 +81,7 @@ docker run --rm --init -i \
 змінні проксі як стандартні параметри середовища контейнера:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -e PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
   -e CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
   -v "$PWD/artifacts:/data" \

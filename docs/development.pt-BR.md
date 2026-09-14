@@ -52,7 +52,7 @@ A implementação removida do adaptador nativo/registro de ferramentas não deve
 ```bash
 npm run docker:build
 npm run docker:smoke
-docker run --rm --init -i -v "$PWD/artifacts:/data" cloakbrowser-mcp:dev
+docker run --rm -i -v "$PWD/artifacts:/data" cloakbrowser-mcp:dev
 ```
 
 ## Documentos

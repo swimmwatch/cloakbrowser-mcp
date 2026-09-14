@@ -113,6 +113,13 @@ export interface PrepareBridgeRuntimeOptions {
   userDataDir?: string;
 }
 
+export function resolveEffectiveHeadless(
+  options: Pick<PrepareBridgeRuntimeOptions, 'headless'>,
+  env: EnvReader = process.env,
+): boolean {
+  return options.headless ?? envBool(env, 'PLAYWRIGHT_MCP_HEADLESS', true);
+}
+
 export interface PlaywrightMcpBridgeConfig {
   browser?: {
     browserName?: 'chromium';
@@ -251,7 +258,7 @@ function createPreparedBridgeRuntimeBase(
 
   const browserEngine = parseBrowserEngine(envString(env, 'PLAYWRIGHT_MCP_BROWSER_ENGINE', 'cloak'));
   const useCloak = browserEngine === 'cloak';
-  const headless = options.headless ?? envBool(env, 'PLAYWRIGHT_MCP_HEADLESS', true);
+  const headless = resolveEffectiveHeadless(options, env);
   const codegen = readCodegenLanguage(env);
   const snapshotBoxes = readSnapshotBoxes(env);
   const humanPreset =

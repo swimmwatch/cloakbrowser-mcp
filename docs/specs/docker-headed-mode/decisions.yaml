@@ -1,0 +1,2595 @@
+schema_version: 1
+spec_slug: docker-headed-mode
+decisions:
+  - category: scope
+    state: instructed
+    provenance: user
+    instruction:
+      text: Окей, давайте теперь создадим спецификацию для исправления данного бага.
+      source: user message in current Codex task
+      kind: initial_request
+    related_decisions: []
+    requirement_ids: []
+    question: null
+    answer: null
+    id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b
+    revision: 1
+    supersedes_revision: null
+  - category: architecture
+    state: instructed
+    provenance: user
+    instruction:
+      text: Всегда Xvfb (Recommended)
+      source: host-native request_user_input selection in current Codex task
+      kind: follow_up
+    related_decisions:
+      - id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b
+        revision: 1
+    requirement_ids: []
+    question: null
+    answer: null
+    id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+    revision: 1
+    supersedes_revision: null
+  - category: behavior
+    state: observed
+    provenance: repository
+    fact: The bridge already propagates headless configuration to Playwright launch options, and Streamable HTTP sessions may override the default headless value independently.
+    evidence:
+      - src/bridge/config.ts:252-269
+      - src/bridge/config.ts:1000-1015
+      - src/http/server.ts:362-377
+      - tests/integration/streamable-http.test.ts:218-236
+    question: null
+    answer: null
+    id: 645787f8-0199-400c-b65a-ffe6cb127fab
+    revision: 1
+    supersedes_revision: null
+  - category: docker
+    state: observed
+    provenance: repository
+    fact: The Docker runtime installs only the additional URW font package and starts the Node CLI directly; it does not establish DISPLAY or start an X server.
+    evidence:
+      - Dockerfile:25-54
+      - Dockerfile:63-85
+    question: null
+    answer: null
+    id: 76e979ed-b096-443e-91af-a958037ed7fc
+    revision: 1
+    supersedes_revision: null
+  - category: platforms
+    state: observed
+    provenance: repository
+    fact: Published Docker images target Linux amd64 and Linux arm64.
+    evidence:
+      - README.md:76-93
+      - .github/workflows/ci.yml:138-146
+      - .github/workflows/release.yml:37-39
+    question: null
+    answer: null
+    id: 327a11ee-9474-46fd-bf71-3d28908e5276
+    revision: 1
+    supersedes_revision: null
+  - category: testing
+    state: observed
+    provenance: repository
+    fact: Existing Docker smoke and distribution E2E checks do not launch the real CloakBrowser in headed mode; the distribution test substitutes the fake upstream Playwright engine.
+    evidence:
+      - package.json:49
+      - package.json:76
+      - tests/e2e/docker-image.manual.ts:12-15
+      - tests/e2e/distributionHarness.ts:87-111
+    question: null
+    answer: null
+    id: 7cc8baab-a0dc-46d7-a123-33b55e68d247
+    revision: 1
+    supersedes_revision: null
+  - id: scope.manifest
+    category: scope
+    state: needs_user
+    provenance: user
+    question:
+      text: Confirm this exact scope proposal, or request a correction.
+      kind: single_choice
+      options:
+        - id: confirm
+          label: Confirm this proposal
+        - id: change
+          label: Change the proposal
+    answer: null
+    status: prepared
+    scope:
+      schema_version: 1
+      depth: standard
+      confirmed: false
+      rationale:
+        - Standard is warranted because the bounded Docker fix crosses browser launch, container process lifecycle, per-session runtime overrides, multi-architecture publication, and security-sensitive display isolation.
+        - The user already selected an always-on Xvfb direction so both environment defaults and per-session headless:false requests are supported.
+        - No separate contract artifact is proposed; observable requirements and acceptance criteria fit in spec.md.
+      profiles:
+        - id: core
+          reason: The fix changes observable Docker/CLI runtime behavior while preserving the existing PLAYWRIGHT_MCP_HEADLESS and per-session headless contracts.
+          state: active
+        - id: operations
+          reason: A virtual X server must be available for the container lifetime with defined startup, readiness, signal, exit, and cleanup behavior on both published architectures.
+          state: active
+        - id: security
+          reason: The added display service must remain container-local, run without unnecessary privilege, and avoid exposing a TCP listener.
+          state: active
+        - id: ui
+          reason: No visible product UI or accessibility interaction is introduced.
+          state: not_applicable
+        - id: backend
+          reason: No HTTP or MCP schema changes are required; existing initialize metadata remains unchanged.
+          state: not_applicable
+        - id: events
+          reason: No asynchronous event contract is added or changed.
+          state: not_applicable
+        - id: data
+          reason: No persistent data, migration, retention, or rollback contract is involved.
+          state: not_applicable
+        - id: cross-surface
+          reason: The same Docker runtime enables existing stdio and HTTP paths; no separately evolving cross-surface user journey is introduced.
+          state: not_applicable
+      planning_artifacts: []
+    revision: 1
+    supersedes_revision: null
+    question_origin:
+      id: scope.manifest
+      revision: 1
+  - id: scope.manifest
+    category: scope
+    state: answered
+    provenance: user
+    question:
+      text: Confirm this exact scope proposal, or request a correction.
+      kind: single_choice
+      options:
+        - id: confirm
+          label: Confirm this proposal
+        - id: change
+          label: Change the proposal
+    answer:
+      text: Confirm proposal (Recommended)
+      selected_ids:
+        - confirm
+    status: answered
+    scope:
+      schema_version: 1
+      depth: standard
+      confirmed: false
+      rationale:
+        - Standard is warranted because the bounded Docker fix crosses browser launch, container process lifecycle, per-session runtime overrides, multi-architecture publication, and security-sensitive display isolation.
+        - The user already selected an always-on Xvfb direction so both environment defaults and per-session headless:false requests are supported.
+        - No separate contract artifact is proposed; observable requirements and acceptance criteria fit in spec.md.
+      profiles:
+        - id: core
+          reason: The fix changes observable Docker/CLI runtime behavior while preserving the existing PLAYWRIGHT_MCP_HEADLESS and per-session headless contracts.
+          state: active
+        - id: operations
+          reason: A virtual X server must be available for the container lifetime with defined startup, readiness, signal, exit, and cleanup behavior on both published architectures.
+          state: active
+        - id: security
+          reason: The added display service must remain container-local, run without unnecessary privilege, and avoid exposing a TCP listener.
+          state: active
+        - id: ui
+          reason: No visible product UI or accessibility interaction is introduced.
+          state: not_applicable
+        - id: backend
+          reason: No HTTP or MCP schema changes are required; existing initialize metadata remains unchanged.
+          state: not_applicable
+        - id: events
+          reason: No asynchronous event contract is added or changed.
+          state: not_applicable
+        - id: data
+          reason: No persistent data, migration, retention, or rollback contract is involved.
+          state: not_applicable
+        - id: cross-surface
+          reason: The same Docker runtime enables existing stdio and HTTP paths; no separately evolving cross-surface user journey is introduced.
+          state: not_applicable
+      planning_artifacts: []
+    revision: 2
+    supersedes_revision: 1
+    question_origin:
+      id: scope.manifest
+      revision: 1
+    answer_source: host-native request_user_input
+    answered_question:
+      id: scope.manifest
+      revision: 1
+  - category: security
+    state: observed
+    provenance: repository
+    fact: The current Docker runtime switches to the non-root node user and defaults PLAYWRIGHT_MCP_HEADLESS to true.
+    evidence:
+      - Dockerfile:60-76
+    question: null
+    answer: null
+    id: 9dc642d9-c960-49a1-9c24-41eaee392a43
+    revision: 1
+    supersedes_revision: null
+  - category: platforms
+    state: assumed
+    provenance: agent
+    assumption: A container-local virtual X server can support headed CloakBrowser launches on both published Linux architectures without changing MCP or CLI contracts.
+    rationale: The behavior was reproduced successfully with a manually started Xvfb on linux/amd64; linux/arm64 remains to be proven by the required Docker end-to-end check.
+    reconsider_when: The final Docker image fails the real-browser headed-mode acceptance check on either linux/amd64 or linux/arm64.
+    question: null
+    answer: null
+    id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d
+    revision: 1
+    supersedes_revision: null
+  - category: scope
+    state: instructed
+    provenance: user
+    instruction:
+      text: Окей, давайте теперь создадим спецификацию для исправления данного бага.
+      source: user message in current Codex task
+      kind: initial_request
+    related_decisions: []
+    requirement_ids:
+      - DHM-001
+      - DHM-002
+      - DHM-003
+      - DHM-004
+      - DHM-005
+      - DHM-006
+      - DHM-007
+      - DHM-008
+      - DHM-009
+    question: null
+    answer: null
+    id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+  - category: architecture
+    state: instructed
+    provenance: user
+    instruction:
+      text: Всегда Xvfb (Recommended)
+      source: host-native request_user_input selection in current Codex task
+      kind: follow_up
+    related_decisions:
+      - id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b
+        revision: 1
+    requirement_ids:
+      - DHM-001
+      - DHM-002
+    question: null
+    answer: null
+    id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+  - category: scope
+    state: instructed
+    provenance: user
+    instruction:
+      text: Окей, давайте теперь создадим спецификацию для исправления данного бага.
+      source: user message in current Codex task
+      kind: initial_request
+    related_decisions: []
+    requirement_ids:
+      - DHM-001
+      - DHM-002
+      - DHM-003
+      - DHM-004
+      - DHM-005
+      - DHM-006
+      - DHM-007
+      - DHM-008
+      - DHM-009
+    question: null
+    answer: null
+    id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b
+    revision: 3
+    supersedes_revision: 2
+    context_reason: null
+  - category: scope
+    state: instructed
+    provenance: user
+    instruction:
+      text: Окей, давайте теперь создадим спецификацию для исправления данного бага.
+      source: user message in current Codex task
+      kind: initial_request
+    related_decisions: []
+    requirement_ids:
+      - DHM-008
+    question: null
+    answer: null
+    id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b
+    revision: 4
+    supersedes_revision: 3
+    context_reason: null
+  - category: scope
+    state: instructed
+    provenance: user
+    instruction:
+      text: Окей, давайте теперь создадим спецификацию для исправления данного бага.
+      source: user message in current Codex task
+      kind: initial_request
+    related_decisions: []
+    requirement_ids:
+      - DHM-001
+      - DHM-002
+      - DHM-003
+      - DHM-004
+      - DHM-005
+      - DHM-006
+      - DHM-007
+      - DHM-009
+    question: null
+    answer: null
+    id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b
+    revision: 5
+    supersedes_revision: 4
+    context_reason: null
+  - category: architecture
+    state: instructed
+    provenance: user
+    instruction:
+      text: Всегда Xvfb (Recommended)
+      source: host-native request_user_input selection in current Codex task
+      kind: follow_up
+    related_decisions:
+      - id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b
+        revision: 1
+    requirement_ids:
+      - DHM-001
+      - DHM-002
+    question: null
+    answer: null
+    id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+    revision: 3
+    supersedes_revision: 2
+    context_reason: null
+  - category: behavior
+    state: observed
+    provenance: repository
+    fact: The bridge already propagates headless configuration to Playwright launch options, and Streamable HTTP sessions may override the default headless value independently.
+    evidence:
+      - src/bridge/config.ts:252-269
+      - src/bridge/config.ts:1000-1015
+      - src/http/server.ts:362-377
+      - tests/integration/streamable-http.test.ts:218-236
+    question: null
+    answer: null
+    id: 645787f8-0199-400c-b65a-ffe6cb127fab
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - DHM-001
+      - DHM-002
+      - DHM-006
+      - DHM-008
+  - category: docker
+    state: observed
+    provenance: repository
+    fact: The Docker runtime installs only the additional URW font package and starts the Node CLI directly; it does not establish DISPLAY or start an X server.
+    evidence:
+      - Dockerfile:25-54
+      - Dockerfile:63-85
+    question: null
+    answer: null
+    id: 76e979ed-b096-443e-91af-a958037ed7fc
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - DHM-001
+      - DHM-003
+      - DHM-004
+  - category: platforms
+    state: observed
+    provenance: repository
+    fact: Published Docker images target Linux amd64 and Linux arm64.
+    evidence:
+      - README.md:76-93
+      - .github/workflows/ci.yml:138-146
+      - .github/workflows/release.yml:37-39
+    question: null
+    answer: null
+    id: 327a11ee-9474-46fd-bf71-3d28908e5276
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - DHM-007
+  - category: testing
+    state: observed
+    provenance: repository
+    fact: Existing Docker smoke and distribution E2E checks do not launch the real CloakBrowser in headed mode; the distribution test substitutes the fake upstream Playwright engine.
+    evidence:
+      - package.json:49
+      - package.json:76
+      - tests/e2e/docker-image.manual.ts:12-15
+      - tests/e2e/distributionHarness.ts:87-111
+    question: null
+    answer: null
+    id: 7cc8baab-a0dc-46d7-a123-33b55e68d247
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - DHM-008
+  - category: security
+    state: observed
+    provenance: repository
+    fact: The current Docker runtime switches to the non-root node user and defaults PLAYWRIGHT_MCP_HEADLESS to true.
+    evidence:
+      - Dockerfile:60-76
+    question: null
+    answer: null
+    id: 9dc642d9-c960-49a1-9c24-41eaee392a43
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - DHM-002
+      - DHM-005
+  - category: platforms
+    state: assumed
+    provenance: agent
+    assumption: A container-local virtual X server can support headed CloakBrowser launches on both published Linux architectures without changing MCP or CLI contracts.
+    rationale: The behavior was reproduced successfully with a manually started Xvfb on linux/amd64; linux/arm64 remains to be proven by the required Docker end-to-end check.
+    reconsider_when: The final Docker image fails the real-browser headed-mode acceptance check on either linux/amd64 or linux/arm64.
+    question: null
+    answer: null
+    id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - DHM-007
+      - DHM-008
+  - category: architecture
+    state: instructed
+    provenance: user
+    instruction:
+      text: Use the ready-made S6 Overlay solution for Docker process supervision if it is suitable; use it instead of a custom supervisor.
+      source: user message in current Codex task
+      kind: follow_up
+    related_decisions:
+      - id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+        revision: 3
+    requirement_ids:
+      - DHM-001
+      - DHM-003
+      - DHM-004
+      - DHM-005
+      - DHM-007
+      - DHM-008
+    question: null
+    answer: null
+    id: b1e871e5-3702-4695-985b-eb65e6899c63
+    revision: 1
+    supersedes_revision: null
+  - category: architecture
+    state: instructed
+    provenance: user
+    instruction:
+      text: Use the ready-made S6 Overlay solution for Docker process supervision if it is suitable; use it instead of a custom supervisor.
+      source: user message in current Codex task
+      kind: follow_up
+    related_decisions:
+      - id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+        revision: 3
+    requirement_ids:
+      - DHM-001
+      - DHM-003
+      - DHM-004
+      - DHM-005
+      - DHM-007
+      - DHM-008
+      - DHM-010
+    question: null
+    answer: null
+    id: b1e871e5-3702-4695-985b-eb65e6899c63
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+  - category: architecture
+    state: instructed
+    provenance: user
+    instruction:
+      text: Окей, давай запускай.
+      source: User message in the current Codex conversation, directly following the proposed specification update for the selected S6 Overlay approach.
+      kind: follow_up
+    related_decisions:
+      - id: b1e871e5-3702-4695-985b-eb65e6899c63
+        revision: 2
+    requirement_ids:
+      - DHM-010
+    question: null
+    answer: null
+    id: e314a971-95ec-4aad-bd21-53a34168f348
+    revision: 1
+    supersedes_revision: null
+  - category: architecture
+    state: observed
+    provenance: repository
+    fact: 'S6 Overlay v3.2.3.2 is suitable for this Docker lifecycle: its documented v3 design supports /init as PID 1, a user s6-rc dependency graph, an application retained as Docker CMD with container shutdown on command exit, signal forwarding configuration, non-root USER operation, and published noarch plus x86_64 and aarch64 archives.'
+    evidence:
+      - https://github.com/just-containers/s6-overlay/releases/tag/v3.2.3.2
+      - https://github.com/just-containers/s6-overlay/blob/master/README.md
+      - https://github.com/just-containers/s6-overlay/blob/master/doc/init.txt
+    question: null
+    answer: null
+    id: ebfc6fbe-0948-47fc-8238-c49232499c0b
+    revision: 1
+    supersedes_revision: null
+  - category: architecture
+    state: observed
+    provenance: repository
+    fact: 'S6 Overlay v3.2.3.2 is suitable for this Docker lifecycle: its documented v3 design supports /init as PID 1, a user s6-rc dependency graph, an application retained as Docker CMD with container shutdown on command exit, signal forwarding configuration, non-root USER operation, and published noarch plus x86_64 and aarch64 archives.'
+    evidence:
+      - https://github.com/just-containers/s6-overlay/releases/tag/v3.2.3.2
+      - https://github.com/just-containers/s6-overlay/blob/master/README.md
+      - https://github.com/just-containers/s6-overlay/blob/master/doc/init.txt
+    question: null
+    answer: null
+    id: ebfc6fbe-0948-47fc-8238-c49232499c0b
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - DHM-010
+  - category: architecture
+    state: instructed
+    provenance: user
+    instruction:
+      text: Давай тогда обнови спецификацию с учетом решения Tini с узким модулем управления Xvfb и MCP.
+      source: User message in the current Codex task on 2026-09-13; replaces the previous S6-only architecture, without authorizing implementation.
+      kind: follow_up
+    related_decisions:
+      - id: b1e871e5-3702-4695-985b-eb65e6899c63
+        revision: 2
+      - id: e314a971-95ec-4aad-bd21-53a34168f348
+        revision: 1
+    requirement_ids:
+      - DHM-001
+      - DHM-003
+      - DHM-004
+      - DHM-005
+      - DHM-006
+      - DHM-007
+      - DHM-008
+      - DHM-009
+      - DHM-010
+    question: null
+    answer: null
+    id: b1e871e5-3702-4695-985b-eb65e6899c63
+    revision: 3
+    supersedes_revision: 2
+  - category: operations
+    state: instructed
+    provenance: user
+    instruction:
+      text: Проверять также отзывчивость MCP
+      source: Explicit request_user_input_async selection in the current Codex task on 2026-09-13. The question contrasted active MCP responsiveness with process/display-only health and disclosed a private local response channel for stdio and additional tests.
+      kind: follow_up
+    related_decisions:
+      - id: b1e871e5-3702-4695-985b-eb65e6899c63
+        revision: 3
+    requirement_ids:
+      - DHM-006
+      - DHM-009
+      - DHM-011
+    question: null
+    answer: null
+    id: operations.health-depth
+    revision: 1
+    supersedes_revision: null
+  - category: operations
+    state: instructed
+    provenance: user
+    instruction:
+      text: 'Доделай необходимые изменения. Также учти в спецификации, нужна ли вообще утилита xvbf, если Playwright запускается с параметром `headless: true`. Определи, есть ли в этом необходимость, и обеспечь, чтобы процесс в таком случае либо корректно завершался, либо не запускался.'
+      source: Current user message in this Codex task
+      kind: follow_up
+    related_decisions:
+      - id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+        revision: 3
+    requirement_ids:
+      - DHM-001
+      - DHM-002
+      - DHM-003
+      - DHM-004
+      - DHM-008
+      - DHM-010
+      - DHM-011
+    question: null
+    answer: null
+    id: aafbb781-c8ff-4025-8499-1264b79bfa04
+    revision: 1
+    supersedes_revision: null
+  - category: operations
+    state: needs_user
+    provenance: user
+    question:
+      text: 'Для HTTP фиксируем запуск Xvfb при первой headed-сессии и остановку после закрытия последней такой сессии, или оставляем его работать до завершения контейнера после первого запуска? Рекомендую первый вариант: проверка CloakBrowser показала, что headless работает без DISPLAY и Xvfb, а отдельные HTTP-сессии могут выбирать headed независимо от настройки процесса. В stdio headless Xvfb вообще не запускается. Цена первого варианта — координация одновременных сессий, ожидание готовности дисплея и дополнительные тесты запуска/остановки; второй проще, но сохраняет ненужный процесс после закрытия headed-сессий.'
+      kind: single_choice
+      options:
+        - id: on_demand
+          label: Останавливать после последней headed-сессии
+        - id: keep_started
+          label: Оставлять до завершения контейнера
+    answer: null
+    status: prepared
+    context_reason: null
+    requirement_ids:
+      - DHM-001
+      - DHM-002
+    id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+    revision: 4
+    supersedes_revision: 3
+    question_origin:
+      id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+      revision: 4
+  - category: behavior
+    state: observed
+    provenance: repository
+    fact: On 2026-09-13 an isolated linux/amd64 probe against local image sha256:1bb03d275cd4d757cc8e8323a66658388f21164631cc0088c2869c0d381b0a65 launched the bundled CloakBrowser Chromium 146.0.7680.177 with Playwright 1.63.0-alpha-2026-08-31, headless:true, no DISPLAY or WAYLAND_DISPLAY and no Xvfb process. A data URL loaded and returned title headless-without-xvfb, then browser.close completed (exit 0). The S6 entrypoint was bypassed; this is evidence of browser headless independence, not acceptance of the future Tini launcher. Current config resolves options.headless before the process environment, and HTTP session metadata overrides only that session. Official Playwright CI documentation describes Xvfb for headed Linux execution.
+    evidence:
+      - src/bridge/config.ts:254
+      - src/http/server.ts:369
+      - Dockerfile
+      - docs/specs/docker-headed-mode/spec.md
+    question: null
+    answer: null
+    id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb
+    revision: 1
+    supersedes_revision: null
+  - category: operations
+    state: answered
+    provenance: user
+    question:
+      text: 'Для HTTP фиксируем запуск Xvfb при первой headed-сессии и остановку после закрытия последней такой сессии, или оставляем его работать до завершения контейнера после первого запуска? Рекомендую первый вариант: проверка CloakBrowser показала, что headless работает без DISPLAY и Xvfb, а отдельные HTTP-сессии могут выбирать headed независимо от настройки процесса. В stdio headless Xvfb вообще не запускается. Цена первого варианта — координация одновременных сессий, ожидание готовности дисплея и дополнительные тесты запуска/остановки; второй проще, но сохраняет ненужный процесс после закрытия headed-сессий.'
+      kind: single_choice
+      options:
+        - id: on_demand
+          label: Останавливать после последней headed-сессии
+        - id: keep_started
+          label: Оставлять до завершения контейнера
+    answer:
+      text: Оставлять до завершения контейнера
+      selected_ids:
+        - keep_started
+    status: answered
+    context_reason: null
+    requirement_ids:
+      - DHM-001
+      - DHM-002
+    id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+    revision: 5
+    supersedes_revision: 4
+    question_origin:
+      id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+      revision: 4
+    answer_source: Actual request_user_input_async answer in the current Codex task
+    answered_question:
+      id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+      revision: 4
+  - category: operations
+    state: instructed
+    provenance: user
+    instruction:
+      text: А у нас тут не возникнет проблем, если будет несколько запросов по HTTP варианту и не будет ли никакого конфликта или гонки данных в XVFB?
+      source: Current user follow-up about concurrent HTTP requests and Xvfb races
+      kind: follow_up
+    related_decisions:
+      - id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+        revision: 5
+    requirement_ids:
+      - DHM-001
+      - DHM-003
+      - DHM-006
+      - DHM-008
+      - DHM-010
+      - DHM-011
+    question: null
+    answer: null
+    id: 9e486951-5dbb-468a-84f6-19a66ec12341
+    revision: 1
+    supersedes_revision: null
+  - category: behavior
+    state: observed
+    provenance: repository
+    fact: On 2026-09-13 an isolated linux/amd64 probe against local image sha256:1bb03d275cd4d757cc8e8323a66658388f21164631cc0088c2869c0d381b0a65 launched the bundled CloakBrowser Chromium 146.0.7680.177 with Playwright 1.63.0-alpha-2026-08-31, headless:true, no DISPLAY or WAYLAND_DISPLAY and no Xvfb process. A data URL loaded and returned title headless-without-xvfb, then browser.close completed (exit 0). The S6 entrypoint was bypassed; this is evidence of browser headless independence, not acceptance of the future Tini launcher. Current config resolves options.headless before the process environment, and HTTP session metadata overrides only that session. Official Playwright CI documentation describes Xvfb for headed Linux execution.
+    evidence:
+      - src/bridge/config.ts:254
+      - src/http/server.ts:369
+      - Dockerfile
+      - docs/specs/docker-headed-mode/spec.md
+    question: null
+    answer: null
+    id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - DHM-001
+      - DHM-002
+      - DHM-003
+      - DHM-006
+      - DHM-008
+      - DHM-011
+  - category: operations
+    state: answered
+    provenance: user
+    question:
+      text: 'Для HTTP фиксируем запуск Xvfb при первой headed-сессии и остановку после закрытия последней такой сессии, или оставляем его работать до завершения контейнера после первого запуска? Рекомендую первый вариант: проверка CloakBrowser показала, что headless работает без DISPLAY и Xvfb, а отдельные HTTP-сессии могут выбирать headed независимо от настройки процесса. В stdio headless Xvfb вообще не запускается. Цена первого варианта — координация одновременных сессий, ожидание готовности дисплея и дополнительные тесты запуска/остановки; второй проще, но сохраняет ненужный процесс после закрытия headed-сессий.'
+      kind: single_choice
+      options:
+        - id: on_demand
+          label: Останавливать после последней headed-сессии
+        - id: keep_started
+          label: Оставлять до завершения контейнера
+    answer:
+      text: Оставлять до завершения контейнера
+      selected_ids:
+        - keep_started
+    status: answered
+    context_reason: null
+    requirement_ids:
+      - DHM-001
+      - DHM-002
+      - DHM-003
+      - DHM-004
+      - DHM-008
+      - DHM-009
+      - DHM-010
+      - DHM-011
+    id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+    revision: 6
+    supersedes_revision: 5
+    question_origin:
+      id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+      revision: 4
+    answer_source: Actual request_user_input_async answer in the current Codex task
+    answered_question:
+      id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+      revision: 4
+extensions:
+  specification_amendments:
+    - date: '2026-09-13'
+      status: draft
+      architecture_ref:
+        id: b1e871e5-3702-4695-985b-eb65e6899c63
+        revision: 3
+      health_ref:
+        id: operations.health-depth
+        revision: 1
+      historical_review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+      note: Prior S6 instructions, observed capability facts, approval, and review receipts are historical; they do not approve or validate this Tini revision. The current manifest depth and profiles remain unchanged. Existing S6 task packets require replanning after specification review and approval.
+      workflow_check:
+        tool: specification_open
+        status: unavailable
+        error_code: INVALID_INPUT
+        note: The callable project/specification schema was rejected before a version-bound context was returned. No MCP review or approval is claimed; the explicit user instructions were appended locally without altering historical receipts.
+  workflow_mcp_receipts:
+    - id: e66678a8c62d69c3af4e531b9e95890b5d2e1c0d086e4654e5887331367de53f
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 4
+        verdict: covered
+        recorded_items: 5
+    - id: 8a21e71053edc864f3d7968b488e98781e641ed45b9d84d9d4160ffcdb642921
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 5
+        verdict: covered
+        recorded_items: 6
+    - id: a39deff5a9786790edf7b0f8550a79c4c7deb94e9715f2212af0a8b75f369b7f
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 6
+        verdict: covered
+        recorded_items: 7
+    - id: a9ed6ba08f6ee12d554465fe2bbb62520882d34898c0b0a7f5421930f5d642f6
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 7
+        verdict: covered
+        recorded_items: 8
+    - id: c45371a5074483683cc056596c7bf399edfee15cb70d9bfab035fdfddaae7a28
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 8
+        verdict: covered
+        recorded_items: 9
+    - id: 51650bc12801243b9994c825e4337e3858e35f192b1100f99f6ab9d1799f6b37
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 9
+        verdict: covered
+        recorded_items: 10
+    - id: 2d893cc60d0ce23fcde170e3aa511a91e699e34c0f65e085a769e1486be9de1b
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 10
+        verdict: covered
+        recorded_items: 11
+    - id: 492d43c88af565e36ddad7cf54320cb701a969e3969b742756f10d776dcf4c24
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 11
+        verdict: covered
+        recorded_items: 12
+    - id: de9646f6df1e1c7ae5e9b6081bdca4bf39cc3e6a9471bf17aac3238aac34cf6e
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 12
+        verdict: covered
+        recorded_items: 13
+    - id: 733c062394a075d156d04e9e43a6c9a6a2842f00dcf274f3d780dabe77f48659
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 13
+        verdict: covered
+        recorded_items: 14
+    - id: b4a1a4ad200e992b499edb14db427f2bee11df2d20680aa13cb5c0d9266a9343
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 14
+        verdict: covered
+        recorded_items: 15
+    - id: e069aec09b82e5f1851622dc8b1b0c35a32ccfe2d51fbe3897d10b63f20fbc2b
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 15
+        verdict: covered
+        recorded_items: 16
+    - id: 5d8578bf0ac9248b2f1a5ed5c21b863749321336356f345916fbefe8790f691d
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 16
+        verdict: covered
+        recorded_items: 17
+    - id: 53b3b02bb02c922ddb08951981b7c9b0b2b141018445866e5a493ccb5b511a3a
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 17
+        verdict: covered
+        recorded_items: 18
+    - id: dd04ed6c6c72059ad637c5f68694efeb161611851022d0bffb6355070e5fc14c
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 18
+        verdict: covered
+        recorded_items: 19
+    - id: 0dad579037dead74474f2b6f32c9544bbd933823d396497355b54473b5592ad2
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 19
+        verdict: covered
+        recorded_items: 20
+    - id: 6fe77c143f518539c0df55596e7762c97fd602291ba90a224d48cb67da74e858
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 20
+        verdict: covered
+        recorded_items: 21
+    - id: 2813494a4896b471648b12e34ac106ffdee1d5eb73aec3a6cafa990177670cf3
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 21
+        verdict: covered
+        recorded_items: 22
+    - id: 866df947628522009fb74299ee26a79b782ab552e3078560cc9983b3f2c5e9d3
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 22
+        verdict: covered
+        recorded_items: 23
+    - id: 98c68ce24450934bb8c6e5b05ffef97fc620ec64c9835095dff8720ebe1201cd
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 23
+        verdict: covered
+        recorded_items: 24
+    - id: bf414ac835176abb83a4154f55290da5044e10221cbad6f7ae49ba1ee4037055
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 24
+        verdict: covered
+        recorded_items: 25
+    - id: 57476aea3514ec27f76bf9c576e6f86af9e3c652b73a07ed8a1d15c243b7168d
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        item_index: 25
+        verdict: covered
+        recorded_items: 26
+    - id: be3e8e89246b84c1e2aedde498a68ad85bf0fb2c79ecde4232a99b89e6926d37
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        coverage_status: reviewed
+        source_version: aaaeebcaeeebeee6c002e06b1288b222ad86806b2727cde376f6f790f4f87993
+        semantic_correctness_proven: false
+        reviewer_independence_authenticated: false
+        approved_by_tool: false
+    - id: dc0fa95c07f23d491f5ef33989017baf7a757cf388f42171ee0f758caa90e01b
+      result:
+        review_ref: 3c616247-2370-4c25-9165-043ac7bfdb39
+        approval_observed: true
+    - id: 619d67e9bccf65570d70e18bcb02cc072ef65153b20b3271ac4696d378f37d3a
+      result:
+        decision_ref:
+          id: aafbb781-c8ff-4025-8499-1264b79bfa04
+          revision: 1
+        state: instructed
+    - id: b4ecfd88a3235dc117174669b366b3b1010c93562cbda06f6dffad89366a778f
+      result:
+        question_ref:
+          id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+          revision: 4
+        question:
+          text: 'Для HTTP фиксируем запуск Xvfb при первой headed-сессии и остановку после закрытия последней такой сессии, или оставляем его работать до завершения контейнера после первого запуска? Рекомендую первый вариант: проверка CloakBrowser показала, что headless работает без DISPLAY и Xvfb, а отдельные HTTP-сессии могут выбирать headed независимо от настройки процесса. В stdio headless Xvfb вообще не запускается. Цена первого варианта — координация одновременных сессий, ожидание готовности дисплея и дополнительные тесты запуска/остановки; второй проще, но сохраняет ненужный процесс после закрытия headed-сессий.'
+          kind: single_choice
+          options:
+            - id: on_demand
+              label: Останавливать после последней headed-сессии
+            - id: keep_started
+              label: Оставлять до завершения контейнера
+        next: Ask the saved question with the callable host-native question tool.
+    - id: 7bd737bd48715337dc23df7d3608a7a60ec42ac1cce376a33078ef3435284f93
+      result:
+        decision_ref:
+          id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb
+          revision: 1
+        state: observed
+    - id: 4e5b2bee2505134db5a8cea444a3b5087e1928da90f486f046bf7f9738e5a167
+      result:
+        decision_ref:
+          id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+          revision: 5
+        state: answered
+    - id: 1d7a89756f113ac5ef155a382f457eabe11d3dd9381a7a5397564116dfab902a
+      result:
+        decision_ref:
+          id: 9e486951-5dbb-468a-84f6-19a66ec12341
+          revision: 1
+        state: instructed
+    - id: 739c88091a3fcbcdbd6d991479d280158a88100372b77b38e55cb5fb508265dd
+      result:
+        items:
+          - decision_ref:
+              id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb
+              revision: 2
+            previous_requirement_ids: []
+            added:
+              - DHM-001
+              - DHM-002
+              - DHM-003
+              - DHM-006
+              - DHM-008
+              - DHM-011
+            removed: []
+            requirement_ids:
+              - DHM-001
+              - DHM-002
+              - DHM-003
+              - DHM-006
+              - DHM-008
+              - DHM-011
+            operation_applied: true
+          - decision_ref:
+              id: f941f0a9-01ed-45b9-bf1a-78b693c6e432
+              revision: 6
+            previous_requirement_ids:
+              - DHM-001
+              - DHM-002
+            added:
+              - DHM-003
+              - DHM-004
+              - DHM-008
+              - DHM-009
+              - DHM-010
+              - DHM-011
+            removed: []
+            requirement_ids:
+              - DHM-001
+              - DHM-002
+              - DHM-003
+              - DHM-004
+              - DHM-008
+              - DHM-009
+              - DHM-010
+              - DHM-011
+            operation_applied: true
+        operation_applied: true
+    - id: 259428a38e696c3f873283c57cc9a6c754ac21a57b9fd3a1acc55774355d20cd
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        source_version: c1ab3860964447a4de50068144ce5de0905c12f2282e58e4f5ee6fe21fd33ddb
+        total_items: 31
+        recorded_items: 0
+        mechanical_status: pass
+        mechanical_issues: []
+        total_mechanical_issues: 0
+        next: Use a separate context to read every item completely and record an evidence-based verdict.
+    - id: c7ab4f760ab607cfbe1e0c5bff6a9e15c972277dd3dc05911afc1bc732e5e807
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 0
+        verdict: covered
+        recorded_items: 1
+    - id: 7436cd02abeade81ca754d0475edc224e610268a3e135775a0f861a43920395c
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 1
+        verdict: covered
+        recorded_items: 2
+    - id: 27c123569d43c5207356a46a4e2102e51e86c28be3e5fec2b592d21530834711
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 2
+        verdict: covered
+        recorded_items: 3
+    - id: a903fc2ea32cf99b34600ba64280e0cf893673b2f9711d2ad7b4360b3e8b7b5d
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 3
+        verdict: covered
+        recorded_items: 4
+    - id: 90596229c7af06eaaf00370caff49d64e706208012053b4cc4a5397c2d72eec7
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 4
+        verdict: covered
+        recorded_items: 5
+    - id: 3bd29303147e3ebe07bb7541581e4571131108a8eedf29b63727ef52bf7a4a17
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 5
+        verdict: covered
+        recorded_items: 6
+    - id: 4bb33c4493f14dbffa93245f1245f20b3be6107590abb3c769605491ead00046
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 6
+        verdict: covered
+        recorded_items: 7
+    - id: ea7ce59e999bd22236ee2698f47ed1314a812233c83299a0547bc6e17be0e96b
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 7
+        verdict: covered
+        recorded_items: 8
+    - id: 43c7fa2acf85a0ecbd8afd2246c84eb6e1f555284ca6c7cbb89683a2acdf6af7
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 8
+        verdict: covered
+        recorded_items: 9
+    - id: 868a8f5b3934ae9e880899007b582db430efd9a49aa19af34a19560fab937788
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 9
+        verdict: covered
+        recorded_items: 10
+    - id: d20047dc16e357ac885f21334eceb3d732b2160accab63baa9ea000a9f449d18
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 10
+        verdict: covered
+        recorded_items: 11
+    - id: eeb50f47e1f875291907e0fbeeb0ac1a2a165f67f0525a1bd7f04b26dc442e2f
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 11
+        verdict: covered
+        recorded_items: 12
+    - id: fbdf87c604892740ddf7d41440ba3413320f58e2ea82200a9dae6e2775e9d40d
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 12
+        verdict: covered
+        recorded_items: 13
+    - id: 08190a5dc1e8bad82e4418ef9f617c2d862d68ed8ab25edda36c50c9325ddb91
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 13
+        verdict: covered
+        recorded_items: 14
+    - id: 8fbec7c44b75d02345e45f26c3a6337e2f51bc6d80f159e7dac7354b08a85cd6
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 14
+        verdict: covered
+        recorded_items: 15
+    - id: de5d70a1e4f0dd22f2d6ef7248249b0b36dc855d33801d2adb30b44787e50a3e
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 15
+        verdict: covered
+        recorded_items: 16
+    - id: 188a50286b01b4edeadc8b49376a607d72522e9f9262e71fde8fa78adb94e871
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 16
+        verdict: covered
+        recorded_items: 17
+    - id: 9bf4feb4e2bb75a4c707f3afd61758c5af0932c7ff83e8850b510c934cbdd382
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 17
+        verdict: covered
+        recorded_items: 18
+    - id: a6fa79b041b118d3f6dc650d262ba3833dfa30ef213b28c1b8edd6d67f8aa9ec
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 18
+        verdict: covered
+        recorded_items: 19
+    - id: cf16928ac84745036d882bb0b25b88e2f364c6abc78aa55231f4d8ea31ed9333
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 19
+        verdict: covered
+        recorded_items: 20
+    - id: 1983cc913b0c826eb675c3c280781d2cc0029dfec9879a18504aa546b35e8455
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 20
+        verdict: covered
+        recorded_items: 21
+    - id: 2665f471e9468227fa7e83ae7d43a5cb64cf9714d8f4f36e1791ed52dbc8538d
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 21
+        verdict: covered
+        recorded_items: 22
+    - id: 005c164997f715eb822d104cd4d495cad0326af7c8a7e760dc962e7f5a2cb8f4
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 22
+        verdict: covered
+        recorded_items: 23
+    - id: 038bd96a4fe46ce4c9f2a795f0449b44247a317fba0d2a175312ae60785adec9
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 23
+        verdict: covered
+        recorded_items: 24
+    - id: d3d897378c8e551700638edc7029e38172642fba8e6b1b31dcebef6770ecf592
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 24
+        verdict: covered
+        recorded_items: 25
+    - id: 2e698967939b1826108e36a3fc367c572614339b4fc6e141c6c6a7fe2a169a37
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 25
+        verdict: covered
+        recorded_items: 26
+    - id: 248150d30d581b813e8f031747b2a3ada2175a6c55abe55f78c5923740834e33
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 26
+        verdict: covered
+        recorded_items: 27
+    - id: 5755522892486f2fddc28c0b7ca7877c1d6b53c469a6fbd15a35980c3f2ed2d4
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 27
+        verdict: covered
+        recorded_items: 28
+    - id: 489f55b5e7d58f579fc84fb031c610c62085d739e38f116d0befa9f82b5417c9
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 28
+        verdict: covered
+        recorded_items: 29
+    - id: 91c1d95fe40bdc17ea29329c3043aead48f25e8f8c413204adc8bf4f5a004f1c
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 29
+        verdict: covered
+        recorded_items: 30
+    - id: b89ad3527c3279a5ff23d74d3725936e7c6f894aa3667d08dd376459451ce046
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        item_index: 30
+        verdict: covered
+        recorded_items: 31
+    - id: 201f908507d59f6237f74d83564b6be9e934695210558b72a52987dbfe1a11eb
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        coverage_status: reviewed
+        source_version: c1ab3860964447a4de50068144ce5de0905c12f2282e58e4f5ee6fe21fd33ddb
+        semantic_correctness_proven: false
+        reviewer_independence_authenticated: false
+        approved_by_tool: false
+    - id: 9b29f19c9bd56a1032e779e9022d92c098c5e40dc3dde4cd6e6ccfdb058a76b7
+      result:
+        review_ref: 5444e611-25dd-48d2-bf22-4523cda23641
+        approval_observed: true
+specification_reviews:
+  version: 1
+  runs:
+    - id: d5fb97c5-2204-411d-9b8f-3b5e46e6998a
+      source_version: 32e9e5956b9ed49fb2b59a1851a6a189a0c8d2c3494dd7244eddd4fc49e4d9eb
+      specification_version: c5690d1a2580f6d322ce0236aed6b129064b4cc148014f9ef1b7467e73d87aac
+      status_at_start: Draft
+      created_at: 2026-09-13T09:35:43.669Z
+      completed: true
+      outcome: gaps
+      results:
+        [
+          {
+            item_index: 0,
+            item_key: source:563b9e5f-3865-45ec-b69d-d3e5d1f6595b,
+            verdict: covered,
+            explanation: 'The user instruction to specify the Docker headed-mode bug is represented by the bounded requirements for an always-available display, preserved headless configuration, startup and lifecycle behavior, isolation, protocol compatibility, platform parity, and operator documentation.',
+            requirement_ids: [DHM-001, DHM-002, DHM-003, DHM-004, DHM-005, DHM-006, DHM-007, DHM-009],
+            source_refs: [{ id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 }],
+          },
+          {
+            item_index: 1,
+            item_key: source:f941f0a9-01ed-45b9-bf1a-78b693c6e432,
+            verdict: covered,
+            explanation: 'DHM-001 directly requires Xvfb to be started for every Docker container independently of the process-level headless default, while DHM-002 preserves the existing default and override contract.',
+            requirement_ids: [DHM-001, DHM-002],
+            source_refs: [{ id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 3 }],
+          },
+          {
+            item_index: 2,
+            item_key: source:645787f8-0199-400c-b65a-ffe6cb127fab,
+            verdict: covered,
+            explanation: "The existing process and per-session headless behavior is preserved explicitly by DHM-002, supported by DHM-001's per-session headed acceptance, protected as transport compatibility by DHM-006, and exercised at the real Docker boundary by DHM-008.",
+            requirement_ids: [DHM-001, DHM-002, DHM-006, DHM-008],
+            source_refs: [{ id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 }],
+          },
+          {
+            item_index: 3,
+            item_key: source:76e979ed-b096-443e-91af-a958037ed7fc,
+            verdict: covered,
+            explanation: 'DHM-001 supplies the missing container-local display, DHM-003 defines readiness and fail-closed startup, and DHM-004 couples the new display process to the existing container lifecycle.',
+            requirement_ids: [DHM-001, DHM-003, DHM-004],
+            source_refs: [{ id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 }],
+          },
+          {
+            item_index: 4,
+            item_key: source:327a11ee-9474-46fd-bf71-3d28908e5276,
+            verdict: covered,
+            explanation: 'DHM-007 preserves both published linux/amd64 and linux/arm64 platforms and requires equivalent headed-mode, failure, privilege, isolation, build, and acceptance outcomes on each.',
+            requirement_ids: [DHM-007],
+            source_refs: [{ id: 327a11ee-9474-46fd-bf71-3d28908e5276, revision: 2 }],
+          },
+          {
+            item_index: 5,
+            item_key: source:7cc8baab-a0dc-46d7-a123-33b55e68d247,
+            verdict: covered,
+            explanation: DHM-008 directly closes the identified coverage gap by requiring real-browser Docker checks for process-level headed mode and per-session HTTP headed mode while retaining deterministic fake-upstream coverage.,
+            requirement_ids: [DHM-008],
+            source_refs: [{ id: 7cc8baab-a0dc-46d7-a123-33b55e68d247, revision: 2 }],
+          },
+          {
+            item_index: 6,
+            item_key: source:scope.manifest,
+            verdict: covered,
+            explanation: 'The confirmed Standard scope is reflected in nine behavioral requirements: core configuration and transport preservation, operational startup and lifecycle behavior, security isolation, both published platforms, regression evidence, and documentation. The inactive profiles introduce no separate behavioral surface in the confirmed scope.',
+            requirement_ids:
+              [DHM-001, DHM-002, DHM-003, DHM-004, DHM-005, DHM-006, DHM-007, DHM-008, DHM-009],
+            source_refs: [{ id: scope.manifest, revision: 2 }],
+          },
+          {
+            item_index: 7,
+            item_key: source:9dc642d9-c960-49a1-9c24-41eaee392a43,
+            verdict: covered,
+            explanation: 'DHM-002 preserves PLAYWRIGHT_MCP_HEADLESS=true as the Docker default, and DHM-005 preserves the non-root runtime while prohibiting added capabilities, privileged mode, host display mounts, and network listeners.',
+            requirement_ids: [DHM-002, DHM-005],
+            source_refs: [{ id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 }],
+          },
+          {
+            item_index: 8,
+            item_key: source:3217bbd3-735c-4ef5-a5c0-ee169dcece3d,
+            verdict: covered,
+            explanation: 'The architecture assumption is kept explicitly testable rather than treated as proven: DHM-007 requires equivalent outcomes and failure on unsupported architecture, and DHM-008 requires real Docker browser-boundary evidence.',
+            requirement_ids: [DHM-007, DHM-008],
+            source_refs: [{ id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 }],
+          },
+          {
+            item_index: 9,
+            item_key: requirement:DHM-001,
+            verdict: covered,
+            explanation: 'DHM-001 faithfully requires an always-started container-local Xvfb display before MCP request handling, covers both process-level and per-session headed requests with a real browser, and preserves coexistence of headed and headless sessions.',
+            requirement_ids: [DHM-001],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 3 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+              ],
+          },
+          {
+            item_index: 10,
+            item_key: requirement:DHM-002,
+            verdict: covered,
+            explanation: 'DHM-002 preserves the existing default, environment and initialize-metadata precedence, accepted values, validation, and per-session isolation, and explicitly forbids new public CLI, environment, or MCP fields.',
+            requirement_ids: [DHM-002],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 3 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 },
+              ],
+          },
+          {
+            item_index: 11,
+            item_key: requirement:DHM-003,
+            verdict: covered,
+            explanation: 'DHM-003 defines the startup gate on actual display readiness, fail-closed non-zero behavior when the display cannot be established, a concise stderr diagnosis, and preservation of protocol-only stdout.',
+            requirement_ids: [DHM-003],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+              ],
+          },
+          {
+            item_index: 12,
+            item_key: requirement:DHM-004,
+            verdict: covered,
+            explanation: 'DHM-004 defines the MCP server and Xvfb as one container lifecycle and preserves argument forwarding, normal exit status, signal delivery, stop-grace-period exit, and cleanup of owned process and display resources.',
+            requirement_ids: [DHM-004],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+              ],
+          },
+          {
+            item_index: 13,
+            item_key: requirement:DHM-005,
+            verdict: covered,
+            explanation: 'DHM-005 specifies container-local display access, non-root execution, no added capabilities or privilege, no host display mount or network listener, owned-resource permissions and cleanup, and preservation of existing security contracts.',
+            requirement_ids: [DHM-005],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 },
+              ],
+          },
+          {
+            item_index: 14,
+            item_key: requirement:DHM-006,
+            verdict: covered,
+            explanation: 'DHM-006 explicitly preserves both transports, upstream forwarding, the two local tools, protocol envelopes and stdout safety, and the existing session, profile, extension, proxy, output-path, and browser-isolation behavior.',
+            requirement_ids: [DHM-006],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+              ],
+          },
+          {
+            item_index: 15,
+            item_key: requirement:DHM-007,
+            verdict: covered,
+            explanation: 'DHM-007 preserves linux/amd64 and linux/arm64 parity for the material headed-mode, failure, privilege, and isolation outcomes, requires real-browser evidence on each architecture, and forbids silently reduced support.',
+            requirement_ids: [DHM-007],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 327a11ee-9474-46fd-bf71-3d28908e5276, revision: 2 },
+                { id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 },
+              ],
+          },
+          {
+            item_index: 16,
+            item_key: requirement:DHM-008,
+            verdict: covered,
+            explanation: 'DHM-008 requires real Docker-boundary evidence for process-level headed mode, per-session HTTP headed mode, and default headless control, plus lifecycle failure and cleanup checks, while retaining fake-upstream protocol coverage.',
+            requirement_ids: [DHM-008],
+            source_refs:
+              [
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 7cc8baab-a0dc-46d7-a123-33b55e68d247, revision: 2 },
+                { id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 },
+              ],
+          },
+          {
+            item_index: 17,
+            item_key: requirement:DHM-009,
+            verdict: covered,
+            explanation: 'DHM-009 requires a working headed-mode Docker example, accurately distinguishes virtual headed execution from visible or remote desktop access, and covers all affected localized pages and translation-manifest validation.',
+            requirement_ids: [DHM-009],
+            source_refs: [{ id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 }],
+          },
+          {
+            item_index: 18,
+            item_key: profile:core,
+            verdict: covered,
+            explanation: 'For the active core profile, the specification covers the material Docker and CLI consumers, both invocation paths, configuration defaults and precedence, validation preservation, stdout/stderr and exit behavior, interruption, side effects, compatibility, both supported platforms, and objective regression evidence.',
+            requirement_ids: [DHM-001, DHM-002, DHM-003, DHM-004, DHM-006, DHM-007, DHM-008],
+            source_refs: [],
+          },
+          {
+            item_index: 19,
+            item_key: profile:operations,
+            verdict: gap,
+            explanation: 'The active operations profile requires operator-visible failure detection and diagnostics for material dependency failure. The specification defines a diagnostic for Xvfb startup failure and lifecycle coupling, but it does not define the diagnostic or distinguishable exit outcome when Xvfb terminates unexpectedly after the MCP server is already ready.',
+            counterexample: 'After successful readiness, Xvfb exits unexpectedly. The container supervisor stops the MCP process, cleans resources, and exits non-zero without any stderr message identifying display loss. This satisfies the stated coupled lifecycle and cleanup rules, but an operator cannot distinguish the display dependency failure from an unrelated application exit.',
+            requirement_ids: [DHM-003, DHM-004],
+            source_refs: [],
+          },
+          {
+            item_index: 20,
+            item_key: profile:security,
+            verdict: covered,
+            explanation: 'For the active security profile, DHM-005 identifies the container process boundary, preserves the non-root actor and existing security contracts, prohibits additional privilege and TCP exposure, constrains resource ownership and cleanup, and DHM-007 requires the same safeguards on both supported architectures.',
+            requirement_ids: [DHM-005, DHM-007],
+            source_refs: [],
+          },
+          {
+            item_index: 21,
+            item_key: context:specification,
+            verdict: covered,
+            explanation: 'The specification context is consistent with the requirements: the outcome and supported platforms match DHM-001, DHM-006, and DHM-007; startup recovery and rollback are compatible with DHM-003 and the no-migration scope; non-goals preserve DHM-002, DHM-005, and DHM-006; and objective acceptance matches DHM-007 through DHM-009. It does not add a contradictory hidden promise.',
+            requirement_ids:
+              [DHM-001, DHM-002, DHM-003, DHM-004, DHM-005, DHM-006, DHM-007, DHM-008, DHM-009],
+            source_refs: [],
+          },
+        ]
+    - id: f99d0353-5770-423b-89e0-20c3cb8c27a9
+      source_version: 2e6429cd0d40a17f9178b7e2993ea87aa608af77e0da08747719b416757551fe
+      specification_version: 159fdcc242bc30fb0a5de49347ff89ae796a799c9b4ca6d7d9aa53c3e41a360f
+      status_at_start: Draft
+      created_at: 2026-09-13T09:43:51.134Z
+      completed: true
+      outcome: reviewed
+      results:
+        [
+          {
+            item_index: 0,
+            item_key: source:563b9e5f-3865-45ec-b69d-d3e5d1f6595b,
+            verdict: covered,
+            explanation: 'The instruction is a scope request to create the bug-fix specification. The linked DHM requirements collectively define the Docker headed-mode correction, compatibility, lifecycle, isolation, platform parity, and operator-facing outcome; no additional behavioral condition is stated by this source.',
+            requirement_ids:
+              [DHM-001, DHM-002, DHM-003, DHM-004, DHM-005, DHM-006, DHM-007, DHM-008, DHM-009],
+            source_refs: [{ id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 }],
+          },
+          {
+            item_index: 1,
+            item_key: source:f941f0a9-01ed-45b9-bf1a-78b693c6e432,
+            verdict: covered,
+            explanation: 'DHM-001 explicitly requires every Docker container to start a container-local Xvfb display before normal MCP handling, independent of the process headless default. DHM-002 preserves the existing headless-selection contract, so the always-on display does not force browsers themselves into headed mode.',
+            requirement_ids: [DHM-001, DHM-002],
+            source_refs: [{ id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 3 }],
+          },
+          {
+            item_index: 2,
+            item_key: source:645787f8-0199-400c-b65a-ffe6cb127fab,
+            verdict: covered,
+            explanation: DHM-001 preserves independent per-session headed operation by making display availability unconditional; DHM-002 explicitly preserves environment and Streamable HTTP metadata precedence and validation; DHM-006 preserves transport/session isolation; DHM-008 requires real Docker coverage for both process-level headed mode and per-session override while retaining fake-upstream forwarding coverage.,
+            requirement_ids: [DHM-001, DHM-002, DHM-006, DHM-008],
+            source_refs: [{ id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 }],
+          },
+          {
+            item_index: 3,
+            item_key: source:76e979ed-b096-443e-91af-a958037ed7fc,
+            verdict: covered,
+            explanation: 'DHM-001 directly replaces the observed missing-display baseline by requiring a container-local Xvfb before MCP request handling. DHM-003 defines readiness and startup-failure behavior, while DHM-004 defines the joint application/display lifecycle and cleanup that the former direct CLI entrypoint did not provide.',
+            requirement_ids: [DHM-001, DHM-003, DHM-004],
+            source_refs: [{ id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 }],
+          },
+          {
+            item_index: 4,
+            item_key: source:327a11ee-9474-46fd-bf71-3d28908e5276,
+            verdict: covered,
+            explanation: 'DHM-007 names both published targets, linux/amd64 and linux/arm64, and requires equivalent headed-mode, failure, non-root, and isolation outcomes plus architecture-specific real-browser evidence and fail-before-publish behavior.',
+            requirement_ids: [DHM-007],
+            source_refs: [{ id: 327a11ee-9474-46fd-bf71-3d28908e5276, revision: 2 }],
+          },
+          {
+            item_index: 5,
+            item_key: source:7cc8baab-a0dc-46d7-a123-33b55e68d247,
+            verdict: covered,
+            explanation: 'DHM-008 explicitly requires coverage beyond the fake-upstream distribution test: real CloakBrowser launches in Docker for process-level headed mode and Streamable HTTP per-session headed mode, a default-headless control, lifecycle discrimination, and retention of fake-upstream protocol checks.',
+            requirement_ids: [DHM-008],
+            source_refs: [{ id: 7cc8baab-a0dc-46d7-a123-33b55e68d247, revision: 2 }],
+          },
+          {
+            item_index: 6,
+            item_key: source:scope.manifest,
+            verdict: covered,
+            explanation: 'The specification matches the confirmed Standard scope. DHM-001 through DHM-004 cover browser launch and container lifecycle; DHM-001, DHM-002, and DHM-006 preserve independent per-session runtime behavior; DHM-007 covers both published architectures; DHM-005 covers container-local least-privilege isolation; DHM-008 supplies boundary evidence; DHM-009 covers the operator-facing contract. The requirements add no UI, new HTTP/MCP schema, event, persistence, or separately evolving cross-surface contract.',
+            requirement_ids:
+              [DHM-001, DHM-002, DHM-003, DHM-004, DHM-005, DHM-006, DHM-007, DHM-008, DHM-009],
+            source_refs: [{ id: scope.manifest, revision: 2 }],
+          },
+          {
+            item_index: 7,
+            item_key: source:9dc642d9-c960-49a1-9c24-41eaee392a43,
+            verdict: covered,
+            explanation: 'DHM-002 requires retaining PLAYWRIGHT_MCP_HEADLESS=true as the Docker default. DHM-005 requires preserving the non-root runtime user and prohibits added privilege, capabilities, host display mounts, and network display exposure.',
+            requirement_ids: [DHM-002, DHM-005],
+            source_refs: [{ id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 }],
+          },
+          {
+            item_index: 8,
+            item_key: source:3217bbd3-735c-4ef5-a5c0-ee169dcece3d,
+            verdict: covered,
+            explanation: The assumption is kept falsifiable rather than treated as proven. DHM-007 requires equivalent linux/amd64 and linux/arm64 outcomes and makes an architecture failure block build or acceptance instead of reducing support; DHM-008 requires the real Docker/browser checks. DHM-002 and DHM-006 separately forbid public CLI/MCP contract changes and preserve existing protocol behavior.,
+            requirement_ids: [DHM-002, DHM-006, DHM-007, DHM-008],
+            source_refs: [{ id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 }],
+          },
+          {
+            item_index: 9,
+            item_key: requirement:DHM-001,
+            verdict: covered,
+            explanation: DHM-001 faithfully turns the selected always-on-Xvfb direction into observable Docker behavior. Its process-default and per-session cases preserve the established independent headless-selection behavior and directly address the observed absence of a display server. The coexistence criterion prevents the display fix from collapsing session-level runtime choices.,
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 3 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+              ],
+          },
+          {
+            item_index: 10,
+            item_key: requirement:DHM-002,
+            verdict: covered,
+            explanation: 'DHM-002 is justified by the observed current default and per-session precedence plus the selected transparent always-on display direction. It preserves the existing default, values, validation, and per-session override semantics and makes the confirmed no-new-interface scope testable through CLI help, configuration, initialize metadata, and upstream tool schemas.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 3 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 },
+              ],
+          },
+          {
+            item_index: 11,
+            item_key: requirement:DHM-003,
+            verdict: covered,
+            explanation: 'DHM-003 supplies the confirmed operations-scope startup and readiness contract for the newly required display service. It defines the usable-state gate, fail-closed non-zero outcome, bounded stderr diagnosis, and stdout protocol isolation, with acceptance that detects both a readiness race and deferred first-request failure.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+                { id: scope.manifest, revision: 2 },
+              ],
+          },
+          {
+            item_index: 12,
+            item_key: requirement:DHM-004,
+            verdict: covered,
+            explanation: 'DHM-004 fully specifies the observable joint lifecycle introduced by the always-on display: unchanged argument delivery, application exit-status preservation, SIGTERM/SIGINT forwarding, bounded stop behavior, application/startup cleanup, and the formerly missing post-readiness Xvfb-loss path that stops the MCP server, cleans display resources, diagnoses on stderr only, and exits non-zero.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+                { id: scope.manifest, revision: 2 },
+              ],
+          },
+          {
+            item_index: 13,
+            item_key: requirement:DHM-005,
+            verdict: covered,
+            explanation: 'DHM-005 converts the confirmed security scope into observable boundaries: container-local display access, non-root execution, no added capabilities or privileged mode, no host display mount or network listener, owner-only temporary/authentication resources when present, cleanup, and preservation of existing sandbox, mount, secret-redaction, HTTP authentication, and TLS behavior.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 },
+                { id: scope.manifest, revision: 2 },
+              ],
+          },
+          {
+            item_index: 14,
+            item_key: requirement:DHM-006,
+            verdict: covered,
+            explanation: 'DHM-006 is faithful to the established bridge behavior and repository invariants: it preserves stdio and Streamable HTTP contracts, upstream forwarding, exactly two local tools, runtime surfaces and isolation. Its acceptance criteria cover schemas and envelopes, stdout protocol safety, and HTTP readiness, limits, cleanup, and per-session metadata behavior.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+              ],
+          },
+          {
+            item_index: 15,
+            item_key: requirement:DHM-007,
+            verdict: covered,
+            explanation: 'DHM-007 is directly justified by the two published Linux architectures and the explicitly falsifiable cross-architecture assumption. It requires equal behavior and security outcomes, real CloakBrowser evidence on each architecture, and makes any architecture-specific display limitation fail build or acceptance instead of silently weakening support.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 327a11ee-9474-46fd-bf71-3d28908e5276, revision: 2 },
+                { id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 },
+              ],
+          },
+          {
+            item_index: 16,
+            item_key: requirement:DHM-008,
+            verdict: covered,
+            explanation: 'DHM-008 closes the observed fake-upstream-only evidence gap with real Docker/CloakBrowser checks for process-level headed mode, Streamable HTTP session override, and a default-headless control. It also requires lifecycle checks that discriminate signal, exit, startup-failure, and cleanup behavior, while preserving deterministic fake-upstream forwarding coverage. DHM-004 separately states the post-readiness Xvfb-loss acceptance case, and DHM-007 requires real-browser evidence on each architecture, so those obligations need not be duplicated here.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 7cc8baab-a0dc-46d7-a123-33b55e68d247, revision: 2 },
+                { id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 },
+              ],
+          },
+          {
+            item_index: 17,
+            item_key: requirement:DHM-009,
+            verdict: covered,
+            explanation: 'DHM-009 is warranted by the repository rule to update public Docker documentation when Docker behavior changes. It documents the new headed-mode outcome without promising a visible desktop or remote-viewing service, supplies a working existing-environment example, and includes localized-page and translation-manifest consistency.',
+            requirement_ids: [],
+            source_refs: [{ id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 }],
+          },
+          {
+            item_index: 18,
+            item_key: profile:core,
+            verdict: covered,
+            explanation: 'The active core profile has no further material gap. DHM-001/DHM-002 define Docker, environment, and per-session invocation/default/precedence behavior; DHM-003/DHM-004 define stderr, stdout, exit, argument, interruption, readiness, and cleanup outcomes; DHM-005/DHM-006 preserve trust boundaries and existing public contracts; DHM-007/DHM-008 cover supported platforms and discriminating evidence. Reload, interactive CLI, serialization, and generated-output rules are not material to this static container runtime change, while unchanged stdin/transport behavior is preserved by DHM-006.',
+            requirement_ids: [DHM-001, DHM-002, DHM-003, DHM-004, DHM-005, DHM-006, DHM-007, DHM-008],
+            source_refs: [],
+          },
+          {
+            item_index: 19,
+            item_key: profile:operations,
+            verdict: covered,
+            explanation: 'The active operations profile has no further material gap. DHM-003 gates service usability on Xvfb readiness and defines fail-closed startup detection and concise stderr evidence. DHM-004 covers argument/exit semantics, SIGTERM/SIGINT, stop-grace behavior, cleanup on every stated application/startup terminal path, and post-readiness Xvfb loss. DHM-007 applies these outcomes to both published architectures and prevents reduced-support publication; DHM-008 requires discriminating real-boundary and lifecycle checks. Latency/throughput SLOs, backup/restore, coordinated mixed-version operation, and irreversible-action gates are not material because this change has no persistent state, distributed coordination, or new service contract.',
+            requirement_ids: [DHM-003, DHM-004, DHM-007, DHM-008],
+            source_refs: [],
+          },
+          {
+            item_index: 20,
+            item_key: profile:security,
+            verdict: covered,
+            explanation: 'The active security profile has no further material gap. DHM-005 defines the protected boundary and least-privilege outcomes: local-container-only display access, non-root runtime, no capabilities, privileged mode, host display mount, or TCP listener, owner-only temporary/authentication resources when present, cleanup, and preservation of existing secret, sandbox, mount, HTTP-authentication, and TLS controls. DHM-003/DHM-004 cover fail-closed startup and runtime display loss with concise stderr-only diagnostics, and DHM-007 preserves the safeguards on both supported architectures. Authentication, retention, deletion, replay, and enumeration do not gain a new surface under the no-listener/no-new-contract requirements.',
+            requirement_ids: [DHM-003, DHM-004, DHM-005, DHM-007],
+            source_refs: [],
+          },
+          {
+            item_index: 21,
+            item_key: context:specification,
+            verdict: covered,
+            explanation: 'The non-requirement specification context is consistent with the normative requirements and confirmed scope. The full-lifetime display outcome maps to DHM-001/DHM-004; stdio and per-session HTTP headed operation and unchanged error envelopes map to DHM-001/DHM-006/DHM-008; startup recovery maps to DHM-003; rollback/no-migration prose is consistent with the no-persistent-data scope and unchanged-image behavior; every non-goal is enforced by DHM-002, DHM-005, DHM-006, DHM-007, or DHM-009. The objective-acceptance summary does not add an unmapped promise.',
+            requirement_ids:
+              [DHM-001, DHM-002, DHM-003, DHM-004, DHM-005, DHM-006, DHM-007, DHM-008, DHM-009],
+            source_refs: [],
+          },
+        ]
+      approval_observed: true
+    - id: 0669f1e6-93e4-4c61-a0ba-a502a5dea5a7
+      source_version: 5086a1776ccb2353d76ace40df0e44d8e5d1291b72bd83107a5cd73e5402b86b
+      specification_version: 2aefe06bb29d5add7cecb9b715550614d16bee9b7c6b52cf130ae7ff1e0dba79
+      status_at_start: Draft
+      created_at: 2026-09-13T10:22:46.949Z
+      completed: true
+      outcome: gaps
+      results:
+        [
+          {
+            item_index: 0,
+            item_key: source:563b9e5f-3865-45ec-b69d-d3e5d1f6595b,
+            verdict: covered,
+            explanation: 'The requested Docker bug-fix specification is concretely bounded by DHM-001 through DHM-007 and DHM-009: always-on Xvfb, preserved headless behavior, startup and lifecycle failure rules, isolation, protocol compatibility, platform parity, and documentation.',
+            requirement_ids: [DHM-001, DHM-002, DHM-003, DHM-004, DHM-005, DHM-006, DHM-007, DHM-009],
+            source_refs: [{ id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 }],
+          },
+          {
+            item_index: 1,
+            item_key: source:f941f0a9-01ed-45b9-bf1a-78b693c6e432,
+            verdict: covered,
+            explanation: 'DHM-001 requires Xvfb to be started for every Docker container regardless of the process-level headless default, while DHM-002 preserves the existing default and per-session override contract.',
+            requirement_ids: [DHM-001, DHM-002],
+            source_refs: [{ id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 3 }],
+          },
+          {
+            item_index: 2,
+            item_key: source:645787f8-0199-400c-b65a-ffe6cb127fab,
+            verdict: covered,
+            explanation: 'DHM-001 and DHM-002 preserve process and per-session headless selection, DHM-006 preserves both transports and runtime metadata, and DHM-008 requires a real per-session headed Docker check.',
+            requirement_ids: [DHM-001, DHM-002, DHM-006, DHM-008],
+            source_refs: [{ id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 }],
+          },
+          {
+            item_index: 3,
+            item_key: source:76e979ed-b096-443e-91af-a958037ed7fc,
+            verdict: covered,
+            explanation: DHM-001 adds the missing display; DHM-003 requires readiness before the MCP server becomes usable; DHM-004 defines the shared Xvfb and CLI lifecycle and failure cleanup.,
+            requirement_ids: [DHM-001, DHM-003, DHM-004],
+            source_refs: [{ id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 }],
+          },
+          {
+            item_index: 4,
+            item_key: source:327a11ee-9474-46fd-bf71-3d28908e5276,
+            verdict: covered,
+            explanation: 'DHM-007 explicitly requires equivalent headed-mode, failure, privilege, and isolation outcomes on both published linux/amd64 and linux/arm64 images, with per-architecture real-browser evidence.',
+            requirement_ids: [DHM-007],
+            source_refs: [{ id: 327a11ee-9474-46fd-bf71-3d28908e5276, revision: 2 }],
+          },
+          {
+            item_index: 5,
+            item_key: source:7cc8baab-a0dc-46d7-a123-33b55e68d247,
+            verdict: covered,
+            explanation: 'DHM-008 closes the observed boundary gap with real Docker browser checks, retains fake-upstream protocol tests, and includes lifecycle-focused checks rather than only a successful launch.',
+            requirement_ids: [DHM-008],
+            source_refs: [{ id: 7cc8baab-a0dc-46d7-a123-33b55e68d247, revision: 2 }],
+          },
+          {
+            item_index: 6,
+            item_key: source:scope.manifest,
+            verdict: covered,
+            explanation: 'The confirmed standard scope is reflected across DHM-001 through DHM-010: observable Docker and CLI behavior, lifecycle operations, and display isolation are specified in spec.md; no separate planning artifact is needed for this bounded change.',
+            requirement_ids:
+              [DHM-001, DHM-002, DHM-003, DHM-004, DHM-005, DHM-006, DHM-007, DHM-008, DHM-009, DHM-010],
+            source_refs: [{ id: scope.manifest, revision: 2 }],
+          },
+          {
+            item_index: 7,
+            item_key: source:9dc642d9-c960-49a1-9c24-41eaee392a43,
+            verdict: covered,
+            explanation: 'DHM-002 preserves the existing PLAYWRIGHT_MCP_HEADLESS default and DHM-005 preserves non-root execution while forbidding added capabilities, privileged mode, host display mounts, and network listeners.',
+            requirement_ids: [DHM-002, DHM-005],
+            source_refs: [{ id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 }],
+          },
+          {
+            item_index: 8,
+            item_key: source:3217bbd3-735c-4ef5-a5c0-ee169dcece3d,
+            verdict: covered,
+            explanation: DHM-007 treats both published architectures as mandatory and fails acceptance rather than reducing support; DHM-008 requires real Docker headed-mode evidence and retains a headless control.,
+            requirement_ids: [DHM-007, DHM-008],
+            source_refs: [{ id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 }],
+          },
+          {
+            item_index: 9,
+            item_key: source:b1e871e5-3702-4695-985b-eb65e6899c63,
+            verdict: conflict,
+            explanation: 'The instruction selects S6 Overlay only if it is suitable. DHM-010 and the specification context convert that conditional choice into an unconditional S6 v3.2.3.2 mandate, but no recorded fact or decision establishes suitability or defines what happens when the suitability check fails.',
+            counterexample: 'If S6 Overlay v3.2.3.2 is found unable to preserve the required non-root, signal, or linux/arm64 behavior, the source condition requires the S6 choice to be rejected or reopened; the specification still requires S6 and rejects every non-S6 resolution.',
+            requirement_ids: [DHM-010],
+            source_refs: [{ id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 }],
+          },
+          {
+            item_index: 10,
+            item_key: requirement:DHM-001,
+            verdict: covered,
+            explanation: The always-on Xvfb requirement faithfully combines the user's selected architecture with the observed process and per-session headless behavior and the existing lack of a Docker display.,
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 3 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 },
+              ],
+          },
+          {
+            item_index: 11,
+            item_key: requirement:DHM-002,
+            verdict: covered,
+            explanation: 'The requirement preserves the observed Docker default, environment and per-session precedence, validation, and public surface while implementing the selected always-on display architecture.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 3 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 },
+              ],
+          },
+          {
+            item_index: 12,
+            item_key: requirement:DHM-003,
+            verdict: covered,
+            explanation: 'The requirement supplies observable readiness, fail-closed startup, non-zero status, stderr diagnostic, and stdout safety for the missing display lifecycle identified by the Docker source and required by the supervised Xvfb direction.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 },
+              ],
+          },
+          {
+            item_index: 13,
+            item_key: requirement:DHM-004,
+            verdict: covered,
+            explanation: 'The requirement preserves CLI arguments, exit status, signals, and protocol-safe diagnostics while defining cleanup and post-readiness Xvfb-loss behavior for the requested supervision change.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 },
+              ],
+          },
+          {
+            item_index: 14,
+            item_key: requirement:DHM-005,
+            verdict: covered,
+            explanation: 'The isolation and privilege requirement preserves the observed non-root runtime and makes the display container-local without capabilities, privileged mode, host display mounts, a TCP listener, or relaxed temporary-resource permissions.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 },
+              ],
+          },
+          {
+            item_index: 15,
+            item_key: requirement:DHM-006,
+            verdict: covered,
+            explanation: 'The requirement preserves the observed headless override flow and explicitly retains stdio, Streamable HTTP, upstream forwarding, local tools, protocol envelopes, session isolation, and stdout safety.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+              ],
+          },
+          {
+            item_index: 16,
+            item_key: requirement:DHM-007,
+            verdict: covered,
+            explanation: 'The requirement exactly covers both observed published architectures, equivalent security and failure outcomes, real headed-browser evidence on each, and fail-closed publication when an architecture cannot meet the contract.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 327a11ee-9474-46fd-bf71-3d28908e5276, revision: 2 },
+                { id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 },
+              ],
+          },
+          {
+            item_index: 17,
+            item_key: requirement:DHM-008,
+            verdict: covered,
+            explanation: 'The requirement closes the observed fake-upstream-only gap with real Docker headed, per-session HTTP, headless-control, and lifecycle checks while preserving deterministic fake-upstream coverage.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 7cc8baab-a0dc-46d7-a123-33b55e68d247, revision: 2 },
+                { id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 },
+              ],
+          },
+          {
+            item_index: 18,
+            item_key: requirement:DHM-009,
+            verdict: covered,
+            explanation: 'For the requested Docker behavior change, the repository documentation contract requires affected public and localized Docker guidance to remain consistent; DHM-009 gives observable content and translation-manifest acceptance without expanding product behavior.',
+            requirement_ids: [],
+            source_refs: [{ id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 }],
+          },
+          {
+            item_index: 19,
+            item_key: requirement:DHM-010,
+            verdict: conflict,
+            explanation: 'DHM-010 is sourced only from a conditional instruction to use S6 Overlay if suitable. It mandates S6 Overlay v3.2.3.2 and excludes every other supervision resolution without a recorded suitability finding or a rule for a failed suitability assessment, so it is stronger than the source authorizes.',
+            counterexample: 'A suitability assessment finds that S6 Overlay v3.2.3.2 cannot meet the required non-root, signal, or linux/arm64 contract. The source condition then does not select S6, but DHM-010 still requires S6 and makes any reconsidered solution noncompliant.',
+            requirement_ids: [],
+            source_refs: [{ id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 }],
+          },
+          {
+            item_index: 20,
+            item_key: profile:core,
+            verdict: gap,
+            explanation: 'The core profile requires observable coverage of each relevant invocation path. The Outcome and Objective Acceptance promise real headed-browser behavior through stdio and Streamable HTTP, but DHM-001 and DHM-008 leave the transport of the process-level PLAYWRIGHT_MCP_HEADLESS=false Docker check unspecified; only the per-session check is explicitly HTTP.',
+            counterexample: 'Both real-browser Docker checks run through Streamable HTTP: one uses process-level PLAYWRIGHT_MCP_HEADLESS=false and one uses per-session headless:false. Fake-upstream stdio checks remain green, so every numbered acceptance bullet can pass without any real headed-browser stdio check despite the stated outcome.',
+            requirement_ids: [DHM-001, DHM-006, DHM-008],
+            source_refs: [],
+          },
+          {
+            item_index: 21,
+            item_key: profile:operations,
+            verdict: covered,
+            explanation: 'Startup readiness and failure are defined by DHM-003; signal, exit, unexpected dependency loss, and cleanup by DHM-004 and DHM-010; both architectures and fail-closed publication by DHM-007; recovery and regression evidence by DHM-008 and the specification recovery section.',
+            requirement_ids: [DHM-003, DHM-004, DHM-007, DHM-008, DHM-010],
+            source_refs: [],
+          },
+          {
+            item_index: 22,
+            item_key: profile:security,
+            verdict: covered,
+            explanation: 'DHM-005 defines the container trust boundary, non-root execution, prohibited privilege and network exposure, and temporary-resource permissions; DHM-007 preserves those outcomes on both architectures; DHM-010 pins supply-chain artifacts and forbids world-writable S6 state.',
+            requirement_ids: [DHM-005, DHM-007, DHM-010],
+            source_refs: [],
+          },
+          {
+            item_index: 23,
+            item_key: context:specification,
+            verdict: conflict,
+            explanation: "The non-requirement context repeats an unconditional S6 Overlay MUST and non-goal, conflicting with the source's 'if suitable' condition. It also promises a real headed-browser stdio check in Outcome and Objective Acceptance without a numbered transport-specific acceptance rule; that separate completeness gap is recorded on the core profile.",
+            counterexample: 'If S6 Overlay v3.2.3.2 fails the required suitability assessment, the original instruction no longer selects S6, but the Outcome and Non-Goals still force S6 and reject reconsideration.',
+            requirement_ids: [DHM-001, DHM-006, DHM-008, DHM-010],
+            source_refs: [{ id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 }],
+          },
+        ]
+    - id: 3c616247-2370-4c25-9165-043ac7bfdb39
+      source_version: aaaeebcaeeebeee6c002e06b1288b222ad86806b2727cde376f6f790f4f87993
+      specification_version: fad6bcccd0eac43e8a19841c851a8425a69f51cd2bcd14a21f9c83d2c07fe5a6
+      status_at_start: Draft
+      created_at: 2026-09-13T10:32:14.741Z
+      completed: true
+      outcome: reviewed
+      results:
+        [
+          {
+            item_index: 0,
+            item_key: source:563b9e5f-3865-45ec-b69d-d3e5d1f6595b,
+            verdict: covered,
+            explanation: "The source asks for a specification of the identified Docker headed-mode bug. The linked requirements define that bug's complete observable contract: display availability, configuration compatibility, startup and lifecycle failure behavior, isolation, protocol compatibility, platform parity, and operator documentation.",
+            requirement_ids: [DHM-001, DHM-002, DHM-003, DHM-004, DHM-005, DHM-006, DHM-007, DHM-009],
+            source_refs: [{ id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 }],
+          },
+          {
+            item_index: 1,
+            item_key: source:f941f0a9-01ed-45b9-bf1a-78b693c6e432,
+            verdict: covered,
+            explanation: 'DHM-001 requires every project Docker container to start Xvfb before normal MCP handling and explicitly forbids making display availability depend only on the process headless default. DHM-002 preserves the existing headless default and override contract, so always-on Xvfb does not silently force headed browser execution.',
+            requirement_ids: [DHM-001, DHM-002],
+            source_refs: [{ id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 3 }],
+          },
+          {
+            item_index: 2,
+            item_key: source:645787f8-0199-400c-b65a-ffe6cb127fab,
+            verdict: covered,
+            explanation: 'DHM-002 preserves environment and per-session headless precedence, accepted values, validation, and the resulting upstream headless setting. DHM-001 ensures the display exists for an independently headed HTTP session; DHM-006 preserves the transport/runtime-metadata contract, and DHM-008 requires real Docker coverage of both process-level and per-session paths.',
+            requirement_ids: [DHM-001, DHM-002, DHM-006, DHM-008],
+            source_refs: [{ id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 }],
+          },
+          {
+            item_index: 3,
+            item_key: source:76e979ed-b096-443e-91af-a958037ed7fc,
+            verdict: covered,
+            explanation: 'DHM-001 replaces the observed no-display runtime with an always-available container-local Xvfb before request handling. DHM-003 defines readiness and fail-closed startup behavior, while DHM-004 makes the display and MCP server one lifecycle without prescribing an implementation-local entrypoint structure.',
+            requirement_ids: [DHM-001, DHM-003, DHM-004],
+            source_refs: [{ id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 }],
+          },
+          {
+            item_index: 4,
+            item_key: source:327a11ee-9474-46fd-bf71-3d28908e5276,
+            verdict: covered,
+            explanation: 'DHM-007 names both published targets, requires equivalent headed-mode, failure, non-root, and isolation outcomes on linux/amd64 and linux/arm64, and rejects silent publication with reduced support on either architecture.',
+            requirement_ids: [DHM-007],
+            source_refs: [{ id: 327a11ee-9474-46fd-bf71-3d28908e5276, revision: 2 }],
+          },
+          {
+            item_index: 5,
+            item_key: source:7cc8baab-a0dc-46d7-a123-33b55e68d247,
+            verdict: covered,
+            explanation: 'DHM-008 directly closes the observed evidence gap: it requires real Docker browser-boundary checks for process-level headed mode and per-session headed mode, retains default-headless control coverage, and keeps fake-upstream tests for deterministic protocol forwarding.',
+            requirement_ids: [DHM-008],
+            source_refs: [{ id: 7cc8baab-a0dc-46d7-a123-33b55e68d247, revision: 2 }],
+          },
+          {
+            item_index: 6,
+            item_key: source:scope.manifest,
+            verdict: covered,
+            explanation: 'The confirmed Standard scope is internally consistent with the prepared specification: core, operations, and security are active; UI, backend, events, data, and cross-surface are explicitly excluded with concrete reasons; and the no-separate-artifact choice is consistent with the manifest planning_artifacts list. Active-profile materiality is evaluated in the dedicated profile items.',
+            requirement_ids: [],
+            source_refs: [{ id: scope.manifest, revision: 2 }],
+          },
+          {
+            item_index: 7,
+            item_key: source:9dc642d9-c960-49a1-9c24-41eaee392a43,
+            verdict: covered,
+            explanation: 'DHM-002 explicitly retains PLAYWRIGHT_MCP_HEADLESS=true as the Docker default. DHM-005 preserves the non-root runtime for both the MCP server and display service and forbids privilege expansion, host display mounts, or a network listener.',
+            requirement_ids: [DHM-002, DHM-005],
+            source_refs: [{ id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 }],
+          },
+          {
+            item_index: 8,
+            item_key: source:3217bbd3-735c-4ef5-a5c0-ee169dcece3d,
+            verdict: covered,
+            explanation: 'DHM-007 converts the architecture assumption into a falsifiable requirement: both linux/amd64 and linux/arm64 must produce equivalent headed behavior, each must have real-browser evidence, and inability on either target must fail build or acceptance. DHM-008 defines the real Docker browser-boundary regression checks while preserving public contracts.',
+            requirement_ids: [DHM-007, DHM-008],
+            source_refs: [{ id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 }],
+          },
+          {
+            item_index: 9,
+            item_key: source:b1e871e5-3702-4695-985b-eb65e6899c63,
+            verdict: covered,
+            explanation: 'DHM-010 carries the requested ready-made supervisor choice into an explicit S6 Overlay v3.2.3.2 contract, including s6-rc readiness, PID 1 and command preservation, signal and exit propagation, unexpected-service-loss handling, archive integrity and architecture mapping, non-root runtime ownership, and stdout safety. DHM-001/003/004/005/007/008 preserve the surrounding display, lifecycle, isolation, platform, and regression obligations.',
+            requirement_ids: [DHM-001, DHM-003, DHM-004, DHM-005, DHM-007, DHM-008, DHM-010],
+            source_refs: [{ id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 }],
+          },
+          {
+            item_index: 10,
+            item_key: source:e314a971-95ec-4aad-bd21-53a34168f348,
+            verdict: covered,
+            explanation: 'The approval follows the proposed S6 Overlay specification update, and DHM-010 contains that complete supervised-runtime contract, including version, readiness, command/argument behavior, signals, exit status, failure discrimination, integrity pins, architecture mapping, non-root ownership, and protocol-safe logging.',
+            requirement_ids: [DHM-010],
+            source_refs: [{ id: e314a971-95ec-4aad-bd21-53a34168f348, revision: 1 }],
+          },
+          {
+            item_index: 11,
+            item_key: source:ebfc6fbe-0948-47fc-8238-c49232499c0b,
+            verdict: covered,
+            explanation: 'DHM-010 faithfully operationalizes the observed S6 Overlay v3.2.3.2 capabilities: /init as PID 1, s6-rc dependency/readiness, retained CMD with signal and exit semantics, non-root operation, and noarch plus architecture-specific archives. Its additional digest pinning and failure discrimination are compatible safeguards for the same selected lifecycle.',
+            requirement_ids: [DHM-010],
+            source_refs: [{ id: ebfc6fbe-0948-47fc-8238-c49232499c0b, revision: 2 }],
+          },
+          {
+            item_index: 12,
+            item_key: requirement:DHM-001,
+            verdict: covered,
+            explanation: "DHM-001 is justified by the user's always-on Xvfb choice, the observed per-session headless override, the current Docker absence of any display service, and the selected supervised S6 lifecycle. Its acceptance paths preserve independent headless choices while making a ready display available before use.",
+            requirement_ids: [DHM-001],
+            source_refs:
+              [
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 3 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 },
+              ],
+          },
+          {
+            item_index: 13,
+            item_key: requirement:DHM-002,
+            verdict: covered,
+            explanation: DHM-002 faithfully preserves the observed PLAYWRIGHT_MCP_HEADLESS default and process/per-session precedence while separating always-available display infrastructure from browser headless choice. The prohibition on new public configuration surface is consistent with the chosen transparent Docker fix and repository compatibility invariants.,
+            requirement_ids: [DHM-002],
+            source_refs:
+              [
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 3 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 },
+              ],
+          },
+          {
+            item_index: 14,
+            item_key: requirement:DHM-003,
+            verdict: covered,
+            explanation: 'DHM-003 is supported by the observed missing display setup and the selected supervised S6 approach. Readiness before normal service, fail-closed startup, non-zero exit, stderr diagnosis, and stdout exclusion are material observable consequences of adding a required display dependency to a stdio MCP container.',
+            requirement_ids: [DHM-003],
+            source_refs:
+              [
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 },
+              ],
+          },
+          {
+            item_index: 15,
+            item_key: requirement:DHM-004,
+            verdict: covered,
+            explanation: 'DHM-004 is a faithful lifecycle contract for the selected two-process supervised container. It preserves arguments, signals, and exact CLI exit status, distinguishes unexpected post-readiness Xvfb loss from normal shutdown, requires stderr-only diagnosis, and closes owned process/resource cleanup paths.',
+            requirement_ids: [DHM-004],
+            source_refs:
+              [
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 },
+              ],
+          },
+          {
+            item_index: 16,
+            item_key: requirement:DHM-005,
+            verdict: covered,
+            explanation: 'DHM-005 preserves the observed non-root runtime and applies the active security profile to the new display boundary: container-local access, no X11 TCP listener, no added capability/privileged/host-display requirement, owner-only temporary resources with cleanup, and no weakening of existing sandbox, mount, authentication, TLS, or redaction behavior.',
+            requirement_ids: [DHM-005],
+            source_refs:
+              [
+                { id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 },
+              ],
+          },
+          {
+            item_index: 17,
+            item_key: requirement:DHM-006,
+            verdict: covered,
+            explanation: "DHM-006 preserves the observed stdio and independently overridden Streamable HTTP paths and the repository's fixed bridge surface. Its no-schema, stdout-reservation, tool-forwarding, session-lifecycle, and runtime-metadata clauses are compatible safeguards for a Docker-only display/supervision change.",
+            requirement_ids: [DHM-006],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+              ],
+          },
+          {
+            item_index: 18,
+            item_key: requirement:DHM-007,
+            verdict: covered,
+            explanation: "DHM-007 is grounded in the repository's two published Linux architectures and the recorded arm64 assumption. It requires the same headed, failure, privilege, and isolation outcome on both targets, real-browser evidence per architecture, and an explicit build/acceptance failure instead of silent reduced support.",
+            requirement_ids: [DHM-007],
+            source_refs:
+              [
+                { id: 327a11ee-9474-46fd-bf71-3d28908e5276, revision: 2 },
+                { id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 },
+              ],
+          },
+          {
+            item_index: 19,
+            item_key: requirement:DHM-008,
+            verdict: covered,
+            explanation: "DHM-008 directly follows the observed test limitation and covers both real headed invocation paths, default-headless control behavior, S6 lifecycle distinctions, and continued fake-upstream protocol tests. Together with DHM-007's per-architecture evidence clause, it also makes the recorded arm64 assumption falsifiable.",
+            requirement_ids: [DHM-008],
+            source_refs:
+              [
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 7cc8baab-a0dc-46d7-a123-33b55e68d247, revision: 2 },
+                { id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 },
+              ],
+          },
+          {
+            item_index: 20,
+            item_key: requirement:DHM-009,
+            verdict: covered,
+            explanation: 'DHM-009 is a justified consequence of the requested observable Docker behavior change and the repository documentation contract. It accurately limits the promise to a container-local virtual display, provides an operator example, explicitly excludes visible-desktop/VNC claims, and requires localized-page and translation-manifest consistency.',
+            requirement_ids: [DHM-009],
+            source_refs: [{ id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 }],
+          },
+          {
+            item_index: 21,
+            item_key: requirement:DHM-010,
+            verdict: covered,
+            explanation: "DHM-010 is directly authorized by the user's S6 preference and follow-up approval and is supported by the recorded S6 v3.2.3.2 capability evidence. It states the selected implementation boundary only where externally material: readiness, PID 1, CMD/argv, signals, exit/failure classification, protocol-safe logs, archive integrity and mapping, and non-root writable-state permissions.",
+            requirement_ids: [DHM-010],
+            source_refs:
+              [
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 2 },
+                { id: e314a971-95ec-4aad-bd21-53a34168f348, revision: 1 },
+                { id: ebfc6fbe-0948-47fc-8238-c49232499c0b, revision: 2 },
+              ],
+          },
+          {
+            item_index: 22,
+            item_key: profile:core,
+            verdict: covered,
+            explanation: 'The active Core profile has no additional material gap for this bounded Docker/CLI change. DHM-001/002 define the display and configuration inputs/defaults/precedence; DHM-003/004/010 define readiness, stderr/stdout, argv, signal, exit, interruption, and cleanup behavior; DHM-006 preserves both transport contracts and public tool/schema surfaces; DHM-007/008 cover supported platforms and discriminating real-boundary checks. No new interface, serialization, migration, or deprecation contract is introduced.',
+            requirement_ids: [DHM-001, DHM-002, DHM-003, DHM-004, DHM-006, DHM-007, DHM-008, DHM-010],
+            source_refs: [],
+          },
+          {
+            item_index: 23,
+            item_key: profile:operations,
+            verdict: covered,
+            explanation: 'The active Operations profile has no further material gap. DHM-003/004/010 define startup readiness, dependency loss, shutdown, signals, exact exit status, cleanup, failure detection, and bounded stderr-only diagnostics; DHM-005 preserves redaction and constrains temporary resources; DHM-007 gives separate build/runtime acceptance on both published architectures; DHM-008 distinguishes lifecycle failures from mere browser-launch success. Availability SLOs, backup/restore, mixed-version coordination, and irreversible-action gates are not material to this stateless single-container change.',
+            requirement_ids: [DHM-003, DHM-004, DHM-005, DHM-007, DHM-008, DHM-010],
+            source_refs: [],
+          },
+          {
+            item_index: 24,
+            item_key: profile:security,
+            verdict: covered,
+            explanation: 'The active Security profile has no additional material gap. DHM-005 identifies the display trust boundary, preserves the non-root actor and existing authentication/TLS/sandbox/redaction protections, denies added capabilities, privileged mode, host display mounts, and X11 TCP exposure, and requires owner-only temporary resources with deletion. DHM-003 fails closed before readiness, DHM-004 handles partial dependency loss, DHM-007 preserves controls on both architectures, and DHM-010 forbids world-writable S6 state and pins downloaded archives by digest.',
+            requirement_ids: [DHM-003, DHM-004, DHM-005, DHM-007, DHM-010],
+            source_refs: [],
+          },
+          {
+            item_index: 25,
+            item_key: context:specification,
+            verdict: covered,
+            explanation: 'The non-requirement specification context is consistent with the numbered contract and does not hide an unsupported promise. The outcome and platform scope map to DHM-001/002/006/007/010; startup detection, failure propagation, cleanup, restart recovery, and rollback statements are supported by DHM-003/004 plus the stateless/no-migration scope; the non-goals match DHM-002/005/006/009/010; and objective acceptance maps to DHM-007/008/009. No context prose contradicts the requirements.',
+            requirement_ids:
+              [DHM-001, DHM-002, DHM-003, DHM-004, DHM-005, DHM-006, DHM-007, DHM-008, DHM-009, DHM-010],
+            source_refs: [],
+          },
+        ]
+      approval_observed: true
+    - id: 5444e611-25dd-48d2-bf22-4523cda23641
+      source_version: c1ab3860964447a4de50068144ce5de0905c12f2282e58e4f5ee6fe21fd33ddb
+      specification_version: 9624ca40590114349de4999ccf1a35af771e602b7726e277a068e60d8b918931
+      status_at_start: Draft
+      created_at: 2026-09-13T13:08:24.569Z
+      completed: true
+      outcome: reviewed
+      results:
+        [
+          {
+            item_index: 0,
+            item_key: source:563b9e5f-3865-45ec-b69d-d3e5d1f6595b,
+            verdict: covered,
+            explanation: 'The request to specify the Docker headed-browser defect is realized by DHM-001 through DHM-009: headed display availability, preserved configuration and protocols, bounded failure/cleanup, non-root isolation, both published architectures, real-browser regression evidence, and operator documentation. The draft explicitly withholds implementation authorization.',
+            requirement_ids: [DHM-001, DHM-002, DHM-003, DHM-004, DHM-005, DHM-006, DHM-007, DHM-009],
+            source_refs: [{ id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 }],
+          },
+          {
+            item_index: 1,
+            item_key: source:f941f0a9-01ed-45b9-bf1a-78b693c6e432,
+            verdict: covered,
+            explanation: 'The complete revised question and keep_started answer replace initial always-on startup with first effective headed demand and retention until container shutdown. DHM-001 preserves headless-only absence, session-specific mode, one shared concurrent startup, and retention after cancellation/close; DHM-003/004 preserve shared failure and cleanup; DHM-008/010/011 test concurrency and phase-aware health.',
+            requirement_ids: [DHM-001, DHM-002, DHM-003, DHM-004, DHM-008, DHM-009, DHM-010, DHM-011],
+            source_refs: [{ id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 }],
+          },
+          {
+            item_index: 2,
+            item_key: source:645787f8-0199-400c-b65a-ffe6cb127fab,
+            verdict: covered,
+            explanation: The preserved environment/session precedence is stated in DHM-002 and applied after effective mode resolution in DHM-001. DHM-006 preserves per-session configuration and DHM-008 exercises a headed override under a headless process default. Current config.ts:254 and server.ts:369 support the referenced precedence.,
+            requirement_ids: [DHM-001, DHM-002, DHM-006, DHM-008],
+            source_refs: [{ id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 }],
+          },
+          {
+            item_index: 3,
+            item_key: source:76e979ed-b096-443e-91af-a958037ed7fc,
+            verdict: covered,
+            explanation: 'The original missing display boundary is addressed by DHM-001 effective-demand startup, DHM-003 real readiness and bounded terminal failure, and DHM-004 shared container cleanup. This historical Docker observation is not treated as a claim that the current draft has already been implemented.',
+            requirement_ids: [DHM-001, DHM-003, DHM-004],
+            source_refs: [{ id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 }],
+          },
+          {
+            item_index: 4,
+            item_key: source:327a11ee-9474-46fd-bf71-3d28908e5276,
+            verdict: covered,
+            explanation: 'The existing published amd64 and arm64 surface is retained by DHM-007, including equivalent failure/security outcomes, real-browser evidence on each architecture, and rejection of reduced support.',
+            requirement_ids: [DHM-007],
+            source_refs: [{ id: 327a11ee-9474-46fd-bf71-3d28908e5276, revision: 2 }],
+          },
+          {
+            item_index: 5,
+            item_key: source:7cc8baab-a0dc-46d7-a123-33b55e68d247,
+            verdict: covered,
+            explanation: The fake-upstream coverage limitation is explicitly remedied by DHM-008 real Docker stdio and per-session HTTP browser checks while retaining deterministic fake-upstream protocol coverage.,
+            requirement_ids: [DHM-008],
+            source_refs: [{ id: 7cc8baab-a0dc-46d7-a123-33b55e68d247, revision: 2 }],
+          },
+          {
+            item_index: 6,
+            item_key: source:scope.manifest,
+            verdict: covered,
+            explanation: 'The confirmed Standard scope and active core/operations/security profiles remain represented, with no extra planning artifact. Its initial always-on rationale is explicitly historical in the specification context; the later user headless amendment and keep_started answer replace that lifecycle detail while preserving platform, protocol and isolation obligations.',
+            requirement_ids:
+              [
+                DHM-001,
+                DHM-002,
+                DHM-003,
+                DHM-004,
+                DHM-005,
+                DHM-006,
+                DHM-007,
+                DHM-008,
+                DHM-009,
+                DHM-010,
+                DHM-011,
+              ],
+            source_refs: [{ id: scope.manifest, revision: 2 }],
+          },
+          {
+            item_index: 7,
+            item_key: source:9dc642d9-c960-49a1-9c24-41eaee392a43,
+            verdict: covered,
+            explanation: 'The non-root runtime and default headless=true observations are preserved by DHM-002 and DHM-005. Acceptance checks the final runtime user and unchanged security policies, rather than requiring a host display or privileges.',
+            requirement_ids: [DHM-002, DHM-005],
+            source_refs: [{ id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 }],
+          },
+          {
+            item_index: 8,
+            item_key: source:3217bbd3-735c-4ef5-a5c0-ee169dcece3d,
+            verdict: covered,
+            explanation: 'The amd64-only feasibility observation remains an assumption with an explicit arm64 verification boundary. DHM-007 and DHM-008 require real-browser evidence on both architectures and prohibit silently lowering support, so the assumption is not promoted to completed acceptance.',
+            requirement_ids: [DHM-007, DHM-008],
+            source_refs: [{ id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 }],
+          },
+          {
+            item_index: 9,
+            item_key: source:b1e871e5-3702-4695-985b-eb65e6899c63,
+            verdict: covered,
+            explanation: "The user's explicit Tini plus narrow Xvfb/MCP module instruction supersedes the older S6 architecture. DHM-010 divides reaping/signals from display readiness and lifecycle, limits the launcher to Docker and two owned children, prohibits a generic supervisor/restarts/public configuration, and retains protocol, privilege, platform and cleanup constraints across DHM-001/003/004/005/006/007/008/009.",
+            requirement_ids:
+              [DHM-001, DHM-003, DHM-004, DHM-005, DHM-006, DHM-007, DHM-008, DHM-009, DHM-010],
+            source_refs: [{ id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 }],
+          },
+          {
+            item_index: 10,
+            item_key: source:e314a971-95ec-4aad-bd21-53a34168f348,
+            verdict: covered,
+            explanation: 'The earlier go-ahead belongs to the S6 specification revision, not current implementation authority. The later explicit Tini replacement is controlling; DHM-010 supplies the replacement architecture and the context explicitly requires fresh review/approval and replanning before implementation. No remaining independent behavioral obligation is lost.',
+            requirement_ids: [DHM-010],
+            source_refs: [{ id: e314a971-95ec-4aad-bd21-53a34168f348, revision: 1 }],
+          },
+          {
+            item_index: 11,
+            item_key: source:ebfc6fbe-0948-47fc-8238-c49232499c0b,
+            verdict: covered,
+            explanation: 'The S6 suitability observation is historical evidence for the superseded architecture, not a continuing requirement to use S6. The later explicit Tini instruction and DHM-010 replace init/lifecycle ownership while preserving shutdown, non-root, signals and two-platform outcomes. The specification explicitly identifies previous S6 evidence as historical.',
+            requirement_ids: [DHM-010],
+            source_refs: [{ id: ebfc6fbe-0948-47fc-8238-c49232499c0b, revision: 2 }],
+          },
+          {
+            item_index: 12,
+            item_key: source:operations.health-depth,
+            verdict: covered,
+            explanation: 'The user selected active MCP responsiveness beyond process/display-only health. DHM-011 requires a fresh reply from the actual CLI event loop, owner-only private stdio probing, identity/freshness checks, no public session or protocol interference, and tests for SIGSTOP and a blocked event loop. DHM-006 preserves streams and DHM-009 documents the precise health limit.',
+            requirement_ids: [DHM-006, DHM-009, DHM-011],
+            source_refs: [{ id: operations.health-depth, revision: 1 }],
+          },
+          {
+            item_index: 13,
+            item_key: source:aafbb781-c8ff-4025-8499-1264b79bfa04,
+            verdict: covered,
+            explanation: 'The headless amendment asks to avoid or stop an unnecessary Xvfb process. DHM-001 forbids startup for headless-only operation and evaluates effective per-session mode. The later explicit keep_started choice narrows the stop alternative after first headed use; DHM-003/004/008/010/011 preserve startup absence, retention, bounded cleanup and correct health phases.',
+            requirement_ids: [DHM-001, DHM-002, DHM-003, DHM-004, DHM-008, DHM-010, DHM-011],
+            source_refs: [{ id: aafbb781-c8ff-4025-8499-1264b79bfa04, revision: 1 }],
+          },
+          {
+            item_index: 14,
+            item_key: source:538acfd4-709d-4f8d-b0f4-4b90b06fc7bb,
+            verdict: covered,
+            explanation: "The isolated amd64 browser result supports absence of a display for headless work, not acceptance of the future launcher. DHM-001/002 preserve effective mode and require headless-only absence; DHM-003 avoids waiting for Xvfb; DHM-008 repeats real-image positive/negative evidence; DHM-011 keeps absent display healthy before first headed admission. The context preserves the probe's platform and entrypoint limitations.",
+            requirement_ids: [DHM-001, DHM-002, DHM-003, DHM-006, DHM-008, DHM-011],
+            source_refs: [{ id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb, revision: 2 }],
+          },
+          {
+            item_index: 15,
+            item_key: source:9e486951-5dbb-468a-84f6-19a66ec12341,
+            verdict: covered,
+            explanation: 'The HTTP concurrency concern is addressed by one shared startup/outcome, admission before display demand, cancellation independence and retention in DHM-001/003, existing browser/page isolation and explicit X11 shared-desktop limits in DHM-006, simultaneous two-headed/one-headless real-browser acceptance and pending capacity assertions in DHM-008, ordered shutdown in DHM-010, and phase-consistent concurrent probes in DHM-011.',
+            requirement_ids: [DHM-001, DHM-003, DHM-006, DHM-008, DHM-010, DHM-011],
+            source_refs: [{ id: 9e486951-5dbb-468a-84f6-19a66ec12341, revision: 1 }],
+          },
+          {
+            item_index: 16,
+            item_key: requirement:DHM-001,
+            verdict: covered,
+            explanation: 'DHM-001 faithfully combines the latest keep_started answer and headless amendment with observed per-session precedence. First headed admission, validation/authentication/capacity ordering, single startup, cancellation-independent retention and application/launcher ownership address the explicit concurrency question without adding idle shutdown or a new public control.',
+            requirement_ids: [DHM-001],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+                { id: aafbb781-c8ff-4025-8499-1264b79bfa04, revision: 1 },
+                { id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb, revision: 2 },
+                { id: 9e486951-5dbb-468a-84f6-19a66ec12341, revision: 1 },
+              ],
+          },
+          {
+            item_index: 17,
+            item_key: requirement:DHM-002,
+            verdict: covered,
+            explanation: DHM-002 preserves the observed Docker default and environment/session configuration contract. Its no-new-public-option invariant is consistent with the bounded Docker bug fix and both later amendments.,
+            requirement_ids: [DHM-002],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 },
+                { id: aafbb781-c8ff-4025-8499-1264b79bfa04, revision: 1 },
+                { id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb, revision: 2 },
+              ],
+          },
+          {
+            item_index: 18,
+            item_key: requirement:DHM-003,
+            verdict: covered,
+            explanation: 'DHM-003 supplies the required readiness/failure boundary for the accepted narrow lifecycle module and concurrent headed admissions: finite readiness, no PID-only success, shared outcome independent of disconnect, terminal failure and protocol-safe diagnostics. It preserves headless independence.',
+            requirement_ids: [DHM-003],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 },
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+                { id: aafbb781-c8ff-4025-8499-1264b79bfa04, revision: 1 },
+                { id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb, revision: 2 },
+                { id: 9e486951-5dbb-468a-84f6-19a66ec12341, revision: 1 },
+              ],
+          },
+          {
+            item_index: 19,
+            item_key: requirement:DHM-004,
+            verdict: covered,
+            explanation: 'DHM-004 expresses the container lifecycle responsibilities implied by Tini plus the owned Xvfb/CLI launcher while retaining the later keep-started policy. It distinguishes never-started display, expected cleanup and unexpected retained-display loss; signals, exit status and race cleanup are testable.',
+            requirement_ids: [DHM-004],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 },
+                { id: 76e979ed-b096-443e-91af-a958037ed7fc, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+                { id: aafbb781-c8ff-4025-8499-1264b79bfa04, revision: 1 },
+              ],
+          },
+          {
+            item_index: 20,
+            item_key: requirement:DHM-005,
+            verdict: covered,
+            explanation: 'DHM-005 preserves the existing non-root security boundary and restricts the added local display rather than expanding privilege or public access. Its TCP, credentials/resource and unchanged security-policy acceptance aligns with the confirmed security profile.',
+            requirement_ids: [DHM-005],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 9dc642d9-c960-49a1-9c24-41eaee392a43, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+              ],
+          },
+          {
+            item_index: 21,
+            item_key: requirement:DHM-006,
+            verdict: covered,
+            explanation: 'DHM-006 preserves the original upstream/transport contracts and session options while responding to the explicit concurrent-HTTP and active-health decisions. It distinguishes Playwright page/context isolation from shared native X11 facilities, preserves bytes/EOF, and leaves public interfaces unchanged.',
+            requirement_ids: [DHM-006],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+                { id: operations.health-depth, revision: 1 },
+                { id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb, revision: 2 },
+                { id: 9e486951-5dbb-468a-84f6-19a66ec12341, revision: 1 },
+              ],
+          },
+          {
+            item_index: 22,
+            item_key: requirement:DHM-007,
+            verdict: covered,
+            explanation: 'DHM-007 retains the observed published platform surface, while the explicit feasibility assumption keeps arm64 acceptance unresolved until tested. The requirement demands equivalent positive and negative runtime/security evidence rather than claiming current proof.',
+            requirement_ids: [DHM-007],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: 327a11ee-9474-46fd-bf71-3d28908e5276, revision: 2 },
+                { id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+              ],
+          },
+          {
+            item_index: 23,
+            item_key: requirement:DHM-008,
+            verdict: covered,
+            explanation: 'DHM-008 derives from the recorded real-browser testing gap, headless probe limitation and explicit concurrency concern. Its simultaneous sessions, absence control, lifecycle fault checks and retained fake-upstream tests verify independent obligations rather than equating sequential launch success with concurrency safety.',
+            requirement_ids: [DHM-008],
+            source_refs:
+              [
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 },
+                { id: 645787f8-0199-400c-b65a-ffe6cb127fab, revision: 2 },
+                { id: 7cc8baab-a0dc-46d7-a123-33b55e68d247, revision: 2 },
+                { id: 3217bbd3-735c-4ef5-a5c0-ee169dcece3d, revision: 2 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+                { id: aafbb781-c8ff-4025-8499-1264b79bfa04, revision: 1 },
+                { id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb, revision: 2 },
+                { id: 9e486951-5dbb-468a-84f6-19a66ec12341, revision: 1 },
+              ],
+          },
+          {
+            item_index: 24,
+            item_key: requirement:DHM-009,
+            verdict: covered,
+            explanation: 'DHM-009 documents the externally observable Docker change, accepted demand/retention policy, Tini responsibilities and active-health selection. It accurately limits virtual display to internal headed execution and retains repository localization obligations without adding a remote desktop product.',
+            requirement_ids: [DHM-009],
+            source_refs:
+              [
+                { id: 563b9e5f-3865-45ec-b69d-d3e5d1f6595b, revision: 5 },
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+                { id: operations.health-depth, revision: 1 },
+              ],
+          },
+          {
+            item_index: 25,
+            item_key: requirement:DHM-010,
+            verdict: covered,
+            explanation: 'DHM-010 implements the explicitly selected Tini/narrow-module architectural constraint at specification level. It assigns reaping to Tini, display/CLI lifecycle to the launcher and sessions to the application; pinned binaries, ordered signals, exit precedence, bounded process-group cleanup, non-root restrictions, external-init compatibility and stdout safety are coherent with those boundaries. Earlier S6 sources are explicitly superseded, not current proof of Tini acceptance.',
+            requirement_ids: [DHM-010],
+            source_refs:
+              [
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 },
+                { id: b1e871e5-3702-4695-985b-eb65e6899c63, revision: 3 },
+                { id: e314a971-95ec-4aad-bd21-53a34168f348, revision: 1 },
+                { id: ebfc6fbe-0948-47fc-8238-c49232499c0b, revision: 2 },
+                { id: aafbb781-c8ff-4025-8499-1264b79bfa04, revision: 1 },
+                { id: 9e486951-5dbb-468a-84f6-19a66ec12341, revision: 1 },
+              ],
+          },
+          {
+            item_index: 26,
+            item_key: requirement:DHM-011,
+            verdict: covered,
+            explanation: 'DHM-011 faithfully implements the active MCP responsiveness selection and later lazy/retained-display policy. It distinguishes fresh CLI-event-loop and display responses from PID/cached evidence, never-started/starting/retained phases, stale identities, capacity readiness and health, channel failure and non-Docker inactivity. It defines unhealthy detection and operator-owned recovery without unrequested restart behavior.',
+            requirement_ids: [DHM-011],
+            source_refs:
+              [
+                { id: f941f0a9-01ed-45b9-bf1a-78b693c6e432, revision: 6 },
+                { id: operations.health-depth, revision: 1 },
+                { id: aafbb781-c8ff-4025-8499-1264b79bfa04, revision: 1 },
+                { id: 538acfd4-709d-4f8d-b0f4-4b90b06fc7bb, revision: 2 },
+                { id: 9e486951-5dbb-468a-84f6-19a66ec12341, revision: 1 },
+              ],
+          },
+          {
+            item_index: 27,
+            item_key: profile:core,
+            verdict: covered,
+            explanation: 'The core profile is covered for this bounded Docker CLI change: effective configuration/defaults/validation and per-session precedence; exact argument, byte-stream, EOF, stderr and exit behavior; cancellation/concurrency; public-interface preservation; non-Docker compatibility; both target architectures; and explicit real-image acceptance. Existing interfaces are referenced and available in config.ts and http/server.ts. No new schema or artifact is needed.',
+            requirement_ids:
+              [
+                DHM-001,
+                DHM-002,
+                DHM-003,
+                DHM-004,
+                DHM-005,
+                DHM-006,
+                DHM-007,
+                DHM-008,
+                DHM-009,
+                DHM-010,
+                DHM-011,
+              ],
+            source_refs: [],
+          },
+          {
+            item_index: 28,
+            item_key: profile:operations,
+            verdict: covered,
+            explanation: 'The operations profile is covered by demand/readiness, bounded startup and shutdown, retained-display loss, ordered cleanup, failure diagnostics, active health, concurrent transitions, image/platform rollout evidence and operator restart/rollback guidance. Numeric internal deadlines and Docker probe settings must be finite and documented with shutdown within the default stop grace; selecting exact values is an implementation detail, not a missing user behavior. No state migration or backup workflow is introduced.',
+            requirement_ids:
+              [
+                DHM-001,
+                DHM-002,
+                DHM-003,
+                DHM-004,
+                DHM-005,
+                DHM-006,
+                DHM-007,
+                DHM-008,
+                DHM-009,
+                DHM-010,
+                DHM-011,
+              ],
+            source_refs: [],
+          },
+          {
+            item_index: 29,
+            item_key: profile:security,
+            verdict: covered,
+            explanation: 'The security profile is covered for the added display and private lifecycle/health boundary: non-root node, no extra capabilities or host display, no X11 TCP exposure, owner-only channels/resources, authentication/admission before demand, fresh identities, redacted diagnostics, cleanup and restricted-container acceptance on both platforms. Existing HTTP/TLS/sandbox/session policies remain intact; shared native X11 is explicitly not a hostile-tenant isolation boundary.',
+            requirement_ids:
+              [
+                DHM-001,
+                DHM-002,
+                DHM-003,
+                DHM-004,
+                DHM-005,
+                DHM-006,
+                DHM-007,
+                DHM-008,
+                DHM-009,
+                DHM-010,
+                DHM-011,
+              ],
+            source_refs: [],
+          },
+          {
+            item_index: 30,
+            item_key: context:specification,
+            verdict: covered,
+            explanation: 'The non-requirement prose consistently states demand-started/retained Xvfb, Tini plus a narrow Docker-only launcher, unchanged interfaces and platforms, terminal recovery, and explicit non-goals. It explains the historical always-on scope rationale and S6 revisions without treating them as current instructions. Prior probes and Docker E2E failure are not represented as final acceptance; Draft status and review/approval/replanning boundaries remain explicit.',
+            requirement_ids:
+              [
+                DHM-001,
+                DHM-002,
+                DHM-003,
+                DHM-004,
+                DHM-005,
+                DHM-006,
+                DHM-007,
+                DHM-008,
+                DHM-009,
+                DHM-010,
+                DHM-011,
+              ],
+            source_refs: [],
+          },
+        ]
+      input_snapshot: d3f7e1c33b49a6936bd561e6ae7875bedd0e67278c725718606fae75f10385d4
+      approval_observed: true

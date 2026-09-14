@@ -198,9 +198,10 @@ without changing other sessions. `humanPreset` can select `default` or `careful`
 for that session, but does not enable humanized behavior by itself. Existing
 sessions keep the behavior captured during `initialize`.
 
-`headless` can enable or disable headless browser mode for that session. Setting
-`headless` to `false` requires a usable display environment, especially in
-Docker or Linux server deployments.
+`headless` can enable or disable headless browser mode for that session. In the
+Docker image, setting `headless` to `false` starts a container-private virtual
+display on demand. Outside the image, a headed session still requires a usable
+display environment.
 
 `userDataDir` enables a persistent Chromium profile for that session and
 overrides `PLAYWRIGHT_MCP_USER_DATA_DIR`. The bridge resolves the directory to

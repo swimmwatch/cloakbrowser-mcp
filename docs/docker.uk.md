@@ -13,14 +13,18 @@ tags:
 ## Запустити
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
 
 Артефакти записуються в `/data` у контейнері. Змонтуйте цей шлях, щоб зберігати знімки екрана, знімки стану, завантажені файли та вихідні дані мережі.
 
-`--init` рекомендується, оскільки автоматизація роботи браузера може створювати короткочасні дочірні процеси. Процес ініціалізації Docker коректно завершує роботу цих дочірніх процесів.
+Образ уже запускає Tini як PID 1 і subreaper, тому звичайним командам не потрібен додатковий init-процес Docker.
+
+## Headed-сеанси, health check і обмежений runtime
+
+За headless: false контейнер за потреби запускає приватний Xvfb і використовує його до завершення контейнера. Це не видимий робочий стіл і не сервіс VNC, noVNC, RDP, host X11 або захоплення екрана. Контексти, сторінки, профілі й артефакти Playwright ізольовані, але нативні X11 focus, clipboard і захоплення екрана не є межею ізоляції орендарів. Docker health check через приватний Unix socket перевіряє event loop MCP CLI і, якщо Xvfb запущено, його доступність; це не запит MCP stdio і не заміна /healthz або /readyz. Для read-only root filesystem змонтуйте /data і надайте writable tmpfs для /tmp і /tmp/.X11-unix, якщо можливі headed-сеанси.
 
 Ті самі теги випусків публікуються на Docker Hub як `swimmwatch/cloakbrowser-mcp`, а на GHCR — як `ghcr.io/swimmwatch/cloakbrowser-mcp`.
 
@@ -31,7 +35,7 @@ Docker не вмикає постійний профіль браузера за
 сховище, кеш або стан розширень зберігалися після перезапусків контейнера:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
@@ -58,7 +62,7 @@ docker run --rm -it \
   swimmwatch/cloakbrowser-mcp:latest \
   /opt/cloakbrowser-mcp/node_modules/cloakbrowser/dist/cli.js login
 
-docker run --rm --init -i \
+docker run --rm -i \
   -v cloakbrowser-cache:/home/node/.cloakbrowser \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
@@ -77,7 +81,7 @@ docker run --rm --init -i \
 Монтування розширення може бути доступне лише для читання:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
   -v "$PWD/artifacts:/data" \
@@ -94,7 +98,7 @@ docker run --rm --init -i \
 Для локального використання Streamable HTTP опублікуйте порт контейнера на петлі зворотного зв’язку:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -106,7 +110,7 @@ curl http://127.0.0.1:3000/readyz
 Щоб налаштувати прямий доступ через HTTPS з контейнера, підключіть файли сертифікатів і виберіть HTTPS:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/certs:/certs:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -125,7 +129,7 @@ Docker використовує ті самі змінні середовища 
 локалі CloakBrowser відповідали налаштованому місцезнаходженню проксі:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
   -e CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
   -v "$PWD/artifacts:/data" \
@@ -178,7 +182,6 @@ docker run --rm --init -i \
       "args": [
         "run",
         "--rm",
-        "--init",
         "-i",
         "-v",
         "/tmp/cloakbrowser-artifacts:/data",

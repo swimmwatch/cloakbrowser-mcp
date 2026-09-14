@@ -264,6 +264,16 @@ describe('packaged CLI end-to-end', () => {
     const report = JSON.parse(result.stdout) as {
       status: string;
       project?: { packageName?: string; mcpName?: string };
+      upstream?: {
+        version?: string;
+        resolvedVersion?: string | null;
+        playwright?: { version?: string | null; packagePath?: string | null };
+        playwrightCore?: {
+          version?: string | null;
+          packagePath?: string | null;
+          bundlePath?: string | null;
+        };
+      };
       checks?: Array<{ name: string; status: string }>;
     };
     expect(['ok', 'warning', 'error']).toContain(report.status);
@@ -271,9 +281,23 @@ describe('packaged CLI end-to-end', () => {
       packageName: 'cloakbrowser-mcp',
       mcpName: 'io.github.swimmwatch/cloakbrowser-mcp',
     });
+    expect(report.upstream).toMatchObject({
+      version: '0.0.80',
+      resolvedVersion: null,
+      playwright: {
+        version: '1.63.0-alpha-2026-08-31',
+        packagePath: expect.any(String),
+      },
+      playwrightCore: {
+        version: null,
+        packagePath: null,
+        bundlePath: expect.stringContaining('coreBundle'),
+      },
+    });
     expect(report.checks?.map((check) => check.name)).toEqual([
       'node',
       'playwright-mcp-cli',
+      'playwright-runtime',
       'cloakbrowser-binary',
     ]);
   });

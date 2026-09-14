@@ -53,7 +53,8 @@ Screenshots, snapshots, downloads, network logs, console logs और traces म�
 
 ## Docker
 
-जब isolation और reproducible browser dependencies चाहिए हों, Docker recommended है। केवल आवश्यक artifact directory mount करें और `--init` उपयोग करें ताकि browser child processes सही तरह cleanup हों।
+अलगाव और पुनरुत्पाद्य ब्राउज़र निर्भरताओं के लिए Docker की अनुशंसा की जाती है। केवल आवश्यक artifacts directory को mount करें; इमेज में पहले से Tini शामिल है, जो ब्राउज़र के child processes को सही तरीके से reaps करता है। कठोर, केवल-पढ़ने वाले कंटेनर में `/data` को mounted रखें और headed sessions संभव होने पर `/tmp` तथा `/tmp/.X11-unix` के लिए लिखने योग्य अस्थायी mounts प्रदान करें।
+
 
 Docker से Streamable HTTP publish करते समय `-p 127.0.0.1:3000:3000` prefer करें। Public interface पर direct publish करने से कोई भी reachable client browser automation capability पा सकता है, जब तक आप authentication और network controls न जोड़ें।
 

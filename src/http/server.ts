@@ -1,6 +1,7 @@
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { type IncomingMessage, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
+import process from 'node:process';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { type Implementation } from '@modelcontextprotocol/sdk/types.js';
 import {
@@ -42,9 +43,12 @@ import {
 } from '#src/http/requests';
 import { endResponse, writeJsonResponse, writeJsonRpcError } from '#src/http/responses';
 import {
+  type BridgeRuntime,
   BridgeRuntimeConfigurationError,
+  prepareBridgeRuntime,
   type PrepareBridgeRuntimeOptions,
   type ReleaseChannel,
+  resolveEffectiveHeadless,
 } from '#src/bridge/config';
 
 const allowedMethods = 'GET, POST, DELETE';
@@ -63,6 +67,7 @@ export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions 
     | 'proxy'
     | 'userDataDir'
   >;
+  ensureDockerDisplay?: () => Promise<void>;
   sessionStore?: SessionStore;
   logger?: BridgeLogger;
 }
@@ -286,12 +291,20 @@ class StreamableHttpBridgeController {
     const sessionId = randomUUID();
     const record = this.#createSessionRecord(sessionId, Date.now());
     const transport = this.#createSessionTransport(sessionId, record);
+    const runtimeOptions = this.#createRuntimeOptionsForSession(sessionRuntimeOptions);
+    let runtime: BridgeRuntime | undefined;
 
     try {
+      runtime = await prepareBridgeRuntime(runtimeOptions);
+      if (!resolveEffectiveHeadless(runtimeOptions)) {
+        await this.#options.ensureDockerDisplay?.();
+      }
+      if (process.env.DISPLAY !== undefined) runtime.childEnv.DISPLAY = process.env.DISPLAY;
       const bridge = await createBridgeServer({
         serverInfo: this.#options.serverInfo,
-        runtimeOptions: this.#createRuntimeOptionsForSession(sessionRuntimeOptions),
+        runtime,
       });
+      runtime = undefined;
       this.#sessions.set(sessionId, { id: sessionId, bridge, transport });
       await bridge.start(transport);
       await transport.handleRequest(req, res, parsedBody);
@@ -300,6 +313,7 @@ class StreamableHttpBridgeController {
       if (this.#handleInitializeError(res, error)) return;
       throw error;
     } finally {
+      runtime?.dispose();
       this.#pendingSessionInitializations -= 1;
     }
   }

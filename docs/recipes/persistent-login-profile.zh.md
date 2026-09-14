@@ -24,7 +24,7 @@ PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
 ## Docker
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest

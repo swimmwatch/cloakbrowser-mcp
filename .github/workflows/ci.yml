@@ -25,9 +25,12 @@ jobs:
     timeout-minutes: 5
     outputs:
       node_versions: ${{ steps.versions.outputs.node_versions }}
+      platforms: ${{ steps.versions.outputs.platforms }}
     steps:
       - id: versions
-        run: echo "node_versions=$NODE_CHECK_VERSIONS" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "node_versions=$NODE_CHECK_VERSIONS" >> "$GITHUB_OUTPUT"
+          echo 'platforms=["ubuntu-latest","ubuntu-24.04-arm","macos-latest","macos-15-intel","windows-latest"]' >> "$GITHUB_OUTPUT"
 
   npm-audit:
     runs-on: ubuntu-latest
@@ -51,7 +54,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel, windows-latest]
+        os: ${{ fromJSON(needs.node-versions.outputs.platforms) }}
         node-version: ${{ fromJSON(needs.node-versions.outputs.node_versions) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -64,6 +67,42 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run check
       - run: npm run package:verify
+
+  e2e:
+    name: e2e (${{ matrix.os }}, node 26)
+    needs: node-versions
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(needs.node-versions.outputs.platforms) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 26
+          package-manager-cache: false
+      - name: Configure clean caches
+        shell: node {0}
+        run: |
+          const { appendFileSync, mkdtempSync } = require('node:fs');
+          const { join } = require('node:path');
+          const environmentFile = process.env.GITHUB_ENV;
+          const runnerTemp = process.env.RUNNER_TEMP;
+          if (!environmentFile) throw new Error('GITHUB_ENV is required to configure Playwright caches.');
+          if (!runnerTemp) throw new Error('RUNNER_TEMP is required to configure Playwright caches.');
+          const cacheRoot = mkdtempSync(join(runnerTemp, 'cloakbrowser-playwright-console-'));
+          appendFileSync(
+            environmentFile,
+            `NPM_CONFIG_CACHE=${join(cacheRoot, 'npm-cache')}\nPLAYWRIGHT_BROWSERS_PATH=${join(cacheRoot, 'ms-playwright')}\n`,
+          );
+      - name: Use npm ${{ env.NPM_VERSION }}
+        run: npm install --global npm@${{ env.NPM_VERSION }}
+      - run: npm ci --ignore-scripts
+      - name: Install Playwright Chromium
+        run: node node_modules/playwright/cli.js install chromium
+      - run: npm run test:e2e
 
   coverage:
     runs-on: ubuntu-latest
@@ -127,7 +166,7 @@ jobs:
 
   docker:
     name: docker (${{ matrix.platform }})
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     needs: quality
     timeout-minutes: 60
     permissions:
@@ -140,10 +179,12 @@ jobs:
           - platform: linux/amd64
             platform_slug: linux-amd64
             image_tag: cloakbrowser-mcp:ci-linux-amd64
+            runner: ubuntu-latest
             compare: true
           - platform: linux/arm64
             platform_slug: linux-arm64
             image_tag: cloakbrowser-mcp:ci-linux-arm64
+            runner: ubuntu-24.04-arm
             compare: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -186,10 +227,14 @@ jobs:
             RELEASE_VERSION=${{ steps.package.outputs.version }}
             RELEASE_VERSION_TAG=${{ steps.package.outputs.version_tag }}
             VCS_REF=${{ github.sha }}
-          cache-from: type=gha,scope=${{ env.DOCKER_CACHE_SCOPE }}
-          cache-to: type=gha,mode=max,scope=${{ env.DOCKER_CACHE_SCOPE }},ignore-error=true
+          cache-from: type=gha,scope=${{ env.DOCKER_CACHE_SCOPE }}-${{ matrix.platform_slug }}
+          cache-to: type=gha,mode=max,scope=${{ env.DOCKER_CACHE_SCOPE }}-${{ matrix.platform_slug }},ignore-error=true
       - name: Smoke (--help)
-        run: docker run --rm --init "${{ matrix.image_tag }}" --help
+        run: docker run --rm "${{ matrix.image_tag }}" --help
+      - name: Docker E2E acceptance
+        run: npm run test:e2e:docker:run
+        env:
+          CLOAKBROWSER_MCP_DOCKER_IMAGE: ${{ matrix.image_tag }}
       - name: Compare with upstream Playwright MCP
         if: matrix.compare
         run: npm run bridge:compare -- "${{ matrix.image_tag }}" --report bridge-parity-report.json
@@ -223,3 +268,33 @@ jobs:
         uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
         with:
           sarif_file: trivy-results.sarif
+
+  required-ci:
+    name: required-ci
+    if: ${{ always() }}
+    needs:
+      - npm-audit
+      - quality
+      - e2e
+      - coverage
+      - docs
+      - docker
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify required jobs succeeded
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          node <<'EOF'
+          const requiredJobs = ['npm-audit', 'quality', 'e2e', 'coverage', 'docs', 'docker'];
+          const needs = JSON.parse(process.env.NEEDS_JSON);
+          const failedJobs = requiredJobs
+            .filter((jobName) => needs[jobName]?.result !== 'success')
+            .map((jobName) => `${jobName}: ${needs[jobName]?.result ?? 'missing'}`);
+
+          if (failedJobs.length > 0) {
+            console.error(`Required CI jobs did not succeed: ${failedJobs.join(', ')}`);
+            process.exit(1);
+          }
+          EOF

@@ -32,7 +32,7 @@ npx -y {{ project.npm_pin }}
 
 Для роботи цього пакета npm потрібна Node.js 22.13 або новіша версія в гілці 22.x чи Node.js 24 або новіша версія. CloakBrowser завантажує свій бінарний файл Chromium під час першого запуску, якщо він ще не збережений у кеші.
 
-Використовуйте `doctor` для перевірки локального середовища виконання Node.js, метаданих пакета, правильності визначення CLI Playwright MCP з вихідного коду та метаданих бінарного файлу CloakBrowser перед підключенням клієнта. Ця команда не запускає міст і не завантажує браузер.
+Перед підключенням клієнта використовуйте `doctor` для перевірки локального середовища виконання Node.js, метаданих пакета, фактично використовуваного upstream CLI Playwright MCP, визначених версій і шляхів пакетів `@playwright/mcp`, `playwright` і `playwright-core`, фактичного шляху до core bundle та метаданих бінарного файла CloakBrowser. Ця команда не запускає міст і не завантажує браузер.
 
 Транспортним засобом за замовчуванням є stdio. Використовуйте `--transport streamable-http`, якщо ваш клієнт MCP підключається до кінцевої точки HTTP замість запуску процесу stdio. За замовчуванням кінцевою точкою HTTP є `http://127.0.0.1:3000/mcp`, з фіксованими зондами `GET /healthz` та `GET /readyz` на тому самому хості та порту. Використовуйте `--http-protocol https` разом із `--https-cert` та `--https-key` або `--https-pfx`, якщо міст повинен безпосередньо завершувати TLS.
 Повний перелік прапорів та відповідних змінних середовища наведено у згенерованому [Довіднику CLI](generated/cli.md).
@@ -41,7 +41,7 @@ npx -y {{ project.npm_pin }}
 
 ```bash
 docker pull swimmwatch/cloakbrowser-mcp:latest
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
@@ -52,7 +52,7 @@ Docker є найбільш відтворюваним середовищем в�
 Для локального HTTP-сервера Streamable з використанням Docker опублікуйте порт на петльовому інтерфейсі та прив’яжіть сервер усередині контейнера:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -64,7 +64,7 @@ curl http://127.0.0.1:3000/readyz
 Для прямого підключення через HTTPS із Docker підключіть файли сертифікатів і виберіть HTTPS:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/certs:/certs:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -78,10 +78,12 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
 
 ```bash
 docker pull {{ project.docker_image }}
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   {{ project.docker_image }}
 ```
+
+Використовуйте Docker для відтворюваного середовища виконання. Залиште `-i`, щоб stdio залишався підключеним; образ уже містить Tini для належного очищення дочірніх процесів браузера. Для клієнтів Streamable HTTP запустіть сервер окремо та налаштуйте URL клієнта як `http://127.0.0.1:3000/mcp` або `https://127.0.0.1:3000/mcp`. Якщо задано `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` або `--http-auth-token`, передавайте той самий токен Bearer у `/mcp`, `/healthz` та `/readyz`.
 
 ## Налаштування клієнта MCP
 
@@ -91,7 +93,6 @@ docker run --rm --init -i \
 npx -y cloakbrowser-mcp@latest
 ```
 
-Використовуйте Docker, якщо вам потрібне середовище виконання, яке можна відтворити. Залиште `-i`, щоб stdio залишалося підключеним, і додайте `--init`, щоб дочірні процеси браузера правильно завершувалися.
 
 Для HTTP-клієнтів Streamable запустіть сервер окремо та налаштуйте URL-адресу клієнта у вигляді `http://127.0.0.1:3000/mcp` або `https://127.0.0.1:3000/mcp`. Якщо встановлено `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` або `--http-auth-token`, надішліть той самий токен Bearer на `/mcp`, `/healthz` та `/readyz`.
 
@@ -264,7 +265,6 @@ npx -y cloakbrowser-mcp@latest
           "args": [
             "run",
             "--rm",
-            "--init",
             "-i",
             "-v",
             "/tmp/cloakbrowser-artifacts:/data",

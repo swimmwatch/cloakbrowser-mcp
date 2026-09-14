@@ -194,9 +194,7 @@ ohne andere Sitzungen zu beeinflussen. `humanPreset` kann für diese Sitzung zwi
 für diese Sitzung auswählen, aktiviert das humanisierte Verhalten jedoch nicht von selbst. Bestehende
 Sitzungen behalten das während `initialize` erfasste Verhalten bei.
 
-`headless` kann den Headless-Browser-Modus für diese Sitzung aktivieren oder deaktivieren. Die Einstellung
-`headless` auf `false` erfordert eine funktionsfähige Anzeigeumgebung, insbesondere bei
-Docker- oder Linux-Server-Bereitstellungen.
+In Docker startet `headless: false` bei Bedarf eine private virtuelle Anzeige. Außerhalb des Images benötigt eine Sitzung mit grafischer Oberfläche weiterhin eine nutzbare Anzeigeumgebung.
 
 `userDataDir` aktiviert für diese Sitzung ein persistentes Chromium-Profil und
 überschreibt `PLAYWRIGHT_MCP_USER_DATA_DIR`. Die Bridge löst das Verzeichnis als

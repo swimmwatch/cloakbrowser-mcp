@@ -11,3 +11,5 @@ tools/video/**/node_modules
 *.png
 docs/overrides/**/*.html
 package-lock.json
+# MCP-owned immutable review inputs; preserve their content-addressed bytes.
+docs/specs/**/.workflow/review-inputs/*.json

@@ -23,7 +23,7 @@ Verwenden Sie ein JSON array für mehrere paths, Kommas oder Windows drive-lette
 ## Docker
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
   -v "$PWD/artifacts:/data" \

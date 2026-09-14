@@ -25,7 +25,7 @@ Percent-encode спеціальні символи в proxy credentials.
 ## Docker
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
   -e CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
   -v "$PWD/artifacts:/data" \
