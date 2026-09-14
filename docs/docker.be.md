@@ -13,14 +13,18 @@ tags:
 ## Бягчы
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
 
 Артыфакты запісваюцца ў `/data` у кантэйнеры. Маўнтніце гэты шлях, каб захоўваць скрыншоты, снэпшоты, спампоўкі і сеткавы вывад.
 
-`--init` рэкамендуецца, таму што аўтаматызацыя браўзера можа ствараць кароткачасовыя даччыныя працэсы. Працэс init у Docker акуратна прыбірае гэтыя даччыныя працэсы.
+Вобраз ужо запускае Tini як PID 1 і subreaper, таму звычайным камандам не патрэбны дадатковы init-працэс Docker.
+
+## Headed-сеансы, health check і абмежаваны runtime
+
+Пры headless: false кантэйнер па патрабаванні запускае прыватны Xvfb і выкарыстоўвае яго да завяршэння кантэйнера. Гэта не бачны працоўны стол і не сэрвіс VNC, noVNC, RDP, host X11 або захопу экрана. Кантэксты, старонкі, профілі і артэфакты Playwright ізаляваныя, але натыўныя X11 focus, clipboard і захоп экрана не з’яўляюцца мяжой ізаляцыі арандатараў. Docker health check праз прыватны Unix socket правярае event loop MCP CLI і, калі Xvfb запушчаны, яго даступнасць; гэта не запыт MCP stdio і не замена /healthz або /readyz. Для read-only root filesystem зманціруйце /data і дайце writable tmpfs для /tmp і /tmp/.X11-unix, калі магчымыя headed-сеансы.
 
 Тыя ж тэгі рэлізу публікуюцца на Docker Hub як `swimmwatch/cloakbrowser-mcp` і на GHCR як `ghcr.io/swimmwatch/cloakbrowser-mcp`.
 
@@ -31,7 +35,7 @@ Docker не ўключае пастаянны профіль браўзера п
 сховішча, кэш або стан пашырэнняў захоўваліся пасля перазапускаў кантэйнера:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
@@ -58,7 +62,7 @@ docker run --rm -it \
   swimmwatch/cloakbrowser-mcp:latest \
   /opt/cloakbrowser-mcp/node_modules/cloakbrowser/dist/cli.js login
 
-docker run --rm --init -i \
+docker run --rm -i \
   -v cloakbrowser-cache:/home/node/.cloakbrowser \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
@@ -77,7 +81,7 @@ docker run --rm --init -i \
 Мантаванне пашырэння можа быць толькі для чытання:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
   -v "$PWD/artifacts:/data" \
@@ -94,7 +98,7 @@ docker run --rm --init -i \
 Для лакальнага выкарыстання Streamable HTTP апублікуйце порт кантэйнера на лупбэку:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -106,7 +110,7 @@ curl http://127.0.0.1:3000/readyz
 Для прамога HTTPS з кантэйнера прывяжыце вашыя файлы сертыфікатаў і выберыце HTTPS:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/certs:/certs:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -123,7 +127,7 @@ Streamable HTTP адкрывае фіксаваныя пробы `GET /healthz` 
 Docker выкарыстоўвае тыя ж зменныя асяроддзя проксі і GeoIP, што і npm. Уключыце супадзенне проксі GeoIP, калі для рэгіянальных патрэб QA CloakBrowser патрабуецца, каб часовыя паясы, мова і адбіткі лакалі адпавядалі месцазнаходжанню наладжанага проксі:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
   -e CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
   -v "$PWD/artifacts:/data" \
@@ -174,7 +178,6 @@ Playwright.
       "args": [
         "run",
         "--rm",
-        "--init",
         "-i",
         "-v",
         "/tmp/cloakbrowser-artifacts:/data",

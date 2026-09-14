@@ -41,7 +41,7 @@ Consultez la [Référence CLI](generated/cli.md) générée pour obtenir la list
 
 ```bash
 docker pull swimmwatch/cloakbrowser-mcp:latest
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
@@ -52,7 +52,7 @@ Ces mêmes balises sont également publiées sous `ghcr.io/swimmwatch/cloakbrows
 Pour une diffusion HTTP locale via Streamable avec Docker, publiez le port sur la boucle de retour et liez le serveur à l'intérieur du conteneur :
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -64,7 +64,7 @@ curl http://127.0.0.1:3000/readyz
 Pour une connexion HTTPS directe depuis Docker, montez vos fichiers de certificats et sélectionnez HTTPS :
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/certs:/certs:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -78,10 +78,12 @@ Le mode HTTP « Streamable » affiche l'URL du point de terminaison MCP en écou
 
 ```bash
 docker pull {{ project.docker_image }}
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   {{ project.docker_image }}
 ```
+
+Utilisez Docker pour un environnement d'exécution reproductible. Conservez `-i` pour que stdio reste connecté ; l'image inclut déjà Tini, qui récupère correctement les processus enfants du navigateur. Pour les clients Streamable HTTP, démarrez le serveur séparément et configurez l'URL du client comme `http://127.0.0.1:3000/mcp` ou `https://127.0.0.1:3000/mcp`. Si `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` ou `--http-auth-token` est défini, envoyez le même jeton Bearer à `/mcp`, `/healthz` et `/readyz`.
 
 ## Configuration du client MCP
 
@@ -91,7 +93,6 @@ La plupart des clients MCP locaux fonctionnent mieux avec stdio et npm :
 npx -y cloakbrowser-mcp@latest
 ```
 
-Utilisez Docker lorsque vous souhaitez un environnement d'exécution reproductible. Conservez `-i` afin que stdio reste connecté, et ajoutez `--init` pour que les processus enfants du navigateur soient correctement récupérés.
 
 Pour les clients HTTP Streamable, lancez le serveur séparément et configurez l'URL du client comme suit : `http://127.0.0.1:3000/mcp` ou `https://127.0.0.1:3000/mcp`. Si `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` ou `--http-auth-token` est défini, envoyez le même jeton Bearer à `/mcp`, `/healthz` et `/readyz`.
 
@@ -264,7 +265,6 @@ Pour les clients HTTP Streamable, lancez le serveur séparément et configurez l
           "args": [
             "run",
             "--rm",
-            "--init",
             "-i",
             "-v",
             "/tmp/cloakbrowser-artifacts:/data",

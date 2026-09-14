@@ -39,7 +39,7 @@ Use this only in a short-lived CI job. For production-like smoke tests, run the 
 ## Docker Package Check
 
 ```bash
-docker run --rm --init \
+docker run --rm \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   doctor --json

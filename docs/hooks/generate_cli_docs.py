@@ -16,7 +16,7 @@ def render_llms_txt(root):
     template_path = root / "docs" / "hooks" / "templates" / "llms.txt.jinja"
     target_path = root / "docs" / "llms.txt"
     environment = Environment(
-        autoescape=False,
+        autoescape=True,
         keep_trailing_newline=True,
         undefined=StrictUndefined,
     )

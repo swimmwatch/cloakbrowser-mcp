@@ -192,9 +192,7 @@ sin afectar a las demás sesiones. `humanPreset` puede seleccionar `default` o `
 para esa sesión, pero no activa por sí mismo el comportamiento humanizado. Las sesiones
 existentes conservan el comportamiento capturado durante `initialize`.
 
-`headless` puede activar o desactivar el modo de navegador sin interfaz gráfica para esa sesión. Configurar
-`headless` en `false` requiere un entorno de visualización operativo, especialmente en
-implementaciones en Docker o en servidores Linux.
+En Docker, `headless: false` inicia una pantalla virtual privada bajo demanda. Fuera de la imagen, una sesión con interfaz gráfica todavía requiere un entorno de pantalla utilizable.
 
 `userDataDir` habilita un perfil persistente de Chromium para esa sesión y
 sobrescribe `PLAYWRIGHT_MCP_USER_DATA_DIR`. El puente resuelve el directorio

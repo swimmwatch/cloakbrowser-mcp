@@ -52,7 +52,7 @@ No se debe volver a introducir la implementación del adaptador nativo y el regi
 ```bash
 npm run docker:build
 npm run docker:smoke
-docker run --rm --init -i -v "$PWD/artifacts:/data" cloakbrowser-mcp:dev
+docker run --rm -i -v "$PWD/artifacts:/data" cloakbrowser-mcp:dev
 ```
 
 ## Documentación

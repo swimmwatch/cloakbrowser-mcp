@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -22,8 +22,16 @@ export function cleanupDockerE2e(): void {
   }
 }
 
+export function trackDockerContainer(containerName: string): void {
+  containerNames.push(containerName);
+}
+
 export function dockerExec(containerName: string, args: string[]): DockerCommandResult {
   return runDocker(['exec', containerName, ...args]);
+}
+
+export async function dockerExecAsync(containerName: string, args: string[]): Promise<DockerCommandResult> {
+  return await runDockerAsync(['exec', containerName, ...args]);
 }
 
 export function dockerExecAllowFailure(containerName: string, args: string[]): DockerCommandResult {
@@ -148,8 +156,8 @@ export function startHttpDockerContainer(
     );
   }
 
-  if (options.headless === false) {
-    args.push('--env', 'PLAYWRIGHT_MCP_HEADLESS=false');
+  if (options.headless !== undefined) {
+    args.push('--env', `PLAYWRIGHT_MCP_HEADLESS=${String(options.headless)}`);
   }
 
   if (options.authToken !== undefined) {
@@ -255,4 +263,39 @@ function runDocker(args: string[], options: { allowFailure?: boolean } = {}): Do
     );
   }
   return { status: result.status, stderr: result.stderr, stdout: result.stdout };
+}
+
+async function runDockerAsync(args: string[]): Promise<DockerCommandResult> {
+  return await new Promise<DockerCommandResult>((resolve, reject) => {
+    const child = spawn('docker', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    let stderr = '';
+    let stdout = '';
+
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stdout.on('data', (chunk: string) => {
+      stdout += chunk;
+    });
+    child.stderr.on('data', (chunk: string) => {
+      stderr += chunk;
+    });
+    child.once('error', reject);
+    child.once('close', (status) => {
+      if (status === 0) {
+        resolve({ status, stderr, stdout });
+        return;
+      }
+
+      reject(
+        new Error(
+          [
+            `Docker command failed: docker ${args.join(' ')}`,
+            `status: ${String(status)}`,
+            `stdout:\n${stdout}`,
+            `stderr:\n${stderr}`,
+          ].join('\n'),
+        ),
+      );
+    });
+  });
 }

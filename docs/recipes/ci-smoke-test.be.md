@@ -39,7 +39,7 @@ wait "$server_pid" || true
 ## Праверка пакетаў Docker
 
 ```bash
-docker run --rm --init \
+docker run --rm \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   doctor --json

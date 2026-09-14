@@ -53,7 +53,7 @@ If your MCP client injects credentials into browser sessions, prefer short-lived
 
 ## Docker
 
-Docker is recommended when you want isolation and reproducible browser dependencies. Mount only the artifact directory you need and use `--init` so browser child processes are cleaned up correctly.
+Docker is recommended when you want isolation and reproducible browser dependencies. Mount only the artifact directory you need; the image includes Tini so browser child processes are reaped correctly. For a hardened read-only container, keep `/data` mounted and provide writable temporary mounts for `/tmp` and `/tmp/.X11-unix` when headed sessions are possible.
 
 When publishing Streamable HTTP from Docker, prefer `-p 127.0.0.1:3000:3000`. Publishing directly to a public interface gives any reachable client browser automation capability unless you add authentication and network controls.
 

@@ -1,5 +1,6 @@
 import { createServer, type IncomingMessage } from 'node:http';
 import { createConnection } from 'node:net';
+import process from 'node:process';
 import { describe, expect, it } from 'vitest';
 import { BRIDGE_TRANSPORT_STREAMABLE_HTTP, defaultStreamableHttpOptions } from '@/http/options.js';
 import { closeHttpServer, listenHttpServer } from '@/http/nodeServer.js';
@@ -264,6 +265,48 @@ describe('HTTP server helpers', () => {
         max: 1,
         available: 1,
       });
+    } finally {
+      await server.close();
+    }
+  });
+
+  it('validates a headed runtime before requesting the Docker display', async () => {
+    let displayRequests = 0;
+    const server = await startStreamableHttpBridge({
+      ...defaultStreamableHttpOptions,
+      ensureDockerDisplay: async () => {
+        displayRequests += 1;
+      },
+      port: 0,
+    });
+
+    try {
+      const response = await fetch(server.url, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json, text/event-stream',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'initialize',
+          params: {
+            protocolVersion: '2025-06-18',
+            capabilities: {},
+            clientInfo: { name: 'invalid-headed-runtime-unit-test-client', version: '1.0.0' },
+            _meta: {
+              'io.github.swimmwatch/cloakbrowser-mcp': {
+                headless: false,
+                userDataDir: process.execPath,
+              },
+            },
+          },
+        }),
+      });
+
+      expect(response.status).toBe(HttpStatus.InternalServerError);
+      expect(displayRequests).toBe(0);
     } finally {
       await server.close();
     }

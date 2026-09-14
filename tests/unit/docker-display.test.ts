@@ -93,12 +93,39 @@ describe.skipIf(process.platform === 'win32')('DockerDisplayManager', () => {
     expect(failures[0]?.message).toContain('Xvfb exited unexpectedly');
   });
 
-  it('requires a successful X11 setup response instead of a socket marker', async () => {
+  it('requires a complete successful X11 setup response instead of a socket marker', async () => {
     const root = mkdtempSync(path.join(tmpdir(), 'cloakbrowser-mcp-x11-'));
     temporaryRoots.push(root);
     const socketPath = path.join(root, 'X99');
     const server = createServer((socket) => {
       socket.once('data', () => socket.end(Buffer.from([1])));
+    });
+    await new Promise<void>((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(socketPath, resolve);
+    });
+
+    try {
+      await expect(probeX11Display(socketPath, 100)).rejects.toThrow(
+        'X11 server closed before setup response prefix',
+      );
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
+  it('accepts a fragmented complete X11 setup response', async () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'cloakbrowser-mcp-x11-'));
+    temporaryRoots.push(root);
+    const socketPath = path.join(root, 'X99');
+    const server = createServer((socket) => {
+      socket.once('data', () => {
+        const response = Buffer.alloc(12);
+        response[0] = 1;
+        response.writeUInt16LE(1, 6);
+        socket.write(response.subarray(0, 5));
+        setTimeout(() => socket.end(response.subarray(5)), 1);
+      });
     });
     await new Promise<void>((resolve, reject) => {
       server.once('error', reject);

@@ -53,7 +53,8 @@ Wenn dein MCP-Client Zugangsdaten in Browser-Sessions injiziert, bevorzuge kurzl
 
 ## Docker
 
-Docker wird empfohlen, wenn du Isolation und reproduzierbare Browserabhängigkeiten brauchst. Mounte nur das benötigte Artefaktverzeichnis und verwende `--init`, damit Browser-Kindprozesse korrekt bereinigt werden.
+Docker wird für Isolation und reproduzierbare Browser-Abhängigkeiten empfohlen. Mounten Sie nur das benötigte Artefaktverzeichnis; das Image enthält bereits Tini, das Browser-Kindprozesse korrekt einsammelt. Lassen Sie in einem gehärteten schreibgeschützten Container `/data` eingehängt und stellen Sie beschreibbare temporäre Mounts für `/tmp` und `/tmp/.X11-unix` bereit, wenn Sitzungen mit grafischer Oberfläche möglich sind.
+
 
 Wenn du Streamable HTTP aus Docker veröffentlichst, bevorzuge `-p 127.0.0.1:3000:3000`. Eine Veröffentlichung direkt auf einer öffentlichen Schnittstelle gibt jedem erreichbaren Client Browserautomatisierungsfähigkeiten, sofern du keine Authentifizierung und Netzwerkkontrollen hinzufügst.
 

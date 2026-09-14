@@ -22,28 +22,23 @@ FROM deps AS prod-deps
 RUN npm prune --omit=dev --ignore-scripts \
  && npm cache clean --force
 
-FROM ${NODE_IMAGE_REF} AS tini
-ARG TARGETARCH
+FROM scratch AS tini-amd64
 ARG TINI_VERSION=0.19.0
 ARG TINI_AMD64_SHA256=93dcc18adc78c65a028a84799ecf8ad40c936fdfc5f2a57b1acda5a8117fa82c
-ARG TINI_ARM64_SHA256=07952557df20bfd2a95f9bef198b445e006171969499a1d361bd9e6f8e5e0e81
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+ADD --checksum=sha256:${TINI_AMD64_SHA256} --chmod=0755 \
+    https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-amd64 /tini
 
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      ca-certificates=20250419~deb12u1 \
-      curl=7.88.1-10+deb12u15 \
-    && case "${TARGETARCH}" in \
-      amd64) tini_arch=amd64; tini_sha256="${TINI_AMD64_SHA256}" ;; \
-      arm64) tini_arch=arm64; tini_sha256="${TINI_ARM64_SHA256}" ;; \
-      *) echo "Unsupported Tini architecture: ${TARGETARCH}" >&2; exit 1 ;; \
-    esac \
-    && curl --fail --location --silent --show-error --retry 4 --retry-all-errors \
-      --connect-timeout 15 --max-time 45 --output /tini \
-      "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-${tini_arch}" \
-    && echo "${tini_sha256}  /tini" | sha256sum --check --status \
-    && chmod 0755 /tini
+FROM scratch AS tini-arm64
+ARG TINI_VERSION=0.19.0
+ARG TINI_ARM64_SHA256=07952557df20bfd2a95f9bef198b445e006171969499a1d361bd9e6f8e5e0e81
+ADD --checksum=sha256:${TINI_ARM64_SHA256} --chmod=0755 \
+    https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-arm64 /tini
+
+FROM scratch AS tini
+ARG TARGETARCH
+# BuildKit resolves the architecture-specific stage alias from TARGETARCH.
+# hadolint ignore=DL3022
+COPY --from=tini-${TARGETARCH} /tini /tini
 
 FROM ${PLAYWRIGHT_MCP_IMAGE} AS runtime
 ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.80@sha256:dda1f7f9b812e22946635c8af7df9288b96d3b9e3f0f1b8576d6823e2031c1de
@@ -107,6 +102,6 @@ RUN --mount=type=cache,target=/home/node/.cache/cloakbrowser-build,uid=1000,gid=
  && rm -f /home/node/.cloakbrowser/_download_*.tar.gz
 
 VOLUME ["/data"]
-HEALTHCHECK --interval=2s --timeout=1s --start-period=2s --retries=2 CMD ["node", "/opt/cloakbrowser-mcp/dist/docker/healthcheck.js"]
+HEALTHCHECK --interval=2s --timeout=3s --start-period=2s --retries=2 CMD ["node", "/opt/cloakbrowser-mcp/dist/docker/healthcheck.js"]
 ENTRYPOINT ["/usr/local/bin/tini", "-s", "--", "node", "/opt/cloakbrowser-mcp/dist/docker/launcher.js"]
 CMD []

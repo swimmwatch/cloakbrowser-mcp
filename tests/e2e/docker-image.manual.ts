@@ -14,11 +14,13 @@ import {
   dockerExec,
   dockerExecAllowFailure,
   dockerExecAsRoot,
+  dockerExecAsync,
   dockerImageTag,
   inspectDockerImage,
   startFakeUpstreamHttpDockerContainer,
   startHttpDockerContainer,
   stopDockerContainer,
+  trackDockerContainer,
   waitForDockerExec,
   waitForDockerExit,
   waitForDockerHealth,
@@ -83,10 +85,29 @@ describe('Docker image distribution E2E', () => {
       Retries: 2,
       StartPeriod: 2_000_000_000,
       Test: ['CMD', 'node', '/opt/cloakbrowser-mcp/dist/docker/healthcheck.js'],
-      Timeout: 1_000_000_000,
+      Timeout: 3_000_000_000,
     });
   });
 
+  it('runs real default and explicit headless HTTP sessions without Xvfb', async () => {
+    for (const headless of [undefined, true]) {
+      const { containerName, url } = startHttpDockerContainer(headless === undefined ? {} : { headless });
+      await waitForDockerHttp(url);
+      expect(
+        dockerExec(containerName, ['sh', '-c', 'test -z "${DISPLAY:-}" && test ! -S /tmp/.X11-unix/X99'])
+          .status,
+      ).toBe(0);
+
+      const session = await initializeHttpSession(url);
+      expect(session.status).toBe(200);
+      await expectHttpToolSuccess(url, session.headers.get('mcp-session-id'), 'browser_navigate', {
+        url: 'data:text/html,<title>Docker headless HTTP</title><main>ready</main>',
+      });
+      await expectHttpToolSuccess(url, session.headers.get('mcp-session-id'), 'browser_snapshot');
+      expect(dockerExec(containerName, ['sh', '-c', 'test ! -S /tmp/.X11-unix/X99']).status).toBe(0);
+      await closeHttpSession(url, session.headers.get('mcp-session-id'));
+    }
+  });
   it('demand-starts and retains Xvfb only for effective headed HTTP sessions', async () => {
     const { containerName, url } = startFakeUpstreamHttpDockerContainer();
     await waitForDockerHttp(url);
@@ -135,6 +156,15 @@ describe('Docker image distribution E2E', () => {
     await waitForDockerExec(containerName, ['sh', '-c', 'test ! -S /tmp/.X11-unix/X99']);
 
     await closeHttpSession(url, headless.headers.get('mcp-session-id'));
+  });
+
+  it('rejects an invalid headed runtime without starting Xvfb', async () => {
+    const { containerName, url } = startFakeUpstreamHttpDockerContainer();
+    await waitForDockerHttp(url);
+
+    const response = await initializeHttpSession(url, false, '/proc/self/exe');
+    expect(response.status).toBe(500);
+    await waitForDockerExec(containerName, ['sh', '-c', 'test ! -S /tmp/.X11-unix/X99']);
   });
 
   it('runs as non-root without exposing X11 over TCP', async () => {
@@ -226,6 +256,23 @@ describe('Docker image distribution E2E', () => {
     await waitForDockerExec(containerName, ['sh', '-c', 'test -S /tmp/.X11-unix/X99']);
   });
 
+  it('keeps active Docker health responsive during concurrent headed MCP traffic', async () => {
+    const { containerName, url } = startFakeUpstreamHttpDockerContainer();
+    await waitForDockerHttp(url);
+    const headed = await initializeHttpSession(url, false);
+    expect(headed.status).toBe(200);
+
+    const [health] = await Promise.all([
+      dockerExecAsync(containerName, ['node', '/opt/cloakbrowser-mcp/dist/docker/healthcheck.js']),
+      expectHttpToolSuccess(url, headed.headers.get('mcp-session-id'), 'browser_navigate', {
+        url: 'https://example.test/parallel-1',
+      }),
+      expectHttpToolSuccess(url, headed.headers.get('mcp-session-id'), 'browser_snapshot'),
+    ]);
+
+    expect(health.status).toBe(0);
+    await closeHttpSession(url, headed.headers.get('mcp-session-id'));
+  });
   it('launches a real headed CloakBrowser browser over streamable HTTP', async () => {
     const { url } = startHttpDockerContainer({ headless: false });
     await waitForDockerHttp(url);
@@ -244,13 +291,17 @@ describe('Docker image distribution E2E', () => {
     }
   });
 
-  it('keeps real headed HTTP session profiles isolated', async () => {
+  it('keeps concurrent real headed and headless HTTP session profiles isolated', async () => {
     const { containerName, url } = startHttpDockerContainer({ headless: false });
     await waitForDockerHttp(url);
-    const first = await initializeHttpSession(url, false, '/data/profiles/first');
-    const second = await initializeHttpSession(url, false, '/data/profiles/second');
+    const [first, second, headless] = await Promise.all([
+      initializeHttpSession(url, false, '/data/profiles/first'),
+      initializeHttpSession(url, false, '/data/profiles/second'),
+      initializeHttpSession(url, true, '/data/profiles/headless'),
+    ]);
     expect(first.status).toBe(200);
     expect(second.status).toBe(200);
+    expect(headless.status).toBe(200);
 
     await expectHttpToolSuccess(url, first.headers.get('mcp-session-id'), 'browser_navigate', {
       url: 'data:text/html,<title>first session</title><input value=first>',
@@ -258,18 +309,47 @@ describe('Docker image distribution E2E', () => {
     await expectHttpToolSuccess(url, second.headers.get('mcp-session-id'), 'browser_navigate', {
       url: 'data:text/html,<title>second session</title><input value=second>',
     });
+    await expectHttpToolSuccess(url, headless.headers.get('mcp-session-id'), 'browser_navigate', {
+      url: 'data:text/html,<title>headless session</title><input value=headless>',
+    });
     await expectHttpToolSuccess(url, first.headers.get('mcp-session-id'), 'browser_take_screenshot');
     await expectHttpToolSuccess(url, second.headers.get('mcp-session-id'), 'browser_take_screenshot');
+    await expectHttpToolSuccess(url, headless.headers.get('mcp-session-id'), 'browser_take_screenshot');
     await waitForDockerExec(containerName, [
       'sh',
       '-c',
-      'test -d /data/profiles/first && test -d /data/profiles/second',
+      'test -d /data/profiles/first && test -d /data/profiles/second && test -d /data/profiles/headless',
     ]);
 
     await closeHttpSession(url, first.headers.get('mcp-session-id'));
     await closeHttpSession(url, second.headers.get('mcp-session-id'));
+    await closeHttpSession(url, headless.headers.get('mcp-session-id'));
   });
 
+  it('keeps display startup available after one waiting HTTP client cancels', async () => {
+    const { containerName, url } = startFakeUpstreamHttpDockerContainer();
+    await waitForDockerHttp(url);
+    dockerExecAsRoot(containerName, [
+      'sh',
+      '-c',
+      'cp /usr/bin/Xvfb /tmp/Xvfb.real && printf "#!/bin/sh\\ntouch /tmp/xvfb-started\\nsleep 2\\nexec /tmp/Xvfb.real "\\$@"\\n" > /usr/bin/Xvfb && chmod 755 /usr/bin/Xvfb',
+    ]);
+
+    const controller = new AbortController();
+    const cancelled = initializeHttpSession(url, false, undefined, controller.signal);
+    await waitForDockerExec(containerName, ['sh', '-c', 'test -f /tmp/xvfb-started']);
+    controller.abort();
+    const admitted = await initializeHttpSession(url, false);
+
+    await expect(cancelled).rejects.toBeInstanceOf(Error);
+    expect(admitted.status).toBe(200);
+    await waitForDockerExec(containerName, [
+      'sh',
+      '-c',
+      'count=0; for process in /proc/[0-9]*; do [ -r "$process/cmdline" ] || continue; if tr "\\000" " " < "$process/cmdline" | grep -q "[/]usr/bin/Xvfb"; then count=$((count + 1)); fi; done; test "$count" -eq 1',
+    ]);
+    await closeHttpSession(url, admitted.headers.get('mcp-session-id'));
+  });
   it('keeps another headed session working when one session closes', async () => {
     const { containerName, url } = startFakeUpstreamHttpDockerContainer();
     await waitForDockerHttp(url);
@@ -362,13 +442,55 @@ describe('Docker image distribution E2E', () => {
   });
 });
 
+it('launches real default and explicit headless CloakBrowser browsers over stdio without Xvfb', async () => {
+  for (const headless of [undefined, true]) {
+    const containerName = `cloakbrowser-mcp-headless-stdio-e2e-${process.pid}-${crypto.randomUUID()}`;
+    trackDockerContainer(containerName);
+    const transport = new StdioClientTransport({
+      command: 'docker',
+      args: [
+        'run',
+        '--rm',
+        '-i',
+        '--name',
+        containerName,
+        '--tmpfs',
+        '/data:rw,nosuid,nodev,mode=1777',
+        '--env',
+        'PLAYWRIGHT_MCP_OUTPUT_DIR=/data',
+        ...(headless === undefined ? [] : ['--env', 'PLAYWRIGHT_MCP_HEADLESS=true']),
+        dockerImageTag,
+      ],
+      stderr: 'pipe',
+    });
+    const client = new Client({ name: 'docker-headless-real-browser-test', version: '1.0.0' });
+
+    try {
+      await client.connect(transport);
+      expect(
+        dockerExec(containerName, ['sh', '-c', 'test -z "${DISPLAY:-}" && test ! -S /tmp/.X11-unix/X99'])
+          .status,
+      ).toBe(0);
+      await expectToolSuccess(client, 'browser_navigate', {
+        url: 'data:text/html,<title>Docker headless stdio</title><main>ready</main>',
+      });
+      await expectToolSuccess(client, 'browser_snapshot');
+    } finally {
+      await client.callTool({ name: 'browser_close', arguments: {} }).catch(() => undefined);
+      await client.close().catch(() => undefined);
+    }
+  }
+});
+
 async function initializeHttpSession(
   url: string,
   headless?: boolean,
   userDataDir?: string,
+  signal?: AbortSignal,
 ): Promise<Response> {
   return fetch(url, {
     method: 'POST',
+    signal,
     headers: {
       Accept: 'application/json, text/event-stream',
       'Content-Type': 'application/json',

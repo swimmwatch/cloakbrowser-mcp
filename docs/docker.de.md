@@ -13,14 +13,18 @@ Das veröffentlichte Bild zeigt die empfohlene Laufzeit für eine wiederholbare 
 ## Ausführen
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
 
 Artefakte werden im Container unter `/data` gespeichert. Mounten Sie diesen Pfad, um Screenshots, Snapshots, Downloads und Netzwerkausgaben zu speichern.
 
-`--init` wird empfohlen, da bei der Browser-Automatisierung kurzlebige untergeordnete Prozesse entstehen können. Der Init-Prozess von Docker räumt diese untergeordneten Prozesse sauber auf.
+Das Image führt Tini bereits als PID 1 und Subreaper aus, daher benötigen normale Befehle keinen zusätzlichen Docker-init-Prozess.
+
+## Headed-Sitzungen, Health Check und eingeschränkte Laufzeit
+
+Bei headless: false startet der Container bei Bedarf ein privates Xvfb und behält es bis zum Ende des Containers. Dies ist weder ein sichtbarer Desktop noch ein Dienst für VNC, noVNC, RDP, Host-X11 oder Bildschirmaufzeichnung. Playwright-Kontexte, Seiten, Profile und Artefakte sind isoliert, aber nativer X11-Fokus, die Zwischenablage und Bildschirmaufzeichnung sind keine Mandanten-Isolationsgrenzen. Der Docker-Health-Check verwendet einen privaten Unix-Socket, um die Event-Loop der MCP CLI und, falls Xvfb gestartet wurde, dessen Verfügbarkeit zu prüfen; er sendet keinen Datenverkehr über MCP-stdio und ersetzt weder /healthz noch /readyz. Bei einem read-only root filesystem müssen Sie /data einhängen und bei möglichen Headed-Sitzungen writable tmpfs für /tmp und /tmp/.X11-unix bereitstellen.
 
 Die gleichen Release-Tags werden auf Docker Hub als `swimmwatch/cloakbrowser-mcp` und auf GHCR als `ghcr.io/swimmwatch/cloakbrowser-mcp`.
 
@@ -31,7 +35,7 @@ vorhandene Volume `/data` als Persistenzwurzel, wenn Cookies, lokaler Speicher,
 Cache oder Erweiterungsstatus Container-Neustarts überdauern sollen:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
@@ -59,7 +63,7 @@ docker run --rm -it \
   swimmwatch/cloakbrowser-mcp:latest \
   /opt/cloakbrowser-mcp/node_modules/cloakbrowser/dist/cli.js login
 
-docker run --rm --init -i \
+docker run --rm -i \
   -v cloakbrowser-cache:/home/node/.cloakbrowser \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
@@ -79,7 +83,7 @@ gemountet werden. Verwenden Sie Containerpfade in Umgebungsvariablen, keine
 Hostpfade. Der Erweiterungs-Mount kann schreibgeschützt sein:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
   -v "$PWD/artifacts:/data" \
@@ -97,7 +101,7 @@ Erweiterungspfade geändert haben.
 Für die lokale Nutzung von Streamable HTTP veröffentlichen Sie den Container-Port über Loopback:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -109,7 +113,7 @@ curl http://127.0.0.1:3000/readyz
 Für einen direkten HTTPS-Zugriff aus dem Container heraus mounten Sie Ihre Zertifikatsdateien und wählen Sie „HTTPS“ aus:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/certs:/certs:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -128,7 +132,7 @@ die GeoIP-Proxy-Zuordnung, wenn die regionale Qualitätssicherung die Zeitzonen-
 Lokalisierungs-Fingerabdrücke von CloakBrowser benötigt, um dem konfigurierten Proxy-Standort zu folgen:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
   -e CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
   -v "$PWD/artifacts:/data" \
@@ -182,7 +186,6 @@ Anwendungsfälle in mehreren Regionen und Einschränkungen.
       "args": [
         "run",
         "--rm",
-        "--init",
         "-i",
         "-v",
         "/tmp/cloakbrowser-artifacts:/data",

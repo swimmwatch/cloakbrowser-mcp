@@ -41,7 +41,7 @@ npx -y {{ project.npm_pin }}
 
 ```bash
 docker pull swimmwatch/cloakbrowser-mcp:latest
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
@@ -52,7 +52,7 @@ Dockerは、イメージが固定化された公式のPlaywright MCPイメージ
 Docker を使用したローカルの Streamable HTTP の場合、ポートをループバックに公開し、コンテナ内でサーバーをバインドします：
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -64,7 +64,7 @@ curl http://127.0.0.1:3000/readyz
 Dockerから直接HTTPSを利用するには、証明書ファイルをマウントし、「HTTPS」を選択してください：
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/certs:/certs:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -78,10 +78,12 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
 
 ```bash
 docker pull {{ project.docker_image }}
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   {{ project.docker_image }}
 ```
+
+再現可能なランタイム環境には Docker を使用してください。stdio の接続を維持するために `-i` を残します。イメージにはブラウザーの子プロセスを正しく回収する Tini がすでに含まれています。Streamable HTTP クライアントではサーバーを別に起動し、クライアント URL を `http://127.0.0.1:3000/mcp` または `https://127.0.0.1:3000/mcp` に設定します。`CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` または `--http-auth-token` を設定した場合は、同じ Bearer トークンを `/mcp`、`/healthz`、`/readyz` に送信してください。
 
 ## MCP クライアント設定
 
@@ -91,7 +93,6 @@ docker run --rm --init -i \
 npx -y cloakbrowser-mcp@latest
 ```
 
-再現性のある実行環境が必要な場合は、Docker を使用してください。stdio の接続を維持するために `-i` を保持し、ブラウザの子プロセスが正しく回収されるように `--init`を追加して、ブラウザの子プロセスが正しく回収されるようにしてください。
 
 Streamable HTTP クライアントの場合は、サーバーを別途起動し、クライアントの URL を `http://127.0.0.1:3000/mcp` または `https://127.0.0.1:3000/mcp` のように設定してください。 `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` または `--http-auth-token`が設定されている場合は、同じBearerトークンを`/mcp`、 `/healthz`、および `/readyz` に同じベアラートークンを送信します。
 
@@ -264,7 +265,6 @@ Streamable HTTP クライアントの場合は、サーバーを別途起動し�
           "args": [
             "run",
             "--rm",
-            "--init",
             "-i",
             "-v",
             "/tmp/cloakbrowser-artifacts:/data",

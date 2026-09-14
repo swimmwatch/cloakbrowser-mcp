@@ -57,7 +57,7 @@ npx -y cloakbrowser-mcp@latest --humanize --human-preset careful
 Pass the same environment variable to the container:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e CLOAK_PLAYWRIGHT_MCP_HUMANIZE=true \
   -e CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET=careful \
   -v "$PWD/artifacts:/data" \
@@ -68,7 +68,7 @@ For Streamable HTTP in Docker, the environment variable becomes the default for
 new HTTP sessions:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -e CLOAK_PLAYWRIGHT_MCP_HUMANIZE=true \
   -e CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET=careful \
   -v "$PWD/artifacts:/data" \

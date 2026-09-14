@@ -6,7 +6,7 @@ import { constants as osConstants } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { dockerDisplay, DockerDisplayManager, probeX11Display } from '#src/docker/display';
-import { dockerHealthProbeTimeoutMs, dockerHealthSocketPath } from '#src/docker/health';
+import { dockerHealthSocketPath } from '#src/docker/health';
 import {
   type DockerDisplayEnsureResult,
   dockerDisplayEnsureResultType,
@@ -18,6 +18,7 @@ import {
 
 const cliShutdownTimeoutMs = 8_000;
 const cliKillTimeoutMs = 2_000;
+const cliHealthProbeTimeoutMs = 750;
 const displayProbeIntervalMs = 50;
 const displayStartupTimeoutMs = 10_000;
 
@@ -198,7 +199,7 @@ class DockerLifecycleLauncher {
       const timer = setTimeout(() => {
         this.#pendingHealthProbes.delete(requestId);
         reject(new Error('Timed out waiting MCP CLI health response'));
-      }, dockerHealthProbeTimeoutMs);
+      }, cliHealthProbeTimeoutMs);
       this.#pendingHealthProbes.set(requestId, { nonce, reject, resolve, timer });
       cli.send({ nonce, requestId, type: dockerHealthProbeRequestType }, (error) => {
         if (error === null) return;

@@ -24,7 +24,7 @@ Configura el cliente MCP con el mismo comando. No compartas un directorio de per
 ## Docker
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest

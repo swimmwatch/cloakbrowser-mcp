@@ -4,6 +4,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 
 export const dockerDisplay = ':99';
 export const dockerX11SocketPath = '/tmp/.X11-unix/X99';
+const dockerX11ProbeTimeoutMs = 1_000;
 
 export type DockerDisplayPhase = 'failed' | 'never_started' | 'ready' | 'starting' | 'stopping';
 
@@ -103,9 +104,15 @@ export class DockerDisplayManager {
   }
 }
 
-export function probeX11Display(socketPath = dockerX11SocketPath, timeoutMs = 1_000): Promise<void> {
+/** Probes a Unix X11 socket through a complete setup handshake. */
+export function probeX11Display(
+  socketPath = dockerX11SocketPath,
+  timeoutMs = dockerX11ProbeTimeoutMs,
+): Promise<void> {
   return new Promise((resolve, reject) => {
     let settled = false;
+    let response = Buffer.alloc(0);
+    let expectedResponseLength: number | undefined;
     const socket = connect(socketPath);
     const timer = setTimeout(() => finish(new Error('Timed out waiting for X11 setup response')), timeoutMs);
 
@@ -124,14 +131,25 @@ export function probeX11Display(socketPath = dockerX11SocketPath, timeoutMs = 1_
       request.writeUInt16LE(11, 2);
       socket.write(request);
     });
-    socket.once('data', (response: Buffer) => {
+    socket.on('data', (chunk: Buffer) => {
+      response = Buffer.concat([response, chunk]);
+      if (response.length < 8) return;
       if (response[0] !== 1) {
         finish(new Error('X11 server rejected the setup request'));
         return;
       }
-      finish();
+      expectedResponseLength ??= 8 + response.readUInt16LE(6) * 4;
+      if (response.length >= expectedResponseLength) finish();
     });
-    socket.once('end', () => finish(new Error('X11 server closed before setup response')));
+    socket.once('end', () => {
+      finish(
+        new Error(
+          expectedResponseLength === undefined
+            ? 'X11 server closed before setup response prefix'
+            : 'X11 server closed before setup response completed',
+        ),
+      );
+    });
     socket.once('error', (error) => finish(error));
   });
 }

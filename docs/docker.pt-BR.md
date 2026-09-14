@@ -13,14 +13,18 @@ A imagem publicada mostra o tempo de execução recomendado para o uso repetíve
 ## Correr
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
 
 Os artefatos são gravados em `/data` no contêiner. Monte esse caminho para armazenar capturas de tela, instantâneos, downloads e saídas de rede.
 
-`--init` é recomendado porque a automação do navegador pode criar processos filhos de curta duração. O processo de inicialização do Docker encerra esses processos filhos de forma adequada.
+A imagem já executa o Tini como PID 1 e subreaper, portanto os comandos normais não precisam de um processo init adicional do Docker.
+
+## Sessões headed, health check e runtime restrito
+
+Com headless: false, o contêiner inicia um Xvfb privado sob demanda e o mantém até o encerramento do contêiner. Ele não é uma área de trabalho visível nem um serviço de VNC, noVNC, RDP, host X11 ou captura de tela. Os contextos, páginas, perfis e artefatos do Playwright são isolados, mas focus, clipboard e captura de tela nativos do X11 não são limites de isolamento entre tenants. O health check do Docker usa um Unix socket privado para verificar o event loop do MCP CLI e, se o Xvfb foi iniciado, sua disponibilidade; ele não envia tráfego por MCP stdio nem substitui /healthz ou /readyz. Para um read-only root filesystem, monte /data e forneça tmpfs writable para /tmp e /tmp/.X11-unix se sessões headed forem possíveis.
 
 As mesmas tags de lançamento são publicadas no Docker Hub como `swimmwatch/cloakbrowser-mcp` e no GHCR como `ghcr.io/swimmwatch/cloakbrowser-mcp`.
 
@@ -32,7 +36,7 @@ armazenamento local, cache ou estado de extensões sobrevivam às reinicializaç
 do contêiner:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
@@ -60,7 +64,7 @@ docker run --rm -it \
   swimmwatch/cloakbrowser-mcp:latest \
   /opt/cloakbrowser-mcp/node_modules/cloakbrowser/dist/cli.js login
 
-docker run --rm --init -i \
+docker run --rm -i \
   -v cloakbrowser-cache:/home/node/.cloakbrowser \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
@@ -79,7 +83,7 @@ separadamente. Use caminhos do contêiner nas variáveis de ambiente, não camin
 do host. A montagem da extensão pode ser somente leitura:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
   -v "$PWD/artifacts:/data" \
@@ -96,7 +100,7 @@ contêiner depois de alterar arquivos ou caminhos de extensões.
 Para uso local do Streamable HTTP, publique a porta do contêiner no loopback:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -108,7 +112,7 @@ curl http://127.0.0.1:3000/readyz
 Para acessar diretamente via HTTPS a partir do contêiner, monte seus arquivos de certificado e selecione HTTPS:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/certs:/certs:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -127,7 +131,7 @@ a correspondência de proxy GeoIP quando o controle de qualidade regional precis
 localidade do CloakBrowser sigam a localização do proxy configurada:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
   -e CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
   -v "$PWD/artifacts:/data" \
@@ -180,7 +184,6 @@ casos de uso em várias regiões e limitações.
       "args": [
         "run",
         "--rm",
-        "--init",
         "-i",
         "-v",
         "/tmp/cloakbrowser-artifacts:/data",

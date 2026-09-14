@@ -41,7 +41,7 @@ npx -y {{ project.npm_pin }}
 
 ```bash
 docker pull swimmwatch/cloakbrowser-mcp:latest
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
@@ -52,7 +52,7 @@ Docker является наиболее воспроизводимой сред
 Для локального HTTP-сервера Streamable с использованием Docker необходимо открыть порт на loopback и привязать сервер внутри контейнера:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -64,7 +64,7 @@ curl http://127.0.0.1:3000/readyz
 Для прямого подключения по HTTPS из Docker подключите файлы сертификатов и выберите HTTPS:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/certs:/certs:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -78,10 +78,12 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
 
 ```bash
 docker pull {{ project.docker_image }}
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   {{ project.docker_image }}
 ```
+
+Используйте Docker для воспроизводимой среды выполнения. Сохраните `-i`, чтобы stdio оставалось подключённым; образ уже включает Tini для корректной очистки дочерних процессов браузера. Для клиентов Streamable HTTP запустите сервер отдельно и настройте URL клиента как `http://127.0.0.1:3000/mcp` или `https://127.0.0.1:3000/mcp`. Если задан `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` или `--http-auth-token`, передавайте тот же токен Bearer в `/mcp`, `/healthz` и `/readyz`.
 
 ## Настройки клиента MCP
 
@@ -91,7 +93,6 @@ docker run --rm --init -i \
 npx -y cloakbrowser-mcp@latest
 ```
 
-Используйте Docker, если вам нужна воспроизводимая среда выполнения. Сохраните `-i`, чтобы stdio оставалось подключенным, и добавьте `--init`, чтобы дочерние процессы браузера правильно завершались.
 
 Для HTTP-клиентов Streamable запустите сервер отдельно и настройте URL-адрес клиента в виде `http://127.0.0.1:3000/mcp` или `https://127.0.0.1:3000/mcp`. Если установлен параметр `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` или `--http-auth-token`, отправьте тот же токен Bearer в `/mcp`, `/healthz` и `/readyz`.
 
@@ -264,7 +265,6 @@ npx -y cloakbrowser-mcp@latest
           "args": [
             "run",
             "--rm",
-            "--init",
             "-i",
             "-v",
             "/tmp/cloakbrowser-artifacts:/data",

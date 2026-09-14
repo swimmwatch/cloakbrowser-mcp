@@ -13,14 +13,18 @@ tags:
 ## 运行
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
 
  artefacts 会被写入容器中的 `/data`。挂载该路径以保存截图、快照、下载文件和网络输出。
 
-`--init` 之所以被推荐，是因为浏览器自动化可能会创建短暂存在的子进程。Docker 的 init 进程会干净利落地回收这些子进程。
+镜像已将 Tini 作为 PID 1 和子进程收割器运行，因此常规命令不需要额外的 Docker init 进程。
+
+## 有头会话、健康检查和受限运行时
+
+使用 headless: false 时，容器会按需启动私有 Xvfb，并一直保留到容器退出。这不是可见桌面，也不提供 VNC、noVNC、RDP、host X11 或屏幕捕获服务。Playwright 的上下文、页面、配置文件和工件相互隔离，但原生 X11 的 focus、clipboard 和屏幕捕获不是租户隔离边界。Docker 健康检查通过私有 Unix socket 检查 MCP CLI event loop；若已启动 Xvfb，还会检查其可用性。它不会通过 MCP stdio 发送流量，也不能替代 /healthz 或 /readyz。对于 read-only root filesystem，请挂载 /data，并在可能使用有头会话时为 /tmp 和 /tmp/.X11-unix 提供 writable tmpfs。
 
 相同的发布标签已发布到 Docker Hub，标签为 `swimmwatch/cloakbrowser-mcp`，并在 GHCR 上发布为 `ghcr.io/swimmwatch/cloakbrowser-mcp`。
 
@@ -30,7 +34,7 @@ Docker 默认不会启用持久化浏览器配置文件。当你希望 cookie、
 容器重启后保留时，请使用现有的 `/data` 卷作为持久化根目录：
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
@@ -55,7 +59,7 @@ docker run --rm -it \
   swimmwatch/cloakbrowser-mcp:latest \
   /opt/cloakbrowser-mcp/node_modules/cloakbrowser/dist/cli.js login
 
-docker run --rm --init -i \
+docker run --rm -i \
   -v cloakbrowser-cache:/home/node/.cloakbrowser \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
@@ -71,7 +75,7 @@ Chrome 扩展需要持久化配置文件，并且必须单独挂载。请在环�
 而不是主机路径。扩展挂载可以是只读的：
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
   -v "$PWD/artifacts:/data" \
@@ -88,7 +92,7 @@ docker run --rm --init -i \
 若要在本地使用 Streamable HTTP，请将容器端口发布到回环地址：
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -100,7 +104,7 @@ curl http://127.0.0.1:3000/readyz
 若要从容器直接访问 HTTPS，请挂载您的证书文件并选择 HTTPS：
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/certs:/certs:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -119,7 +123,7 @@ Docker 使用与 npm 相同的代理和 GeoIP 环境变量。当区域 QA 需要
 GeoIP 代理匹配：
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
   -e CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
   -v "$PWD/artifacts:/data" \
@@ -171,7 +175,6 @@ docker run --rm --init -i \
       "args": [
         "run",
         "--rm",
-        "--init",
         "-i",
         "-v",
         "/tmp/cloakbrowser-artifacts:/data",

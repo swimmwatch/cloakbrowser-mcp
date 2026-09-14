@@ -37,7 +37,7 @@ wait "$server_pid" || true
 ## Verificação do pacote Docker
 
 ```bash
-docker run --rm --init \
+docker run --rm \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   doctor --json

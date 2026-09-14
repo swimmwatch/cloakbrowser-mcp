@@ -41,7 +41,7 @@ npx -y {{ project.npm_pin }}
 
 ```bash
 docker pull swimmwatch/cloakbrowser-mcp:latest
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
@@ -52,7 +52,7 @@ Docker — гэта найбольш рэпрадукцыйная асяродд
 Для лакальнага Streamable HTTP з Docker апублікуйце порт на лупбэку і прывяжыце сервер унутры кантэйнера:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -64,7 +64,7 @@ curl http://127.0.0.1:3000/readyz
 Для прамога HTTPS з Docker замацуйце файлы сертыфікатаў і выберыце HTTPS:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/certs:/certs:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -78,10 +78,12 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
 
 ```bash
 docker pull {{ project.docker_image }}
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   {{ project.docker_image }}
 ```
+
+Выкарыстоўвайце Docker для ўзнаўляльнага асяроддзя выканання. Захоўвайце `-i`, каб stdio заставалася падключаным; вобраз ужо ўключае Tini для належнай ачысткі даччыных працэсаў браўзера. Для кліентаў Streamable HTTP запусціце сервер асобна і наладзьце URL кліента як `http://127.0.0.1:3000/mcp` або `https://127.0.0.1:3000/mcp`. Калі зададзены `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` або `--http-auth-token`, перадавайце той жа токен Bearer у `/mcp`, `/healthz` і `/readyz`.
 
 ## Канфігурацыя кліента MCP
 
@@ -91,7 +93,6 @@ docker run --rm --init -i \
 npx -y cloakbrowser-mcp@latest
 ```
 
-Выкарыстоўвайце Docker, калі вам патрэбна паўторнае асяроддзе выканання. Захавайце `-i`, каб stdio заставаўся злучаным, і дадайце `--init`, каб дзіцячыя працэсы браўзера правільна завяршаліся.
 
 Для HTTP-кліентаў з патокавай перадачай запускайце сервер асобна і наладзьце URL-адрас кліента як `http://127.0.0.1:3000/mcp` або `https://127.0.0.1:3000/mcp`. Калі `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` або `--http-auth-token` усталяваны, адпраўце той жа Bearer-токен на `/mcp`, `/healthz`, і `/readyz`.
 
@@ -264,7 +265,6 @@ npx -y cloakbrowser-mcp@latest
           "args": [
             "run",
             "--rm",
-            "--init",
             "-i",
             "-v",
             "/tmp/cloakbrowser-artifacts:/data",

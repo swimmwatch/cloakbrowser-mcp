@@ -1,6 +1,10 @@
 import { createConnection } from 'node:net';
 
-export const dockerHealthProbeTimeoutMs = 750;
+/**
+ * Covers the launcher's sequential X11 and CLI event-loop probes, with local
+ * socket scheduling margin. Docker grants the healthcheck a further margin.
+ */
+export const dockerHealthProbeTimeoutMs = 2_500;
 export const dockerHealthSocketPath = '/tmp/cloakbrowser-mcp-health.sock';
 
 interface DockerHealthSocketResponse {

@@ -15,13 +15,13 @@ docker pull swimmwatch/cloakbrowser-mcp:latest
 ## Run
 
 ```bash
-docker run --rm --init swimmwatch/cloakbrowser-mcp:latest --help
+docker run --rm swimmwatch/cloakbrowser-mcp:latest --help
 ```
 
 For stdio MCP usage with persisted artifacts:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
@@ -30,7 +30,7 @@ For a persistent browser profile, keep using `/data` as the container
 persistence root:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
@@ -40,7 +40,7 @@ For Chrome extensions, mount the extension directory separately and pass the
 container path:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
   -v "$PWD/artifacts:/data" \
@@ -58,7 +58,6 @@ docker run --rm --init -i \
       "args": [
         "run",
         "--rm",
-        "--init",
         "-i",
         "-v",
         "/tmp/cloakbrowser-artifacts:/data",
