@@ -25,7 +25,7 @@ describe.skipIf(process.platform === 'win32')('probeDockerLauncherHealth', () =>
   it('accepts only a current successful launcher response', async () => {
     const socketPath = await startHealthServer('{"ok":true}\n');
 
-    await expect(probeDockerLauncherHealth(socketPath, 100)).resolves.toBeUndefined();
+    await expect(probeDockerLauncherHealth(socketPath)).resolves.toBeUndefined();
   });
 
   it('fails closed when launcher reports an unhealthy result', async () => {
