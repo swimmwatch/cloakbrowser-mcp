@@ -22,24 +22,6 @@ FROM deps AS prod-deps
 RUN npm prune --omit=dev --ignore-scripts \
  && npm cache clean --force
 
-FROM scratch AS tini-amd64
-ARG TINI_VERSION=0.19.0
-ARG TINI_AMD64_SHA256=93dcc18adc78c65a028a84799ecf8ad40c936fdfc5f2a57b1acda5a8117fa82c
-ADD --checksum=sha256:${TINI_AMD64_SHA256} --chmod=0755 \
-    https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-amd64 /tini
-
-FROM scratch AS tini-arm64
-ARG TINI_VERSION=0.19.0
-ARG TINI_ARM64_SHA256=07952557df20bfd2a95f9bef198b445e006171969499a1d361bd9e6f8e5e0e81
-ADD --checksum=sha256:${TINI_ARM64_SHA256} --chmod=0755 \
-    https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-arm64 /tini
-
-FROM scratch AS tini
-ARG TARGETARCH
-# BuildKit resolves the architecture-specific stage alias from TARGETARCH.
-# hadolint ignore=DL3022
-COPY --from=tini-${TARGETARCH} /tini /tini
-
 FROM ${PLAYWRIGHT_MCP_IMAGE} AS runtime
 ARG PLAYWRIGHT_MCP_IMAGE=mcr.microsoft.com/playwright/mcp:v0.0.80@sha256:dda1f7f9b812e22946635c8af7df9288b96d3b9e3f0f1b8576d6823e2031c1de
 ARG PLAYWRIGHT_MCP_IMAGE_DIGEST=unknown
@@ -67,11 +49,13 @@ LABEL org.opencontainers.image.base.digest="${PLAYWRIGHT_MCP_IMAGE_DIGEST}"
  RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fonts-urw-base35=20200910-7 \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    fonts-urw-base35=20200910-7 \
+    tini=0.19.0-1+b3 \
+ && ln -s /usr/bin/tini /usr/local/bin/tini \
  && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
  && rm -rf /var/lib/apt/lists/*
 
-COPY --from=tini /tini /usr/local/bin/tini
 COPY --from=prod-deps --chown=node:node /src/node_modules ./node_modules
 COPY --from=build --chown=node:node /src/dist ./dist
 COPY --from=build --chown=node:node /src/package.json ./package.json
