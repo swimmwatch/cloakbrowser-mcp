@@ -48,6 +48,27 @@ docker run --rm -i \
   swimmwatch/cloakbrowser-mcp:latest
 ```
 
+## Managed CDP
+
+Managed Chrome DevTools Protocol access is opt-in and session-scoped. Publish the
+configured port range one-to-one, enable remote binding inside the container, and use
+a concrete advertised host:
+
+```bash
+docker run --rm -i \
+  -p 127.0.0.1:9222-9231:9222-9231 \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --cdp-enabled --cdp-port-range 9222-9231 \
+  --cdp-host 0.0.0.0 --cdp-allow-remote \
+  --cdp-advertised-host 127.0.0.1
+```
+
+Retrieve the capability URL with `cloakbrowser_bridge_info` and connect through a CDP
+API such as Playwright `chromium.connectOverCDP()`. Treat the URL as a credential.
+`--cdp-advertised-scheme https` advertises operator-terminated TLS; the bridge does not
+provide TLS for managed CDP. See the full
+[Docker guide](https://swimmwatch.github.io/cloakbrowser-mcp/docker/#managed-cdp).
+
 ## MCP client config
 
 ```json

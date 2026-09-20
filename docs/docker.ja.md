@@ -121,6 +121,62 @@ docker run --rm -p 127.0.0.1:3000:3000 \
 Streamable HTTP は、固定の `GET /healthz` および `GET /readyz` プローブを公開します。 `--http-auth-token` または `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` が設定されている場合、プローブには MCP リクエストと同じ `Authorization: Bearer ...` ヘッダーが必要です。
 すべての HTTP トランスポートフラグおよび環境変数については、生成された [CLI リファレンス](generated/cli.md) を参照してください。
 
+## 管理された CDP { #managed-cdp }
+
+構成された管理-CDP 範囲を一対一で公開します。この stdio の例では、一つを有効にします
+セッションとすべてのホストポートをループバックにバインドしたままにします:
+
+```bash
+docker run --rm -i \
+  -p 127.0.0.1:9222-9231:9222-9231 \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --cdp-enabled \
+  --cdp-port-range 9222-9231 \
+  --cdp-host 0.0.0.0 \
+  --cdp-allow-remote \
+  --cdp-advertised-host 127.0.0.1
+```
+
+`--cdp-host 0.0.0.0`はDockerのポートフォワーディングに必要なので、明示的な
+`--cdp-allow-remote`のオプトインと具体的な`--cdp-advertised-host`も必要です。
+範囲を異なるホストポート番号に再マップしないでください: ディスカバリーURLには含まれています
+リースされたポートと各公開ポートは、それぞれ所有するセッションに一対一でルーティングする必要があります。
+
+マルチセッション Streamable HTTP の場合、プールを設定して公開しますが、次を設定しないでください
+クライアントが個別にオプトインする場合のデフォルトの処理：
+
+```bash
+docker run --rm \
+  -p 127.0.0.1:3000:3000 \
+  -p 127.0.0.1:9222-9231:9222-9231 \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http \
+  --http-host 0.0.0.0 \
+  --http-port 3000 \
+  --cdp-port-range 9222-9231 \
+  --cdp-host 0.0.0.0 \
+  --cdp-allow-remote \
+  --cdp-advertised-host 127.0.0.1
+```
+
+`cdpEnabled: true`で認証された`initialize`リクエストは、1つの公開済みをリースします
+ポート。省略された値はプロセスのデフォルトを継承します、一方で`cdpEnabled: false`
+明示的にオプトアウトし、CDPポートを消費しません。プールの枯渇は新しいもののみを拒否します
+CDP対応セッション；無効なセッションの容量を減らすことはありません。
+
+`cloakbrowser_bridge_info`から能力を持つURLを読み取ります。それを入れないでください
+コンテナのログまたはヘルスチェック。CDP API のようなものと接続します
+`chromium.connectOverCDP()`；URLはPlaywrightと互換性がありません
+`chromium.connect()` または現在の Open WebUI フロー。
+
+`--cdp-advertised-scheme https` は公開された URL を `https`/`wss` に変更しますが、
+ブリッジは、管理された CDP に対して TLS を提供しません。オペレーター所有の TLS ターミネーターを使用してください
+外部ネットワーク名前空間で同じ宣伝されたポートを占有し、保持する
+`Host`/`Origin`、そしてプレーンテキストブリッジリスナーに一対一で転送します。
+bridge-to-Chromiumホップもプレーンテキストのループバックトラフィックとして残ります。
+
 ## GeoIPプロキシの照合
 
 Docker は npm と同じプロキシおよび GeoIP 環境変数を使用します。地域ごとの QA において、CloakBrowser のタイムゾーン、言語、および

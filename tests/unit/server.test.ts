@@ -8,10 +8,13 @@ import type { CallToolResult, ListToolsResult } from '@modelcontextprotocol/sdk/
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { BridgeRuntime } from '@/bridge/config.js';
 import { LOCAL_TOOL_BRIDGE_INFO } from '@/bridge/tools.js';
+import type { ManagedCdpSession } from '@/cdp/session.js';
+import type { ManagedCdpUpstreamOwner } from '@/cdp/types.js';
 import { type BridgeServer, createBridgeServer, startBridge } from '@/server.js';
 
 const clients: Client[] = [];
 const tempRoots: string[] = [];
+const managedOwners = new WeakMap<ManagedCdpSession, ManagedCdpUpstreamOwner>();
 
 afterEach(async () => {
   await Promise.allSettled(clients.splice(0).map((client) => client.close()));
@@ -135,6 +138,106 @@ describe('bridge server', () => {
     }
   });
 
+  it('does not forward a browser tool when managed CDP replacement fails', async () => {
+    const managed = createManagedCdpSessionMock({ state: 'unavailable' });
+    vi.mocked(managed.runBrowserTool).mockRejectedValueOnce(
+      new Error('Managed CDP browser replacement failed'),
+    );
+    const onCdpRecoveryError = vi.fn(() => {
+      throw new Error('diagnostic callback failed');
+    });
+    const callTool = vi.fn(async () => jsonToolResult({ exact: 'upstream-result' }));
+    const bridge = await createTestBridge({
+      callTool,
+      managedCdpSession: managed,
+      onCdpRecoveryError,
+    });
+    try {
+      const client = await connectBridge(bridge);
+
+      await expect(client.callTool({ name: 'browser_navigate', arguments: {} })).rejects.toThrow(
+        'Managed CDP browser replacement failed',
+      );
+
+      expect(callTool).not.toHaveBeenCalled();
+      expect(managed.runBrowserTool).toHaveBeenCalledTimes(1);
+      expect(onCdpRecoveryError).toHaveBeenCalledTimes(1);
+    } finally {
+      await bridge.dispose();
+    }
+  });
+
+  it('surfaces managed CDP cleanup failure after closing the MCP server', async () => {
+    const managed = createManagedCdpSessionMock({ state: 'ready' });
+    vi.mocked(managed.dispose).mockRejectedValueOnce(new Error('managed cleanup incomplete'));
+    const bridge = await createTestBridge({ managedCdpSession: managed });
+
+    await expect(bridge.dispose()).rejects.toThrow('managed bridge cleanup was incomplete');
+    expect(managed.dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns an upstream browser tool error unchanged after readiness', async () => {
+    const expected: CallToolResult = {
+      content: [{ type: 'text', text: 'upstream failed' }],
+      isError: true,
+    };
+    const managed = createManagedCdpSessionMock({ state: 'ready' });
+    const callTool = vi.fn(async () => expected);
+    const bridge = await createTestBridge({
+      callTool,
+      managedCdpSession: managed,
+    });
+    try {
+      const client = await connectBridge(bridge);
+
+      const result = await client.callTool({ name: 'browser_navigate', arguments: {} });
+
+      expect(result).toEqual(expected);
+      expect(managed.runBrowserTool).toHaveBeenCalledTimes(1);
+      expect(managed.invalidateGeneration).not.toHaveBeenCalled();
+      expect(callTool).toHaveBeenCalledTimes(1);
+    } finally {
+      await bridge.dispose();
+    }
+  });
+
+  it('invalidates managed CDP after a successful browser_close without reopening it', async () => {
+    const managed = createManagedCdpSessionMock({ state: 'ready' });
+    const callTool = vi.fn(async (params) => jsonToolResult(params));
+    const bridge = await createTestBridge({ callTool, managedCdpSession: managed });
+    try {
+      const client = await connectBridge(bridge);
+
+      await client.callTool({ name: 'browser_close', arguments: {} });
+
+      expect(managed.invalidateGeneration).toHaveBeenCalledTimes(1);
+      expect(managed.bootstrapGeneration).not.toHaveBeenCalled();
+      expect(callTool).toHaveBeenCalledTimes(1);
+    } finally {
+      await bridge.dispose();
+    }
+  });
+
+  it('probes managed CDP metadata and lists tools without starting replacement', async () => {
+    const managed = createManagedCdpSessionMock({ state: 'unavailable' });
+    const bridge = await createTestBridge({
+      cdpInfo: () => ({ enabled: false }),
+      managedCdpSession: managed,
+    });
+    try {
+      const client = await connectBridge(bridge);
+      await client.listTools();
+
+      await client.callTool({ name: LOCAL_TOOL_BRIDGE_INFO, arguments: {} });
+
+      expect(managed.probeGeneration).toHaveBeenCalledTimes(1);
+      expect(managed.runBrowserTool).not.toHaveBeenCalled();
+      expect(managed.runWithCurrentUpstream).toHaveBeenCalledTimes(1);
+    } finally {
+      await bridge.dispose();
+    }
+  });
+
   it('does not cache failed upstream tool list requests', async () => {
     let calls = 0;
     const bridge = await createTestBridge({
@@ -181,6 +284,9 @@ async function createTestBridge(
     listTools?: (params?: { cursor?: string }) => Promise<ListToolsResult>;
     callTool?: (params: { name: string; arguments?: unknown }) => Promise<CallToolResult>;
     close?: () => Promise<void>;
+    cdpInfo?: () => { enabled: false };
+    managedCdpSession?: ManagedCdpSession;
+    onCdpRecoveryError?: () => void;
     runtime?: BridgeRuntime;
   } = {},
 ): Promise<BridgeServer> {
@@ -193,10 +299,56 @@ async function createTestBridge(
     callTool: overrides.callTool ?? (async (params) => jsonToolResult(params)),
     close: overrides.close ?? (async () => {}),
   } as unknown as Client;
+  if (overrides.managedCdpSession !== undefined) {
+    managedOwners.set(overrides.managedCdpSession, {
+      callTool: async (name, arguments_) => await upstreamClient.callTool({ name, arguments: arguments_ }),
+      dispose: async () => undefined,
+      listTools: async (params) =>
+        await upstreamClient.listTools(params as Parameters<Client['listTools']>[0]),
+    });
+  }
   return createBridgeServer({
+    cdpInfo: overrides.cdpInfo,
+    managedCdpSession: overrides.managedCdpSession,
+    onCdpRecoveryError: overrides.onCdpRecoveryError,
     runtime: overrides.runtime ?? createRuntime(),
     upstreamClient,
   });
+}
+
+function createManagedCdpSessionMock(initial: { state: 'ready' | 'unavailable' }) {
+  const managed = {
+    activeConnections: 0,
+    bootstrapGeneration: vi.fn(async () => undefined),
+    dispose: vi.fn(async () => undefined),
+    externalPort: 9222,
+    invalidateGeneration: vi.fn(),
+    probeGeneration: vi.fn(async () => initial.state === 'ready'),
+    runBrowserTool: vi.fn(async (operation: (owner: ManagedCdpUpstreamOwner) => Promise<unknown>) => {
+      const owner = managedOwners.get(managed);
+      if (owner === undefined) throw new Error('managed owner missing');
+      return await operation(owner);
+    }),
+    runWithCurrentUpstream: vi.fn(async (operation: (owner: ManagedCdpUpstreamOwner) => Promise<unknown>) => {
+      const owner = managedOwners.get(managed);
+      if (owner === undefined) throw new Error('managed owner missing');
+      return await operation(owner);
+    }),
+    snapshot: vi.fn((): ReturnType<ManagedCdpSession['snapshot']> =>
+      initial.state === 'ready'
+        ? {
+            browserWebSocketUrl: 'ws://127.0.0.1:43123/devtools/browser/browser-1',
+            capability: 'capability-1',
+            discoveryUrl: 'http://127.0.0.1:9222/cdp/capability-1',
+            generation: 1,
+            state: 'ready',
+            upstreamHost: '127.0.0.1',
+            upstreamPort: 43123,
+          }
+        : { generation: 1, state: 'unavailable' },
+    ),
+  } satisfies ManagedCdpSession;
+  return managed;
 }
 
 async function connectBridge(bridge: BridgeServer): Promise<Client> {

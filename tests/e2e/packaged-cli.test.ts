@@ -79,7 +79,7 @@ describe('packaged CLI end-to-end', () => {
     const stderr = collectStream(child.stderr);
     const startupLine = await waitForLine(
       child,
-      stdout,
+      stderr,
       / INFO cloakbrowser-mcp streamable-http listening /u,
     );
     const endpointUrl = parseLoggedUrl(startupLine);
@@ -113,12 +113,12 @@ describe('packaged CLI end-to-end', () => {
     });
 
     await expect(
-      waitForLine(child, stdout, httpRequestLogPattern({ method: 'GET', path: '/healthz', status: 200 })),
+      waitForLine(child, stderr, httpRequestLogPattern({ method: 'GET', path: '/healthz', status: 200 })),
     ).resolves.toBeDefined();
     await expect(
-      waitForLine(child, stdout, httpRequestLogPattern({ method: 'GET', path: '/readyz', status: 200 })),
+      waitForLine(child, stderr, httpRequestLogPattern({ method: 'GET', path: '/readyz', status: 200 })),
     ).resolves.toBeDefined();
-    expect(stderr.text).toBe('');
+    expect(stdout.text).toBe('');
   });
 
   it('enforces Streamable HTTP bearer auth from the packaged CLI', async () => {
@@ -135,7 +135,7 @@ describe('packaged CLI end-to-end', () => {
     const stdout = collectStream(child.stdout);
     const stderr = collectStream(child.stderr);
     const endpointUrl = parseLoggedUrl(
-      await waitForLine(child, stdout, / INFO cloakbrowser-mcp streamable-http listening /u),
+      await waitForLine(child, stderr, / INFO cloakbrowser-mcp streamable-http listening /u),
     );
 
     const unauthorizedProbeUrl = healthUrl(endpointUrl);
@@ -158,14 +158,14 @@ describe('packaged CLI end-to-end', () => {
     expect((await client.listTools()).tools.length).toBeGreaterThan(0);
 
     await expect(
-      waitForLine(child, stdout, httpRequestLogPattern({ method: 'GET', path: '/healthz', status: 401 })),
+      waitForLine(child, stderr, httpRequestLogPattern({ method: 'GET', path: '/healthz', status: 401 })),
     ).resolves.toBeDefined();
     await expect(
-      waitForLine(child, stdout, httpRequestLogPattern({ method: 'GET', path: '/healthz', status: 200 })),
+      waitForLine(child, stderr, httpRequestLogPattern({ method: 'GET', path: '/healthz', status: 200 })),
     ).resolves.toBeDefined();
-    expect(stdout.text).not.toContain('token=secret');
-    expect(stdout.text).not.toContain('Authorization');
-    expect(stderr.text).toBe('');
+    expect(stderr.text).not.toContain('token=secret');
+    expect(stderr.text).not.toContain('Authorization');
+    expect(stdout.text).toBe('');
   });
 
   it('honors Streamable HTTP env options with CLI flag overrides', async () => {
@@ -174,9 +174,10 @@ describe('packaged CLI end-to-end', () => {
       CLOAK_PLAYWRIGHT_MCP_HTTP_ENDPOINT: '/rpc',
     });
     const stdout = collectStream(child.stdout);
+    const stderr = collectStream(child.stderr);
     const startupLine = await waitForLine(
       child,
-      stdout,
+      stderr,
       / INFO cloakbrowser-mcp streamable-http listening /u,
     );
     const endpointUrl = parseLoggedUrl(startupLine);
@@ -197,6 +198,7 @@ describe('packaged CLI end-to-end', () => {
       forwarded: true,
       name: 'browser_navigate',
     });
+    expect(stdout.text).toBe('');
   });
 
   it('serves Streamable HTTP over HTTPS from the packaged CLI', async () => {
@@ -218,7 +220,7 @@ describe('packaged CLI end-to-end', () => {
     const stderr = collectStream(child.stderr);
     const startupLine = await waitForLine(
       child,
-      stdout,
+      stderr,
       / INFO cloakbrowser-mcp streamable-http listening /u,
     );
     const endpointUrl = parseLoggedUrl(startupLine);
@@ -244,7 +246,7 @@ describe('packaged CLI end-to-end', () => {
       name: 'browser_navigate',
     });
 
-    expect(stderr.text).toBe('');
+    expect(stdout.text).toBe('');
   });
 
   it('runs packaged doctor JSON without starting the bridge', () => {

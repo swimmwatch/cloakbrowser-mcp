@@ -55,6 +55,95 @@ For task-focused examples, see the [Recipes](recipes/index.md) section.
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | Adds `--no-sandbox` and disables Chromium sandboxing. |
 
+## Managed CDP
+
+Managed Chrome DevTools Protocol (CDP) access is an explicit opt-in. It exposes the
+same Chromium browser generation controlled by MCP through a capability-bearing
+discovery URL. Configuring a port pool alone does not enable CDP.
+
+| CLI option | Environment variable | Default | Purpose |
+| --- | --- | --- | --- |
+| `--cdp-enabled`, `--no-cdp-enabled` | `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED` | `false` | Set the stdio value and the Streamable HTTP session default. |
+| `--cdp-port-range <port\|start-end>` | `CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE` | unset | Configure the process-local external proxy port pool. One enabled session leases one port. |
+| `--cdp-host <host>` | `CLOAK_PLAYWRIGHT_MCP_CDP_HOST` | `127.0.0.1` | Bind the managed CDP proxy. |
+| `--cdp-allow-remote`, `--no-cdp-allow-remote` | `CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE` | `false` | Permit or deny a non-loopback bind. |
+| `--cdp-advertised-host <host>` | `CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_HOST` | unset | Put a concrete externally reachable host in discovery URLs. Required for wildcard binds. |
+| `--cdp-advertised-scheme <http\|https>` | `CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_SCHEME` | `http` | Publish `http`/`ws` or `https`/`wss` URLs. This does not enable TLS. |
+
+Each CLI value overrides only its matching environment variable. In particular,
+`--no-cdp-enabled` overrides `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED=true`, and
+`--no-cdp-allow-remote` overrides `CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE=true`.
+An enabled session without a port pool is rejected before its upstream child starts.
+An effective false value creates no listener, port lease, or capability.
+
+For stdio, the process value applies directly:
+
+```bash
+cloakbrowser-mcp \
+  --cdp-enabled \
+  --cdp-port-range 9222
+```
+
+For Streamable HTTP, the flat `cdpEnabled` boolean in the authenticated
+`initialize` metadata overrides the process default for that session. Omitting the
+field inherits the process value. These examples explicitly opt one session in and
+another out:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "cdpEnabled": true
+      }
+    }
+  }
+}
+```
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "cdpEnabled": false
+      }
+    }
+  }
+}
+```
+
+One CDP-enabled HTTP session owns one external port lease. Disabled sessions do not
+consume the pool. Allocation is process-local, selects the lowest unleased candidate,
+and fails that session immediately if the selected external port is already occupied.
+Close sessions to release ports or configure a larger range when the pool is exhausted.
+
+Retrieve the current URL from `cloakbrowser_bridge_info`, then pass its
+`structuredContent.cdp.discoveryUrl` to a CDP client such as Playwright's
+`chromium.connectOverCDP()`. Treat that URL as a credential: it includes a random
+per-generation capability and becomes stale after browser replacement. Managed CDP is
+not a Playwright Server endpoint. `chromium.connect()` and the current Open WebUI
+`PLAYWRIGHT_WS_URL` flow are not supported.
+
+`--cdp-advertised-scheme https` publishes `https` discovery and `wss` WebSocket URLs
+only. The bridge does not provide TLS for managed CDP: its external listener and
+Chromium hop remain plaintext HTTP/WebSocket. An operator-owned TLS terminator must
+listen on the same advertised leased port, preserve the advertised `Host` and `Origin`
+authority, and forward one-to-one to that session's plaintext listener.
+
+CDP enablement starts Chromium during MCP initialization so ownership and external
+readiness can be verified. Configure the MCP client initialize timeout to at least 60
+seconds. When managed CDP is enabled, user-supplied
+`CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` must not contain `--remote-debugging-port`,
+`--remote-debugging-address`, or `--remote-debugging-pipe` (including `=` forms).
+Playwright's own internal `--remote-debugging-pipe` remains enabled alongside the
+bridge-managed loopback TCP endpoint.
+
+See [Tools](tools.md#cloakbrowser_bridge_info), [Docker](docker.md#managed-cdp),
+[Security](security.md#managed-cdp-security), and
+[Architecture](architecture.md#managed-cdp-ownership) for discovery state, deployment,
+limits, and restart behavior.
+
 ## CloakBrowser License And GitHub Sign-In
 
 License setup uses the upstream CloakBrowser CLI; `cloakbrowser-mcp` does not

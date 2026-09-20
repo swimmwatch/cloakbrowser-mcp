@@ -84,6 +84,95 @@ ne peut pas joindre son serveur de licences, le démarrage échoue avec l'erreur
 explicite de CloakBrowser. Le pont préserve cette erreur : il ne la masque pas
 et ne bascule pas silencieusement vers un autre navigateur ou niveau de licence.
 
+## CDP géré { #managed-cdp }
+
+L'accès géré au protocole Chrome DevTools (CDP) est une option explicite. Il expose le
+même génération de navigateur Chromium contrôlée par MCP via une capacité porteuse
+découverte URL. Configurer un pool de ports seul n'active pas CDP.
+
+| option CLI | Variable d'environnement | Par défaut | But |
+| --- | --- | --- | --- |
+| `--cdp-enabled`, `--no-cdp-enabled` | `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED` | `false` | Définissez la valeur stdio et le paramètre par défaut de session Streamable HTTP. |
+| `--cdp-port-range <port\|start-end>` | `CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE` | unset | Configurez le pool de ports du proxy externe local au processus. Une session activée loue un port. |
+| `--cdp-host <host>` | `CLOAK_PLAYWRIGHT_MCP_CDP_HOST` | `127.0.0.1` | Liez le proxy CDP géré. |
+| `--cdp-allow-remote`, `--no-cdp-allow-remote` | `CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE` | `false` | Autoriser ou refuser une liaison non loopback. |
+| `--cdp-advertised-host <host>` | `CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_HOST` | non défini | Mettez un hôte concret accessible depuis l'extérieur dans les URL de découverte. Requis pour les liaisons génériques. |
+| `--cdp-advertised-scheme <http\|https>` | `CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_SCHEME` | `http` | Publiez les URL `http`/`ws` ou `https`/`wss`. Cela n'active pas TLS. |
+
+Chaque valeur CLI remplace uniquement sa variable d'environnement correspondante. En particulier,
+`--no-cdp-enabled` remplace `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED=true`, et
+`--no-cdp-allow-remote` remplace `CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE=true`.
+Une session activée sans pool de ports est rejetée avant que son enfant en amont ne démarre.
+Une valeur fausse efficace ne crée aucun écouteur, location de port ou capacité.
+
+Pour stdio, la valeur du processus s'applique directement :
+
+```bash
+cloakbrowser-mcp \
+  --cdp-enabled \
+  --cdp-port-range 9222
+```
+
+Pour Streamable HTTP, le booléen plat `cdpEnabled` dans l'authentifié
+Les métadonnées `initialize` remplacent les paramètres par défaut du processus pour cette session. En omettant le
+le champ hérite de la valeur du processus. Ces exemples choisissent explicitement une session et
+un autre dehors :
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "cdpEnabled": true
+      }
+    }
+  }
+}
+```
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "cdpEnabled": false
+      }
+    }
+  }
+}
+```
+
+Une session HTTP activée par CDP possède un bail de port externe. Les sessions désactivées ne le possèdent pas
+consommer le pool. L'allocation est locale au processus, elle sélectionne le candidat non loué le plus bas,
+et échoue cette session immédiatement si le port externe sélectionné est déjà occupé.
+Fermez les sessions pour libérer des ports ou configurez une plage plus large lorsque le pool est épuisé.
+
+Récupérez le URL actuel à partir de `cloakbrowser_bridge_info`, puis transmettez-le
+`structuredContent.cdp.discoveryUrl` à un client CDP tel que Playwright
+`chromium.connectOverCDP()`. Traitez ce URL comme une référence : il inclut un aléatoire
+la capacité par génération et devient obsolète après le remplacement du navigateur. CDP géré est
+pas un point de terminaison de serveur Playwright. `chromium.connect()` et le Open WebUI actuel
+Les flux `PLAYWRIGHT_WS_URL` ne sont pas pris en charge.
+
+`--cdp-advertised-scheme https` publie `https` découverte et `wss` WebSocket URL
+seulement. Le pont ne fournit pas TLS pour CDP géré : son écouteur externe et
+Chromium hop rester en texte clair HTTP/WebSocket. Un terminateur TLS appartenant à l'opérateur doit
+écouter sur le même port loué annoncé, préserver les `Host` et `Origin` annoncés
+autorité, et transmettre en avant en tête-à-tête à l'auditeur en texte clair de cette session.
+
+L'activation de CDP commence Chromium lors de l'initialisation de MCP afin que la propriété et l'externe
+la préparation peut être vérifiée. Configurez le délai d'initialisation du client MCP à au moins 60
+secondes. Lorsque CDP géré est activé, fourni par l'utilisateur
+`CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` ne doit pas contenir `--remote-debugging-port`,
+`--remote-debugging-address`, ou `--remote-debugging-pipe` (y compris les formes `=`).
+Le propre `--remote-debugging-pipe` interne de Playwright reste activé parallèlement à la
+point de terminaison TCP de boucle locale géré par le pont.
+
+Voir [Outils](tools.md#cloakbrowser_bridge_info), [Docker](docker.md#managed-cdp),
+[Sécurité](security.md#managed-cdp-security), et
+[Architecture](architecture.md#managed-cdp-ownership) pour l'état de découverte, le déploiement,
+limites et comportement de redémarrage.
+
 ## Canal de publication de CloakBrowser
 
 `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` sélectionne le canal de publication du binaire CloakBrowser. La valeur par défaut est `stable`. `preview` demande une version Preview du navigateur Pro et est disponible uniquement avec une licence Pro. Un verrouillage explicite de `CLOAKBROWSER_VERSION` est prioritaire. Si Preview n'est pas disponible pour la plateforme, CloakBrowser revient à Stable.

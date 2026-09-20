@@ -4,12 +4,18 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { WebSocket } from 'ws';
+import { prepareBridgeRuntime } from '@/bridge/config.js';
 import { LOCAL_TOOL_BINARY_INFO, LOCAL_TOOL_BRIDGE_INFO } from '@/bridge/tools.js';
+import { createCdpEndpointConfig } from '@/cdp/config.js';
 import { defaultStreamableHttpOptions } from '@/http/options.js';
+import { createSessionStore } from '@/http/sessionStore.js';
 import { startStreamableHttpBridge, type StreamableHttpBridgeServer } from '@/http/server.js';
 import { HttpStatus } from '@/http/status.js';
+import type { BridgeLogger } from '@/logging/logger.js';
 import { BRIDGE_INITIALIZE_META_KEY, JSON_RPC_VERSION, MCP_SESSION_ID_HEADER } from '@/protocol/constants.js';
+import { createBridgeServer } from '@/server.js';
 import { fakeUpstreamToolNames } from '@tests/fixtures/fake-upstream-tools.js';
 import { fetchHealth, fetchReady, postToolsList } from '@tests/helpers/http.js';
 import { fetchWithTestTls, tlsConfig } from '@tests/helpers/tls.js';
@@ -39,6 +45,342 @@ function canonicalDirectory(directory: string): string {
 }
 
 describe('streamable HTTP bridge', () => {
+  it('emits a fixed warning for managed CDP cleanup failures', async () => {
+    await withFakeUpstream(async () => {
+      const managed = createFakeManagedCdpStarter();
+      const warn = vi.fn();
+      const logger = {
+        debug: vi.fn(),
+        error: vi.fn(),
+        fatal: vi.fn(),
+        info: vi.fn(),
+        trace: vi.fn(),
+        warn,
+      } satisfies BridgeLogger;
+      const start: typeof managed.start = async (options, cdp, allocator) => {
+        const bridge = await managed.start(options, cdp, allocator);
+        options.onCdpCleanupError?.();
+        return bridge;
+      };
+      const server = await startHttpBridge({
+        cdp: createCdpEndpointConfig({ processEnabled: true, portRange: '29050' }),
+        logger,
+        startManagedCdpBridge: start,
+      });
+
+      await initializeRawHttpSession(server);
+
+      expect(warn).toHaveBeenCalledWith({}, 'managed CDP cleanup failed');
+    });
+  });
+
+  it('inherits the process CDP default while preserving an explicit per-session false override', async () => {
+    await withFakeUpstream(async () => {
+      const managed = createFakeManagedCdpStarter();
+      const server = await startHttpBridge({
+        cdp: createCdpEndpointConfig({ processEnabled: true, portRange: '29100-29101' }),
+        sessionMax: 2,
+        startManagedCdpBridge: managed.start,
+      });
+
+      const inheritedSession = await initializeRawHttpSession(server);
+      const disabledSession = await initializeRawHttpSession(server, { cdpEnabled: false });
+
+      expect(managed.ports).toEqual([29100]);
+      expect(await readBridgeInfo(server, inheritedSession)).toMatchObject({
+        cdp: { enabled: true, port: 29100, state: 'ready' },
+      });
+      expect(await readBridgeInfo(server, disabledSession)).toMatchObject({
+        cdp: { enabled: false },
+      });
+    });
+  });
+
+  it('rolls back failed CDP admission without consuming ordinary HTTP session capacity', async () => {
+    await withFakeUpstream(async () => {
+      const managed = createFakeManagedCdpStarter();
+      const server = await startHttpBridge({
+        cdp: createCdpEndpointConfig({ processEnabled: false, portRange: '29200' }),
+        sessionMax: 2,
+        startManagedCdpBridge: managed.start,
+      });
+
+      const enabledSession = await initializeRawHttpSession(server, { cdpEnabled: true });
+      const exhausted = await postJsonRpc(server.url, createInitializeRequest({ cdpEnabled: true }));
+      expect(exhausted.status).toBe(HttpStatus.ServiceUnavailable);
+
+      const disabledSession = await initializeRawHttpSession(server, { cdpEnabled: false });
+      expect(await readBridgeInfo(server, enabledSession)).toMatchObject({
+        cdp: { enabled: true, port: 29200 },
+      });
+      expect(await readBridgeInfo(server, disabledSession)).toMatchObject({
+        cdp: { enabled: false },
+      });
+    });
+  });
+
+  it('checks ordinary HTTP capacity before requesting a managed CDP lease', async () => {
+    await withFakeUpstream(async () => {
+      const managed = createFakeManagedCdpStarter();
+      const server = await startHttpBridge({
+        cdp: createCdpEndpointConfig({ processEnabled: false, portRange: '29250' }),
+        sessionMax: 1,
+        startManagedCdpBridge: managed.start,
+      });
+
+      await initializeRawHttpSession(server, { cdpEnabled: false });
+      const rejected = await postJsonRpc(server.url, createInitializeRequest({ cdpEnabled: true }));
+
+      expect(rejected.status).toBe(HttpStatus.ServiceUnavailable);
+      expect(managed.ports).toEqual([]);
+    });
+  });
+
+  it('keeps two simultaneous managed CDP HTTP sessions isolated', async () => {
+    await withFakeUpstream(async () => {
+      const server = await startHttpBridge({
+        cdp: createCdpEndpointConfig({ processEnabled: false, portRange: '29300-29301' }),
+        sessionMax: 3,
+      });
+
+      const firstSession = await initializeRawHttpSession(server, { cdpEnabled: true });
+      const secondSession = await initializeRawHttpSession(server, { cdpEnabled: true });
+      const disabledSession = await initializeRawHttpSession(server, { cdpEnabled: false });
+      const firstInfo = await readBridgeInfo(server, firstSession);
+      const secondInfo = await readBridgeInfo(server, secondSession);
+      const firstUpstream = await callSessionTool(server, firstSession, 'browser_navigate', {
+        includeCdpMetrics: true,
+        includePid: true,
+        url: 'https://one.example',
+      });
+      const secondUpstream = await callSessionTool(server, secondSession, 'browser_navigate', {
+        includeCdpMetrics: true,
+        includePid: true,
+        url: 'https://two.example',
+      });
+      const disabledUpstream = await callSessionTool(server, disabledSession, 'browser_navigate', {
+        includeCdpMetrics: true,
+        includePid: true,
+        url: 'https://disabled.example',
+      });
+
+      expect(firstInfo).toMatchObject({
+        cdp: {
+          discoveryUrl: expect.stringMatching(/^http:\/\/127\.0\.0\.1:29300\/cdp\//u),
+          enabled: true,
+          port: 29300,
+          state: 'ready',
+        },
+      });
+      expect(secondInfo).toMatchObject({
+        cdp: {
+          discoveryUrl: expect.stringMatching(/^http:\/\/127\.0\.0\.1:29301\/cdp\//u),
+          enabled: true,
+          port: 29301,
+          state: 'ready',
+        },
+      });
+      expect(await readBridgeInfo(server, disabledSession)).toMatchObject({ cdp: { enabled: false } });
+      const firstDiscoveryUrl = (firstInfo.cdp as { discoveryUrl: string }).discoveryUrl;
+      const secondDiscoveryUrl = (secondInfo.cdp as { discoveryUrl: string }).discoveryUrl;
+      expect(new URL(firstDiscoveryUrl).pathname).not.toBe(new URL(secondDiscoveryUrl).pathname);
+      expect(firstUpstream.upstreamPid).not.toBe(secondUpstream.upstreamPid);
+      expect(disabledUpstream.upstreamPid).not.toBe(firstUpstream.upstreamPid);
+      expect(disabledUpstream.upstreamPid).not.toBe(secondUpstream.upstreamPid);
+      expect(firstUpstream.cdpMetrics).toMatchObject({ challengePlacements: 1, tabsCalls: 1 });
+      expect(secondUpstream.cdpMetrics).toMatchObject({ challengePlacements: 1, tabsCalls: 1 });
+      const firstInternalPort = (firstUpstream.cdpMetrics as { internalPort: number }).internalPort;
+      const secondInternalPort = (secondUpstream.cdpMetrics as { internalPort: number }).internalPort;
+      expect(firstInternalPort).not.toBe(secondInternalPort);
+      expect([29300, 29301]).not.toContain(firstInternalPort);
+      expect([29300, 29301]).not.toContain(secondInternalPort);
+      expect(disabledUpstream.cdpMetrics).toEqual({
+        challengePlacements: 0,
+        internalPort: null,
+        tabsCalls: 0,
+      });
+    });
+  });
+
+  it('refreshes only the owning HTTP session on accepted CDP traffic and expires a quiet socket', async () => {
+    await withFakeUpstream(async () => {
+      const store = createSessionStore(defaultStreamableHttpOptions.sessionBackend);
+      const touch = vi.spyOn(store, 'touch');
+      const server = await startHttpBridge({
+        cdp: createCdpEndpointConfig({ processEnabled: false, portRange: '29310' }),
+        sessionIdleTtlMs: 500,
+        sessionMax: 1,
+        sessionStore: store,
+      });
+      const sessionId = await initializeRawHttpSession(server, { cdpEnabled: true });
+      const info = await readBridgeInfo(server, sessionId);
+      const discoveryUrl = (info.cdp as { discoveryUrl: string }).discoveryUrl;
+      const callsBeforeCdp = touch.mock.calls.length;
+
+      const discovery = await fetch(`${discoveryUrl}/json/version`);
+      expect(discovery.status).toBe(HttpStatus.Ok);
+      await vi.waitFor(() => expect(touch).toHaveBeenCalledTimes(callsBeforeCdp + 1));
+      const version = (await discovery.json()) as { webSocketDebuggerUrl: string };
+      const callsBeforeSocket = touch.mock.calls.length;
+
+      const socket = new WebSocket(version.webSocketDebuggerUrl);
+      await new Promise<void>((resolve, reject) => {
+        socket.once('open', resolve);
+        socket.once('error', reject);
+      });
+      const socketClosed = new Promise<void>((resolve) => socket.once('close', () => resolve()));
+      await delay(25);
+      expect(touch).toHaveBeenCalledTimes(callsBeforeSocket);
+
+      socket.send(JSON.stringify({ id: 1, method: 'Browser.getVersion' }));
+      await vi.waitFor(() => expect(touch.mock.calls.length).toBeGreaterThan(callsBeforeSocket));
+
+      await delay(1_100);
+      const ready = await fetchReady(server.url);
+      const readyBody = (await ready.json()) as { sessions: { active: number } };
+      expect(readyBody.sessions.active).toBe(0);
+      await expect(socketClosed).resolves.toBeUndefined();
+    });
+  });
+
+  it('replaces a lost browser generation without changing the successful MCP result', async () => {
+    await withFakeUpstream(async () => {
+      const server = await startHttpBridge({
+        cdp: createCdpEndpointConfig({ processEnabled: false, portRange: '29320' }),
+        sessionMax: 1,
+      });
+      const sessionId = await initializeRawHttpSession(server, { cdpEnabled: true });
+      const firstInfo = await readBridgeInfo(server, sessionId);
+      const firstCdp = firstInfo.cdp as { discoveryUrl: string; generation: number };
+      const initialResult = await callSessionTool(server, sessionId, 'browser_navigate', {
+        includeCdpMetrics: true,
+        includePid: true,
+        url: 'https://initial.example',
+      });
+      const initialPid = initialResult.upstreamPid;
+      expect(initialPid).toEqual(expect.any(Number));
+      const firstDiscovery = await fetch(`${firstCdp.discoveryUrl}/json/version`);
+      const firstVersion = (await firstDiscovery.json()) as { webSocketDebuggerUrl: string };
+      const socket = new WebSocket(firstVersion.webSocketDebuggerUrl);
+      await new Promise<void>((resolve, reject) => {
+        socket.once('open', resolve);
+        socket.once('error', reject);
+      });
+      const socketClosed = new Promise<void>((resolve) => socket.once('close', () => resolve()));
+
+      socket.send(JSON.stringify({ id: 1, method: 'Browser.close' }));
+      await expect(socketClosed).resolves.toBeUndefined();
+      expect(await readBridgeInfo(server, sessionId)).toMatchObject({
+        cdp: {
+          activeConnections: 0,
+          discoveryUrl: null,
+          generation: firstCdp.generation,
+          state: 'unavailable',
+        },
+      });
+      expect((await fetch(`${firstCdp.discoveryUrl}/json/version`)).status).toBe(HttpStatus.NotFound);
+
+      const expectedArguments = {
+        includeCdpMetrics: true,
+        includePid: true,
+        url: 'https://replacement.example',
+      };
+      const result = await callSessionTool(server, sessionId, 'browser_navigate', expectedArguments);
+      expect(result).toMatchObject({
+        arguments: expectedArguments,
+        forwarded: true,
+        name: 'browser_navigate',
+      });
+      expect(result.upstreamPid).toEqual(expect.any(Number));
+      expect(result.upstreamPid).not.toBe(initialPid);
+      expect(result.cdpMetrics).toMatchObject({ challengePlacements: 1, tabsCalls: 1 });
+      expect((result.cdpMetrics as { internalPort: number }).internalPort).not.toBe(
+        (initialResult.cdpMetrics as { internalPort: number }).internalPort,
+      );
+
+      const secondInfo = await readBridgeInfo(server, sessionId);
+      const secondCdp = secondInfo.cdp as { discoveryUrl: string; generation: number };
+      expect(secondCdp.generation).toBe(firstCdp.generation + 1);
+      expect(secondCdp.discoveryUrl).not.toBe(firstCdp.discoveryUrl);
+      expect((await fetch(`${firstCdp.discoveryUrl}/json/version`)).status).toBe(HttpStatus.NotFound);
+      expect((await fetch(`${secondCdp.discoveryUrl}/json/version`)).status).toBe(HttpStatus.Ok);
+
+      const secondVersionResponse = await fetch(`${secondCdp.discoveryUrl}/json/version`);
+      const secondVersion = (await secondVersionResponse.json()) as {
+        webSocketDebuggerUrl: string;
+      };
+      const secondSocket = new WebSocket(secondVersion.webSocketDebuggerUrl);
+      await new Promise<void>((resolve, reject) => {
+        secondSocket.once('open', resolve);
+        secondSocket.once('error', reject);
+      });
+      const secondSocketClosed = new Promise<void>((resolve) => secondSocket.once('close', () => resolve()));
+      secondSocket.send(JSON.stringify({ id: 2, method: 'Browser.close' }));
+      await expect(secondSocketClosed).resolves.toBeUndefined();
+
+      const [firstConcurrent, secondConcurrent] = await Promise.all([
+        callSessionTool(server, sessionId, 'browser_navigate', {
+          callId: 'concurrent-a',
+          delayMs: 25,
+          includeCdpMetrics: true,
+          includePid: true,
+          url: 'https://concurrent-a.example',
+        }),
+        callSessionTool(server, sessionId, 'browser_snapshot', {
+          callId: 'concurrent-b',
+          includeCdpMetrics: true,
+          includePid: true,
+        }),
+      ]);
+      expect(firstConcurrent.upstreamPid).toBe(secondConcurrent.upstreamPid);
+      expect(firstConcurrent.upstreamPid).not.toBe(result.upstreamPid);
+      expect(firstConcurrent.toolCallCount).toBe(1);
+      expect(secondConcurrent.toolCallCount).toBe(1);
+      expect(firstConcurrent.cdpMetrics).toMatchObject({
+        challengePlacements: 1,
+        tabsCalls: 1,
+      });
+      expect(secondConcurrent.cdpMetrics).toMatchObject({
+        challengePlacements: 1,
+        tabsCalls: 1,
+      });
+      const thirdInfo = await readBridgeInfo(server, sessionId);
+      expect(thirdInfo).toMatchObject({
+        cdp: {
+          generation: secondCdp.generation + 1,
+          port: 29320,
+          state: 'ready',
+        },
+      });
+    });
+  });
+
+  it('keeps independent CDP reads usable while an MCP browser command is in flight', async () => {
+    await withFakeUpstream(async () => {
+      const server = await startHttpBridge({
+        cdp: createCdpEndpointConfig({ processEnabled: false, portRange: '29330' }),
+        sessionMax: 1,
+      });
+      const sessionId = await initializeRawHttpSession(server, { cdpEnabled: true });
+      const info = await readBridgeInfo(server, sessionId);
+      const discoveryUrl = (info.cdp as { discoveryUrl: string }).discoveryUrl;
+
+      const slowMcpCall = callSessionTool(server, sessionId, 'browser_navigate', {
+        delayMs: 600,
+        url: 'https://slow.example',
+      });
+      await delay(25);
+      const concurrentCdp = await Promise.race([
+        fetch(`${discoveryUrl}/json/version`),
+        delay(250).then(() => 'timeout' as const),
+      ]);
+
+      expect(concurrentCdp).not.toBe('timeout');
+      expect((concurrentCdp as Response).status).toBe(HttpStatus.Ok);
+      await expect(slowMcpCall).resolves.toMatchObject({ forwarded: true });
+    });
+  });
+
   it('initializes a session, lists tools, and forwards tool calls', async () => {
     await withFakeUpstream(async () => {
       const server = await startHttpBridge();
@@ -512,6 +854,86 @@ describe('streamable HTTP bridge', () => {
   });
 });
 
+function createFakeManagedCdpStarter(): {
+  ports: number[];
+  start: NonNullable<Parameters<typeof startStreamableHttpBridge>[0]['startManagedCdpBridge']>;
+} {
+  const ports: number[] = [];
+  const start: NonNullable<Parameters<typeof startStreamableHttpBridge>[0]['startManagedCdpBridge']> = async (
+    options,
+    cdp,
+    allocator,
+  ) => {
+    if (!allocator) throw new Error('Test managed CDP allocator is required');
+    const lease = await allocator.acquire({
+      host: cdp.bindHost,
+      bind: async (port) => {
+        ports.push(port);
+        return { close: async () => undefined };
+      },
+    });
+    try {
+      const runtime = await prepareBridgeRuntime(options.runtimeOptions);
+      await options.beforeConnect?.(runtime);
+      const bridge = await createBridgeServer({
+        ...options,
+        cdpInfo: () => ({
+          activeConnections: 0,
+          advertisedHost: cdp.advertisedHost ?? null,
+          bindHost: cdp.bindHost,
+          discoveryUrl: `${cdp.advertisedScheme}://${cdp.advertisedHost ?? cdp.bindHost}:${lease.port}/cdp/test-capability`,
+          enabled: true,
+          generation: 1,
+          port: lease.port,
+          state: 'ready',
+        }),
+        runtime,
+      });
+      return {
+        ...bridge,
+        async dispose() {
+          await bridge.dispose();
+          await lease.release();
+        },
+      };
+    } catch (error) {
+      await lease.release();
+      throw error;
+    }
+  };
+  return { ports, start };
+}
+
+async function readBridgeInfo(
+  server: StreamableHttpBridgeServer,
+  sessionId: string,
+): Promise<Record<string, unknown>> {
+  return await callSessionTool(server, sessionId, LOCAL_TOOL_BRIDGE_INFO, {});
+}
+
+async function callSessionTool(
+  server: StreamableHttpBridgeServer,
+  sessionId: string,
+  name: string,
+  arguments_: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const response = await postJsonRpc(
+    server.url,
+    {
+      jsonrpc: JSON_RPC_VERSION,
+      id: crypto.randomUUID(),
+      method: 'tools/call',
+      params: { name, arguments: arguments_ },
+    },
+    sessionId,
+  );
+  expect(response.status).toBe(HttpStatus.Ok);
+  const body = (await readJsonRpcResponse(response)) as {
+    result?: { structuredContent?: Record<string, unknown> };
+  };
+  return body.result?.structuredContent ?? {};
+}
+
 async function startHttpBridge(
   overrides: Partial<Parameters<typeof startStreamableHttpBridge>[0]> = {},
 ): Promise<StreamableHttpBridgeServer> {
@@ -820,4 +1242,8 @@ async function withFakeUpstream(
 function restoreEnv(name: string, value: string | undefined): void {
   if (value === undefined) delete process.env[name];
   else process.env[name] = value;
+}
+
+async function delay(milliseconds: number): Promise<void> {
+  await new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
 }

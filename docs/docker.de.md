@@ -125,6 +125,62 @@ Die hostseitige Bindung `127.0.0.1:3000` sorgt dafür, dass der Endpunkt lokal b
 Streamable HTTP stellt feste `GET /healthz` und `GET /readyz`-Probes auf demselben Host und Port. Wenn `--http-auth-token` oder `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` konfiguriert sind, benötigen die Probes denselben `Authorization: Bearer ...`-Header wie MCP-Anfragen.
 Alle HTTP-Transportflags und Umgebungsvariablen finden Sie in der generierten [CLI-Referenz](generated/cli.md).
 
+## Verwaltete CDP { #managed-cdp }
+
+Veröffentlichen Sie den konfigurierten Managed-CDP-Bereich eins zu eins. Dieses stdio-Beispiel aktiviert eins
+Sitzung und hält jeden Host-Port an die Loopback-Adresse gebunden:
+
+```bash
+docker run --rm -i \
+  -p 127.0.0.1:9222-9231:9222-9231 \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --cdp-enabled \
+  --cdp-port-range 9222-9231 \
+  --cdp-host 0.0.0.0 \
+  --cdp-allow-remote \
+  --cdp-advertised-host 127.0.0.1
+```
+
+`--cdp-host 0.0.0.0` wird für Docker-Portweiterleitung benötigt, daher die explizite
+`--cdp-allow-remote` Opt-in und konkretes `--cdp-advertised-host` sind ebenfalls erforderlich.
+Weisen Sie den Bereich nicht auf andere Host-Portnummern um: Discovery-URLs enthalten die
+Geleaster Port und jeder veröffentlichte Port müssen eins-zu-eins zu ihrer eigenen Sitzung geleitet werden.
+
+Für Multi-Session Streamable HTTP konfigurieren und veröffentlichen Sie den Pool, ohne das Setzen des
+Standardverfahren, falls Kunden sich individuell anmelden sollen:
+
+```bash
+docker run --rm \
+  -p 127.0.0.1:3000:3000 \
+  -p 127.0.0.1:9222-9231:9222-9231 \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http \
+  --http-host 0.0.0.0 \
+  --http-port 3000 \
+  --cdp-port-range 9222-9231 \
+  --cdp-host 0.0.0.0 \
+  --cdp-allow-remote \
+  --cdp-advertised-host 127.0.0.1
+```
+
+Eine authentifizierte `initialize`-Anfrage mit `cdpEnabled: true`-Leasing mietet eine veröffentlichte
+Port. Ein ausgelassener Wert übernimmt den Standard des Prozesses, während `cdpEnabled: false`
+weist ausdrücklich ab und verbraucht keinen CDP-Port. Poolerschöpfung lehnt nur einen neuen ab
+CDP-aktivierte Sitzung; sie verringert nicht die Kapazität für deaktivierte Sitzungen.
+
+Lesen Sie den fähigkeitsführenden URL von `cloakbrowser_bridge_info`. Legen Sie ihn nicht hinein
+Container-Protokolle oder Gesundheitsprüfungen. Verbinden Sie sich mit einem CDP API wie
+`chromium.connectOverCDP()`; der URL ist nicht kompatibel mit Playwright
+`chromium.connect()` oder der aktuelle Open WebUI-Fluss.
+
+`--cdp-advertised-scheme https` ändert veröffentlichte URLs zu `https`/`wss`, aber die
+Die Brücke stellt TLS für verwaltete CDP nicht bereit. Verwenden Sie einen vom Betreiber betriebenen TLS-Abschluss, der
+belegt denselben beworbenen Port im externen Netzwerknamensraum, bewahrt
+`Host`/`Origin` und leitet eins zu eins an den Klartext-Bridge-Listener weiter. Der
+bridge-to-Chromium Hop bleibt auch Klartext-Loopback-Verkehr.
+
 ## GeoIP-Proxy-Abgleich
 
 Docker verwendet dieselben Proxy- und GeoIP-Umgebungsvariablen wie npm. Aktivieren Sie

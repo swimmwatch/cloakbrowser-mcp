@@ -54,6 +54,95 @@ tags:
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | Adds `--no-sandbox` and disables Chromium sandboxing. |
 
+## Управляемый CDP { #managed-cdp }
+
+Управляемый доступ к протоколу Chrome DevTools (CDP) является явным выбором. Он открывает
+тот же браузер Chromium, управляемый MCP через обладающий возможностями
+обнаружение URL. Настройка только пула портов не включает CDP.
+
+| опция CLI | Переменная окружения | По умолчанию | Цель |
+| --- | --- | --- | --- |
+| `--cdp-enabled`, `--no-cdp-enabled` | `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED` | `false` | Установите значение stdio и значение по умолчанию сеанса Streamable HTTP. |
+| `--cdp-port-range <port\|start-end>` | `CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE` | снять | Настройте локальный порт прокси для процесса. Каждая активная сессия использует один порт. |
+| `--cdp-host <host>` | `CLOAK_PLAYWRIGHT_MCP_CDP_HOST` | `127.0.0.1` | Привяжите управляемый прокси CDP. |
+| `--cdp-allow-remote`, `--no-cdp-allow-remote` | `CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE` | `false` | Разрешить или запретить привязку, не являющуюся петлевой. |
+| `--cdp-advertised-host <host>` | `CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_HOST` | снять | Укажите конкретный доступный снаружи хост в URL-адресах обнаружения. Требуется для привязки с подстановочными знаками. |
+| `--cdp-advertised-scheme <http\|https>` | `CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_SCHEME` | `http` | Публикуйте URL-адреса `http`/`ws` или `https`/`wss`. Это не включает TLS. |
+
+Каждое значение CLI переопределяет только соответствующую переменную окружения. В частности,
+`--no-cdp-enabled` переопределяет `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED=true`, и
+`--no-cdp-allow-remote` перезаписывает `CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE=true`.
+Включённая сессия без пула портов отвергается до того, как начнёт работу её дочерний поток вверх по цепочке.
+Эффективное ложное значение не создаёт ни слушателя, ни аренды порта, ни возможности.
+
+Для stdio значение процесса применяется напрямую:
+
+```bash
+cloakbrowser-mcp \
+  --cdp-enabled \
+  --cdp-port-range 9222
+```
+
+Для Streamable HTTP, плоская булева переменная `cdpEnabled` в аутентифицированном
+Метаданные `initialize` переопределяют настройки процесса по умолчанию для этой сессии. Пропуск
+поле наследует значение процесса. Эти примеры явно выбирают одну сессию и
+ещё один вариант:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "cdpEnabled": true
+      }
+    }
+  }
+}
+```
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "cdpEnabled": false
+      }
+    }
+  }
+}
+```
+
+Одна сессия CDP с включенным HTTP владеет одной арендой внешнего порта. Отключенные сессии не владеют.
+потреблять пул. Выделение локально для процесса, выбирает наименьшего неарендованного кандидата,
+и немедленно завершает эту сессию с ошибкой, если выбранный внешний порт уже занят.
+Закрывайте сессии, чтобы освободить порты, или настройте больший диапазон, когда пул исчерпан.
+
+Получите текущий URL из `cloakbrowser_bridge_info`, затем передайте его
+`structuredContent.cdp.discoveryUrl` клиенту CDP, такому как Playwright
+`chromium.connectOverCDP()`. Рассматривайте этот URL как учетные данные: он включает случайное
+постоянная возможность на одно поколение и устаревает после замены браузера. Управляемый CDP является
+не конечная точка сервера Playwright. `chromium.connect()` и текущая Open WebUI
+Потоки `PLAYWRIGHT_WS_URL` не поддерживаются.
+
+`--cdp-advertised-scheme https` публикует `https` открытие и `wss` WebSocket URL-адреса
+только. Мост не предоставляет TLS для управляемого CDP: его внешний слушатель и
+Chromium хоп остается в открытом виде HTTP/WebSocket. Стопор TLS, принадлежащий оператору, должен
+слушать на том же объявленном арендованном порту, сохранять объявленные `Host` и `Origin`
+власть и пересылать один к одному этому сессионному слушателю открытого текста.
+
+Включение CDP начинается с Chromium во время инициализации MCP, поэтому владение и внешнее
+готовность может быть проверена. Настройте тайм-аут инициализации клиента MCP как минимум на 60
+секунды. Когда включен управляемый CDP, поставляемый пользователем
+`CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` не должен содержать `--remote-debugging-port`,
+`--remote-debugging-address` или `--remote-debugging-pipe` (включая формы `=`).
+Собственная внутренняя `--remote-debugging-pipe` Playwright остается включенной вместе с
+управляемая мостом петлевая TCP-точка
+
+Смотрите [Инструменты](tools.md#cloakbrowser_bridge_info), [Docker](docker.md#managed-cdp),
+[Безопасность](security.md#managed-cdp-security), и
+[Архитектура](architecture.md#managed-cdp-ownership) для состояния обнаружения, развертывания,
+ограничения и поведение при перезапуске.
+
 ## Лицензия CloakBrowser и вход через GitHub
 
 Для настройки лицензии используется CLI исходного проекта CloakBrowser;

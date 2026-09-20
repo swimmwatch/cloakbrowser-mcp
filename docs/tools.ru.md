@@ -45,6 +45,56 @@ tags:
 
 Возвращает структурированные метаданные моста:
 
+Объект добавления `structuredContent.cdp` сообщает управляемый CDP вызывающей сессии
+состояние:
+
+```json
+{ "enabled": false }
+```
+
+```json
+{
+  "enabled": true,
+  "state": "ready",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": "http://127.0.0.1:9222/cdp/<capability>",
+  "activeConnections": 0
+}
+```
+
+```json
+{
+  "enabled": true,
+  "state": "unavailable",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": null,
+  "activeConnections": 0
+}
+```
+
+`generation` увеличивается, а `discoveryUrl` вращается после замены браузера.
+`activeConnections` учитывает принятые проксированные подключения WebSocket, не раскрывая
+идентификаторы клиентов, целевые идентификаторы или содержимое протокола. Обращайтесь с каждым ненулевым обнаружением URL
+в качестве удостоверения.
+
+Используйте обнаружение URL с клиентом, поддерживающим CDP:
+
+```ts
+import { chromium } from 'playwright';
+
+const browser = await chromium.connectOverCDP(discoveryUrl);
+```
+
+Управляемый CDP не является протоколом сервера Playwright. Playwright
+Ожидается интеграция `chromium.connect()` и текущей Open WebUI `PLAYWRIGHT_WS_URL`
+конечная точка сервера Playwright и не совместима с этим URL.
+
 - имя и версию MCP-сервера;
 - режим выполнения;
 - пакет и версию upstream Playwright MCP;

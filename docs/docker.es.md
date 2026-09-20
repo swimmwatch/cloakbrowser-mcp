@@ -125,6 +125,62 @@ La conexión `127.0.0.1:3000` del lado del host mantiene el punto final en el en
 Streamable HTTP expone las pruebas fijas `GET /healthz` y `GET /readyz` en el mismo host y puerto. Si se configura `--http-auth-token` o `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN`, las sondas requieren el mismo encabezado `Authorization: Bearer ...` que las solicitudes MCP.
 Consulte la [Referencia de la CLI](generated/cli.md) generada para conocer todos los indicadores de transporte HTTP y las variables de entorno.
 
+## Gestionado CDP { #managed-cdp }
+
+Publique el rango gestionado CDP configurado uno a uno. Este ejemplo de stdio permite uno
+sesión y mantiene cada puerto del host vinculado al bucle local:
+
+```bash
+docker run --rm -i \
+  -p 127.0.0.1:9222-9231:9222-9231 \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --cdp-enabled \
+  --cdp-port-range 9222-9231 \
+  --cdp-host 0.0.0.0 \
+  --cdp-allow-remote \
+  --cdp-advertised-host 127.0.0.1
+```
+
+`--cdp-host 0.0.0.0` es necesario para el reenvío de puertos de Docker, por lo que el explícito
+También se requiere la participación voluntaria `--cdp-allow-remote` y el concreto `--cdp-advertised-host`.
+No reasigne el rango a diferentes números de puerto del host: las URL de descubrimiento contienen el
+El puerto arrendado y cada puerto publicado deben enrutarse uno a uno a su sesión propietaria.
+
+Para Streamable HTTP de múltiples sesiones, configure y publique el grupo sin establecer el
+procesar por defecto si los clientes deben optar individualmente:
+
+```bash
+docker run --rm \
+  -p 127.0.0.1:3000:3000 \
+  -p 127.0.0.1:9222-9231:9222-9231 \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http \
+  --http-host 0.0.0.0 \
+  --http-port 3000 \
+  --cdp-port-range 9222-9231 \
+  --cdp-host 0.0.0.0 \
+  --cdp-allow-remote \
+  --cdp-advertised-host 127.0.0.1
+```
+
+Una solicitud autenticada `initialize` con arrendamientos `cdpEnabled: true` publica uno
+puerto. Un valor omitido hereda el valor predeterminado del proceso, mientras que `cdpEnabled: false`
+se excluye explícitamente y no consume ningún puerto CDP. La saturación de la reserva rechaza solo uno nuevo
+Sesión habilitada con CDP; no reduce la capacidad de las sesiones deshabilitadas.
+
+Lea el URL portador de capacidad desde `cloakbrowser_bridge_info`. No lo ponga dentro
+registros de contenedores o verificaciones de estado. Conéctese con un CDP API como
+`chromium.connectOverCDP()`; el URL no es compatible con Playwright
+`chromium.connect()` o el flujo actual Open WebUI.
+
+`--cdp-advertised-scheme https` cambia las URLs publicadas a `https`/`wss`, pero el
+el puente no proporciona TLS para CDP gestionado. Utilice un terminador TLS propiedad del operador que
+ocupa el mismo puerto anunciado en el espacio de nombres de la red externa, conserva
+`Host`/`Origin`, y reenvía uno a uno al oyente del puente de texto plano. El
+El puente a Chromium hop también mantiene el tráfico de bucle invertido en texto plano.
+
 ## Coincidencia de proxies GeoIP
 
 Docker utiliza las mismas variables de entorno de proxy y GeoIP que npm. Activa

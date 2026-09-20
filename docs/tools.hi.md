@@ -45,6 +45,56 @@ CloakBrowser package, current platform, cache directory, expected binary path, i
 
 Structured bridge metadata लौटाता है:
 
+एडीटिव `structuredContent.cdp` ऑब्जेक्ट कॉलिंग सेशन के प्रबंधित CDP की रिपोर्ट करता है
+राज्य:
+
+```json
+{ "enabled": false }
+```
+
+```json
+{
+  "enabled": true,
+  "state": "ready",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": "http://127.0.0.1:9222/cdp/<capability>",
+  "activeConnections": 0
+}
+```
+
+```json
+{
+  "enabled": true,
+  "state": "unavailable",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": null,
+  "activeConnections": 0
+}
+```
+
+`generation` बढ़ता है और ब्राउज़र बदलने के बाद `discoveryUrl` घूमता है।
+`activeConnections` एक्सेप्ट किए गए प्रॉक्सी किए गए WebSocket कनेक्शनों की गिनती करता है बिना एक्सपोज़ किए
+क्लाइंट पहचान, लक्षित आईडी, या प्रोटोकॉल सामग्री। हर गैर-शून्य खोज URL से निपटें
+एक प्रमाणपत्र के रूप में।
+
+CDP-सक्षम क्लाइंट के साथ URL खोज का उपयोग करें:
+
+```ts
+import { chromium } from 'playwright';
+
+const browser = await chromium.connectOverCDP(discoveryUrl);
+```
+
+मैनेज्ड CDP Playwright सर्वर प्रोटोकॉल नहीं है। Playwright
+`chromium.connect()` और वर्तमान Open WebUI `PLAYWRIGHT_WS_URL` एकीकरण अपेक्षा
+एक Playwright सर्वर एंडपॉइंट और इस URL के साथ संगत नहीं हैं।
+
 - MCP server name और version;
 - runtime mode;
 - upstream Playwright MCP package और version;

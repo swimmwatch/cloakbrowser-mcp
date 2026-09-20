@@ -1,5 +1,6 @@
 import { Command, InvalidArgumentError, Option } from 'commander';
 import { type HumanPreset, humanPresets, type ReleaseChannel, releaseChannels } from '#src/bridge/config';
+import { createCdpEndpointConfig, parseCdpPortRange, resolveCdpBooleanSetting } from '#src/cdp/config';
 import {
   BRIDGE_TRANSPORT_STDIO,
   type BridgeTransportMode,
@@ -18,6 +19,8 @@ import {
 } from '#src/http/options';
 
 export const cliDescription = 'Playwright MCP bridge backed by CloakBrowser.';
+export const cdpRemoteWarning =
+  'warning: managed CDP enables an unencrypted privileged browser-control surface; use a secured TLS reverse proxy or an isolated network.\n';
 
 interface CommanderCliOptions {
   transport: BridgeTransportMode;
@@ -37,6 +40,12 @@ interface CommanderCliOptions {
   httpSessionBackend: HttpSessionBackend;
   httpSessionIdleTtlMs: number;
   httpSessionMax: number;
+  cdpEnabled: boolean;
+  cdpPortRange?: string;
+  cdpHost: string;
+  cdpAllowRemote: boolean;
+  cdpAdvertisedHost?: string;
+  cdpAdvertisedScheme: string;
 }
 
 interface DoctorCliOptions {
@@ -207,6 +216,59 @@ export const cliOptionDefinitions: readonly CliOptionDefinition[] = [
     defaultValue: defaultStreamableHttpOptions.sessionMax,
     parser: parsePositiveInteger('HTTP session max'),
   },
+  {
+    name: 'cdpEnabled',
+    flags: '--cdp-enabled, --no-cdp-enabled',
+    description: 'Enable managed CDP for stdio and as the HTTP session default.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED',
+    group: 'Managed CDP',
+    defaultValue: false,
+  },
+  {
+    name: 'cdpPortRange',
+    flags: '--cdp-port-range <port|start-end>',
+    description: 'Managed CDP external proxy port or inclusive port range.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE',
+    group: 'Managed CDP',
+    parser: (value) => {
+      parseCdpPortRange(value);
+      return value;
+    },
+  },
+  {
+    name: 'cdpHost',
+    flags: '--cdp-host <host>',
+    description: 'Managed CDP external proxy bind host.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_CDP_HOST',
+    group: 'Managed CDP',
+    defaultValue: '127.0.0.1',
+    parser: parseNonEmptyString('CDP bind host must not be empty'),
+  },
+  {
+    name: 'cdpAllowRemote',
+    flags: '--cdp-allow-remote, --no-cdp-allow-remote',
+    description: 'Allow managed CDP to bind to a non-loopback host.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE',
+    group: 'Managed CDP',
+    defaultValue: false,
+  },
+  {
+    name: 'cdpAdvertisedHost',
+    flags: '--cdp-advertised-host <host>',
+    description: 'Connectable host published in managed CDP discovery URLs.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_HOST',
+    group: 'Managed CDP',
+    parser: parseNonEmptyString('CDP advertised host must not be empty'),
+  },
+  {
+    name: 'cdpAdvertisedScheme',
+    flags: '--cdp-advertised-scheme <scheme>',
+    description: 'Published managed CDP discovery scheme; does not enable TLS.',
+    env: 'CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_SCHEME',
+    group: 'Managed CDP',
+    defaultValue: 'http',
+    choices: ['http', 'https'],
+  },
 ];
 
 export function createCliCommand(version: string, options: CreateCliCommandOptions = {}): Command {
@@ -229,6 +291,7 @@ export function createCliCommand(version: string, options: CreateCliCommandOptio
 }
 
 export function parseCliOptions(args: readonly string[]): CliOptions {
+  validateCdpBooleanFlagConflicts(args);
   const command = createCliCommand('0.0.0');
   command.exitOverride();
   command.configureOutput({
@@ -236,11 +299,12 @@ export function parseCliOptions(args: readonly string[]): CliOptions {
     writeErr: () => undefined,
   });
   command.parse(args, { from: 'user' });
-  return readCliOptions(command);
+  return toCliOptions(command.opts<CommanderCliOptions>(), command, args);
 }
 
 export function readCliOptions(command: Command): CliOptions {
-  return toCliOptions(command.opts<CommanderCliOptions>(), command);
+  validateCdpBooleanFlagConflicts(process.argv);
+  return toCliOptions(command.opts<CommanderCliOptions>(), command, process.argv);
 }
 
 export function renderCliReferenceMarkdown(version: string): string {
@@ -302,7 +366,11 @@ function createCommanderOption(definition: CliOptionDefinition): Option {
   return option;
 }
 
-function toCliOptions(options: CommanderCliOptions, command: Command): CliOptions {
+function toCliOptions(
+  options: CommanderCliOptions,
+  command: Command,
+  rawArgs: readonly string[],
+): CliOptions {
   const tls = normalizeTlsOptions(options);
   validateHttpProtocolOptions(options.httpProtocol, tls);
   return {
@@ -316,6 +384,26 @@ function toCliOptions(options: CommanderCliOptions, command: Command): CliOption
       humanPreset: options.humanPreset,
       releaseChannel: options.releaseChannel,
     },
+    cdp: createCdpEndpointConfig({
+      processEnabled: resolveCliBooleanSetting(
+        rawArgs,
+        '--cdp-enabled',
+        '--no-cdp-enabled',
+        process.env.CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED,
+        'CDP enabled',
+      ),
+      portRange: optionalString(options.cdpPortRange),
+      bindHost: options.cdpHost,
+      allowRemote: resolveCliBooleanSetting(
+        rawArgs,
+        '--cdp-allow-remote',
+        '--no-cdp-allow-remote',
+        process.env.CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE,
+        'CDP allow remote',
+      ),
+      advertisedHost: optionalString(options.cdpAdvertisedHost),
+      advertisedScheme: options.cdpAdvertisedScheme,
+    }),
     http: {
       protocol: options.httpProtocol,
       host: options.httpHost,
@@ -329,6 +417,31 @@ function toCliOptions(options: CommanderCliOptions, command: Command): CliOption
       bodyLimitBytes: defaultStreamableHttpOptions.bodyLimitBytes,
     },
   };
+}
+
+function resolveCliBooleanSetting(
+  args: readonly string[],
+  positiveFlag: string,
+  negativeFlag: string,
+  environmentValue: string | undefined,
+  label: string,
+): boolean {
+  return resolveCdpBooleanSetting({
+    defaultValue: false,
+    environmentValue,
+    label,
+    positiveCli: args.includes(positiveFlag),
+    negativeCli: args.includes(negativeFlag),
+  });
+}
+
+function validateCdpBooleanFlagConflicts(args: readonly string[]): void {
+  if (args.includes('--cdp-enabled') && args.includes('--no-cdp-enabled')) {
+    throw new InvalidArgumentError('CDP enabled CLI flags conflict');
+  }
+  if (args.includes('--cdp-allow-remote') && args.includes('--no-cdp-allow-remote')) {
+    throw new InvalidArgumentError('CDP allow remote CLI flags conflict');
+  }
 }
 
 function readRawBooleanEnv(command: Command, name: keyof CommanderCliOptions): string | undefined {

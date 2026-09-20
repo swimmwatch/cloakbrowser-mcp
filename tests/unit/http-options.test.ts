@@ -1,6 +1,7 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import {
+  cdpRemoteWarning,
   cliOptionDefinitions,
   createCliCommand,
   parseCliOptions,
@@ -20,6 +21,92 @@ import {
 const cliEnvNames = cliOptionDefinitions.map((definition) => definition.env);
 
 describe('Commander CLI options', () => {
+  it('parses managed CDP settings with CLI precedence and explicit negative overrides', () => {
+    withCliEnv(
+      {
+        CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED: 'true',
+        CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE: 'true',
+        CLOAK_PLAYWRIGHT_MCP_CDP_HOST: '0.0.0.0',
+        CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE: '9800-9802',
+        CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_HOST: 'env.example.test',
+        CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_SCHEME: 'https',
+      },
+      () => {
+        expect(
+          parseCliOptions([
+            '--no-cdp-enabled',
+            '--no-cdp-allow-remote',
+            '--cdp-host',
+            '127.0.0.1',
+            '--cdp-port-range',
+            '9900',
+            '--cdp-advertised-host',
+            'cli.example.test',
+            '--cdp-advertised-scheme',
+            'http',
+          ]).cdp,
+        ).toEqual({
+          allowRemote: false,
+          advertisedHost: 'cli.example.test',
+          advertisedScheme: 'http',
+          bindHost: '127.0.0.1',
+          portRange: { start: 9900, end: 9900 },
+          processEnabled: false,
+        });
+      },
+    );
+  });
+
+  it('rejects conflicting managed CDP boolean flags', () => {
+    withCliEnv({}, () => {
+      expect(() => parseCliOptions(['--cdp-enabled', '--no-cdp-enabled'])).toThrow(
+        'CDP enabled CLI flags conflict',
+      );
+      expect(() => parseCliOptions(['--cdp-allow-remote', '--no-cdp-allow-remote'])).toThrow(
+        'CDP allow remote CLI flags conflict',
+      );
+    });
+  });
+
+  it('validates managed CDP CLI prerequisites before runtime startup', () => {
+    withCliEnv({}, () => {
+      expect(() => parseCliOptions(['--cdp-enabled'])).toThrow(
+        'CDP port range is required when managed CDP is enabled',
+      );
+      expect(() => parseCliOptions(['--cdp-port-range', '9900', '--cdp-host', '0.0.0.0'])).toThrow(
+        'CDP wildcard bind host requires an advertised host',
+      );
+      expect(() => parseCliOptions(['--cdp-port-range', '9900', '--cdp-host', '192.0.2.10'])).toThrow(
+        'CDP bind host requires remote access opt-in',
+      );
+      expect(() => parseCliOptions(['--cdp-advertised-scheme', 'HTTP'])).toThrow(
+        'Allowed choices are http, https',
+      );
+    });
+  });
+
+  it('renders all public managed CDP flags in generated CLI help', () => {
+    const reference = renderCliReferenceMarkdown('0.0.0');
+    for (const flag of [
+      '--cdp-enabled',
+      '--no-cdp-enabled',
+      '--cdp-port-range',
+      '--cdp-host',
+      '--cdp-allow-remote',
+      '--no-cdp-allow-remote',
+      '--cdp-advertised-host',
+      '--cdp-advertised-scheme',
+    ]) {
+      expect(reference).toContain(flag);
+    }
+  });
+
+  it('renders a redacted operator warning for remote managed CDP', () => {
+    expect(cdpRemoteWarning).toContain('unencrypted privileged browser-control surface');
+    expect(cdpRemoteWarning).toContain('TLS reverse proxy or an isolated network');
+    expect(cdpRemoteWarning).not.toMatch(/\/cdp\/|webSocketDebuggerUrl|cookie|profile/iu);
+  });
+
   it('uses stdio and loopback HTTP defaults', () => {
     withCliEnv({}, () => {
       const options = parseCliOptions([]);

@@ -46,6 +46,56 @@ Devuelve información estructurada sobre el paquete CloakBrowser, la plataforma 
 
 Devuelve metadatos estructurados del puente:
 
+El objeto aditivo `structuredContent.cdp` informa sobre el CDP administrado de la sesión que llama
+estado:
+
+```json
+{ "enabled": false }
+```
+
+```json
+{
+  "enabled": true,
+  "state": "ready",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": "http://127.0.0.1:9222/cdp/<capability>",
+  "activeConnections": 0
+}
+```
+
+```json
+{
+  "enabled": true,
+  "state": "unavailable",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": null,
+  "activeConnections": 0
+}
+```
+
+`generation` aumenta y `discoveryUrl` rota después del reemplazo del navegador.
+`activeConnections` cuenta las conexiones proxied WebSocket aceptadas sin exponer
+identidades de clientes, IDs de destino o contenido del protocolo. Trate cada descubrimiento no nulo URL
+como una credencial.
+
+Use el descubrimiento URL con un cliente compatible con CDP:
+
+```ts
+import { chromium } from 'playwright';
+
+const browser = await chromium.connectOverCDP(discoveryUrl);
+```
+
+CDP administrado no es el protocolo del servidor Playwright. Playwright
+`chromium.connect()` y la integración actual Open WebUI `PLAYWRIGHT_WS_URL` esperan
+un punto de conexión del servidor Playwright y no son compatibles con este URL.
+
 - nombre y versión del servidor MCP;
 - modo de ejecución;
 - paquete y versión de upstream Playwright MCP;

@@ -47,6 +47,56 @@ Gibt strukturierte Informationen über das CloakBrowser-Paket, die aktuelle Plat
 
 Gibt strukturierte Bridge-Metadaten zurück:
 
+Das additive `structuredContent.cdp`-Objekt meldet die verwaltete CDP der aufrufenden Sitzung
+Bundesstaat:
+
+```json
+{ "enabled": false }
+```
+
+```json
+{
+  "enabled": true,
+  "state": "ready",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": "http://127.0.0.1:9222/cdp/<capability>",
+  "activeConnections": 0
+}
+```
+
+```json
+{
+  "enabled": true,
+  "state": "unavailable",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": null,
+  "activeConnections": 0
+}
+```
+
+`generation` steigt und `discoveryUrl` dreht sich nach dem Browserwechsel.
+`activeConnections` zählt akzeptierte proxied WebSocket-Verbindungen, ohne sie offenzulegen
+Client-Identitäten, Ziel-IDs oder Protokollinhalte. Behandeln Sie jede nicht-null Entdeckung URL
+als Referenz.
+
+Verwenden Sie die Entdeckung URL mit einem CDP-fähigen Client:
+
+```ts
+import { chromium } from 'playwright';
+
+const browser = await chromium.connectOverCDP(discoveryUrl);
+```
+
+Verwaltetes CDP ist nicht das Playwright Serverprotokoll. Playwright
+`chromium.connect()` und die aktuelle Open WebUI `PLAYWRIGHT_WS_URL`-Integration erwarten
+ein Playwright-Server-Endpunkt und sind mit diesem URL nicht kompatibel.
+
 - MCP server Name und Version;
 - Laufzeitmodus;
 - upstream Playwright-MCP-Paket und Version;

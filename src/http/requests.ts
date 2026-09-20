@@ -77,7 +77,7 @@ export type BridgeInitializeRuntimeOptions = Pick<
   | 'humanPreset'
   | 'proxy'
   | 'userDataDir'
->;
+> & { cdpEnabled?: boolean };
 
 /**
  * Reads per-session bridge runtime overrides from MCP initialize metadata.
@@ -109,6 +109,7 @@ function readBridgeRuntimeOptionsFromMeta(
   const proxyBypass = readOptionalString(bridgeMeta, 'proxyBypass');
   const proxy = readRuntimeProxy(proxyServer, proxyBypass);
   return compactRuntimeOptions({
+    cdpEnabled: readOptionalBoolean(bridgeMeta, 'cdpEnabled'),
     geoipProxyMatch: readOptionalBoolean(bridgeMeta, 'geoipProxyMatch'),
     headless: readOptionalBoolean(bridgeMeta, 'headless'),
     humanize: readOptionalBoolean(bridgeMeta, 'humanize'),

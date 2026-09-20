@@ -3,10 +3,11 @@ import { readFileSync } from 'node:fs';
 import process from 'node:process';
 import type { Implementation } from '@modelcontextprotocol/sdk/types.js';
 import { createDoctorReport, renderDoctorReport } from '#src/cli/doctor';
-import { createCliCommand, readCliOptions } from '#src/cli/options';
+import { cdpRemoteWarning, createCliCommand, readCliOptions } from '#src/cli/options';
 import { cleanStaleSingletonLocks } from '#src/cli/singleton-lock-cleanup';
 import { createDockerCliHealthResponder } from '#src/docker/cli-health';
 import { createDockerDisplayController } from '#src/docker/control';
+import type { CdpEndpointConfig } from '#src/cdp/config';
 import { BRIDGE_TRANSPORT_STREAMABLE_HTTP, type BridgeOptions } from '#src/http/options';
 import { startStreamableHttpBridge } from '#src/http/server';
 import { createBridgeLogger } from '#src/logging/logger';
@@ -29,6 +30,9 @@ async function main(): Promise<void> {
   });
   command.action(async () => {
     const options = readCliOptions(command);
+    if (options.cdp.allowRemote) {
+      process.stderr.write(cdpRemoteWarning);
+    }
     const { releaseChannel, ...runtimeOptions } = options.bridge;
     const dockerHealthResponder = createDockerCliHealthResponder();
     const dockerDisplayController = createDockerDisplayController();
@@ -45,12 +49,18 @@ async function main(): Promise<void> {
       options.transport === BRIDGE_TRANSPORT_STREAMABLE_HTTP
         ? await startStreamableHttpCliBridge({
             ...options.http,
+            cdp: options.cdp,
             serverInfo,
             releaseChannel,
             runtimeOptions,
             ensureDockerDisplay: () => dockerDisplayController.ensureDisplayForHeadedRuntime(false),
           })
-        : await startStdioBridge(serverInfo, { ...runtimeOptions, releaseChannel }, dockerDisplayController);
+        : await startStdioBridge(
+            serverInfo,
+            { ...runtimeOptions, releaseChannel },
+            dockerDisplayController,
+            options.cdp,
+          );
 
     for (const signal of ['SIGINT', 'SIGTERM'] as const) {
       process.once(signal, () => {
@@ -66,6 +76,7 @@ async function startStdioBridge(
   serverInfo: Partial<Implementation>,
   runtimeOptions: BridgeOptions,
   dockerDisplayController: ReturnType<typeof createDockerDisplayController>,
+  cdp: CdpEndpointConfig,
 ): Promise<{ close(): Promise<void> }> {
   cleanStaleSingletonLocks();
   const bridge = await startBridge({
@@ -75,8 +86,17 @@ async function startStdioBridge(
       );
       if (process.env.DISPLAY !== undefined) runtime.childEnv.DISPLAY = process.env.DISPLAY;
     },
+    onCdpCleanupError: () => {
+      process.stderr.write('warning: managed CDP cleanup failed\n');
+    },
+    onCdpSecurityRejections: (summary) => {
+      process.stderr.write(
+        `warning: cdp_security_rejections window_seconds=${String(summary.windowSeconds)} capability=${String(summary.capability)} host=${String(summary.host)} origin=${String(summary.origin)}\n`,
+      );
+    },
     serverInfo,
     runtimeOptions,
+    cdp,
   });
   return {
     close: () => bridge.dispose(),
@@ -86,7 +106,7 @@ async function startStdioBridge(
 async function startStreamableHttpCliBridge(
   options: Parameters<typeof startStreamableHttpBridge>[0],
 ): Promise<{ close(): Promise<void> }> {
-  const logger = createBridgeLogger();
+  const logger = createBridgeLogger({ sink: process.stderr });
   const bridge = await startStreamableHttpBridge({
     ...options,
     logger,

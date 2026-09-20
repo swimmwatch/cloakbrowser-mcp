@@ -42,6 +42,10 @@ export function dockerExecAsRoot(containerName: string, args: string[]): DockerC
   return runDocker(['exec', '--user', '0', containerName, ...args]);
 }
 
+export function dockerLogs(containerName: string): DockerCommandResult {
+  return runDocker(['logs', containerName], { allowFailure: true });
+}
+
 export function stopDockerContainer(containerName: string): DockerCommandResult {
   return runDocker(['stop', '--time', '10', containerName]);
 }
@@ -120,6 +124,8 @@ export function startFakeUpstreamHttpDockerContainer(): { containerName: string;
 export function startHttpDockerContainer(
   options: {
     authToken?: string;
+    browserEngine?: 'cloak' | 'playwright';
+    cdp?: { enabled: boolean; port: number };
     fakeUpstream?: boolean;
     headless?: boolean;
     sessionMax?: number;
@@ -135,6 +141,9 @@ export function startHttpDockerContainer(
     containerName,
     '--publish',
     '127.0.0.1::3000',
+    ...(options.cdp === undefined
+      ? []
+      : ['--publish', `127.0.0.1:${String(options.cdp.port)}:${String(options.cdp.port)}`]),
     '--tmpfs',
     '/data:rw,nosuid,nodev,mode=1777',
     '--env',
@@ -153,6 +162,28 @@ export function startHttpDockerContainer(
       `PLAYWRIGHT_MCP_CLI_PATH=${fakeUpstreamContainerPath}`,
       '--env',
       'PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright',
+    );
+  }
+
+  if (options.browserEngine !== undefined && !options.fakeUpstream) {
+    args.push('--env', `PLAYWRIGHT_MCP_BROWSER_ENGINE=${options.browserEngine}`);
+    if (options.browserEngine === 'playwright') {
+      args.push('--env', 'CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS=--no-sandbox');
+    }
+  }
+
+  if (options.cdp !== undefined) {
+    args.push(
+      '--env',
+      `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED=${String(options.cdp.enabled)}`,
+      '--env',
+      `CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE=${String(options.cdp.port)}`,
+      '--env',
+      'CLOAK_PLAYWRIGHT_MCP_CDP_HOST=0.0.0.0',
+      '--env',
+      'CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE=true',
+      '--env',
+      'CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_HOST=127.0.0.1',
     );
   }
 

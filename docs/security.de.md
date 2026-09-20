@@ -10,6 +10,84 @@ tags:
 
 Dieses Projekt ist eine Bridge für Browserautomatisierung. Behandle es als Infrastruktur zur Ausführung vertrauenswürdigen Codes.
 
+## Verwaltete CDP Sicherheit { #managed-cdp-security }
+
+Managed CDP ist standardmäßig deaktiviert. Es bietet beliebige Chromium DevTools-Steuerung,
+kein reduziertes Browser-Tool API. Aktivieren Sie es nur für vertrauenswürdige Clients. Die Funktion in
+`cloakbrowser_bridge_info.cdp.discoveryUrl` ist ein Trägernachweis: notieren Sie ihn nicht,
+Speichern Sie es in Tickets oder teilen Sie es zwischen Sitzungen. Es dreht sich nach dem Austausch des Browsers
+und ein alter URL geht niemals in die Ersatzgeneration über.
+
+Eine Nicht-Loopback-CDP-Bindung erfordert sowohl `--cdp-allow-remote` als auch eine konkret angegebene Anzeige
+Host. Fügen Sie Netzwerkzugriffskontrollen um den veröffentlichten Port hinzu. Auswahl
+`--cdp-advertised-scheme https` stellt TLS nicht bereit. Der verwaltete Listener und
+Chromium hop bleibt Klartext; ein vom Betreiber betriebener gleichportiger TLS-Terminator muss erhalten bleiben
+die beworbenen `Host`- und `Origin`-Berechtigungen und die Aufrechterhaltung einer Eins-zu-Eins-Routing-Verbindung zu dem
+Sitzung besitzen.
+
+Laufzeitprotokolle enthalten niemals Fähigkeitswege, Ziel-IDs, CDP-Nutzlasten, Browserdaten,
+Cookies, rohe `Host`- oder `Origin`-Werte oder Profilpfade. Abgelehnte Sicherheitsprüfungen sind
+nur als sitzungsbezogene `cdp_security_rejections`-Warnung mit 60 Sekunden gemeldet
+Sättigende Zählungen für `capability`, `host` und `origin`; Aufräumvorgänge spülen alles Übrige
+zählt. Erfolgreiche Überprüfungen erzeugen keine Prüfungsaufzeichnungen pro Anfrage.
+
+### Feste Grenzen
+
+Limits gelten unabhängig für jede CDP-aktivierte MCP-Sitzung:
+
+| Grenze | Grenze |
+| --- | --- |
+| Aktive vermittelte WebSocket-Verbindungen, einschließlich laufender Handshakes | 8 |
+| Gleichzeitige Pre-Upgrade HTTP-Anfragen | 16 |
+| Anforderungsheader | 16 KiB |
+| Anfrageinhalt auf unterstützten Routen | Nicht erlaubt |
+| Pufferte Chromium HTTP Antwort | 4 MiB |
+| Eingehende oder ausgehende WebSocket-Nachricht | 16 MiB |
+| Warteschlangen nicht gesendeter WebSocket-Daten pro Richtung | 16 MiB |
+| Anforderungs-Header, Upstream HTTP-Antwort oder WebSocket-Handschlag | 10 Sekunden |
+| Anmutiges Herunterfahren des Proxys vor dem erzwungenen Schließen | 5 Sekunden |
+| Lokaler Fehlermeldungskörper | 8 KiB |
+
+### HTTP Fehler
+
+Lokale Fehler verwenden JSON `{"error":{"code":"...","message":"..."}}` mit
+`Cache-Control: no-store`, `Content-Type: application/json; charset=utf-8` und ein
+exakt `Content-Length`. Methodenfehler beinhalten auch `Allow`. Die stabilen Zuordnungen sind:
+
+| Status | Code |
+| --- | --- |
+| `400` | `bad_request` |
+| `403` | `forbidden` |
+| `404` | `not_found` |
+| `405` | `method_not_allowed` |
+| `408` | `request_timeout` |
+| `413` | `payload_too_large` |
+| `431` | `headers_too_large` |
+| `500` | `internal_error` |
+| `502` | `bad_gateway` |
+| `503` | `unavailable` |
+| `504` | `gateway_timeout` |
+| Chromium `400..499` | `upstream_error`, den Status beibehaltend |
+
+Chromium-Weiterleitungen, Serverfehler, fehlerhafte Antworten und Übertragungsfehler sind
+normalisiert anstelle der Offenlegung von Chromium-Antwortkörpern. Eine von der Brücke erzeugte Ablehnung
+vor dem Upstream-Dispatch hat keine Chromium-Nebenwirkung. Eine nur lesbare Entdeckungsanfrage kann
+nach Korrektur der Bedingung erneut versucht werden. Bei mehrdeutigen zustandsändernden Fehlern,
+liest `/json/list` erneut und stimmt den Anwendungszustand ab; gehe nicht davon aus `Retry-After` oder
+automatische Idempotenz.
+
+### WebSocket Schließt
+
+Lokal erzeugte Abschlüsse verwenden feste geschwärzte Paare. Gültige Peer-Abschlüsse werden weitergeleitet.
+
+| Code | Grund | Verwenden |
+| --- | --- | --- |
+| `1001` | `going_away` | Sitzung, Generierung oder Proxy-Abschaltung |
+| `1002` | `protocol_error` | Fehlerhafte WebSocket-Protokolleingabe |
+| `1009` | `message_too_big` | Nachricht überschreitet das konfigurierte Limit |
+| `1011` | `internal_error` | Unerwartete Unterbrechung oder Relay-Ausfall stromaufwärts |
+| `1013` | `try_again_later` | Pro-Richtung nicht gesendetes Queue-Limit überschritten |
+
 ## Vertrauensgrenze
 
 Der äußere Server unterstützt stdio und Streamable HTTP. Er startet upstream Playwright MCP als Kindprozess und leitet Tool-Aufrufe weiter. Browserautomatisierung, Dateiausgabe, Netzwerkzugriff und unsichere Auswertungsfunktionen werden durch upstream Playwright MCP bestimmt.

@@ -108,6 +108,7 @@ export interface PrepareBridgeRuntimeOptions {
   headless?: boolean;
   humanize?: boolean;
   humanPreset?: HumanPreset;
+  managedCdpInternalPort?: number;
   proxy?: BridgeRuntimeProxy;
   releaseChannel?: ReleaseChannel;
   userDataDir?: string;
@@ -230,6 +231,7 @@ export async function prepareBridgeRuntime(
 
   try {
     const runtime = createPreparedBridgeRuntimeBase(env, options, tempDir);
+    validateManagedCdpLaunchArgs(runtime.launchOptions.args ?? [], options.managedCdpInternalPort);
     releaseProfileLock = applyConfiguredUserDataDir(runtime, options.userDataDir);
     const extensionPaths = applyConfiguredContextAndExtensions(runtime, options);
     applyConfiguredProxy(runtime, options.proxy);
@@ -237,6 +239,7 @@ export async function prepareBridgeRuntime(
     const cloakBinaryPath = runtime.useCloak
       ? await configureCloakRuntime(runtime, options, extensionPaths)
       : undefined;
+    applyManagedCdpLaunchOption(runtime, options.managedCdpInternalPort);
     configureConsoleFallback(runtime);
     const configPath = writeBridgeConfig(runtime);
 
@@ -396,6 +399,41 @@ function configureConsoleFallback(runtime: PreparedBridgeRuntimeBase): void {
     runtime.childEnv.NODE_OPTIONS,
     `--require=${quoteNodeOptionValue(preloadPath)}`,
   );
+}
+
+function applyManagedCdpLaunchOption(
+  runtime: PreparedBridgeRuntimeBase,
+  internalPort: number | undefined,
+): void {
+  for (const name of Object.keys(runtime.childEnv)) {
+    if (name.startsWith('PLAYWRIGHT_MCP_CDP_') || name.startsWith('CLOAK_PLAYWRIGHT_MCP_CDP_')) {
+      delete runtime.childEnv[name];
+    }
+  }
+  if (internalPort === undefined) return;
+  if (!Number.isInteger(internalPort) || internalPort < 1 || internalPort > 65_535) {
+    throw new BridgeRuntimeConfigurationError('managedCdpInternalPort must be an integer from 1 to 65535');
+  }
+
+  const args = runtime.launchOptions.args ?? [];
+  validateManagedCdpLaunchArgs(args, internalPort);
+  runtime.launchOptions.args = [...args, `--remote-debugging-port=${internalPort}`];
+}
+
+function validateManagedCdpLaunchArgs(args: string[], internalPort: number | undefined): void {
+  if (internalPort === undefined) return;
+  const prohibitedPrefixes = [
+    '--remote-debugging-port',
+    '--remote-debugging-address',
+    '--remote-debugging-pipe',
+    '--remote-allow-origins',
+  ];
+  const conflict = args.find((arg) =>
+    prohibitedPrefixes.some((prefix) => arg === prefix || arg.startsWith(`${prefix}=`)),
+  );
+  if (conflict !== undefined) {
+    throw new BridgeRuntimeConfigurationError(`${conflict.split('=')[0]} conflicts with managed CDP`);
+  }
 }
 
 function writeBridgeConfig(runtime: PreparedBridgeRuntimeBase): string {

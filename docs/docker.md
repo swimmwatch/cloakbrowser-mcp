@@ -155,6 +155,62 @@ See the generated [CLI Reference](generated/cli.md) for all HTTP transport flags
 
 For a complete reverse-proxy-oriented example, see [Docker Streamable HTTP Behind Reverse Proxy](recipes/docker-streamable-http-reverse-proxy.md).
 
+## Managed CDP
+
+Publish the configured managed-CDP range one-to-one. This stdio example enables one
+session and keeps every host port bound to loopback:
+
+```bash
+docker run --rm -i \
+  -p 127.0.0.1:9222-9231:9222-9231 \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --cdp-enabled \
+  --cdp-port-range 9222-9231 \
+  --cdp-host 0.0.0.0 \
+  --cdp-allow-remote \
+  --cdp-advertised-host 127.0.0.1
+```
+
+`--cdp-host 0.0.0.0` is required for Docker port forwarding, so the explicit
+`--cdp-allow-remote` opt-in and concrete `--cdp-advertised-host` are also required.
+Do not remap the range to different host port numbers: discovery URLs contain the
+leased port and each published port must route one-to-one to its owning session.
+
+For multi-session Streamable HTTP, configure and publish the pool without setting the
+process default if clients should opt in individually:
+
+```bash
+docker run --rm \
+  -p 127.0.0.1:3000:3000 \
+  -p 127.0.0.1:9222-9231:9222-9231 \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http \
+  --http-host 0.0.0.0 \
+  --http-port 3000 \
+  --cdp-port-range 9222-9231 \
+  --cdp-host 0.0.0.0 \
+  --cdp-allow-remote \
+  --cdp-advertised-host 127.0.0.1
+```
+
+An authenticated `initialize` request with `cdpEnabled: true` leases one published
+port. An omitted value inherits the process default, while `cdpEnabled: false`
+explicitly opts out and consumes no CDP port. Pool exhaustion rejects only a new
+CDP-enabled session; it does not reduce capacity for disabled sessions.
+
+Read the capability-bearing URL from `cloakbrowser_bridge_info`. Do not put it in
+container logs or health checks. Connect with a CDP API such as
+`chromium.connectOverCDP()`; the URL is not compatible with Playwright
+`chromium.connect()` or the current Open WebUI flow.
+
+`--cdp-advertised-scheme https` changes published URLs to `https`/`wss`, but the
+bridge does not provide TLS for managed CDP. Use an operator-owned TLS terminator that
+occupies the same advertised port in the external network namespace, preserves
+`Host`/`Origin`, and forwards one-to-one to the plaintext bridge listener. The
+bridge-to-Chromium hop also remains plaintext loopback traffic.
+
 ## GeoIP Proxy Matching
 
 Docker uses the same proxy and GeoIP environment variables as npm. Enable

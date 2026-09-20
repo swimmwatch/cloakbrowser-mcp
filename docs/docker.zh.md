@@ -116,6 +116,62 @@ docker run --rm -p 127.0.0.1:3000:3000 \
 Streamable HTTP 公开了固定的 `GET /healthz` 和 `GET /readyz` 探测点，它们位于同一主机和端口上。 如果配置了 `--http-auth-token` 或 `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` 已配置，则这些探针需要与 MCP 请求相同的 `Authorization: Bearer ...` 标头。
 有关所有 HTTP 传输标志和环境变量的详细信息，请参阅生成的 [CLI 参考](generated/cli.md)。
 
+## 已管理 CDP { #managed-cdp }
+
+发布已配置的 managed-CDP 范围一对一。此 stdio 示例启用一个
+会话并保持每个主机端口绑定到回环地址：
+
+```bash
+docker run --rm -i \
+  -p 127.0.0.1:9222-9231:9222-9231 \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --cdp-enabled \
+  --cdp-port-range 9222-9231 \
+  --cdp-host 0.0.0.0 \
+  --cdp-allow-remote \
+  --cdp-advertised-host 127.0.0.1
+```
+
+`--cdp-host 0.0.0.0` 是 Docker 端口转发所必需的，因此明确
+`--cdp-allow-remote` 选择加入和具体的 `--cdp-advertised-host` 也是必需的。
+不要将范围重新映射到不同的主机端口号：发现 URL 包含
+租用的端口和每个已发布的端口必须一对一地路由到其所属会话。
+
+对于多会话 Streamable HTTP，请配置并发布池，但不要设置
+如果客户应单独选择，则处理默认值：
+
+```bash
+docker run --rm \
+  -p 127.0.0.1:3000:3000 \
+  -p 127.0.0.1:9222-9231:9222-9231 \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http \
+  --http-host 0.0.0.0 \
+  --http-port 3000 \
+  --cdp-port-range 9222-9231 \
+  --cdp-host 0.0.0.0 \
+  --cdp-allow-remote \
+  --cdp-advertised-host 127.0.0.1
+```
+
+一个经过身份验证的 `initialize` 请求使用 `cdpEnabled: true` 租约发布了一个
+端口。省略的值继承进程默认值，而`cdpEnabled: false`
+明确选择退出且不使用任何 CDP 端口。池耗尽仅拒绝新的
+启用 CDP 的会话；它不会降低禁用会话的容量。
+
+从 `cloakbrowser_bridge_info` 读取具有能力的 URL。不要放入其中
+容器日志或健康检查。连接到像 CDP API 这样的
+`chromium.connectOverCDP()`；URL 与 Playwright 不兼容
+`chromium.connect()` 或当前的 Open WebUI 流程。
+
+`--cdp-advertised-scheme https` 将已发布的 URL 更改为 `https`/`wss`，但该
+桥不为托管的 CDP 提供 TLS。请使用运营商拥有的 TLS 终端。
+占用外部网络命名空间中相同的广告端口，保留
+`Host`/`Origin`，并一对一转发到明文桥接监听器。该
+bridge-to-Chromium 跳转也保持明文回环流量。
+
 ## GeoIP 代理匹配
 
 Docker 使用与 npm 相同的代理和 GeoIP 环境变量。当区域 QA 需要 CloakBrowser 的时区、语言和

@@ -104,6 +104,26 @@ jobs:
         run: node node_modules/playwright/cli.js install chromium
       - run: npm run test:e2e
 
+  cdp-e2e:
+    name: managed CDP real-browser (linux/amd64, node 22)
+    needs: node-versions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - name: Use npm ${{ env.NPM_VERSION }}
+        run: npm install --global npm@${{ env.NPM_VERSION }}
+      - run: npm ci --ignore-scripts
+      - name: Install Playwright Chromium
+        run: node node_modules/playwright/cli.js install chromium
+      - run: npm run test:e2e:cdp
+        env:
+          CLOAKBROWSER_MCP_CDP_EXPECTED_ARCHITECTURE: linux/amd64
+
   coverage:
     runs-on: ubuntu-latest
     needs:
@@ -235,6 +255,17 @@ jobs:
         run: npm run test:e2e:docker:run
         env:
           CLOAKBROWSER_MCP_DOCKER_IMAGE: ${{ matrix.image_tag }}
+      - name: Managed CDP Docker acceptance (cloak)
+        run: npm run test:e2e:cdp:docker:run
+        env:
+          CLOAKBROWSER_MCP_CDP_EXPECTED_ARCHITECTURE: ${{ matrix.platform }}
+          CLOAKBROWSER_MCP_DOCKER_IMAGE: ${{ matrix.image_tag }}
+      - name: Managed CDP Docker acceptance (playwright)
+        run: npm run test:e2e:cdp:docker:run
+        env:
+          CLOAKBROWSER_MCP_CDP_DOCKER_ENGINE: playwright
+          CLOAKBROWSER_MCP_CDP_EXPECTED_ARCHITECTURE: ${{ matrix.platform }}
+          CLOAKBROWSER_MCP_DOCKER_IMAGE: ${{ matrix.image_tag }}
       - name: Compare with upstream Playwright MCP
         if: matrix.compare
         run: npm run bridge:compare -- "${{ matrix.image_tag }}" --report bridge-parity-report.json
@@ -276,6 +307,7 @@ jobs:
       - npm-audit
       - quality
       - e2e
+      - cdp-e2e
       - coverage
       - docs
       - docker
@@ -287,7 +319,7 @@ jobs:
           NEEDS_JSON: ${{ toJSON(needs) }}
         run: |
           node <<'EOF'
-          const requiredJobs = ['npm-audit', 'quality', 'e2e', 'coverage', 'docs', 'docker'];
+          const requiredJobs = ['npm-audit', 'quality', 'e2e', 'cdp-e2e', 'coverage', 'docs', 'docker'];
           const needs = JSON.parse(process.env.NEEDS_JSON);
           const failedJobs = requiredJobs
             .filter((jobName) => needs[jobName]?.result !== 'success')

@@ -12,6 +12,19 @@ import {
 import { BRIDGE_INITIALIZE_META_KEY, JSON_RPC_VERSION } from '@/protocol/constants.js';
 
 describe('HTTP request helpers', () => {
+  it('reads only a literal boolean cdpEnabled initialize override', () => {
+    expect(readBridgeRuntimeOptionsFromInitialize(createInitializeRequest())).toEqual({});
+    expect(readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ cdpEnabled: true }))).toEqual({
+      cdpEnabled: true,
+    });
+    expect(readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ cdpEnabled: false }))).toEqual({
+      cdpEnabled: false,
+    });
+    expect(() =>
+      readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ cdpEnabled: 'true' })),
+    ).toThrow(InvalidBridgeInitializeMetaError);
+  });
+
   it('detects JSON content types', () => {
     expect(hasJsonContentType(createRequest('', { 'content-type': 'application/json' }))).toBe(true);
     expect(hasJsonContentType(createRequest('', { 'content-type': 'Application/JSON; charset=utf-8' }))).toBe(

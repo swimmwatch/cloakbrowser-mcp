@@ -51,6 +51,64 @@ Returns structured bridge metadata:
 - upstream tool count;
 - local Cloak-specific tool names.
 
+The additive `structuredContent.cdp` object reports the calling session's managed CDP
+state:
+
+```json
+{ "enabled": false }
+```
+
+```json
+{
+  "enabled": true,
+  "state": "ready",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": "http://127.0.0.1:9222/cdp/<capability>",
+  "activeConnections": 0
+}
+```
+
+```json
+{
+  "enabled": true,
+  "state": "unavailable",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": null,
+  "activeConnections": 0
+}
+```
+
+`generation` increases and `discoveryUrl` rotates after browser replacement.
+`activeConnections` counts accepted proxied WebSocket connections without exposing
+client identities, target IDs, or protocol content. Treat every non-null discovery URL
+as a credential.
+
+Use the discovery URL with a CDP-capable client:
+
+```ts
+import { chromium } from 'playwright';
+
+const browser = await chromium.connectOverCDP(discoveryUrl);
+```
+
+Managed CDP is not the Playwright Server protocol. Playwright
+`chromium.connect()` and the current Open WebUI `PLAYWRIGHT_WS_URL` integration expect
+a Playwright Server endpoint and are not compatible with this URL.
+
+With the pinned Playwright client, `browser.close()` on a browser returned by
+`connectOverCDP()` was verified to disconnect that client while leaving Chromium and
+the generation ready. This is a client-specific observation, not a guarantee for
+other CDP libraries. Sending raw CDP `Browser.close` is destructive: it terminates the
+shared Chromium generation, invalidates the capability, and affects MCP callers.
+Coordinate MCP and CDP operations because the bridge does not serialize conflicting
+navigation, page closure, input, or storage mutations.
+
 The local tool surface remains limited to these two introspection tools.
 `SessionSeats` and `getSessionSeats` are not exposed as an MCP tool because
 CloakBrowser 0.5.10 does not export that API from its public entry point.

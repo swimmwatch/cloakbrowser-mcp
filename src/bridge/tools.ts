@@ -15,11 +15,124 @@ const localToolNameSet = new Set<string>(localToolNames);
 
 export type LocalToolName = (typeof localToolNames)[number];
 
+export type BridgeCdpInfo =
+  | { enabled: false }
+  | {
+      activeConnections: number;
+      advertisedHost: string | null;
+      bindHost: string;
+      discoveryUrl: string;
+      enabled: true;
+      generation: number;
+      port: number;
+      state: 'ready';
+    }
+  | {
+      activeConnections: 0;
+      advertisedHost: string | null;
+      bindHost: string;
+      discoveryUrl: null;
+      enabled: true;
+      generation: number;
+      port: number;
+      state: 'unavailable';
+    };
+
 const emptyInputSchema = {
   type: 'object',
   properties: {},
   additionalProperties: false,
 } as const;
+
+const bridgeInfoOutputSchema: NonNullable<Tool['outputSchema']> = {
+  type: 'object',
+  properties: {
+    name: { type: 'string' },
+    title: { type: 'string' },
+    version: { type: 'string' },
+    runtime: { type: 'string' },
+    browserEngine: { enum: ['cloak', 'playwright'] },
+    upstream: {
+      type: 'object',
+      properties: {
+        package: { type: 'string' },
+        version: { type: 'string' },
+        toolCount: { type: 'integer', minimum: 0 },
+      },
+      required: ['package', 'version', 'toolCount'],
+      additionalProperties: false,
+    },
+    localTools: {
+      type: 'object',
+      properties: {
+        toolCount: { type: 'integer', minimum: 0 },
+        names: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['toolCount', 'names'],
+      additionalProperties: false,
+    },
+    cdp: {
+      anyOf: [
+        {
+          type: 'object',
+          properties: { enabled: { const: false } },
+          required: ['enabled'],
+          additionalProperties: false,
+        },
+        {
+          type: 'object',
+          properties: {
+            enabled: { const: true },
+            state: { const: 'ready' },
+            generation: { type: 'integer', minimum: 1 },
+            bindHost: { type: 'string' },
+            port: { type: 'integer', minimum: 1, maximum: 65_535 },
+            advertisedHost: { type: ['string', 'null'] },
+            discoveryUrl: { type: 'string' },
+            activeConnections: { type: 'integer', minimum: 0 },
+          },
+          required: [
+            'enabled',
+            'state',
+            'generation',
+            'bindHost',
+            'port',
+            'advertisedHost',
+            'discoveryUrl',
+            'activeConnections',
+          ],
+          additionalProperties: false,
+        },
+        {
+          type: 'object',
+          properties: {
+            enabled: { const: true },
+            state: { const: 'unavailable' },
+            generation: { type: 'integer', minimum: 1 },
+            bindHost: { type: 'string' },
+            port: { type: 'integer', minimum: 1, maximum: 65_535 },
+            advertisedHost: { type: ['string', 'null'] },
+            discoveryUrl: { type: 'null' },
+            activeConnections: { const: 0 },
+          },
+          required: [
+            'enabled',
+            'state',
+            'generation',
+            'bindHost',
+            'port',
+            'advertisedHost',
+            'discoveryUrl',
+            'activeConnections',
+          ],
+          additionalProperties: false,
+        },
+      ],
+    },
+  },
+  required: ['name', 'title', 'version', 'runtime', 'browserEngine', 'upstream', 'localTools', 'cdp'],
+  additionalProperties: false,
+};
 
 const localTools: Tool[] = [
   {
@@ -38,6 +151,7 @@ const localTools: Tool[] = [
     title: 'CloakBrowser bridge info',
     description: 'Return runtime metadata for the CloakBrowser bridge over upstream Playwright MCP.',
     inputSchema: emptyInputSchema,
+    outputSchema: bridgeInfoOutputSchema,
     annotations: {
       readOnlyHint: true,
       idempotentHint: true,
@@ -58,6 +172,7 @@ export function callLocalTool(
   name: LocalToolName,
   runtime: BridgeRuntime,
   upstreamToolCount: number,
+  cdp: BridgeCdpInfo = { enabled: false },
 ): CallToolResult {
   if (name === LOCAL_TOOL_BINARY_INFO) {
     return jsonResult({
@@ -83,6 +198,7 @@ export function callLocalTool(
       toolCount: CLOAKBROWSER_TOOL_COUNT,
       names: localToolNames,
     },
+    cdp,
   });
 }
 

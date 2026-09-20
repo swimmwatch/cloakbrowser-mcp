@@ -45,6 +45,10 @@
     "test:integration": "vitest run tests/integration",
     "test:e2e": "npm run build && npm run test:e2e:run && npm run test:e2e:playwright-console:run",
     "test:e2e:run": "vitest run --config vitest.e2e.config.ts",
+    "test:e2e:cdp": "npm run build && npm run test:e2e:cdp:run",
+    "test:e2e:cdp:run": "vitest run --config vitest.distribution-e2e.config.mjs tests/e2e/cdp-access.manual.ts",
+    "test:e2e:cdp:docker": "npm run docker:build && npm run test:e2e:cdp:docker:run",
+    "test:e2e:cdp:docker:run": "vitest run --config vitest.distribution-e2e.config.mjs tests/e2e/cdp-docker.manual.ts",
     "test:e2e:npm-package": "npm run build && vitest run --config vitest.distribution-e2e.config.mjs tests/e2e/npm-package.manual.ts",
     "test:e2e:docker": "npm run docker:build && npm run test:e2e:docker:run",
     "test:e2e:docker:run": "vitest run --config vitest.distribution-e2e.config.mjs tests/e2e/docker-image.manual.ts",
@@ -93,11 +97,13 @@
     "commander": "^15.0.0",
     "mmdb-lib": "^3.0.3",
     "pino": "^10.3.1",
-    "socks-proxy-agent": "^10.1.0"
+    "socks-proxy-agent": "^10.1.0",
+    "ws": "8.21.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.4.1",
+    "@types/ws": "^8.18.1",
     "@typescript/native": "npm:typescript@^7.0.2",
     "@vitest/coverage-v8": "^5.0.0",
     "@vitest/eslint-plugin": "^1.6.27",
@@ -114,6 +120,7 @@
     "eslint-plugin-regexp": "^3.2.0",
     "eslint-plugin-sonarjs": "^4.2.0",
     "fast-check": "^4.9.0",
+    "playwright": "^1.63.0-alpha-2026-08-31",
     "prettier": "^3.9.6",
     "tsx": "^4.23.13",
     "typescript": "npm:@typescript/typescript6@^6.0.2",

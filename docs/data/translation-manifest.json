@@ -45,152 +45,152 @@
   },
   "sources": {
     "architecture.md": {
-      "sourceHash": "978e708dcf23b63f0844e62463d7817b7a8e4fc4574143dca6aece7c80c3d99f",
+      "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
       "translations": {
         "ru": {
           "path": "architecture.ru.md",
-          "sourceHash": "978e708dcf23b63f0844e62463d7817b7a8e4fc4574143dca6aece7c80c3d99f",
-          "translationHash": "49ef3b322e20eb750e8cf1a86db8c938890c13a0b7202d24a390343cab8d3965",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:10:07.195Z"
+          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
+          "translationHash": "77c7070bf08b73929727240d0f9017a75d7d494424a06cf1be017dab9f922d98",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "be": {
           "path": "architecture.be.md",
-          "sourceHash": "978e708dcf23b63f0844e62463d7817b7a8e4fc4574143dca6aece7c80c3d99f",
-          "translationHash": "cea9c9d40a34d0af7f21f926dc0374650e519cc0580a34c4b37a75334bdd2f3c",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:10:13.149Z"
+          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
+          "translationHash": "31b5e29c862b2da08aca3b5351baed31cf4d5ab9fdfd560756645bcd58df5686",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "uk": {
           "path": "architecture.uk.md",
-          "sourceHash": "978e708dcf23b63f0844e62463d7817b7a8e4fc4574143dca6aece7c80c3d99f",
-          "translationHash": "58ae0a95ff21ef846784f756b789774657f90421e353854a0be226c3cbad9f36",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:10:18.766Z"
+          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
+          "translationHash": "19815850f3f083cdc7757c9431cb687c1570ed03f427da2e67573b638becc573",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "es": {
           "path": "architecture.es.md",
-          "sourceHash": "978e708dcf23b63f0844e62463d7817b7a8e4fc4574143dca6aece7c80c3d99f",
-          "translationHash": "d234928678a497b8d79e4127f860fbc3f40b370de74c0f93b83fe43e7adb2e6b",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:10:23.754Z"
+          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
+          "translationHash": "e484db1520d116a52536d9c022a2ad532b25390ea5adaa95970cb5a3cc122d6a",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "pt-BR": {
           "path": "architecture.pt-BR.md",
-          "sourceHash": "978e708dcf23b63f0844e62463d7817b7a8e4fc4574143dca6aece7c80c3d99f",
-          "translationHash": "af4e4d69e7726c097078a911354ed084b1da1f1aa39fa3b37d5addb29f5f7751",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:10:38.446Z"
+          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
+          "translationHash": "e9cc89acf68d8119e93826f54812426c7d668f901a11f6899090f6857e5bde83",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "zh": {
           "path": "architecture.zh.md",
-          "sourceHash": "978e708dcf23b63f0844e62463d7817b7a8e4fc4574143dca6aece7c80c3d99f",
-          "translationHash": "77fbd24b795f08942fde3d7069e2522f3dd7bac06641d2afb2e25568baec0de6",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:10:43.750Z"
+          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
+          "translationHash": "689e30b5d6fab151bec406d56e33a54d77e968b058ecd778b32b3019bd3b5b7f",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "ja": {
           "path": "architecture.ja.md",
-          "sourceHash": "978e708dcf23b63f0844e62463d7817b7a8e4fc4574143dca6aece7c80c3d99f",
-          "translationHash": "92c2b42b22acbf482d380f35dd1c4a97cf986aa22b3a6e2f8bd5220080d7318d",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:10:49.055Z"
+          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
+          "translationHash": "9ca2515bcb2f0faa45d2b50a37024d5185fd8dd185823c27f09fb3b8e28cfd72",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "de": {
           "path": "architecture.de.md",
-          "sourceHash": "978e708dcf23b63f0844e62463d7817b7a8e4fc4574143dca6aece7c80c3d99f",
-          "translationHash": "3b40972c212a093389b4d326da02dbf16282c27bbb73973f51d49bc5e384eda2",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:10:57.277Z"
+          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
+          "translationHash": "1e2e6ec6b2ff11ca8e1bc533e30e42f889a8246b4b2cb46e0b995ca9ccdba4d4",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "fr": {
           "path": "architecture.fr.md",
-          "sourceHash": "978e708dcf23b63f0844e62463d7817b7a8e4fc4574143dca6aece7c80c3d99f",
-          "translationHash": "646abfb2cdc5f0f714b8cb0c139bed85cdf1ce5ba8666361a6c2428d7e577367",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:11:07.629Z"
+          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
+          "translationHash": "62823569d2d47e40ac7c4df71c5c7285dfbf653d0ed12e7cadea7fb234797d24",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "hi": {
           "path": "architecture.hi.md",
-          "sourceHash": "978e708dcf23b63f0844e62463d7817b7a8e4fc4574143dca6aece7c80c3d99f",
-          "translationHash": "fe81ca66625ccd4b443e5eed6a17e3657585d0e86d86c7ac46ab47a3a5dc4605",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:11:14.587Z"
+          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
+          "translationHash": "08a7512c5431ef71596e9fad30c9f6f93ff2962ede4e4d762a17272f60dc8eeb",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         }
       }
     },
     "configuration.md": {
-      "sourceHash": "ca28a25084c05d66d88fb18b8380f2bcf644249273556b73f7d32353eacca114",
+      "sourceHash": "69c04f7b35509f92085d0dd0ec6635380e18a70e5caa1a9ee1fe136adcb60eec",
       "translations": {
         "ru": {
           "path": "configuration.ru.md",
-          "sourceHash": "ca28a25084c05d66d88fb18b8380f2bcf644249273556b73f7d32353eacca114",
-          "translationHash": "deddf90b999743136a7302f8335d58b62ad51de59a84425686fe544efd5eb3c2",
-          "translator": "manual targeted translation (LLM fallback after DeepL quota exceeded)",
-          "updatedAt": "2026-07-30T11:00:48+03:00"
+          "sourceHash": "69c04f7b35509f92085d0dd0ec6635380e18a70e5caa1a9ee1fe136adcb60eec",
+          "translationHash": "3ab3732701b6f28389c74dc8929d4c8336bae8650c7a8aff66fa500c8c8c3839",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "be": {
           "path": "configuration.be.md",
-          "sourceHash": "ca28a25084c05d66d88fb18b8380f2bcf644249273556b73f7d32353eacca114",
-          "translationHash": "d28b6cd52134989da02a1a2626ca061e5205dc376f0bd152c6eb8c1657340c0f",
-          "translator": "manual targeted translation (LLM fallback after DeepL quota exceeded)",
-          "updatedAt": "2026-07-30T11:00:48+03:00"
+          "sourceHash": "69c04f7b35509f92085d0dd0ec6635380e18a70e5caa1a9ee1fe136adcb60eec",
+          "translationHash": "6afc2bb4b72ffb95a5cf476ae4dbe074cfbec0e558bba75d59c39255055cd19a",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "uk": {
           "path": "configuration.uk.md",
-          "sourceHash": "ca28a25084c05d66d88fb18b8380f2bcf644249273556b73f7d32353eacca114",
-          "translationHash": "db10c682045dccaaeb845c8db3a141644bf40c8bfb8d9a5f29b469873e966399",
-          "translator": "manual targeted translation (LLM fallback after DeepL quota exceeded)",
-          "updatedAt": "2026-07-30T11:00:48+03:00"
+          "sourceHash": "69c04f7b35509f92085d0dd0ec6635380e18a70e5caa1a9ee1fe136adcb60eec",
+          "translationHash": "038c95182a8d3673c39422f3c2e8f4533914cf9e607d1e309439887e8578e8a0",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "es": {
           "path": "configuration.es.md",
-          "sourceHash": "ca28a25084c05d66d88fb18b8380f2bcf644249273556b73f7d32353eacca114",
-          "translationHash": "4a3c6e72fa999ddbf7bf8e710a199da7a2e7f1c2aeeb386c5e046f490dbc23fc",
-          "translator": "manual targeted translation (LLM fallback after DeepL quota exceeded)",
-          "updatedAt": "2026-07-30T11:00:48+03:00"
+          "sourceHash": "69c04f7b35509f92085d0dd0ec6635380e18a70e5caa1a9ee1fe136adcb60eec",
+          "translationHash": "c684493565675a252584358ca0a49e6d9f1c1959168d2064bcefba3a7198f5d2",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "pt-BR": {
           "path": "configuration.pt-BR.md",
-          "sourceHash": "ca28a25084c05d66d88fb18b8380f2bcf644249273556b73f7d32353eacca114",
-          "translationHash": "d86a3ceaeaef3ca9558e88653b0139ac2299c1f94f33976a050f62c7dfc6b8a5",
-          "translator": "manual targeted translation (LLM fallback after DeepL quota exceeded)",
-          "updatedAt": "2026-07-30T11:00:48+03:00"
+          "sourceHash": "69c04f7b35509f92085d0dd0ec6635380e18a70e5caa1a9ee1fe136adcb60eec",
+          "translationHash": "15f91d29bf0134bbba4fbb694e198b7db7832a8cca3a211c4dd10f45d21245a8",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "zh": {
           "path": "configuration.zh.md",
-          "sourceHash": "ca28a25084c05d66d88fb18b8380f2bcf644249273556b73f7d32353eacca114",
-          "translationHash": "5f91fef1fe521575a8def9d508c930fc5ecf8aadbb872ffcdf210e9272f9c254",
-          "translator": "manual targeted translation (LLM fallback after DeepL quota exceeded)",
-          "updatedAt": "2026-07-30T11:00:48+03:00"
+          "sourceHash": "69c04f7b35509f92085d0dd0ec6635380e18a70e5caa1a9ee1fe136adcb60eec",
+          "translationHash": "a1abc56161193c1a2a365caf4debbb078c787e411fba0a7337234f8ff6254eb9",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "ja": {
           "path": "configuration.ja.md",
-          "sourceHash": "ca28a25084c05d66d88fb18b8380f2bcf644249273556b73f7d32353eacca114",
-          "translationHash": "021e14d2b3ff2fd5ae64d910189c304f18c3a3755a92f00a171635c80f172b1d",
-          "translator": "manual targeted translation (LLM fallback after DeepL quota exceeded)",
-          "updatedAt": "2026-07-30T11:00:48+03:00"
+          "sourceHash": "69c04f7b35509f92085d0dd0ec6635380e18a70e5caa1a9ee1fe136adcb60eec",
+          "translationHash": "f124ceb25515e964a62f519f1126066210da35b0b01fb45f0dfe3f6b49727b21",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "de": {
           "path": "configuration.de.md",
-          "sourceHash": "ca28a25084c05d66d88fb18b8380f2bcf644249273556b73f7d32353eacca114",
-          "translationHash": "205d2520501ce52fb7855120148f813e9b774060f22f06c4245815d3310c049c",
-          "translator": "manual targeted translation (LLM fallback after DeepL quota exceeded)",
-          "updatedAt": "2026-07-30T11:00:48+03:00"
+          "sourceHash": "69c04f7b35509f92085d0dd0ec6635380e18a70e5caa1a9ee1fe136adcb60eec",
+          "translationHash": "b11514485b5d4bf57a91716428bfabe482a84c33520fc731242ca4db714ef0a3",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "fr": {
           "path": "configuration.fr.md",
-          "sourceHash": "ca28a25084c05d66d88fb18b8380f2bcf644249273556b73f7d32353eacca114",
-          "translationHash": "66118d71f7d300b8841bf033f3269405c91c7f20987d2a7911b81169909e00cc",
-          "translator": "manual targeted translation (LLM fallback after DeepL quota exceeded)",
-          "updatedAt": "2026-07-30T11:00:48+03:00"
+          "sourceHash": "69c04f7b35509f92085d0dd0ec6635380e18a70e5caa1a9ee1fe136adcb60eec",
+          "translationHash": "3d18ef8147a44f13904e2db6da9686240f774fb2f11145b262bb60cc0a37eafa",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "hi": {
           "path": "configuration.hi.md",
-          "sourceHash": "ca28a25084c05d66d88fb18b8380f2bcf644249273556b73f7d32353eacca114",
-          "translationHash": "30d9000566c76f234950b49d147c0d098e887bb4d505c63ca34a15d1225e77db",
-          "translator": "manual targeted translation (LLM fallback after DeepL quota exceeded)",
-          "updatedAt": "2026-07-30T11:00:48+03:00"
+          "sourceHash": "69c04f7b35509f92085d0dd0ec6635380e18a70e5caa1a9ee1fe136adcb60eec",
+          "translationHash": "198ffe1f73e706d1d3f13d2bcb9dbb1814994d5b9450358a390f4a9053c25d8a",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         }
       }
     },
@@ -420,77 +420,77 @@
       }
     },
     "docker.md": {
-      "sourceHash": "208b747c9e79ebe0643fc543ba4445dee86328948bc1d50081fbc2a04b721bed",
+      "sourceHash": "b1f38e6656e32f78e765a0b6b681bc8cd869d12de4062a5f2dff4f419212e884",
       "translations": {
         "ru": {
           "path": "docker.ru.md",
-          "sourceHash": "208b747c9e79ebe0643fc543ba4445dee86328948bc1d50081fbc2a04b721bed",
-          "translationHash": "e7aa27cef8caf1bdadb1ff66d560c625726c063d843b439e5c807e7482bd81ef",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "b1f38e6656e32f78e765a0b6b681bc8cd869d12de4062a5f2dff4f419212e884",
+          "translationHash": "11b0664f8a1cb104ceec143fb9fa544a12704404639f87830b99d5e85bf3e678",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "be": {
           "path": "docker.be.md",
-          "sourceHash": "208b747c9e79ebe0643fc543ba4445dee86328948bc1d50081fbc2a04b721bed",
-          "translationHash": "7df82054d0c1f1fbf550f7d99df7f02119c949e18c783b624fc2d746bf2e82ad",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "b1f38e6656e32f78e765a0b6b681bc8cd869d12de4062a5f2dff4f419212e884",
+          "translationHash": "8f8b631324fb8763f02834343a380b922a99bb1136fbb32169d9099516f2e67c",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "uk": {
           "path": "docker.uk.md",
-          "sourceHash": "208b747c9e79ebe0643fc543ba4445dee86328948bc1d50081fbc2a04b721bed",
-          "translationHash": "ab3927a08af126b1b49a0e143d6a0634716597bc0835bcf21fc7049de2c587af",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "b1f38e6656e32f78e765a0b6b681bc8cd869d12de4062a5f2dff4f419212e884",
+          "translationHash": "acd5065aa5af4019c7ac263285ff1196d2261f26e931342656700a0eb56017ee",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "es": {
           "path": "docker.es.md",
-          "sourceHash": "208b747c9e79ebe0643fc543ba4445dee86328948bc1d50081fbc2a04b721bed",
-          "translationHash": "da7893df523c239bc60efe770b76b1639b379e98f35dff114877cbf7490cba24",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "b1f38e6656e32f78e765a0b6b681bc8cd869d12de4062a5f2dff4f419212e884",
+          "translationHash": "a0ee112e70f1f18b927144aa51a0c94e263d55f4ff876867ed9dc62c95ec66a1",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "pt-BR": {
           "path": "docker.pt-BR.md",
-          "sourceHash": "208b747c9e79ebe0643fc543ba4445dee86328948bc1d50081fbc2a04b721bed",
-          "translationHash": "d3bb7dcfb6ec630ee44db1e457053081bccb5e7aca2a9e980b9aaa6b9579662f",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "b1f38e6656e32f78e765a0b6b681bc8cd869d12de4062a5f2dff4f419212e884",
+          "translationHash": "32ec81befae2a3e9ee04798fc8ef6d6414a0be01698264de450f7ef054fc536f",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "zh": {
           "path": "docker.zh.md",
-          "sourceHash": "208b747c9e79ebe0643fc543ba4445dee86328948bc1d50081fbc2a04b721bed",
-          "translationHash": "159cd022d4fda393cab2e867af0db209396a9156ca1ac2f5d963d98a16109d2d",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "b1f38e6656e32f78e765a0b6b681bc8cd869d12de4062a5f2dff4f419212e884",
+          "translationHash": "e08338169dcba4de0a71983ceb11ed48cc977cd29a82e31f8854cf0089d9f005",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "ja": {
           "path": "docker.ja.md",
-          "sourceHash": "208b747c9e79ebe0643fc543ba4445dee86328948bc1d50081fbc2a04b721bed",
-          "translationHash": "ef7d0be821409d7da94e45708ec42d0cf3597f80c9bc74bbede8c188fe650b28",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "b1f38e6656e32f78e765a0b6b681bc8cd869d12de4062a5f2dff4f419212e884",
+          "translationHash": "4bfec88d98e4776c0b1c82038768898d0c6fae70b14a37f47520cc89ac7bb284",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "de": {
           "path": "docker.de.md",
-          "sourceHash": "208b747c9e79ebe0643fc543ba4445dee86328948bc1d50081fbc2a04b721bed",
-          "translationHash": "01b2f85ece805e7e6572ed5cafeabb3dbb6217d6f756d88f3333983b857c7a5c",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "b1f38e6656e32f78e765a0b6b681bc8cd869d12de4062a5f2dff4f419212e884",
+          "translationHash": "36c3bb91e0250be579312c81b6acd56227237859281e7b13c249f6e074c63ad8",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "fr": {
           "path": "docker.fr.md",
-          "sourceHash": "208b747c9e79ebe0643fc543ba4445dee86328948bc1d50081fbc2a04b721bed",
-          "translationHash": "aa28f87cb0e442b15610a50ddb94f4a98d6208b41e28203c33f25d42345aeb1f",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "b1f38e6656e32f78e765a0b6b681bc8cd869d12de4062a5f2dff4f419212e884",
+          "translationHash": "de017e5bbada233e9463d15e764b8d04e32e8121379a5d551425287000cfef7b",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "hi": {
           "path": "docker.hi.md",
-          "sourceHash": "208b747c9e79ebe0643fc543ba4445dee86328948bc1d50081fbc2a04b721bed",
-          "translationHash": "5e8ce044c365d9ed595e6c4a2ff8e6093784597c9852eca8ffe49b1280ca0633",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "b1f38e6656e32f78e765a0b6b681bc8cd869d12de4062a5f2dff4f419212e884",
+          "translationHash": "f5ec1ceba539053f8531feb9f80fdb7d9ec37bb7b3a1b5755c6181d523474392",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         }
       }
     },
@@ -945,77 +945,77 @@
       }
     },
     "security.md": {
-      "sourceHash": "c7d73c17cb05e1f61940c2b8d06b63d35405e7ab5cfd550bcbbd8427abf49a14",
+      "sourceHash": "366ca6ba3d720844dd7aa936fd9783b4f74b19017fc292ae362983724ad1a4f4",
       "translations": {
         "ru": {
           "path": "security.ru.md",
-          "sourceHash": "c7d73c17cb05e1f61940c2b8d06b63d35405e7ab5cfd550bcbbd8427abf49a14",
-          "translationHash": "19846a4d3cdd134844dd6c31abffe4310e56cae98c92cb09430b5d8660f4b633",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-09-13T22:17:04.000Z"
+          "sourceHash": "366ca6ba3d720844dd7aa936fd9783b4f74b19017fc292ae362983724ad1a4f4",
+          "translationHash": "2e3b8166d4e17e76e6620e2d3750eaac6ac67a650f0270be4627f61b34c43cc5",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "be": {
           "path": "security.be.md",
-          "sourceHash": "c7d73c17cb05e1f61940c2b8d06b63d35405e7ab5cfd550bcbbd8427abf49a14",
-          "translationHash": "34ee60a935e1ad9f0575461b45e03ff1b21386a42455461914385943b095433f",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-09-13T22:17:04.000Z"
+          "sourceHash": "366ca6ba3d720844dd7aa936fd9783b4f74b19017fc292ae362983724ad1a4f4",
+          "translationHash": "23aa31d1d93c183014f301e90184e532fa015e25297e4261a0656abfe653537f",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "uk": {
           "path": "security.uk.md",
-          "sourceHash": "c7d73c17cb05e1f61940c2b8d06b63d35405e7ab5cfd550bcbbd8427abf49a14",
-          "translationHash": "0f4241b3f861f6e59bd42694e3790ad105ada7f8b074b3a201f05b9d45a09dd5",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-09-13T22:17:04.000Z"
+          "sourceHash": "366ca6ba3d720844dd7aa936fd9783b4f74b19017fc292ae362983724ad1a4f4",
+          "translationHash": "93e2e7d99a43d7f466d71784f3fc1d0ff4ddb4002625c2c9dff4ff01bfffbcf9",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "es": {
           "path": "security.es.md",
-          "sourceHash": "c7d73c17cb05e1f61940c2b8d06b63d35405e7ab5cfd550bcbbd8427abf49a14",
-          "translationHash": "969e7a9228445ead6401edf3c39d66c7a47b1e3465db070eac614d52a2cb8df9",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-09-13T22:17:04.000Z"
+          "sourceHash": "366ca6ba3d720844dd7aa936fd9783b4f74b19017fc292ae362983724ad1a4f4",
+          "translationHash": "505beda5c6a8a49a96834187d48b9d59ac25078ea79bcb69565e29e667f70b01",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "pt-BR": {
           "path": "security.pt-BR.md",
-          "sourceHash": "c7d73c17cb05e1f61940c2b8d06b63d35405e7ab5cfd550bcbbd8427abf49a14",
-          "translationHash": "facc86f269b2cb13d1115f19d9899f78025654a7c1def28ac7a82fced44faa05",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-09-13T22:17:04.000Z"
+          "sourceHash": "366ca6ba3d720844dd7aa936fd9783b4f74b19017fc292ae362983724ad1a4f4",
+          "translationHash": "08c7dae00dad5d6d21c39bd7a1f66faf54d8fc63aaf4898cb81c5cb921e87551",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "zh": {
           "path": "security.zh.md",
-          "sourceHash": "c7d73c17cb05e1f61940c2b8d06b63d35405e7ab5cfd550bcbbd8427abf49a14",
-          "translationHash": "d74c48f2ff888b24da65f5198c643f39e03b5cc93556ac85f089874d39263ddb",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-09-13T22:17:04.000Z"
+          "sourceHash": "366ca6ba3d720844dd7aa936fd9783b4f74b19017fc292ae362983724ad1a4f4",
+          "translationHash": "f98ac3f138134e9752aa0998b850683d53b1c9b1a86d8fe16d40dfa6a8441b02",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "ja": {
           "path": "security.ja.md",
-          "sourceHash": "c7d73c17cb05e1f61940c2b8d06b63d35405e7ab5cfd550bcbbd8427abf49a14",
-          "translationHash": "bdf5be359d1b80866f6b8ecd5060d24b8eba8e056d980d89409b30e4a8e9f5cf",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-09-13T22:17:04.000Z"
+          "sourceHash": "366ca6ba3d720844dd7aa936fd9783b4f74b19017fc292ae362983724ad1a4f4",
+          "translationHash": "868d5d0bdcf0477c21d6a0f2f986a380b70e3a1cf2bd5c3fe484aa77ced030bc",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "de": {
           "path": "security.de.md",
-          "sourceHash": "c7d73c17cb05e1f61940c2b8d06b63d35405e7ab5cfd550bcbbd8427abf49a14",
-          "translationHash": "9ae492d31ccfd7d915812d8b073fc8773e5036fa82f914dc2d012da93909dedc",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-09-13T22:17:04.000Z"
+          "sourceHash": "366ca6ba3d720844dd7aa936fd9783b4f74b19017fc292ae362983724ad1a4f4",
+          "translationHash": "1b9ae0807bfb337a23419c4bbf008ecf80a8eab290afa2e064fd13e1b5b25668",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "fr": {
           "path": "security.fr.md",
-          "sourceHash": "c7d73c17cb05e1f61940c2b8d06b63d35405e7ab5cfd550bcbbd8427abf49a14",
-          "translationHash": "dd7c6d3e9458f1c43caa4d385e235d39276bcc66a1f98a4335a5ddab5c5f5c10",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-09-13T22:17:04.000Z"
+          "sourceHash": "366ca6ba3d720844dd7aa936fd9783b4f74b19017fc292ae362983724ad1a4f4",
+          "translationHash": "c471d1ab5787c7d5b007e79db1543bdc25ffec5e30e84dae7272fcbf96dba83c",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "hi": {
           "path": "security.hi.md",
-          "sourceHash": "c7d73c17cb05e1f61940c2b8d06b63d35405e7ab5cfd550bcbbd8427abf49a14",
-          "translationHash": "8d8732c21108736b4c2bcab9fdf6892c3c6a38874b7a7d1b9d9e3e438537adc3",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-09-13T22:17:04.000Z"
+          "sourceHash": "366ca6ba3d720844dd7aa936fd9783b4f74b19017fc292ae362983724ad1a4f4",
+          "translationHash": "1aaf99b620e4808feb8d6a9d890808412a44f4fb50730fdc0d469b65b63759eb",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         }
       }
     },
@@ -1170,77 +1170,77 @@
       }
     },
     "tools.md": {
-      "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
+      "sourceHash": "f8a5c4bb5a71c389485cc5d08d0fcecf25d83c088e35fc1e8e6bb11d8a4585c1",
       "translations": {
         "ru": {
           "path": "tools.ru.md",
-          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
-          "translationHash": "070d8b43bd6290ae54e164a7f72f85b4f37cf39aa3191a53d77fb28f51f5d128",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "f8a5c4bb5a71c389485cc5d08d0fcecf25d83c088e35fc1e8e6bb11d8a4585c1",
+          "translationHash": "a956e666d1255fd3b3a42268b359f5caa7fcc31b967709f53f97647025bc6739",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "be": {
           "path": "tools.be.md",
-          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
-          "translationHash": "af044eb3b2bf904ae79a479ffbf1207d65edbab1d188d447464b9f9e802db14a",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "f8a5c4bb5a71c389485cc5d08d0fcecf25d83c088e35fc1e8e6bb11d8a4585c1",
+          "translationHash": "11164870e7e90861f22f858ae2aa7ca2e4f743ce28a6d9061eeecfb76124851e",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "uk": {
           "path": "tools.uk.md",
-          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
-          "translationHash": "1500b5ecccbe5ef77094f23c2f2d59cb956d424798e05da2354e463be4d459c5",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "f8a5c4bb5a71c389485cc5d08d0fcecf25d83c088e35fc1e8e6bb11d8a4585c1",
+          "translationHash": "5205a959f9509ff5fe89c5462b47f77bf8411ea84295f2bca9ec64f3c946d0c5",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "es": {
           "path": "tools.es.md",
-          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
-          "translationHash": "9f39309f7be5c097aa3b416e83e1c4eba07070af8a99b027b1bda6160877ba43",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "f8a5c4bb5a71c389485cc5d08d0fcecf25d83c088e35fc1e8e6bb11d8a4585c1",
+          "translationHash": "0e306ce07af8f5383a40cda7a4340137768068a1e9f41cdb48b5169405c678a5",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "pt-BR": {
           "path": "tools.pt-BR.md",
-          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
-          "translationHash": "b29822cfe8ada667ce19f290a989ff1e1f797fb93eb210ffd80cff6bda5d2fa1",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "f8a5c4bb5a71c389485cc5d08d0fcecf25d83c088e35fc1e8e6bb11d8a4585c1",
+          "translationHash": "22700a1aac6c1c53770bb56fad3f419c01fe77baeeda1aa57d620235ab15c56e",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "zh": {
           "path": "tools.zh.md",
-          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
-          "translationHash": "490c1271d3708b7b2c08493bf6c4120aade3f5ca2bc26ccda701c1c1e42da9fa",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "f8a5c4bb5a71c389485cc5d08d0fcecf25d83c088e35fc1e8e6bb11d8a4585c1",
+          "translationHash": "a639e4431aa67601b94ddffc5942590199a469ab7be8dfff16eeff91bb743266",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "ja": {
           "path": "tools.ja.md",
-          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
-          "translationHash": "0f47f72df8b7dae08fff5ddd7ed5eac739443bc8ed38510b93e1cb7e85ef6392",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "f8a5c4bb5a71c389485cc5d08d0fcecf25d83c088e35fc1e8e6bb11d8a4585c1",
+          "translationHash": "2b51c0ef866de7d5ed54e493614e22c8dca2f0685d883aa7ceec3db4c7bad8d9",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "de": {
           "path": "tools.de.md",
-          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
-          "translationHash": "bfad112c713db147065b98f3065104d554b5ce54884ff7b8c4a03e848abac107",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "f8a5c4bb5a71c389485cc5d08d0fcecf25d83c088e35fc1e8e6bb11d8a4585c1",
+          "translationHash": "d026aabd07d806be0e7615d33c5b97ad09a74500e7a7e8adb190f4f4607fdec5",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "fr": {
           "path": "tools.fr.md",
-          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
-          "translationHash": "0bb7176c132ad399c0e9c1769b4c47b44953080d1289bfbf7eebd243bd9fa554",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "f8a5c4bb5a71c389485cc5d08d0fcecf25d83c088e35fc1e8e6bb11d8a4585c1",
+          "translationHash": "f855f5dabf321fd878427df9ba7354bb55dc690a89c469985cc276bacc78baae",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         },
         "hi": {
           "path": "tools.hi.md",
-          "sourceHash": "ae825efce0198a0041e7a30a621d0817aca1139b599560e074495b904bc55cbf",
-          "translationHash": "cc74d54631ae931d6d80923361ce7143b6fbe2adfff42ee88dd2494a3c0dfe62",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "f8a5c4bb5a71c389485cc5d08d0fcecf25d83c088e35fc1e8e6bb11d8a4585c1",
+          "translationHash": "8cfa793cae4ecc12ac62a124670dcdca64d6b16d8f36fe94a953e72d3d117139",
+          "translator": "targeted machine translation fallback after DeepL quota exceeded; structurally reviewed",
+          "updatedAt": "2026-09-20T13:20:18.145Z"
         }
       }
     },

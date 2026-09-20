@@ -1203,6 +1203,115 @@ describe('bridge config generation', () => {
     runtime.dispose();
   });
 
+  it.each(['cloak', 'playwright'] as const)(
+    'adds only the bridge-owned debugging port for the %s engine',
+    async (browserEngine) => {
+      const root = createTempRoot();
+      const runtime = await prepareBridgeRuntime({
+        tempRoot: root,
+        managedCdpInternalPort: 43123,
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
+        buildCloakLaunchOptions: async () => ({ args: ['--cloak-built'] }),
+        env: {
+          PLAYWRIGHT_MCP_BROWSER_ENGINE: browserEngine,
+          PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+          CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+          CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED: 'true',
+          PLAYWRIGHT_MCP_CDP_PORT_RANGE: '9222-9322',
+        },
+      });
+
+      expect(runtime.config.browser?.launchOptions?.args).toContain('--remote-debugging-port=43123');
+      expect(runtime.config.browser?.launchOptions?.args).not.toContain('--remote-debugging-address=0.0.0.0');
+      expect(runtime.config.browser?.launchOptions?.args).not.toContain('--remote-allow-origins=*');
+      expect(runtime.config.browser?.launchOptions?.args).not.toContain('--remote-debugging-pipe');
+      expect(runtime.config.browser?.launchOptions?.ignoreDefaultArgs ?? []).not.toContain(
+        '--remote-debugging-pipe',
+      );
+      expect(runtime.childEnv.CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED).toBeUndefined();
+      expect(runtime.childEnv.PLAYWRIGHT_MCP_CDP_PORT_RANGE).toBeUndefined();
+
+      runtime.dispose();
+    },
+  );
+
+  it('removes managed CDP control variables from a disabled child environment', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      env: {
+        PLAYWRIGHT_MCP_BROWSER_ENGINE: 'playwright',
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED: 'false',
+        CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE: '9222',
+      },
+    });
+
+    expect(runtime.childEnv.CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED).toBeUndefined();
+    expect(runtime.childEnv.CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE).toBeUndefined();
+    expect(runtime.config.browser?.launchOptions?.args ?? []).not.toContain(
+      expect.stringMatching(/^--remote-debugging-port=/u),
+    );
+    runtime.dispose();
+  });
+
+  it.each(['isolated', 'persistent'] as const)(
+    'preserves the managed debugging port in %s profile mode',
+    async (profileMode) => {
+      const root = createTempRoot();
+      const userDataDir = path.join(root, 'profile');
+      const runtime = await prepareBridgeRuntime({
+        tempRoot: root,
+        managedCdpInternalPort: 43123,
+        browserIsolated: profileMode === 'isolated',
+        userDataDir: profileMode === 'persistent' ? userDataDir : undefined,
+        env: {
+          PLAYWRIGHT_MCP_BROWSER_ENGINE: 'playwright',
+          PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        },
+      });
+
+      expect(runtime.config.browser?.launchOptions?.args).toContain('--remote-debugging-port=43123');
+      expect(runtime.config.browser).toMatchObject(
+        profileMode === 'isolated' ? { isolated: true } : { userDataDir },
+      );
+
+      runtime.dispose();
+    },
+  );
+
+  it.each([
+    '--remote-debugging-port=9222',
+    '--remote-debugging-address=0.0.0.0',
+    '--remote-debugging-pipe',
+    '--remote-allow-origins=*',
+  ])('rejects a conflicting raw Chromium argument with managed CDP: %s', async (argument) => {
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: createTempRoot(),
+        managedCdpInternalPort: 43123,
+        env: {
+          PLAYWRIGHT_MCP_BROWSER_ENGINE: 'playwright',
+          CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS: argument,
+        },
+      }),
+    ).rejects.toThrow(argument.split('=')[0]);
+  });
+
+  it('rejects a raw managed-CDP conflict before Cloak launch-option transformation', async () => {
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: createTempRoot(),
+        managedCdpInternalPort: 43123,
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
+        buildCloakLaunchOptions: async () => ({ args: [] }),
+        env: {
+          CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS: '--remote-debugging-port=9222',
+        },
+      }),
+    ).rejects.toThrow('--remote-debugging-port');
+  });
+
   it('rejects unsupported bridge engines', async () => {
     await expect(
       prepareBridgeRuntime({

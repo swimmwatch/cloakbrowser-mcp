@@ -10,6 +10,84 @@ tags:
 
 Ce projet est un pont d'automatisation navigateur. Traitez-le comme une infrastructure d'exécution de code de confiance.
 
+## Sécurité gérée CDP { #managed-cdp-security }
+
+CDP géré est désactivé par défaut. Il fournit un contrôle arbitraire de Chromium DevTools,
+pas un outil de navigateur réduit API. Activez-le uniquement pour les clients de confiance. La capacité dans
+`cloakbrowser_bridge_info.cdp.discoveryUrl` est un justificatif de porteur : ne le consignez pas,
+stockez-le dans des tickets, ou partagez-le entre les sessions. Il tourne après le remplacement du navigateur
+et un vieux URL ne passe jamais à la génération de remplacement.
+
+Un lien de CDP sans boucle nécessite à la fois `--cdp-allow-remote` et un concret annoncé
+hôte. Ajoutez des contrôles d'accès réseau autour du port publié. Sélectionner
+`--cdp-advertised-scheme https` ne fournit pas TLS. L'auditeur géré et
+Chromium hop rester en texte clair ; un terminateur TLS appartenant à l'opérateur sur le même port doit être préservé
+l'autorité `Host` et `Origin` annoncée et maintenir un routage un-à-un vers le
+session possédée.
+
+Les journaux d'exécution n'incluent jamais les chemins de capacités, les ID cibles, les charges utiles CDP, les données du navigateur,
+cookies, valeurs brutes `Host` ou `Origin`, ou chemins de profil. Les contrôles de sécurité rejetés sont
+signalé uniquement comme un avertissement `cdp_security_rejections` à portée de session avec 60 secondes
+comptages saturés pour `capability`, `host` et `origin` ; le nettoyage vide tout ce qui reste
+comptes. Les vérifications réussies ne créent pas de dossiers d'audit par demande.
+
+### Limites fixes
+
+Les limites s'appliquent indépendamment à chaque session MCP activée CDP :
+
+| Frontière | Limite |
+| --- | --- |
+| Connexions WebSocket activement proxifiées, y compris les poignées de main en cours | 8 |
+| Requêtes HTTP concurrentes avant mise à niveau | 16 |
+| En-têtes de requête | 16 Ko |
+| Corps de la requête sur les routes prises en charge | Non autorisé |
+| Réponse mise en mémoire tampon Chromium HTTP | 4 Mio |
+| Message WebSocket entrant ou sortant | 16 Mio |
+| Données WebSocket non envoyées mises en file d'attente par direction | 16 Mio |
+| En-têtes de requête, réponse en amont HTTP, ou poignée de main WebSocket | 10 secondes |
+| Arrêt gracieux du proxy avant fermeture forcée | 5 secondes |
+| Corps de réponse d'erreur locale | 8 Ko |
+
+### Erreurs HTTP
+
+Les échecs locaux utilisent JSON `{"error":{"code":"...","message":"..."}}` avec
+`Cache-Control: no-store`, `Content-Type: application/json; charset=utf-8`, et un
+exact `Content-Length`. Les échecs de méthode incluent également `Allow`. Les correspondances stables sont :
+
+| Statut | Code |
+| --- | --- |
+| `400` | `bad_request` |
+| `403` | `forbidden` |
+| `404` | `not_found` |
+| `405` | `method_not_allowed` |
+| `408` | `request_timeout` |
+| `413` | `payload_too_large` |
+| `431` | `headers_too_large` |
+| `500` | `internal_error` |
+| `502` | `bad_gateway` |
+| `503` | `unavailable` |
+| `504` | `gateway_timeout` |
+| Chromium `400..499` | `upstream_error`, en préservant le statut |
+
+Les redirections Chromium, les erreurs de serveur, les réponses mal formées et les échecs de transport sont
+normalisé au lieu d'exposer les corps de réponse Chromium. Un rejet généré par le pont
+avant que la distribution en amont n'ait aucun effet secondaire Chromium. Une requête de découverte en lecture seule peut
+être réessayé après correction de la condition. Pour les échecs de changement d'état ambigus,
+relire `/json/list` et concilier l'état de l'application ; ne pas supposer `Retry-After` ou
+idempotence automatique
+
+### WebSocket Ferme
+
+Les clôtures générées localement utilisent des paires expurgées fixes. Les clôtures valides des pairs sont relayées.
+
+| Code | Raison | Utiliser |
+| --- | --- | --- |
+| `1001` | `going_away` | Fermeture de session, de génération ou de proxy |
+| `1002` | `protocol_error` | Entrée du protocole WebSocket malformée |
+| `1009` | `message_too_big` | Le message dépasse la limite configurée |
+| `1011` | `internal_error` | Déconnexion en amont inattendue ou défaillance du relais |
+| `1013` | `try_again_later` | Limite de file d'attente non envoyée par direction dépassée |
+
 ## Frontière de confiance
 
 Le serveur externe prend en charge stdio et Streamable HTTP. Il démarre upstream Playwright MCP comme processus enfant et transmet les appels d'outils. L'automatisation navigateur, la sortie de fichiers, l'accès réseau et les comportements d'évaluation non sûrs sont régis par upstream Playwright MCP.

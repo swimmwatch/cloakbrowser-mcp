@@ -44,6 +44,56 @@ tags:
 
 返回结构化桥接元数据：
 
+加法对象 `structuredContent.cdp` 报告调用会话的托管 CDP
+状态：
+
+```json
+{ "enabled": false }
+```
+
+```json
+{
+  "enabled": true,
+  "state": "ready",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": "http://127.0.0.1:9222/cdp/<capability>",
+  "activeConnections": 0
+}
+```
+
+```json
+{
+  "enabled": true,
+  "state": "unavailable",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": null,
+  "activeConnections": 0
+}
+```
+
+在更换浏览器后，`generation` 增加，`discoveryUrl` 旋转。
+`activeConnections` 计算已接受的代理 WebSocket 连接而不暴露
+客户端身份、目标ID或协议内容。对每一个非空发现 URL
+作为凭证。
+
+使用支持 CDP 的客户端使用发现 URL：
+
+```ts
+import { chromium } from 'playwright';
+
+const browser = await chromium.connectOverCDP(discoveryUrl);
+```
+
+受管理的 CDP 不是 Playwright 服务器协议。Playwright
+`chromium.connect()` 和当前的 Open WebUI `PLAYWRIGHT_WS_URL` 集成预期
+一个 Playwright 服务器端点，与这个 URL 不兼容。
+
 - MCP server 名称和版本；
 - runtime 模式；
 - upstream Playwright MCP 包和版本；

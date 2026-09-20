@@ -10,6 +10,84 @@ tags:
 
 Este projeto é uma ponte de automação para navegadores. Considere-o como uma infraestrutura de execução de código confiável.
 
+## Segurança Gerenciada CDP { #managed-cdp-security }
+
+O CDP gerenciado está desativado por padrão. Ele fornece controle arbitrário do Chromium DevTools,
+não é uma ferramenta de navegador reduzida API. Ative-a apenas para clientes confiáveis. A capacidade em
+`cloakbrowser_bridge_info.cdp.discoveryUrl` é uma credencial de portador: não a registre,
+armazená-lo em tickets, ou compartilhá-lo entre sessões. Ele gira após a substituição do navegador
+e um velho URL nunca é movido para a geração de substituição.
+
+Um bind CDP não-loopback requer tanto `--cdp-allow-remote` quanto um anunciado concreto
+host. Adicione controles de acesso à rede ao redor da porta publicada. Selecionando
+`--cdp-advertised-scheme https` não fornece TLS. O ouvinte gerenciado e
+Chromium hop permanece em texto simples; um terminador TLS de mesma porta de propriedade do operador deve preservar
+a autoridade anunciada `Host` e `Origin` e mantém o roteamento um-para-um para o
+sessão de posse.
+
+Os logs de tempo de execução nunca incluem caminhos de capacidade, IDs de destino, cargas CDP, dados do navegador,
+cookies, valores crus `Host` ou `Origin`, ou caminhos de perfil. Verificações de segurança rejeitadas são
+relatado apenas como um aviso `cdp_security_rejections` com escopo de sessão com 60 segundos
+contagens de saturação para `capability`, `host` e `origin`; a limpeza libera qualquer restante
+contagens. Verificações bem-sucedidas não criam registros de auditoria por solicitação.
+
+### Limites Fixos
+
+Os limites se aplicam independentemente a cada sessão CDP habilitada para MCP:
+
+| Fronteira | Limite |
+| --- | --- |
+| Conexões WebSocket ativas e proxy, incluindo handshakes em andamento | 8 |
+| Solicitações concorrentes de pré-atualização HTTP | 16 |
+| Cabeçalhos da solicitação | 16 KiB |
+| Corpo da requisição nas rotas suportadas | Não permitido |
+| Resposta em buffer Chromium HTTP | 4 MiB |
+| Mensagem WebSocket de entrada ou saída | 16 MiB |
+| Dados WebSocket não enviados enfileirados por direção | 16 MiB |
+| Cabeçalhos de solicitação, resposta upstream HTTP, ou handshake WebSocket | 10 segundos |
+| Encerramento elegante do proxy antes do fechamento forçado | 5 segundos |
+| Corpo de resposta de erro local | 8 KiB |
+
+### Erros HTTP
+
+Falhas locais usam JSON `{"error":{"code":"...","message":"..."}}` com
+`Cache-Control: no-store`, `Content-Type: application/json; charset=utf-8`, e um
+exato `Content-Length`. Falhas de método também incluem `Allow`. Os mapeamentos estáveis são:
+
+| Status | Código |
+| --- | --- |
+| `400` | `bad_request` |
+| `403` | `forbidden` |
+| `404` | `not_found` |
+| `405` | `method_not_allowed` |
+| `408` | `request_timeout` |
+| `413` | `payload_too_large` |
+| `431` | `headers_too_large` |
+| `500` | `internal_error` |
+| `502` | `bad_gateway` |
+| `503` | `unavailable` |
+| `504` | `gateway_timeout` |
+| Chromium `400..499` | `upstream_error`, preservando o status |
+
+Chromium redirecionamentos, erros de servidor, respostas malformadas e falhas de transporte são
+normalizado em vez de expor corpos de resposta Chromium. Uma rejeição gerada por ponte
+antes que o despacho a montante tenha nenhum efeito colateral Chromium. Uma solicitação de descoberta somente leitura pode
+será tentado novamente após corrigir a condição. Para falhas ambíguas que alteram o estado,
+releia `/json/list` e reconcilie o estado do aplicativo; não assuma `Retry-After` ou
+idempotência automática.
+
+### WebSocket Fecha
+
+Fechamentos gerados localmente usam pares redigidos fixos. Fechamentos válidos de pares são retransmitidos.
+
+| Código | Razão | Usar |
+| --- | --- | --- |
+| `1001` | `going_away` | Encerramento de sessão, geração ou proxy |
+| `1002` | `protocol_error` | Entrada de protocolo WebSocket malformada |
+| `1009` | `message_too_big` | Mensagem excede o limite configurado |
+| `1011` | `internal_error` | Desconexão inesperada a montante ou falha de retransmissão |
+| `1013` | `try_again_later` | Limite de fila não enviada por direção excedido |
+
 ## Limite de confiança
 
 O servidor externo oferece suporte a stdio e Streamable HTTP. Ele inicia o Playwright MCP (upstream) como um processo filho e encaminha as chamadas da ferramenta. A automação do navegador, a saída de arquivos, o acesso à rede e o comportamento de avaliação não segura são controlados pelo Playwright MCP (upstream).
