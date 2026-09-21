@@ -92,7 +92,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
-    "@playwright/mcp": "^0.0.80",
+    "@playwright/mcp": "^0.0.82",
     "cloakbrowser": "^0.5.10",
     "commander": "^15.0.0",
     "mmdb-lib": "^3.0.3",
@@ -120,7 +120,7 @@
     "eslint-plugin-regexp": "^3.2.0",
     "eslint-plugin-sonarjs": "^4.2.0",
     "fast-check": "^4.9.0",
-    "playwright": "^1.63.0-alpha-2026-08-31",
+    "playwright": "1.64.0-alpha-1789764292000",
     "prettier": "^3.9.6",
     "tsx": "^4.23.13",
     "typescript": "npm:@typescript/typescript6@^6.0.2",

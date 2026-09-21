@@ -100,6 +100,12 @@ Chromium 重定向、服务器错误、格式错误的响应和传输失败是
 
 Upstream Playwright MCP 包含诸如 `browser_evaluate` 和 `browser_run_code_unsafe` 之类的工具。 这些工具可在浏览器或 Playwright 服务器环境中执行 JavaScript。请仅将此服务器连接至您信任的 MCP 客户端。
 
+`webmcp_*` 工具由当前页面定义。名称、描述、schema、annotations 和 output 都是不受信任的数据；桥接器会原样转发。不需要动态工具时，请设置 `PLAYWRIGHT_MCP_WEBMCP=false`。
+
+## Playwright Extension token
+
+仅通过进程环境或密钥管理器提供 `PLAYWRIGHT_MCP_EXTENSION_TOKEN`。桥接器不接受 HTTP metadata 中的 token，也不会将其写入 config、bridge metadata、日志、错误或 diagnostic snapshots。请保护 persistent profile，不要在多个会话中复用同一个活动 `userDataDir`。
+
 ## 配置
 
 使用上游选项来实施访问控制和安全防护措施：

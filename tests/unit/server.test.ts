@@ -4,7 +4,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import type { CallToolResult, ListToolsResult } from '@modelcontextprotocol/sdk/types.js';
+import {
+  type CallToolResult,
+  type ListToolsResult,
+  ToolListChangedNotificationSchema,
+} from '@modelcontextprotocol/sdk/types.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { BridgeRuntime } from '@/bridge/config.js';
 import { LOCAL_TOOL_BRIDGE_INFO } from '@/bridge/tools.js';
@@ -75,6 +79,36 @@ describe('bridge server', () => {
     }
   });
 
+  it('preserves browser_emulate_media schema and annotations unchanged', async () => {
+    const upstreamTool = {
+      ...createTool('browser_emulate_media'),
+      annotations: {
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+        readOnlyHint: false,
+      },
+      inputSchema: {
+        type: 'object' as const,
+        properties: {
+          colorScheme: { type: 'string', enum: ['dark', 'light', 'no-preference'] },
+          media: { type: 'string', enum: ['print', 'screen', 'null'] },
+        },
+        additionalProperties: false,
+      },
+    };
+    const bridge = await createTestBridge({
+      listTools: async () => ({ tools: [upstreamTool] }),
+    });
+    try {
+      const client = await connectBridge(bridge);
+
+      expect((await client.listTools()).tools[0]).toEqual(upstreamTool);
+    } finally {
+      await bridge.dispose();
+    }
+  });
+
   it('returns cursor-based upstream tool pages unchanged', async () => {
     const bridge = await createTestBridge({
       listTools: async (params) => ({
@@ -93,6 +127,51 @@ describe('bridge server', () => {
       expect((await client.listTools({ cursor: 'page-2' })).tools.map((tool) => tool.name)).toEqual([
         'browser_click',
       ]);
+    } finally {
+      await bridge.dispose();
+    }
+  });
+
+  it('invalidates every cached tool page and forwards upstream list-changed notifications', async () => {
+    let emitToolListChanged: (() => Promise<void>) | undefined;
+    let generation = 1;
+    const listTools = vi.fn(async (params?: { cursor?: string }): Promise<ListToolsResult> => ({
+      nextCursor: params?.cursor === undefined ? 'page-2' : undefined,
+      tools:
+        params?.cursor === 'page-2'
+          ? [createTool(`webmcp_second_${String(generation)}`)]
+          : [createTool(`webmcp_first_${String(generation)}`)],
+    }));
+    const bridge = await createTestBridge({
+      captureToolListChanged: (emit) => {
+        emitToolListChanged = emit;
+      },
+      listTools,
+    });
+    try {
+      const client = await connectBridge(bridge);
+      const notifications = vi.fn();
+      client.setNotificationHandler(ToolListChangedNotificationSchema, notifications);
+
+      await client.listTools();
+      await client.listTools({ cursor: 'page-2' });
+      await client.listTools();
+      await client.listTools({ cursor: 'page-2' });
+      expect(listTools).toHaveBeenCalledTimes(2);
+
+      generation = 2;
+      await emitToolListChanged?.();
+
+      expect(notifications).toHaveBeenCalledTimes(1);
+      expect((await client.listTools()).tools.map((tool) => tool.name)).toEqual([
+        'webmcp_first_2',
+        'cloakbrowser_binary_info',
+        'cloakbrowser_bridge_info',
+      ]);
+      expect((await client.listTools({ cursor: 'page-2' })).tools.map((tool) => tool.name)).toEqual([
+        'webmcp_second_2',
+      ]);
+      expect(listTools).toHaveBeenCalledTimes(4);
     } finally {
       await bridge.dispose();
     }
@@ -201,6 +280,88 @@ describe('bridge server', () => {
     }
   });
 
+  it('routes dynamic WebMCP tools through managed CDP recovery', async () => {
+    const managed = createManagedCdpSessionMock({ state: 'ready' });
+    const callTool = vi.fn(async (params) => jsonToolResult(params));
+    const bridge = await createTestBridge({ callTool, managedCdpSession: managed });
+    try {
+      const client = await connectBridge(bridge);
+
+      await client.callTool({ name: 'webmcp_checkout', arguments: { item: 'book' } });
+
+      expect(managed.runBrowserTool).toHaveBeenCalledTimes(1);
+      expect(managed.runWithCurrentUpstream).not.toHaveBeenCalled();
+      expect(callTool).toHaveBeenCalledWith({
+        name: 'webmcp_checkout',
+        arguments: { item: 'book' },
+      });
+    } finally {
+      await bridge.dispose();
+    }
+  });
+
+  it('invalidates managed tool caches when the generation state changes', async () => {
+    const managed = createManagedCdpSessionMock({ state: 'ready' });
+    let notifyStateChanged: (() => Promise<void>) | undefined;
+    let generation = 1;
+    const listTools = vi.fn(async () => ({
+      tools: [createTool(`webmcp_generation_${String(generation)}`)],
+    }));
+    const bridge = await createTestBridge({
+      listTools,
+      managedCdpSession: managed,
+      subscribeManagedToolListChanges: (handler) => {
+        notifyStateChanged = handler;
+        return () => undefined;
+      },
+    });
+    try {
+      const client = await connectBridge(bridge);
+      expect((await client.listTools()).tools.map((tool) => tool.name)).toContain('webmcp_generation_1');
+      await client.listTools();
+      expect(listTools).toHaveBeenCalledTimes(1);
+
+      generation = 2;
+      await notifyStateChanged?.();
+
+      expect((await client.listTools()).tools.map((tool) => tool.name)).toContain('webmcp_generation_2');
+      expect(listTools).toHaveBeenCalledTimes(2);
+    } finally {
+      await bridge.dispose();
+    }
+  });
+
+  it('hides stale dynamic tools while a managed generation is unavailable', async () => {
+    const managedState: { state: 'ready' | 'unavailable' } = { state: 'ready' };
+    const managed = createManagedCdpSessionMock(managedState);
+    let notifyStateChanged: (() => Promise<void>) | undefined;
+    const listTools = vi.fn(async () => ({
+      tools: [createTool('browser_snapshot'), createTool('webmcp_stale_checkout')],
+    }));
+    const bridge = await createTestBridge({
+      listTools,
+      managedCdpSession: managed,
+      subscribeManagedToolListChanges: (handler) => {
+        notifyStateChanged = handler;
+        return () => undefined;
+      },
+    });
+    try {
+      const client = await connectBridge(bridge);
+      expect((await client.listTools()).tools.map((tool) => tool.name)).toContain('webmcp_stale_checkout');
+
+      managedState.state = 'unavailable';
+      await notifyStateChanged?.();
+
+      const names = (await client.listTools()).tools.map((tool) => tool.name);
+      expect(names).toContain('browser_snapshot');
+      expect(names).not.toContain('webmcp_stale_checkout');
+      expect(listTools).toHaveBeenCalledTimes(2);
+    } finally {
+      await bridge.dispose();
+    }
+  });
+
   it('invalidates managed CDP after a successful browser_close without reopening it', async () => {
     const managed = createManagedCdpSessionMock({ state: 'ready' });
     const callTool = vi.fn(async (params) => jsonToolResult(params));
@@ -288,6 +449,8 @@ async function createTestBridge(
     managedCdpSession?: ManagedCdpSession;
     onCdpRecoveryError?: () => void;
     runtime?: BridgeRuntime;
+    captureToolListChanged?: (emit: () => Promise<void>) => void;
+    subscribeManagedToolListChanges?: (handler: () => Promise<void>) => () => void;
   } = {},
 ): Promise<BridgeServer> {
   const upstreamClient = {
@@ -298,6 +461,17 @@ async function createTestBridge(
       })),
     callTool: overrides.callTool ?? (async (params) => jsonToolResult(params)),
     close: overrides.close ?? (async () => {}),
+    removeNotificationHandler: vi.fn(),
+    setNotificationHandler: vi.fn(
+      (
+        _schema: unknown,
+        handler: (notification: { method: 'notifications/tools/list_changed' }) => Promise<void> | void,
+      ) => {
+        overrides.captureToolListChanged?.(
+          async () => await handler({ method: 'notifications/tools/list_changed' }),
+        );
+      },
+    ),
   } as unknown as Client;
   if (overrides.managedCdpSession !== undefined) {
     managedOwners.set(overrides.managedCdpSession, {
@@ -312,6 +486,7 @@ async function createTestBridge(
     managedCdpSession: overrides.managedCdpSession,
     onCdpRecoveryError: overrides.onCdpRecoveryError,
     runtime: overrides.runtime ?? createRuntime(),
+    subscribeManagedToolListChanges: overrides.subscribeManagedToolListChanges,
     upstreamClient,
   });
 }

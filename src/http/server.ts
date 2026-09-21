@@ -63,12 +63,14 @@ export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions 
   runtimeOptions?: Pick<
     PrepareBridgeRuntimeOptions,
     | 'contextOptions'
+    | 'extensionMode'
     | 'extensionPaths'
     | 'geoipProxyMatch'
     | 'headless'
     | 'humanize'
     | 'humanPreset'
     | 'proxy'
+    | 'profileDirName'
     | 'userDataDir'
   >;
   ensureDockerDisplay?: () => Promise<void>;
@@ -436,8 +438,10 @@ class StreamableHttpBridgeController {
     sessionRuntimeOptions: BridgeInitializeRuntimeOptions,
   ): PrepareBridgeRuntimeOptions {
     const defaults = this.#options.runtimeOptions;
+    const extensionMode = preferSessionOption(sessionRuntimeOptions.extensionMode, defaults?.extensionMode);
     return {
-      browserIsolated: true,
+      browserIsolated: extensionMode === true ? false : true,
+      extensionMode,
       geoipProxyMatch: preferSessionOption(sessionRuntimeOptions.geoipProxyMatch, defaults?.geoipProxyMatch),
       headless: preferSessionOption(sessionRuntimeOptions.headless, defaults?.headless),
       humanize: preferSessionOption(sessionRuntimeOptions.humanize, defaults?.humanize),
@@ -447,6 +451,7 @@ class StreamableHttpBridgeController {
       contextOptions: mergeContextOptions(defaults?.contextOptions, sessionRuntimeOptions.contextOptions),
       extensionPaths: preferSessionOption(sessionRuntimeOptions.extensionPaths, defaults?.extensionPaths),
       proxy: preferSessionOption(sessionRuntimeOptions.proxy, defaults?.proxy),
+      profileDirName: preferSessionOption(sessionRuntimeOptions.profileDirName, defaults?.profileDirName),
     };
   }
 

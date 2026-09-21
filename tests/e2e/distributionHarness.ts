@@ -86,7 +86,12 @@ export function packAndInstallCurrentPackage(): DistributionCommand {
 }
 
 export function createDockerDistributionCommand(
-  options: { dockerInit?: boolean; headless?: boolean; restrictedRuntime?: boolean } = {},
+  options: {
+    dockerInit?: boolean;
+    extensionMode?: boolean;
+    headless?: boolean;
+    restrictedRuntime?: boolean;
+  } = {},
 ): DistributionCommand {
   return {
     label: 'Docker image',
@@ -121,6 +126,14 @@ export function createDockerDistributionCommand(
       'PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default',
       '-e',
       'CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK=false',
+      ...(options.extensionMode
+        ? [
+            '-e',
+            'PLAYWRIGHT_MCP_EXTENSION=true',
+            '-e',
+            'PLAYWRIGHT_MCP_EXTENSION_TOKEN=docker-extension-test-token',
+          ]
+        : []),
       ...(options.headless === false ? ['-e', 'PLAYWRIGHT_MCP_HEADLESS=false'] : []),
       dockerImageTag,
     ],

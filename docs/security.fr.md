@@ -100,6 +100,12 @@ Streamable HTTP se lie par défaut à `127.0.0.1` en HTTP pour les clients locau
 
 Upstream Playwright MCP inclut des outils comme `browser_evaluate` et `browser_run_code_unsafe`. Ils peuvent exécuter du JavaScript dans le contexte du navigateur ou du serveur Playwright. Ne connectez ce serveur qu'à des clients MCP auxquels vous faites confiance.
 
+Les outils `webmcp_*` sont définis par la page courante. Considérez leur nom, description, schéma, annotations et output comme des données non fiables ; le bridge les transmet sans modification. Définissez `PLAYWRIGHT_MCP_WEBMCP=false` lorsque la collecte n'est pas nécessaire.
+
+## Token Playwright Extension
+
+Fournissez `PLAYWRIGHT_MCP_EXTENSION_TOKEN` uniquement via l'environnement du processus ou un gestionnaire de secrets. Le bridge n'accepte pas le token dans les métadonnées HTTP et ne l'écrit pas dans la config, les métadonnées du bridge, les logs, les erreurs ou les diagnostic snapshots. Protégez le persistent profile et ne réutilisez pas un `userDataDir` actif entre plusieurs sessions.
+
 ## Configuration
 
 Utilisez les options upstream pour les contrôles d'accès et les garde-fous :

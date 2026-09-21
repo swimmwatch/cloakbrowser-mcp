@@ -100,6 +100,12 @@ Chromium перенаправляет, ошибки сервера, некорр
 
 Upstream Playwright MCP включает такие инструменты, как `browser_evaluate` и `browser_run_code_unsafe`. Они позволяют выполнять JavaScript в браузере или в контексте сервера Playwright. Подключайте этот сервер только к тем клиентам MCP, которым вы доверяете.
 
+Инструменты `webmcp_*` определяются текущей страницей. Считайте их имя, описание, schema, annotations и output недоверенными данными; мост передаёт их без изменений. Отключите сбор через `PLAYWRIGHT_MCP_WEBMCP=false`, если он не нужен.
+
+## Token Playwright Extension
+
+Передавайте `PLAYWRIGHT_MCP_EXTENSION_TOKEN` только через окружение процесса или менеджер секретов. Мост не принимает token в HTTP metadata и не пишет его в config, bridge metadata, логи, ошибки или diagnostic snapshots. Защищайте persistent profile и не используйте один активный `userDataDir` в нескольких сессиях.
+
 ## Настройка
 
 Используйте опции на верхних уровнях для управления доступом и защиты:

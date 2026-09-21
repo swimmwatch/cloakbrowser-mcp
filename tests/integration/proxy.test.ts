@@ -132,6 +132,8 @@ describe('bridge proxy', () => {
         return { content: [] };
       },
       async close() {},
+      removeNotificationHandler() {},
+      setNotificationHandler() {},
     } as unknown as Client;
 
     const bridge = await createBridgeServer({ runtime, upstreamClient });

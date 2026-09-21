@@ -12,9 +12,9 @@ tags:
 
 ## Upstream Tools
 
-The default upstream browser tool surface is expected to match the pinned Playwright MCP dependency. It contains 24 tools, including navigation, snapshot, click, typing, screenshots, tabs, console messages, network inspection, file upload, dialogs, and unsafe evaluation tools.
+The default upstream browser tool surface is expected to match the pinned Playwright MCP dependency. It contains 25 tools, including `browser_emulate_media`, navigation, snapshot, click, typing, screenshots, tabs, console messages, network inspection, file upload, dialogs, and unsafe evaluation tools.
 
-For a stable upstream reference, see the Playwright MCP `{{ project.playwright_mcp_package_tag }}` capability test pinned to the exact package commit: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/4c1fb03bad3bae379b0ae0e3d81d2660de56bd91/tests/capabilities.spec.ts#L19-L77).
+For a stable upstream reference, see the Playwright MCP `{{ project.playwright_mcp_package_tag }}` capability test pinned to the exact package commit: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/f1257a5a67aff872f947fae274759f7d54853862/tests/capabilities.spec.ts#L19-L77).
 
 Set `PLAYWRIGHT_MCP_CAPS=devtools` to pass the upstream `devtools` capability to
 the child process. The bridge has no `--caps` flag and forwards the resulting
@@ -34,6 +34,14 @@ upstream tools and schemas unchanged, including `browser_start_recording` and
     [#176](https://github.com/CloakHQ/CloakBrowser/issues/176).
 
 This project treats upstream Playwright MCP as authoritative and does not maintain a copied schema reference.
+
+### Dynamic WebMCP tools
+
+Chromium implements WebMCP starting with version 154. Older CloakBrowser builds ignore the feature flag; use a compatible browser build or `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright` when WebMCP is required.
+
+When Chromium is started with `--enable-features=WebMCP`, Playwright MCP can add page-provided tools named `webmcp_*` while a page is open. These tools are dynamic: the bridge advertises `tools.listChanged`, invalidates its complete paginated tool cache when upstream sends `notifications/tools/list_changed`, and forwards the notification to the owning MCP client. Clients should listen for that notification and call `tools/list` again. A Streamable HTTP client receives it only while its session notification stream is open; the next `tools/list` is still fresh when no stream was open.
+
+Dynamic tools belong only to the MCP session and current managed-CDP browser generation that discovered them. Their names, descriptions, schemas, annotations, and outputs are untrusted page content and are forwarded without bridge rewriting. Review them before calling them. Set `PLAYWRIGHT_MCP_WEBMCP=false` to disable collection. The bridge never enables Chromium WebMCP automatically.
 
 ## Local Tools
 
@@ -115,7 +123,7 @@ CloakBrowser 0.5.10 does not export that API from its public entry point.
 
 ## Parity
 
-CI builds the Docker image and runs `npm run bridge:compare`. That script starts the official Playwright MCP image and the CloakBrowser bridge image in parallel, compares the default 24-tool upstream surface and the `PLAYWRIGHT_MCP_CAPS=devtools` schemas, and exercises the default upstream browser tools against the same fixture page.
+CI builds the Docker image and runs `npm run bridge:compare`. That script starts the official Playwright MCP image and the CloakBrowser bridge image in parallel, compares the default 25-tool upstream surface and the `PLAYWRIGHT_MCP_CAPS=devtools` schemas, and exercises the default upstream browser tools against the same fixture page.
 
 Use `--report` to write a machine-readable JSON parity report:
 

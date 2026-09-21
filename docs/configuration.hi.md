@@ -231,6 +231,10 @@ HTTP सत्र बनाएँ। जब पथों में कॉमा 
 ड्राइव-लेटर पथों का उपयोग करना हो, तो
 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` के लिए JSON ऐरे का उपयोग करें।
 
+## Playwright Extension connection mode
+
+यह mode Chrome या Edge profile में पहले से installed आधिकारिक Playwright Extension के जरिए जुड़ता है और `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` से unpacked extension लोड करने से अलग है। stdio के लिए `PLAYWRIGHT_MCP_EXTENSION=true`, `PLAYWRIGHT_MCP_EXTENSION_TOKEN`, `PLAYWRIGHT_MCP_USER_DATA_DIR` और जरूरत पर एक relative segment वाला `PLAYWRIGHT_MCP_PROFILE_DIR_NAME` सेट करें। Streamable HTTP में `extensionMode`, `profileDirName` और `userDataDir` metadata process values को override करते हैं, लेकिन token केवल process environment से लिया जाता है। Parallel sessions को अलग `userDataDir` चाहिए; launch, CDP, proxy, GeoIP, humanization, context और `extensionPaths` options incompatible हैं।
+
 ## स्ट्रीम करने योग्य HTTP रनटाइम मेटाडेटा
 
 स्ट्रीमएबल HTTP क्लाइंट `initialize` अनुरोध में ब्रिज-विशिष्ट मेटाडेटा जोड़कर प्रति MCP सत्र के लिए चयनित रनटाइम विकल्प चुन सकते हैं:

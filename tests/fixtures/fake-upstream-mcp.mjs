@@ -15,6 +15,7 @@ const cdpMetrics = {
 };
 const cdpChallenges = new Map();
 const toolCallCounts = new Map();
+const dynamicTools = new Map();
 let browserGeneration = 1;
 let fakeChromium;
 
@@ -116,7 +117,10 @@ function recordChallenge(functionSource) {
   cdpMetrics.challengePlacements += 1;
 }
 
-const server = new Server({ name: 'fake-playwright-mcp', version: '1.0.0' }, { capabilities: { tools: {} } });
+const server = new Server(
+  { name: 'fake-playwright-mcp', version: '1.0.0' },
+  { capabilities: { tools: { listChanged: true } } },
+);
 const toolNames = JSON.parse(readFileSync(new URL('./fake-upstream-tools.json', import.meta.url), 'utf8'));
 const tools = toolNames.map((name) => ({
   name,
@@ -125,7 +129,9 @@ const tools = toolNames.map((name) => ({
   inputSchema: { type: 'object', properties: {}, additionalProperties: true },
 }));
 
-server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools }));
+server.setRequestHandler(ListToolsRequestSchema, async () => ({
+  tools: [...tools, ...dynamicTools.values()],
+}));
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const delayMs = request.params.arguments?.delayMs;
@@ -138,6 +144,29 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
   if (request.params.name === 'browser_evaluate') {
     recordChallenge(request.params.arguments?.function ?? '');
+  }
+  const dynamicToolAction = request.params.arguments?.fakeDynamicToolAction;
+  if (dynamicToolAction === 'add') {
+    const dynamicName = request.params.arguments?.fakeDynamicToolName;
+    if (typeof dynamicName === 'string' && dynamicName.startsWith('webmcp_')) {
+      dynamicTools.set(dynamicName, {
+        name: dynamicName,
+        title: 'Untrusted page tool',
+        description: 'Page-provided dynamic tool.',
+        inputSchema: {
+          type: 'object',
+          properties: { value: { type: 'string' } },
+          additionalProperties: false,
+        },
+        annotations: { readOnlyHint: false },
+      });
+      await server.sendToolListChanged();
+    }
+  } else if (dynamicToolAction === 'remove') {
+    const dynamicName = request.params.arguments?.fakeDynamicToolName;
+    if (typeof dynamicName === 'string' && dynamicTools.delete(dynamicName)) {
+      await server.sendToolListChanged();
+    }
   }
   const value = {
     forwarded: true,
@@ -165,6 +194,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
   if (request.params.arguments?.includeHeadlessConfig === true) {
     value.headlessConfig = readHeadlessConfig();
+  }
+  if (request.params.arguments?.includeExtensionConfig === true) {
+    value.extensionConfig = readExtensionConfig();
   }
   if (request.params.arguments?.includeBrowserConfig === true) {
     value.browserConfig = readBrowserConfig();
@@ -202,6 +234,16 @@ function readHeadlessConfig() {
   return {
     env: process.env.PLAYWRIGHT_MCP_HEADLESS ?? null,
     config: config?.browser?.launchOptions?.headless ?? null,
+  };
+}
+
+function readExtensionConfig() {
+  const config = readConfig();
+  return {
+    enabled: process.env.PLAYWRIGHT_MCP_EXTENSION ?? null,
+    hasToken: Boolean(process.env.PLAYWRIGHT_MCP_EXTENSION_TOKEN),
+    profileDirName: process.env.PLAYWRIGHT_MCP_PROFILE_DIR_NAME ?? null,
+    userDataDir: config?.browser?.userDataDir ?? null,
   };
 }
 

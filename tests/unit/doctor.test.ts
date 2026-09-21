@@ -31,10 +31,10 @@ describe('CLI doctor diagnostics', () => {
     expect(report.upstream.cliPath?.replaceAll('\\', '/')).toEqual(
       expect.stringContaining('@playwright/mcp'),
     );
-    expect(report.upstream.resolvedVersion).toBe('0.0.80');
-    expect(report.upstream.playwright.version).toBe('1.63.0-alpha-2026-08-31');
+    expect(report.upstream.resolvedVersion).toBe('0.0.82');
+    expect(report.upstream.playwright.version).toBe('1.64.0-alpha-1789764292000');
     expect(report.upstream.playwrightCore).toMatchObject({
-      version: '1.63.0-alpha-2026-08-31',
+      version: '1.64.0-alpha-1789764292000',
       bundlePath: expect.stringContaining('coreBundle'),
     });
     expect(report.checks.map((check) => check.name)).toEqual([
@@ -51,7 +51,7 @@ describe('CLI doctor diagnostics', () => {
     expect(output).toContain('CloakBrowser MCP doctor');
     expect(output).toContain('Checks:');
     expect(output).toContain('playwright-mcp-cli');
-    expect(output).toContain('Playwright Core: 1.63.0-alpha-2026-08-31');
+    expect(output).toContain('Playwright Core: 1.64.0-alpha-1789764292000');
     expect(output).toContain('Core bundle:');
   });
 
@@ -234,7 +234,7 @@ describe('CLI doctor diagnostics', () => {
     expect(report.status).toBe('warning');
     expect(report.checks.find((check) => check.name === 'playwright-runtime')).toMatchObject({
       status: 'warning',
-      message: 'Playwright core 1.63.0-alpha-2026-08-31 does not match core bundle 1.63.0',
+      message: 'Playwright core 1.64.0-alpha-1789764292000 does not match core bundle 1.63.0',
     });
   });
 

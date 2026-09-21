@@ -100,6 +100,12 @@ Streamable HTTP local clients के लिए default रूप से HTTP प
 
 Upstream Playwright MCP में `browser_evaluate` और `browser_run_code_unsafe` जैसे tools शामिल हैं। ये browser या Playwright server context में JavaScript execute कर सकते हैं। इस server को केवल trusted MCP clients से connect करें।
 
+`webmcp_*` tools मौजूदा page तय करता है। नाम, description, schema, annotations और output को अविश्वसनीय data मानें; bridge इन्हें बिना बदलाव आगे भेजता है। जरूरत न होने पर `PLAYWRIGHT_MCP_WEBMCP=false` सेट करें।
+
+## Playwright Extension token
+
+`PLAYWRIGHT_MCP_EXTENSION_TOKEN` केवल process environment या secret manager से दें। Bridge HTTP metadata में token स्वीकार नहीं करता और इसे config, bridge metadata, logs, errors या diagnostic snapshots में नहीं लिखता। Persistent profile सुरक्षित रखें और एक active `userDataDir` को कई sessions में reuse न करें।
+
 ## Configuration
 
 Access controls और guardrails के लिए upstream options उपयोग करें:

@@ -14,11 +14,11 @@ tags:
 
 默认 upstream 浏览器工具表面应与固定的 Playwright MCP 依赖保持一致。它包括导航、snapshot、点击、输入、截图、标签页、控制台消息、网络检查、文件上传、对话框以及不安全求值工具等核心浏览器工具。
 
-稳定的 upstream 参考见 Playwright MCP `{{ project.playwright_mcp_package_tag }}` capability test，该测试固定到准确的包 commit：[default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/4c1fb03bad3bae379b0ae0e3d81d2660de56bd91/tests/capabilities.spec.ts#L19-L77)。
+稳定的 upstream 参考见 Playwright MCP `{{ project.playwright_mcp_package_tag }}` capability test，该测试固定到准确的包 commit：[default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/f1257a5a67aff872f947fae274759f7d54853862/tests/capabilities.spec.ts#L19-L77)。
 
 本项目将 upstream Playwright MCP 视为权威来源，不维护复制的 schema 参考。
 
-默认集合包含 24 个 upstream 工具。`PLAYWRIGHT_MCP_CAPS=devtools` 会将
+默认集合包含 25 个 upstream 工具，包括 `browser_emulate_media`。`PLAYWRIGHT_MCP_CAPS=devtools` 会将
 `devtools` 能力传递给子进程，无需桥接的 `--caps` 选项；产生的 upstream 工具
 和模式将不作更改地转发，其中包括 `browser_start_recording` 和
 `browser_stop_recording`。
@@ -33,6 +33,12 @@ tags:
     有关底层绑定决策的讨论见
     [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) 和
     [#176](https://github.com/CloakHQ/CloakBrowser/issues/176)。
+
+### 动态 WebMCP 工具
+
+Chromium 从版本 154 开始支持 WebMCP。较旧的 CloakBrowser 构建会忽略该 feature flag；如需 WebMCP，请使用兼容的浏览器构建或设置 `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright`。
+
+使用 `--enable-features=WebMCP` 启动 Chromium 后，页面可以声明 `webmcp_*` 工具。桥接器会转发 `notifications/tools/list_changed`、清空完整的 `tools/list` 缓存，客户端应重新获取列表。在 Streamable HTTP 中，只有对应会话已打开的通知流会收到事件；即使没有流，下一次 `tools/list` 仍会返回最新列表。名称、描述、schema、annotations 和 output 都是不受信任的页面数据。桥接器不会自动启用 WebMCP；`PLAYWRIGHT_MCP_WEBMCP=false` 可禁用收集。
 
 ## 本地工具
 

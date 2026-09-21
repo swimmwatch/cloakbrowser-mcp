@@ -94,6 +94,8 @@ docker run --rm -i \
 содержит запятые или при передаче нескольких каталогов расширений.
 Перезапустите контейнер после изменения файлов расширений или путей расширений.
 
+Режим подключения Playwright Extension отличается от монтирования распакованного расширения выше. Он требует официального расширения в persistent Chrome/Edge profile и `PLAYWRIGHT_MCP_EXTENSION_TOKEN`. Монтируйте каждую profile в отдельный writable path, передавайте token через secret manager и не сочетайте `PLAYWRIGHT_MCP_EXTENSION=true` с `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`.
+
 ## HTTP с возможностью потоковой передачи
 
 Для локального использования Streamable по протоколу HTTP необходимо открыть доступ к порту контейнера через loopback:

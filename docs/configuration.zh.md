@@ -228,6 +228,10 @@ PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
 逗号、传入多个扩展，或使用带盘符的 Windows 路径时，请为
 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` 使用 JSON 数组。
 
+## Playwright Extension 连接模式
+
+此模式通过已安装在 Chrome 或 Edge 配置文件中的官方 Playwright Extension 连接，与通过 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` 加载解压扩展不同。对于 stdio，请设置 `PLAYWRIGHT_MCP_EXTENSION=true`、`PLAYWRIGHT_MCP_EXTENSION_TOKEN`、`PLAYWRIGHT_MCP_USER_DATA_DIR`，并可设置仅含一个相对路径段的 `PLAYWRIGHT_MCP_PROFILE_DIR_NAME`。在 Streamable HTTP 中，`extensionMode`、`profileDirName` 和 `userDataDir` 元数据覆盖进程值，但 token 只能来自进程环境。并行会话必须使用不同的 `userDataDir`；launch、CDP、proxy、GeoIP、humanization、context 和 `extensionPaths` 配置与此模式不兼容。
+
 ## 可流式传输的 HTTP 运行时元数据
 
 支持流式传输的 HTTP 客户端可以通过在 `initialize` 请求中添加

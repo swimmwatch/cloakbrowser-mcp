@@ -37,6 +37,10 @@ describe('Docker image distribution E2E', () => {
     await expectDistributionStdioBridge(createDockerDistributionCommand());
   });
 
+  it('accepts Playwright Extension mode without conflicting with Docker image defaults', async () => {
+    await expectDistributionStdioBridge(createDockerDistributionCommand({ extensionMode: true }));
+  });
+
   it('runs a headed stdio bridge under the documented restricted Docker runtime', async () => {
     const command = createDockerDistributionCommand({
       headless: false,

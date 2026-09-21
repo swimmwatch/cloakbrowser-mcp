@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Added unchanged proxying for Playwright MCP dynamic `webmcp_*` tools, including
+  session-scoped `tools/list_changed` notifications, paginated cache invalidation,
+  and managed-CDP generation recovery.
+- Added stdio and Streamable HTTP configuration for the official Playwright
+  Extension connection mode with persistent-profile locking and token redaction.
+
+### Changed
+
+- Updated Playwright MCP to 0.0.82, Playwright to
+  1.64.0-alpha-1789764292000, and the official Docker baseline to v0.0.82.
+- Updated the default upstream parity surface from 24 to 25 tools with
+  `browser_emulate_media`.
+
 ## [1.13.0] - 2026-09-03
 
 ### Changed

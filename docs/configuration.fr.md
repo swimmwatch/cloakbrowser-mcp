@@ -243,6 +243,10 @@ fichiers ou chemins d'extensions. Utilisez un tableau JSON pour
 virgules, lors du passage de plusieurs extensions ou lors de l'utilisation de
 chemins Windows avec lettres de lecteur.
 
+## Mode de connexion Playwright Extension
+
+Ce mode se connecte au moyen de l'extension Playwright officielle déjà installée dans un profil Chrome ou Edge ; il est distinct du chargement d'extensions décompressées avec `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`. Pour stdio, définissez `PLAYWRIGHT_MCP_EXTENSION=true`, `PLAYWRIGHT_MCP_EXTENSION_TOKEN`, `PLAYWRIGHT_MCP_USER_DATA_DIR` et, si nécessaire, un seul segment relatif dans `PLAYWRIGHT_MCP_PROFILE_DIR_NAME`. Avec Streamable HTTP, les métadonnées `extensionMode`, `profileDirName` et `userDataDir` remplacent les valeurs du processus, mais le token n'est accepté que depuis l'environnement du processus. Les sessions parallèles doivent utiliser des `userDataDir` différents ; les options launch, CDP, proxy, GeoIP, humanization, context et `extensionPaths` sont incompatibles.
+
 ## Métadonnées d'exécution HTTP diffusables en continu
 
 Les clients HTTP prenant en charge le streaming peuvent choisir certaines options d'exécution pour chaque session MCP en ajoutant

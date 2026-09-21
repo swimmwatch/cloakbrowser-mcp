@@ -14,11 +14,11 @@ tags:
 
 Die standardmäßige upstream Browser-Tool-Oberfläche soll der fixierten Playwright-MCP-Abhängigkeit entsprechen. Dazu gehören zentrale Browser-Tools wie Navigation, Snapshot, Klicks, Texteingabe, Screenshots, Tabs, Konsolennachrichten, Netzwerkprüfung, Datei-Upload, Dialoge und unsichere Auswertungstools.
 
-Als stabile upstream Referenz siehe den Playwright-MCP-`{{ project.playwright_mcp_package_tag }}`-Capability-Test, der auf den exakten Paket-Commit fixiert ist: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/4c1fb03bad3bae379b0ae0e3d81d2660de56bd91/tests/capabilities.spec.ts#L19-L77).
+Als stabile upstream Referenz siehe den Playwright-MCP-`{{ project.playwright_mcp_package_tag }}`-Capability-Test, der auf den exakten Paket-Commit fixiert ist: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/f1257a5a67aff872f947fae274759f7d54853862/tests/capabilities.spec.ts#L19-L77).
 
 Dieses Projekt behandelt upstream Playwright MCP als maßgebliche Quelle und pflegt keine kopierte Schema-Referenz.
 
-Der Standardsatz umfasst 24 Upstream-Tools. `PLAYWRIGHT_MCP_CAPS=devtools`
+Der Standardsatz umfasst 25 Upstream-Tools, einschließlich `browser_emulate_media`. `PLAYWRIGHT_MCP_CAPS=devtools`
 übergibt die Fähigkeit `devtools` ohne bridge-eigene Option `--caps` an den
 Kindprozess; die resultierenden Upstream-Tools und -Schemas werden unverändert
 weitergeleitet, einschließlich `browser_start_recording` und
@@ -36,6 +36,12 @@ weitergeleitet, einschließlich `browser_start_recording` und
     Die zugrunde liegende Entscheidung zur Verbindung wird in
     [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) und
     [#176](https://github.com/CloakHQ/CloakBrowser/issues/176) diskutiert.
+
+### Dynamische WebMCP-Tools
+
+Chromium unterstützt WebMCP ab Version 154. Ältere CloakBrowser-Builds ignorieren das feature flag; verwenden Sie einen kompatiblen Browser-Build oder `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright`, wenn WebMCP erforderlich ist.
+
+Wenn Chromium mit `--enable-features=WebMCP` gestartet wird, können Seiten `webmcp_*`-Tools deklarieren. Die Bridge leitet `notifications/tools/list_changed` weiter, leert den gesamten `tools/list`-Cache und der Client muss die Liste erneut abrufen. Bei Streamable HTTP erhält nur der offene Benachrichtigungsstream der zugehörigen Sitzung das Ereignis; auch ohne Stream ist das nächste `tools/list` aktuell. Name, Beschreibung, Schema, annotations und output sind nicht vertrauenswürdige Seitendaten. Die Bridge aktiviert WebMCP nicht automatisch; `PLAYWRIGHT_MCP_WEBMCP=false` deaktiviert die Erfassung.
 
 ## Lokale Tools
 

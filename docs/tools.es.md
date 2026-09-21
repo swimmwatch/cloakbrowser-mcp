@@ -14,11 +14,11 @@ tags:
 
 Se espera que la superficie predeterminada de herramientas de navegador upstream coincida con la dependencia fijada de Playwright MCP. Incluye herramientas principales como navegación, snapshots, clics, escritura, capturas de pantalla, pestañas, mensajes de consola, inspección de red, subida de archivos, diálogos y herramientas de evaluación insegura.
 
-Como referencia upstream estable, consulta la prueba de capacidades de Playwright MCP `{{ project.playwright_mcp_package_tag }}` fijada al commit exacto del paquete: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/4c1fb03bad3bae379b0ae0e3d81d2660de56bd91/tests/capabilities.spec.ts#L19-L77).
+Como referencia upstream estable, consulta la prueba de capacidades de Playwright MCP `{{ project.playwright_mcp_package_tag }}` fijada al commit exacto del paquete: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/f1257a5a67aff872f947fae274759f7d54853862/tests/capabilities.spec.ts#L19-L77).
 
 Este proyecto trata a upstream Playwright MCP como fuente autorizada y no mantiene una copia de referencia de esquemas.
 
-El conjunto predeterminado contiene 24 herramientas upstream.
+El conjunto predeterminado contiene 25 herramientas upstream, incluida `browser_emulate_media`.
 `PLAYWRIGHT_MCP_CAPS=devtools` pasa la capacidad `devtools` al proceso hijo sin
 una opción `--caps` del puente; las herramientas y los esquemas upstream
 resultantes se reenvían sin cambios, incluidos `browser_start_recording` y
@@ -35,6 +35,12 @@ resultantes se reenvían sin cambios, incluidos `browser_start_recording` y
     La decisión subyacente sobre el enlace se analiza en
     [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) y
     [#176](https://github.com/CloakHQ/CloakBrowser/issues/176).
+
+### Herramientas WebMCP dinámicas
+
+Chromium implementa WebMCP a partir de la versión 154. Las compilaciones anteriores de CloakBrowser ignoran el feature flag; si necesitas WebMCP, usa una compilación de navegador compatible o `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright`.
+
+Cuando Chromium se inicia con `--enable-features=WebMCP`, las páginas pueden declarar herramientas `webmcp_*`. El bridge reenvía `notifications/tools/list_changed`, limpia toda la caché de `tools/list` y el cliente debe volver a solicitar la lista. En Streamable HTTP, solo el flujo abierto de la sesión correspondiente recibe la notificación; el siguiente `tools/list` sigue siendo actual incluso sin flujo. Considera el nombre, la descripción, el esquema, las annotations y el output como datos de página no confiables. El bridge no activa WebMCP automáticamente; `PLAYWRIGHT_MCP_WEBMCP=false` desactiva la recopilación.
 
 ## Herramientas locales
 

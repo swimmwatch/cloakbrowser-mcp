@@ -10,6 +10,8 @@ tags:
 
 Extensões do Chrome exigem um diretório descompactado e um perfil persistente.
 
+Esta receita usa o carregamento de extensão descompactada do CloakBrowser. O modo de conexão pela extensão oficial Playwright Extension instalada separadamente usa `PLAYWRIGHT_MCP_EXTENSION=true`, um `PLAYWRIGHT_MCP_EXTENSION_TOKEN` de process-level e um persistent profile dedicado. Não combine os dois mecanismos.
+
 ## npm
 
 ```bash

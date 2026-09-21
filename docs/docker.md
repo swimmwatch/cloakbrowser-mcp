@@ -114,6 +114,15 @@ Use a JSON array for `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` when a path contains
 commas or when passing multiple extension directories. Restart the container
 after changing extension files or extension paths.
 
+Playwright Extension connection mode is a different feature from the unpacked
+extension mount above. It requires the official Playwright Extension to be installed
+inside a persistent Chrome or Edge profile and a matching
+`PLAYWRIGHT_MCP_EXTENSION_TOKEN`. The bridge does not bake that extension or token
+into the image. Mount each extension-mode profile on a separate writable container
+path, inject the token through container secret management, and verify this setup
+manually before using it. Do not combine `PLAYWRIGHT_MCP_EXTENSION=true` with
+`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`.
+
 ## Streamable HTTP
 
 For local Streamable HTTP usage, publish the container port on loopback:

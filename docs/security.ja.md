@@ -100,6 +100,12 @@ Streamable HTTP は既定でローカルクライアント向けに `127.0.0.1` 
 
 Upstream Playwright MCP には `browser_evaluate` や `browser_run_code_unsafe` などのツールがあります。これらはブラウザーまたは Playwright server context で JavaScript を実行できます。このサーバーは信頼できる MCP クライアントにのみ接続してください。
 
+`webmcp_*` ツールは現在のページが定義します。名前、説明、schema、annotations、output は信頼できないデータとして扱ってください。ブリッジはそのまま転送します。不要な場合は `PLAYWRIGHT_MCP_WEBMCP=false` を設定してください。
+
+## Playwright Extension token
+
+`PLAYWRIGHT_MCP_EXTENSION_TOKEN` はプロセス環境またはシークレットマネージャーからだけ渡してください。ブリッジは HTTP metadata の token を受け付けず、config、bridge metadata、ログ、エラー、diagnostic snapshots に書き込みません。persistent profile を保護し、複数セッションで同じアクティブな `userDataDir` を再利用しないでください。
+
 ## 設定
 
 アクセス制御とガードレールには upstream オプションを使用します：

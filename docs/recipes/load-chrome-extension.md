@@ -10,6 +10,8 @@ tags:
 
 Chrome extensions need an unpacked extension directory and a persistent profile. Configure both before the browser starts.
 
+This recipe uses CloakBrowser's unpacked-extension launch support. It is not Playwright Extension connection mode. To connect through the separately installed official Playwright Extension, use `PLAYWRIGHT_MCP_EXTENSION=true`, a process-level `PLAYWRIGHT_MCP_EXTENSION_TOKEN`, and a dedicated persistent profile as described in [Configuration](../configuration.md#playwright-extension-connection-mode). Do not combine the two mechanisms.
+
 ## npm
 
 ```bash

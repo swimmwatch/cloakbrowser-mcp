@@ -48,6 +48,9 @@ For task-focused examples, see the [Recipes](recipes/index.md) section.
 | `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |
 | `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset | Persistent Chromium profile directory. The bridge resolves it to an absolute path, creates it if missing, verifies it is writable, and writes it to generated `browser.userDataDir`. |
+| `PLAYWRIGHT_MCP_EXTENSION` | `false` | Connect through the separately installed official Playwright Extension instead of launching a bridge-owned browser. Requires a persistent user data directory and `PLAYWRIGHT_MCP_EXTENSION_TOKEN`. |
+| `PLAYWRIGHT_MCP_PROFILE_DIR_NAME` | unset | One relative profile-directory segment, such as `Profile 1`, used only by Playwright Extension connection mode. |
+| `PLAYWRIGHT_MCP_EXTENSION_TOKEN` | unset | Secret shared with the official Playwright Extension. Accepted only from the process environment; never from HTTP initialize metadata. |
 | `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset | JSON object with validated context options. Supported fields are listed below. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset | JSON array or comma-separated list of existing Chrome extension directories. Requires `PLAYWRIGHT_MCP_USER_DATA_DIR`. Use JSON arrays for Windows paths or paths containing commas. |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | Enables the console message compatibility patch. |
@@ -247,6 +250,38 @@ Windows drive-letter paths.
 
 See [Load Chrome Extension](recipes/load-chrome-extension.md) for a shorter copy-paste setup.
 
+## Playwright Extension connection mode
+
+Playwright Extension connection mode is separate from loading an unpacked extension with `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`. It connects through the official Playwright Extension already installed in a Chrome or Edge profile; the bridge does not install that extension.
+
+For stdio, configure the process environment:
+
+```bash
+PLAYWRIGHT_MCP_EXTENSION=true \
+  PLAYWRIGHT_MCP_EXTENSION_TOKEN='<secret-from-the-extension>' \
+  PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/playwright-extension" \
+  PLAYWRIGHT_MCP_PROFILE_DIR_NAME='Profile 1' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+For Streamable HTTP, `extensionMode` and `profileDirName` initialize metadata override their process-level values. `userDataDir` is also session-specific. The token remains process-environment-only:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "extensionMode": true,
+        "profileDirName": "Profile 1",
+        "userDataDir": "/absolute/path/to/profile"
+      }
+    }
+  }
+}
+```
+
+Extension mode requires a non-empty token and a persistent profile. Concurrent HTTP extension sessions must use different `userDataDir` values. The bridge rejects managed or external CDP endpoints, remote browser endpoints, headless or isolated launch configuration, proxy and GeoIP options, humanization, context mutation, unpacked `extensionPaths`, and explicitly supplied CloakBrowser launch options before starting the upstream child. Positive end-to-end verification is manual because the official Playwright Extension must already be installed in the selected browser profile.
+
 ## Streamable HTTP Runtime Metadata
 
 Streamable HTTP clients can choose selected runtime options per MCP session by adding
@@ -261,6 +296,8 @@ bridge-specific metadata to the `initialize` request:
         "proxyBypass": ".internal,localhost",
         "geoipProxyMatch": true,
         "headless": false,
+        "extensionMode": false,
+        "profileDirName": "Profile 1",
         "humanize": true,
         "humanPreset": "careful",
         "userDataDir": "/absolute/path/to/profile",
@@ -291,6 +328,10 @@ sessions keep the behavior captured during `initialize`.
 Docker image, setting `headless` to `false` starts a container-private virtual
 display on demand. Outside the image, a headed session still requires a usable
 display environment.
+
+`extensionMode` and `profileDirName` override `PLAYWRIGHT_MCP_EXTENSION` and
+`PLAYWRIGHT_MCP_PROFILE_DIR_NAME` for that session. `PLAYWRIGHT_MCP_EXTENSION_TOKEN`
+is never accepted in metadata.
 
 `userDataDir` enables a persistent Chromium profile for that session and
 overrides `PLAYWRIGHT_MCP_USER_DATA_DIR`. The bridge resolves the directory to
@@ -335,9 +376,13 @@ The bridge forwards `PLAYWRIGHT_MCP_*` settings to upstream Playwright MCP. That
 - `PLAYWRIGHT_MCP_ALLOW_UNRESTRICTED_FILE_ACCESS`
 - `PLAYWRIGHT_MCP_CAPS`
 - `PLAYWRIGHT_MCP_CONSOLE_LEVEL`
+- `PLAYWRIGHT_MCP_FILE_PATHS`
+- `PLAYWRIGHT_MCP_IDLE_TIMEOUT`
 - `PLAYWRIGHT_MCP_IMAGE_RESPONSES`
+- `PLAYWRIGHT_MCP_PROFILE_DIR_NAME`
 - `PLAYWRIGHT_MCP_SNAPSHOT_MODE`
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
+- `PLAYWRIGHT_MCP_WEBMCP`
 
 Refer to the upstream Playwright MCP documentation for the full upstream option surface.
 

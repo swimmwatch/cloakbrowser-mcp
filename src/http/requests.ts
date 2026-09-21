@@ -70,12 +70,14 @@ export function containsInitializeRequest(value: unknown): boolean {
 export type BridgeInitializeRuntimeOptions = Pick<
   PrepareBridgeRuntimeOptions,
   | 'contextOptions'
+  | 'extensionMode'
   | 'extensionPaths'
   | 'geoipProxyMatch'
   | 'headless'
   | 'humanize'
   | 'humanPreset'
   | 'proxy'
+  | 'profileDirName'
   | 'userDataDir'
 > & { cdpEnabled?: boolean };
 
@@ -105,11 +107,17 @@ function readBridgeInitializeMeta(request: InitializeRequest): Record<string, un
 function readBridgeRuntimeOptionsFromMeta(
   bridgeMeta: Record<string, unknown>,
 ): BridgeInitializeRuntimeOptions {
+  if ('extensionToken' in bridgeMeta) {
+    throw new InvalidBridgeInitializeMetaError(
+      'extensionToken is process environment only and is not accepted in initialize metadata',
+    );
+  }
   const proxyServer = readOptionalString(bridgeMeta, 'proxyServer');
   const proxyBypass = readOptionalString(bridgeMeta, 'proxyBypass');
   const proxy = readRuntimeProxy(proxyServer, proxyBypass);
   return compactRuntimeOptions({
     cdpEnabled: readOptionalBoolean(bridgeMeta, 'cdpEnabled'),
+    extensionMode: readOptionalBoolean(bridgeMeta, 'extensionMode'),
     geoipProxyMatch: readOptionalBoolean(bridgeMeta, 'geoipProxyMatch'),
     headless: readOptionalBoolean(bridgeMeta, 'headless'),
     humanize: readOptionalBoolean(bridgeMeta, 'humanize'),
@@ -118,6 +126,7 @@ function readBridgeRuntimeOptionsFromMeta(
     contextOptions: readOptionalContextOptions(bridgeMeta, 'contextOptions'),
     extensionPaths: readOptionalStringArray(bridgeMeta, 'extensionPaths'),
     proxy,
+    profileDirName: readOptionalString(bridgeMeta, 'profileDirName'),
   });
 }
 

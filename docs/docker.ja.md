@@ -92,6 +92,8 @@ docker run --rm -i \
 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` に JSON 配列を使用してください。
 拡張機能ファイルまたは拡張機能パスを変更した後は、コンテナを再起動してください。
 
+Playwright Extension 接続モードは、上記の展開済み拡張機能のマウントとは別です。persistent Chrome/Edge profile に公式拡張機能をインストールし、`PLAYWRIGHT_MCP_EXTENSION_TOKEN` を指定する必要があります。各 profile を別々の writable path にマウントし、token は secret manager から渡してください。`PLAYWRIGHT_MCP_EXTENSION=true` と `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` は併用しないでください。
+
 ## ストリーム可能なHTTP
 
 ローカルでの Streamable HTTP を使用する場合は、コンテナのポートをループバックで公開してください：

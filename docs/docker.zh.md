@@ -87,6 +87,8 @@ docker run --rm -i \
 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` 使用 JSON 数组。更改扩展文件或扩展
 路径后，请重启容器。
 
+Playwright Extension 连接模式与上面的解压扩展挂载不同。它需要在 persistent Chrome/Edge profile 中安装官方扩展，并提供 `PLAYWRIGHT_MCP_EXTENSION_TOKEN`。请将每个 profile 挂载到独立的 writable path，通过 secret manager 注入 token，不要同时使用 `PLAYWRIGHT_MCP_EXTENSION=true` 和 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`。
+
 ## 可流式传输的 HTTP
 
 若要在本地使用 Streamable HTTP，请将容器端口发布到回环地址：

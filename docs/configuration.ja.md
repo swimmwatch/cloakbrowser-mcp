@@ -236,6 +236,10 @@ Streamable HTTP では、`initialize` メタデータでプロファイルディ
 拡張機能を渡す場合、または Windows のドライブ文字付きパスを使用する場合は、
 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` に JSON 配列を使用してください。
 
+## Playwright Extension 接続モード
+
+このモードは Chrome または Edge のプロファイルにインストール済みの公式 Playwright Extension を介して接続し、`CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` で展開済み拡張機能を読み込む方式とは別です。stdio では `PLAYWRIGHT_MCP_EXTENSION=true`、`PLAYWRIGHT_MCP_EXTENSION_TOKEN`、`PLAYWRIGHT_MCP_USER_DATA_DIR` と、必要なら相対パス 1 セグメントの `PLAYWRIGHT_MCP_PROFILE_DIR_NAME` を設定します。Streamable HTTP では `extensionMode`、`profileDirName`、`userDataDir` メタデータがプロセス値を上書きしますが、token はプロセス環境からのみ受け付けます。並行セッションは異なる `userDataDir` を使用する必要があり、launch、CDP、proxy、GeoIP、humanization、context、`extensionPaths` 設定とは併用できません。
+
 ## ストリーミング可能なHTTPランタイムメタデータ
 
 ストリーミング対応のHTTPクライアントは、`initialize` リクエストにブリッジ固有のメタデータを追加することで、MCPセッションごとに特定のランタイムオプションを選択できます：

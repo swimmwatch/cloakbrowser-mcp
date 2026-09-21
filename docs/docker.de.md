@@ -96,6 +96,8 @@ Pfad Kommas enthält oder wenn mehrere Erweiterungsverzeichnisse übergeben
 werden. Starten Sie den Container neu, nachdem Sie Erweiterungsdateien oder
 Erweiterungspfade geändert haben.
 
+Der Playwright-Extension-Verbindungsmodus unterscheidet sich vom oben gezeigten Mount einer entpackten Erweiterung. Er benötigt die offizielle Erweiterung in einem persistent Chrome/Edge profile und `PLAYWRIGHT_MCP_EXTENSION_TOKEN`. Mounten Sie jedes profile in einen eigenen writable path, injizieren Sie das Token über einen Secret Manager und kombinieren Sie `PLAYWRIGHT_MCP_EXTENSION=true` nicht mit `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`.
+
 ## Streamable HTTP
 
 Für die lokale Nutzung von Streamable HTTP veröffentlichen Sie den Container-Port über Loopback:

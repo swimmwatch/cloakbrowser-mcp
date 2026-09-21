@@ -93,6 +93,8 @@ docker run --rm -i \
 містить коми або під час передавання кількох каталогів розширень.
 Перезапустіть контейнер після зміни файлів розширень або шляхів розширень.
 
+Режим підключення Playwright Extension відрізняється від монтування розпакованого розширення вище. Він потребує офіційного розширення у persistent Chrome/Edge profile та `PLAYWRIGHT_MCP_EXTENSION_TOKEN`. Монтуйте кожну profile в окремий writable path, передавайте token через secret manager і не поєднуйте `PLAYWRIGHT_MCP_EXTENSION=true` з `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`.
+
 ## HTTP-потік
 
 Для локального використання Streamable HTTP опублікуйте порт контейнера на петлі зворотного зв’язку:

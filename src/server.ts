@@ -11,6 +11,7 @@ import {
   type ListToolsRequest,
   ListToolsRequestSchema,
   type ListToolsResult,
+  ToolListChangedNotificationSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import {
   type BridgeRuntime,
@@ -53,12 +54,14 @@ export interface StartBridgeOptions {
     PrepareBridgeRuntimeOptions,
     | 'browserIsolated'
     | 'contextOptions'
+    | 'extensionMode'
     | 'extensionPaths'
     | 'geoipProxyMatch'
     | 'headless'
     | 'humanize'
     | 'humanPreset'
     | 'proxy'
+    | 'profileDirName'
     | 'userDataDir'
   >;
   transport?: Transport;
@@ -68,6 +71,7 @@ export interface BridgeServerOptions extends StartBridgeOptions {
   cdpInfo?: () => BridgeCdpInfo;
   managedCdpSession?: ManagedCdpSession;
   runtime?: BridgeRuntime;
+  subscribeManagedToolListChanges?: (handler: () => Promise<void>) => () => void;
   upstreamClient?: Client;
 }
 
@@ -102,11 +106,28 @@ export async function createBridgeServer(options: BridgeServerOptions = {}): Pro
   let upstreamToolCount = 0;
 
   const server = new Server(createServerInfo(options.serverInfo), {
-    capabilities: { tools: {} },
+    capabilities: { tools: { listChanged: true } },
     instructions: MCP_SERVER_INSTRUCTIONS,
   });
 
+  const handleUpstreamToolListChanged = async (): Promise<void> => {
+    upstreamToolCache.clear();
+    upstreamToolCount = 0;
+    try {
+      await server.sendToolListChanged();
+    } catch {
+      // Cache invalidation remains authoritative when no notification stream is open.
+    }
+  };
+  const unsubscribeManagedToolListChanges = options.subscribeManagedToolListChanges?.(
+    handleUpstreamToolListChanged,
+  );
+  if (options.managedCdpSession === undefined) {
+    upstreamClient.setNotificationHandler(ToolListChangedNotificationSchema, handleUpstreamToolListChanged);
+  }
+
   server.setRequestHandler(ListToolsRequestSchema, async (request) => {
+    const managedGenerationBeforeList = options.managedCdpSession?.snapshot();
     const upstream = await listUpstreamTools(upstreamToolCache, request.params, async () =>
       options.managedCdpSession === undefined
         ? await upstreamClient.listTools(request.params)
@@ -114,11 +135,16 @@ export async function createBridgeServer(options: BridgeServerOptions = {}): Pro
             async (owner) => await owner.listTools(request.params),
           )) as ListToolsResult),
     );
-    upstreamToolCount = Math.max(upstreamToolCount, upstream.tools.length);
-    if (request.params?.cursor) return upstream;
+    const visibleUpstream = filterManagedDynamicTools(
+      upstream,
+      managedGenerationBeforeList,
+      options.managedCdpSession?.snapshot(),
+    );
+    upstreamToolCount = Math.max(upstreamToolCount, visibleUpstream.tools.length);
+    if (request.params?.cursor) return visibleUpstream;
     return {
-      ...upstream,
-      tools: [...upstream.tools, ...localTools],
+      ...visibleUpstream,
+      tools: [...visibleUpstream.tools, ...localTools],
     };
   });
 
@@ -136,12 +162,12 @@ export async function createBridgeServer(options: BridgeServerOptions = {}): Pro
         (await owner.callTool(request.params.name, request.params.arguments ?? {})) as CallToolResult;
       try {
         result = (
-          request.params.name.startsWith('browser_')
+          isBrowserTool(request.params.name)
             ? await managed.runBrowserTool(callCurrent)
             : await managed.runWithCurrentUpstream(callCurrent)
         ) as CallToolResult;
       } catch (error) {
-        if (request.params.name.startsWith('browser_') && managed.snapshot().state === 'unavailable') {
+        if (isBrowserTool(request.params.name) && managed.snapshot().state === 'unavailable') {
           safelyReportCdpRecoveryError(options.onCdpRecoveryError);
         }
         throw error;
@@ -162,6 +188,10 @@ export async function createBridgeServer(options: BridgeServerOptions = {}): Pro
       await server.connect(transport ?? new StdioServerTransport());
     },
     async dispose() {
+      unsubscribeManagedToolListChanges?.();
+      if (options.managedCdpSession === undefined) {
+        upstreamClient.removeNotificationHandler('notifications/tools/list_changed');
+      }
       if (options.managedCdpSession) {
         const results = await Promise.allSettled([options.managedCdpSession.dispose(), server.close()]);
         const errors = results.flatMap((result) =>
@@ -203,6 +233,11 @@ export async function startManagedCdpBridge(
   let runtime: BridgeRuntime | undefined;
   const sessionOwner: { current: ManagedCdpSession | undefined } = { current: undefined };
   let upstreamClient: Client | undefined;
+  let toolListChangedHandler: (() => Promise<void>) | undefined;
+
+  const notifyToolListChanged = (): void => {
+    void toolListChangedHandler?.().catch(() => undefined);
+  };
 
   const session = await startManagedCdpSession({
     createProxy: async () =>
@@ -233,14 +268,25 @@ export async function startManagedCdpBridge(
       return prepared;
     },
     connectUpstream: async (prepared, signal) => {
-      const owner = await connectManagedUpstream(prepared as BridgeRuntime, signal, () =>
-        sessionOwner.current?.invalidateGeneration(),
+      const owner = await connectManagedUpstream(
+        prepared as BridgeRuntime,
+        signal,
+        () => sessionOwner.current?.invalidateGeneration(),
+        async (sourceOwner) => {
+          const currentSession = sessionOwner.current;
+          if (currentSession === undefined) return;
+          const isCurrent = await currentSession.runWithCurrentUpstream(
+            async (currentOwner) => currentOwner === sourceOwner,
+          );
+          if (isCurrent) notifyToolListChanged();
+        },
       );
       upstreamClient ??= owner.client;
       return owner;
     },
     createChromiumClient: ({ host, port }) => createChromiumCdpClient(host, port),
     onCleanupError: () => safelyReportCdpCleanupError(options.onCdpCleanupError),
+    onStateChange: notifyToolListChanged,
     verifyExternal: async ({ capability, headers, proxy, signal }) =>
       await verifyManagedCdpReadiness(cdp, capability, headers, proxy.port, signal),
   });
@@ -257,6 +303,12 @@ export async function startManagedCdpBridge(
       cdpInfo: () => createBridgeCdpInfo(cdp, session),
       managedCdpSession: session,
       runtime,
+      subscribeManagedToolListChanges: (handler) => {
+        toolListChangedHandler = handler;
+        return () => {
+          if (toolListChangedHandler === handler) toolListChangedHandler = undefined;
+        };
+      },
       upstreamClient,
     });
   } catch (error) {
@@ -406,6 +458,7 @@ async function connectManagedUpstream(
   runtime: BridgeRuntime,
   signal: AbortSignal,
   onClose?: () => void,
+  onToolListChanged?: (owner: ManagedCdpUpstreamOwner) => Promise<void>,
 ): Promise<ManagedConnectedUpstream> {
   const transport = new StdioClientTransport({
     command: process.execPath,
@@ -450,13 +503,43 @@ async function connectManagedUpstream(
   } finally {
     signal.removeEventListener('abort', onAbort);
   }
-  return {
+  const owner: ManagedConnectedUpstream = {
     callTool: async (name: string, arguments_: Record<string, unknown>) =>
       await client.callTool({ name, arguments: arguments_ }),
     client,
     dispose: close,
     listTools: async (params?: unknown) => await client.listTools(params as ListToolsRequest['params']),
     transport,
+  };
+  client.setNotificationHandler(ToolListChangedNotificationSchema, async () => {
+    try {
+      await onToolListChanged?.(owner);
+    } catch {
+      // Upstream notification observers never alter the originating tool call.
+    }
+  });
+  return owner;
+}
+
+function isBrowserTool(name: string): boolean {
+  return name.startsWith('browser_') || name.startsWith('webmcp_');
+}
+
+function filterManagedDynamicTools(
+  result: ListToolsResult,
+  before: ReturnType<ManagedCdpSession['snapshot']> | undefined,
+  after: ReturnType<ManagedCdpSession['snapshot']> | undefined,
+): ListToolsResult {
+  if (
+    before === undefined ||
+    after === undefined ||
+    (before.state === 'ready' && after.state === 'ready' && before.generation === after.generation)
+  ) {
+    return result;
+  }
+  return {
+    ...result,
+    tools: result.tools.filter((tool) => !tool.name.startsWith('webmcp_')),
   };
 }
 

@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { ToolListChangedNotificationSchema } from '@modelcontextprotocol/sdk/types.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { WebSocket } from 'ws';
 import { prepareBridgeRuntime } from '@/bridge/config.js';
@@ -406,6 +407,98 @@ describe('streamable HTTP bridge', () => {
     });
   });
 
+  it('keeps dynamic WebMCP tools and list-changed notifications isolated per HTTP session', async () => {
+    await withFakeUpstream(async () => {
+      const server = await startHttpBridge({ sessionMax: 2 });
+      const first = await connectHttpClient(server);
+      const second = await connectHttpClient(server);
+      const firstNotifications = vi.fn();
+      const secondNotifications = vi.fn();
+      first.client.setNotificationHandler(ToolListChangedNotificationSchema, firstNotifications);
+      second.client.setNotificationHandler(ToolListChangedNotificationSchema, secondNotifications);
+
+      await first.client.listTools();
+      await second.client.listTools();
+      await first.client.callTool({
+        name: 'browser_evaluate',
+        arguments: {
+          fakeDynamicToolAction: 'add',
+          fakeDynamicToolName: 'webmcp_checkout',
+        },
+      });
+
+      await vi.waitFor(() => expect(firstNotifications).toHaveBeenCalledTimes(1));
+      expect(secondNotifications).not.toHaveBeenCalled();
+      const firstTools = await first.client.listTools();
+      const secondTools = await second.client.listTools();
+      expect(firstTools.tools).toContainEqual(
+        expect.objectContaining({
+          name: 'webmcp_checkout',
+          description: 'Page-provided dynamic tool.',
+          annotations: { readOnlyHint: false },
+        }),
+      );
+      expect(secondTools.tools.map((tool) => tool.name)).not.toContain('webmcp_checkout');
+
+      await expect(
+        first.client.callTool({ name: 'webmcp_checkout', arguments: { value: 'book' } }),
+      ).resolves.toMatchObject({
+        structuredContent: {
+          forwarded: true,
+          name: 'webmcp_checkout',
+          arguments: { value: 'book' },
+        },
+      });
+
+      await first.client.callTool({
+        name: 'browser_evaluate',
+        arguments: {
+          fakeDynamicToolAction: 'remove',
+          fakeDynamicToolName: 'webmcp_checkout',
+        },
+      });
+      await vi.waitFor(() => expect(firstNotifications).toHaveBeenCalledTimes(2));
+      expect((await first.client.listTools()).tools.map((tool) => tool.name)).not.toContain(
+        'webmcp_checkout',
+      );
+    });
+  });
+
+  it('refreshes dynamic tools without an open HTTP notification stream', async () => {
+    await withFakeUpstream(async () => {
+      const server = await startHttpBridge();
+      const sessionId = await initializeRawHttpSession(server);
+      const initial = await postToolsList(server.url, sessionId);
+      expect(initial.status).toBe(HttpStatus.Ok);
+
+      const add = await postJsonRpc(
+        server.url,
+        {
+          jsonrpc: JSON_RPC_VERSION,
+          id: crypto.randomUUID(),
+          method: 'tools/call',
+          params: {
+            name: 'browser_evaluate',
+            arguments: {
+              fakeDynamicToolAction: 'add',
+              fakeDynamicToolName: 'webmcp_no_stream',
+            },
+          },
+        },
+        sessionId,
+      );
+      expect(add.status).toBe(HttpStatus.Ok);
+
+      await vi.waitFor(async () => {
+        const refreshed = await postToolsList(server.url, sessionId);
+        const body = (await readJsonRpcResponse(refreshed)) as {
+          result?: { tools?: Array<{ name?: string }> };
+        };
+        expect(body.result?.tools?.map((tool) => tool.name)).toContain('webmcp_no_stream');
+      });
+    });
+  });
+
   it('rejects missing and unknown sessions', async () => {
     await withFakeUpstream(async () => {
       const server = await startHttpBridge();
@@ -609,6 +702,94 @@ describe('streamable HTTP bridge', () => {
       },
       { browserEngine: 'cloak' },
     );
+  });
+
+  it('applies isolated Playwright Extension metadata per HTTP session without exposing the token', async () => {
+    await withFakeUpstream(async () => {
+      process.env.PLAYWRIGHT_MCP_EXTENSION = 'false';
+      process.env.PLAYWRIGHT_MCP_EXTENSION_TOKEN = 'http-extension-secret';
+      process.env.PLAYWRIGHT_MCP_PROFILE_DIR_NAME = 'Process Profile';
+      const root = createTempRoot();
+      const firstProfile = path.join(root, 'profiles', 'first');
+      const secondProfile = path.join(root, 'profiles', 'second');
+      const server = await startHttpBridge({ sessionMax: 3 });
+      const firstSession = await initializeRawHttpSession(server, {
+        extensionMode: true,
+        profileDirName: 'Profile 1',
+        userDataDir: firstProfile,
+      });
+      const secondSession = await initializeRawHttpSession(server, {
+        extensionMode: true,
+        profileDirName: 'Profile 2',
+        userDataDir: secondProfile,
+      });
+
+      await expectExtensionConfig(server, firstSession, {
+        enabled: 'true',
+        hasToken: true,
+        profileDirName: 'Profile 1',
+        userDataDir: canonicalDirectory(firstProfile),
+      });
+      await expectExtensionConfig(server, secondSession, {
+        enabled: 'true',
+        hasToken: true,
+        profileDirName: 'Profile 2',
+        userDataDir: canonicalDirectory(secondProfile),
+      });
+
+      const duplicate = await postJsonRpc(
+        server.url,
+        createInitializeRequest({
+          extensionMode: true,
+          profileDirName: 'Profile 3',
+          userDataDir: firstProfile,
+        }),
+      );
+      expect(duplicate.status).toBe(HttpStatus.BadRequest);
+      const duplicateForRedaction = duplicate.clone();
+      await expectJsonRpcErrorMessage(duplicate, 'already active');
+      expect(await duplicateForRedaction.text()).not.toContain('http-extension-secret');
+    });
+  });
+
+  it('does not forward the process extension token to non-extension HTTP sessions', async () => {
+    await withFakeUpstream(async () => {
+      process.env.PLAYWRIGHT_MCP_EXTENSION = 'true';
+      process.env.PLAYWRIGHT_MCP_EXTENSION_TOKEN = 'process-extension-secret';
+      const root = createTempRoot();
+      const profileDir = path.join(root, 'profiles', 'non-extension');
+      const server = await startHttpBridge();
+      const sessionId = await initializeRawHttpSession(server, {
+        extensionMode: false,
+        profileDirName: 'Profile 1',
+        userDataDir: profileDir,
+      });
+
+      await expectExtensionConfig(server, sessionId, {
+        enabled: 'false',
+        hasToken: false,
+        profileDirName: 'Profile 1',
+        userDataDir: canonicalDirectory(profileDir),
+      });
+    });
+  });
+
+  it('rejects Playwright Extension HTTP metadata when the process token is absent', async () => {
+    await withFakeUpstream(async () => {
+      delete process.env.PLAYWRIGHT_MCP_EXTENSION_TOKEN;
+      const root = createTempRoot();
+      const server = await startHttpBridge();
+      const response = await postJsonRpc(
+        server.url,
+        createInitializeRequest({
+          extensionMode: true,
+          userDataDir: path.join(root, 'profiles', 'extension'),
+        }),
+      );
+
+      expect(response.status).toBe(HttpStatus.BadRequest);
+      await expectJsonRpcErrorMessage(response, 'PLAYWRIGHT_MCP_EXTENSION_TOKEN');
+    });
   });
 
   it('rejects duplicate profile sessions without leaking session capacity', async () => {
@@ -1089,6 +1270,39 @@ async function expectHeadlessConfig(
   expect(body.result?.structuredContent?.headlessConfig).toEqual(expected);
 }
 
+async function expectExtensionConfig(
+  server: StreamableHttpBridgeServer,
+  sessionId: string,
+  expected: {
+    enabled: string;
+    hasToken: boolean;
+    profileDirName: string;
+    userDataDir: string;
+  },
+): Promise<void> {
+  const response = await postJsonRpc(
+    server.url,
+    {
+      jsonrpc: JSON_RPC_VERSION,
+      id: crypto.randomUUID(),
+      method: 'tools/call',
+      params: {
+        name: 'browser_navigate',
+        arguments: {
+          url: 'https://example.com',
+          includeExtensionConfig: true,
+        },
+      },
+    },
+    sessionId,
+  );
+  expect(response.status).toBe(HttpStatus.Ok);
+  const body = (await readJsonRpcResponse(response)) as {
+    result?: { structuredContent?: { extensionConfig?: unknown } };
+  };
+  expect(body.result?.structuredContent?.extensionConfig).toEqual(expected);
+}
+
 async function expectBrowserConfig(
   server: StreamableHttpBridgeServer,
   sessionId: string,
@@ -1206,6 +1420,9 @@ async function withFakeUpstream(
     userDataDir: process.env.PLAYWRIGHT_MCP_USER_DATA_DIR,
     contextOptions: process.env.CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS,
     extensionPaths: process.env.CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS,
+    extensionMode: process.env.PLAYWRIGHT_MCP_EXTENSION,
+    extensionToken: process.env.PLAYWRIGHT_MCP_EXTENSION_TOKEN,
+    profileDirName: process.env.PLAYWRIGHT_MCP_PROFILE_DIR_NAME,
   };
 
   process.env.PLAYWRIGHT_MCP_CLI_PATH = fileURLToPath(
@@ -1236,6 +1453,9 @@ async function withFakeUpstream(
     restoreEnv('PLAYWRIGHT_MCP_USER_DATA_DIR', previous.userDataDir);
     restoreEnv('CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS', previous.contextOptions);
     restoreEnv('CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS', previous.extensionPaths);
+    restoreEnv('PLAYWRIGHT_MCP_EXTENSION', previous.extensionMode);
+    restoreEnv('PLAYWRIGHT_MCP_EXTENSION_TOKEN', previous.extensionToken);
+    restoreEnv('PLAYWRIGHT_MCP_PROFILE_DIR_NAME', previous.profileDirName);
   }
 }
 

@@ -238,6 +238,10 @@ caminhos de extensões. Use uma matriz JSON para
 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` quando os caminhos contiverem vírgulas,
 ao passar várias extensões ou ao usar caminhos do Windows com letras de unidade.
 
+## Modo de conexão Playwright Extension
+
+Esse modo se conecta pela extensão oficial do Playwright já instalada em um perfil do Chrome ou Edge e é diferente de carregar extensões descompactadas com `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`. Para stdio, configure `PLAYWRIGHT_MCP_EXTENSION=true`, `PLAYWRIGHT_MCP_EXTENSION_TOKEN`, `PLAYWRIGHT_MCP_USER_DATA_DIR` e, se necessário, um único segmento relativo em `PLAYWRIGHT_MCP_PROFILE_DIR_NAME`. No Streamable HTTP, os metadados `extensionMode`, `profileDirName` e `userDataDir` substituem os valores do processo, mas o token só é aceito pelo ambiente do processo. Sessões paralelas devem usar `userDataDir` diferentes; opções de launch, CDP, proxy, GeoIP, humanization, context e `extensionPaths` são incompatíveis.
+
 ## Metadados de tempo de execução HTTP transmitíveis
 
 Os clientes HTTP compatíveis com stream podem selecionar opções de tempo de execução específicas para cada sessão MCP, adicionando

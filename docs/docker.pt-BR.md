@@ -95,6 +95,8 @@ Use uma matriz JSON para `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` quando um caminh
 contiver vírgulas ou ao passar vários diretórios de extensões. Reinicie o
 contêiner depois de alterar arquivos ou caminhos de extensões.
 
+O modo de conexão Playwright Extension é diferente da montagem de uma extensão descompactada mostrada acima. Ele exige a extensão oficial em um persistent Chrome/Edge profile e `PLAYWRIGHT_MCP_EXTENSION_TOKEN`. Monte cada profile em um writable path separado, injete o token por um secret manager e não combine `PLAYWRIGHT_MCP_EXTENSION=true` com `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`.
+
 ## HTTP com transmissão contínua
 
 Para uso local do Streamable HTTP, publique a porta do contêiner no loopback:

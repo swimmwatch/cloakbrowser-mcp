@@ -10,6 +10,8 @@ tags:
 
 Chrome-Erweiterungen benötigen ein entpacktes Verzeichnis und ein persistentes Profil.
 
+Dieses Rezept verwendet den Start entpackter Erweiterungen von CloakBrowser. Der Verbindungsmodus über die separat installierte offizielle Playwright Extension verwendet `PLAYWRIGHT_MCP_EXTENSION=true`, ein process-level `PLAYWRIGHT_MCP_EXTENSION_TOKEN` und ein eigenes persistent profile. Kombinieren Sie die beiden Mechanismen nicht.
+
 ## npm
 
 ```bash

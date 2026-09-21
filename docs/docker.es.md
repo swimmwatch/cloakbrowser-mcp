@@ -96,6 +96,8 @@ Usa una matriz JSON para `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` cuando una ruta
 contenga comas o al pasar varios directorios de extensiones. Reinicia el
 contenedor después de cambiar archivos o rutas de extensiones.
 
+El modo de conexión Playwright Extension es distinto del montaje de una extensión desempaquetada mostrado arriba. Requiere la extensión oficial en un persistent Chrome/Edge profile y `PLAYWRIGHT_MCP_EXTENSION_TOKEN`. Monta cada profile en un writable path separado, inyecta el token con un secret manager y no combines `PLAYWRIGHT_MCP_EXTENSION=true` con `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`.
+
 ## HTTP con transmisión continua
 
 Para el uso local de Streamable HTTP, publica el puerto del contenedor en el bucle de retorno:

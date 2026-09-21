@@ -99,6 +99,8 @@ chemin contient des virgules ou lors du passage de plusieurs répertoires
 d'extensions. Redémarrez le conteneur après avoir modifié des fichiers ou
 chemins d'extensions.
 
+Le mode de connexion Playwright Extension est distinct du montage d'une extension décompressée présenté ci-dessus. Il exige l'extension officielle dans un persistent Chrome/Edge profile et `PLAYWRIGHT_MCP_EXTENSION_TOKEN`. Montez chaque profile dans un writable path séparé, injectez le token via un gestionnaire de secrets et ne combinez pas `PLAYWRIGHT_MCP_EXTENSION=true` avec `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`.
+
 ## HTTP en continu
 
 Pour une utilisation locale de Streamable via HTTP, publiez le port du conteneur sur la boucle de retour :

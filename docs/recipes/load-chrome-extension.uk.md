@@ -10,6 +10,8 @@ tags:
 
 Розширення Chrome потребують розпакованого каталогу розширень та постійного профілю. Налаштуйте обидва параметри перед запуском веб-переглядача.
 
+Цей рецепт використовує запуск розпакованого розширення CloakBrowser. Режим підключення через окремо встановлене офіційне Playwright Extension використовує `PLAYWRIGHT_MCP_EXTENSION=true`, process-level `PLAYWRIGHT_MCP_EXTENSION_TOKEN` та окремий persistent profile. Не поєднуйте ці механізми.
+
 ## npm
 
 ```bash

@@ -284,10 +284,10 @@ describe('packaged CLI end-to-end', () => {
       mcpName: 'io.github.swimmwatch/cloakbrowser-mcp',
     });
     expect(report.upstream).toMatchObject({
-      version: '0.0.80',
+      version: '0.0.82',
       resolvedVersion: null,
       playwright: {
-        version: '1.63.0-alpha-2026-08-31',
+        version: '1.64.0-alpha-1789764292000',
         packagePath: expect.any(String),
       },
       playwrightCore: {

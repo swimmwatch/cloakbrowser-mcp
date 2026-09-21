@@ -34,7 +34,7 @@ describe('local Cloak tools', () => {
   });
 
   it('returns structured bridge metadata', () => {
-    const result = callLocalTool(LOCAL_TOOL_BRIDGE_INFO, runtime, 24);
+    const result = callLocalTool(LOCAL_TOOL_BRIDGE_INFO, runtime, 25);
     expectBridgeInfoMatchesSchema(result);
 
     expect(result.structuredContent).toMatchObject({
@@ -42,7 +42,7 @@ describe('local Cloak tools', () => {
       browserEngine: 'cloak',
       upstream: {
         package: '@playwright/mcp',
-        toolCount: 24,
+        toolCount: 25,
       },
       cdp: { enabled: false },
     });

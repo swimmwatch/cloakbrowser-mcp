@@ -100,6 +100,12 @@ Streamable HTTP за замовчуванням підключається до 
 
 Upstream Playwright MCP містить такі інструменти, як `browser_evaluate` та `browser_run_code_unsafe`. Вони можуть виконувати JavaScript у браузері або в контексті сервера Playwright. Підключайте цей сервер лише до клієнтів MCP, яким ви довіряєте.
 
+Інструменти `webmcp_*` визначає поточна сторінка. Вважайте їх назву, опис, schema, annotations і output недовіреними даними; міст передає їх без змін. Вимкніть збір через `PLAYWRIGHT_MCP_WEBMCP=false`, якщо він не потрібен.
+
+## Token Playwright Extension
+
+Передавайте `PLAYWRIGHT_MCP_EXTENSION_TOKEN` лише через оточення процесу або менеджер секретів. Міст не приймає token у HTTP metadata і не записує його в config, bridge metadata, журнали, помилки чи diagnostic snapshots. Захищайте persistent profile і не використовуйте один активний `userDataDir` у кількох сесіях.
+
 ## Налаштування
 
 Використовуйте опції на верхньому рівні для контролю доступу та запобіжних заходів:

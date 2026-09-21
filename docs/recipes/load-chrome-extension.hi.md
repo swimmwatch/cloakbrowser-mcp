@@ -10,6 +10,8 @@ tags:
 
 Chrome extensions के लिए unpacked directory और persistent profile चाहिए।
 
+यह recipe CloakBrowser के unpacked extension launch का उपयोग करती है। अलग से installed आधिकारिक Playwright Extension connection mode में `PLAYWRIGHT_MCP_EXTENSION=true`, process-level `PLAYWRIGHT_MCP_EXTENSION_TOKEN` और dedicated persistent profile चाहिए। दोनों mechanisms को न मिलाएँ।
+
 ## npm
 
 ```bash

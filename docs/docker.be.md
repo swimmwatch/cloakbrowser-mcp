@@ -93,6 +93,8 @@ docker run --rm -i \
 змяшчае коскі або пры перадачы некалькіх каталогаў пашырэнняў. Перазапусціце
 кантэйнер пасля змены файлаў пашырэнняў або шляхоў пашырэнняў.
 
+Рэжым падключэння Playwright Extension адрозніваецца ад мантавання распакаванага пашырэння вышэй. Ён патрабуе афіцыйнага пашырэння ў persistent Chrome/Edge profile і `PLAYWRIGHT_MCP_EXTENSION_TOKEN`. Мантавайце кожную profile ў асобны writable path, перадавайце token праз secret manager і не спалучайце `PLAYWRIGHT_MCP_EXTENSION=true` з `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`.
+
 ## HTTP для струменевага перадавання
 
 Для лакальнага выкарыстання Streamable HTTP апублікуйце порт кантэйнера на лупбэку:

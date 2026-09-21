@@ -10,6 +10,8 @@ tags:
 
 Les extensions Chrome nécessitent un répertoire décompressé et un profil persistant.
 
+Cette recette utilise le lancement d'extensions décompressées de CloakBrowser. Le mode de connexion via l'extension Playwright officielle installée séparément utilise `PLAYWRIGHT_MCP_EXTENSION=true`, un `PLAYWRIGHT_MCP_EXTENSION_TOKEN` de process-level et un persistent profile dédié. Ne combinez pas les deux mécanismes.
+
 ## npm
 
 ```bash

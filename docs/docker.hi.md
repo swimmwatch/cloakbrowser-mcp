@@ -94,6 +94,8 @@ docker run --rm -i \
 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` के लिए JSON ऐरे का उपयोग करें।
 एक्सटेंशन फ़ाइलें या एक्सटेंशन पथ बदलने के बाद कंटेनर फिर से शुरू करें।
 
+Playwright Extension connection mode ऊपर दिखाए unpacked extension mount से अलग है। इसके लिए persistent Chrome/Edge profile में आधिकारिक extension और `PLAYWRIGHT_MCP_EXTENSION_TOKEN` चाहिए। हर profile को अलग writable path पर mount करें, token को secret manager से inject करें और `PLAYWRIGHT_MCP_EXTENSION=true` को `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` के साथ न मिलाएँ।
+
 ## स्ट्रीम करने योग्य HTTP
 
 स्थानीय Streamable HTTP उपयोग के लिए, कंटेनर पोर्ट को लूपबैक पर प्रकाशित करें:

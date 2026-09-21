@@ -10,6 +10,8 @@ tags:
 
 Las extensiones de Chrome necesitan un directorio desempaquetado y un perfil persistente.
 
+Esta receta usa el lanzamiento de extensiones desempaquetadas de CloakBrowser. El modo de conexión mediante la extensión oficial Playwright Extension instalada por separado usa `PLAYWRIGHT_MCP_EXTENSION=true`, un `PLAYWRIGHT_MCP_EXTENSION_TOKEN` de process-level y un persistent profile dedicado. No combines ambos mecanismos.
+
 ## npm
 
 ```bash

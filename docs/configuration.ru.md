@@ -239,6 +239,10 @@ PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
 передаче нескольких расширений или при использовании путей Windows с буквами
 дисков.
 
+## Режим подключения Playwright Extension
+
+Этот режим подключается через официальное расширение Playwright, уже установленное в профиле Chrome или Edge, и отличается от загрузки распакованных расширений через `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`. Для stdio задайте `PLAYWRIGHT_MCP_EXTENSION=true`, `PLAYWRIGHT_MCP_EXTENSION_TOKEN`, `PLAYWRIGHT_MCP_USER_DATA_DIR` и при необходимости одно относительное имя `PLAYWRIGHT_MCP_PROFILE_DIR_NAME`. В Streamable HTTP метаданные `extensionMode`, `profileDirName` и `userDataDir` переопределяют настройки процесса, но token принимается только из окружения процесса. Параллельные сессии должны использовать разные `userDataDir`; launch-, CDP-, proxy-, GeoIP-, humanization-, context- и `extensionPaths`-настройки несовместимы с этим режимом.
+
 ## Метаданные среды выполнения Streamable HTTP
 
 HTTP-клиенты с поддержкой потоковой передачи данных могут выбирать определенные параметры выполнения для каждого сеанса MCP, добавляя

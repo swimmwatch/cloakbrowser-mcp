@@ -100,6 +100,12 @@ Locally generated closes use fixed redacted pairs. Valid peer closes are relayed
 
 Upstream Playwright MCP includes tools such as `browser_evaluate` and `browser_run_code_unsafe`. These can execute JavaScript in the browser or Playwright server context. Only connect this server to MCP clients you trust.
 
+WebMCP tools named `webmcp_*` are defined by the current page. Treat every page-provided name, description, schema, annotation, and output as untrusted content. The bridge forwards these fields unchanged and does not infer that a tool is safe from its annotations. Do not enable Chromium WebMCP for untrusted sites, and set `PLAYWRIGHT_MCP_WEBMCP=false` when dynamic tools are not needed.
+
+## Playwright Extension token
+
+`PLAYWRIGHT_MCP_EXTENSION_TOKEN` authenticates the separately installed official Playwright Extension. Supply it only through the MCP server process environment or your secret manager. The bridge does not accept the token in Streamable HTTP initialize metadata and does not write it to generated config, bridge metadata, logs, errors, or diagnostic snapshots. Persistent profiles used by extension mode can contain authenticated browser state; isolate their filesystem access and do not reuse one active `userDataDir` across concurrent sessions.
+
 ## Configuration
 
 Use upstream options for access controls and guardrails:

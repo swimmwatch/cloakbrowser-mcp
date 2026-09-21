@@ -25,13 +25,17 @@ Streamable HTTP, and direct Node package and Docker execution.
 
 ## Verified current constraints
 
-The design is based on the pinned `@playwright/mcp@0.0.80` implementation:
+The design is based on the pinned `@playwright/mcp@0.0.82` implementation:
 
 - Connecting the bridge to the upstream MCP child does not launch Chromium.
   The upstream browser backend is created lazily on the first browser tool call.
 - `browser_close`, a browser crash, or another backend disconnect clears the
   upstream backend. A later browser tool call can transparently create a new
   browser runtime inside the same upstream MCP child.
+- Dynamic `webmcp_*` tools are browser-generation state. The bridge subscribes each
+  upstream owner to `notifications/tools/list_changed`, ignores notifications from
+  replaced owners, clears the complete paginated tool cache on generation changes,
+  and routes WebMCP calls through the same recovery path as `browser_*` calls.
 - That same-child recreation is verified upstream baseline behavior, not the managed
   CDP recovery contract. A CDP-enabled session MUST NOT rely on it after browser
   generation loss; CDP-009 instead requires cleanup of the old upstream child and
@@ -1126,7 +1130,7 @@ boundaries.
 
 - [Issue #134](https://github.com/swimmwatch/cloakbrowser-mcp/issues/134)
   requests optional CDP access and proposes Chromium debugging flags.
-- The pinned `@playwright/mcp@0.0.80` bundle creates its browser backend lazily
+- The pinned `@playwright/mcp@0.0.82` bundle creates its browser backend lazily
   in the tool-call handler, clears it on disconnect, and can create another
   backend on a later tool call.
 - The pinned upstream `browser_close` tool closes its backend, while
