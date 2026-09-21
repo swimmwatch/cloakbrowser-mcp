@@ -434,20 +434,22 @@ describe('CDP WebSocket proxy integration', () => {
 
   it('relays an exact 16 MiB message in both directions', async () => {
     let upstreamSocket: WebSocket | undefined;
-    const upstreamMessages: Buffer[] = [];
     const fake = await fixture((socket) => {
       upstreamSocket = socket;
-      socket.on('message', (data) => upstreamMessages.push(Buffer.from(data as ArrayBuffer)));
     });
     const proxy = await readyProxy(fake);
     const client = await connect(proxy, browserPath('boundary'));
+    const connectedUpstream = upstreamSocket;
+    if (connectedUpstream === undefined) throw new Error('Upstream WebSocket was not connected');
     const exact = Buffer.alloc(CDP_WEBSOCKET_MAX_MESSAGE_BYTES, 0x61);
+    const toUpstream = onceMessage(connectedUpstream);
     client.send(exact, { binary: true });
-    await vi.waitFor(() => expect(upstreamMessages).toHaveLength(1), { timeout: 5_000 });
-    expect(upstreamMessages[0]?.byteLength).toBe(CDP_WEBSOCKET_MAX_MESSAGE_BYTES);
+    const outgoing = await toUpstream;
+    expect(outgoing.data.byteLength).toBe(CDP_WEBSOCKET_MAX_MESSAGE_BYTES);
+    expect(outgoing.isBinary).toBe(true);
 
     const fromUpstream = onceMessage(client);
-    upstreamSocket?.send(exact, { binary: true });
+    connectedUpstream.send(exact, { binary: true });
     const incoming = await fromUpstream;
     expect(incoming.data.byteLength).toBe(CDP_WEBSOCKET_MAX_MESSAGE_BYTES);
     expect(incoming.isBinary).toBe(true);
