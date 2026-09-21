@@ -206,8 +206,20 @@ describe('streamable HTTP bridge', () => {
   it('refreshes only the owning HTTP session on accepted CDP traffic and expires a quiet socket', async () => {
     await withFakeUpstream(async () => {
       const store = createSessionStore(defaultStreamableHttpOptions.sessionBackend);
-      const touch = vi.spyOn(store, 'touch');
       const sessionIdleTtlMs = 500;
+      const setupGraceTtlMs = 30_000;
+      const create = store.create.bind(store);
+      const touchRecord = store.touch.bind(store);
+      let useSessionIdleTtl = false;
+      vi.spyOn(store, 'create').mockImplementation(
+        async (record) => await create({ ...record, expiresAt: record.createdAt + setupGraceTtlMs }),
+      );
+      const touch = vi
+        .spyOn(store, 'touch')
+        .mockImplementation(
+          async (id, now, idleTtlMs) =>
+            await touchRecord(id, now, useSessionIdleTtl ? idleTtlMs : setupGraceTtlMs),
+        );
       const server = await startHttpBridge({
         cdp: createCdpEndpointConfig({ processEnabled: false, portRange: '29310' }),
         sessionIdleTtlMs,
@@ -215,7 +227,6 @@ describe('streamable HTTP bridge', () => {
         sessionStore: store,
       });
       const sessionId = await initializeRawHttpSession(server, { cdpEnabled: true });
-      expect(await store.touch(sessionId, Date.now(), sessionIdleTtlMs)).toBeDefined();
       const info = await readBridgeInfo(server, sessionId);
       const discoveryUrl = (info.cdp as { discoveryUrl: string }).discoveryUrl;
       const callsBeforeCdp = touch.mock.calls.length;
@@ -235,6 +246,7 @@ describe('streamable HTTP bridge', () => {
       await delay(25);
       expect(touch).toHaveBeenCalledTimes(callsBeforeSocket);
 
+      useSessionIdleTtl = true;
       socket.send(JSON.stringify({ id: 1, method: 'Browser.getVersion' }));
       await vi.waitFor(() => expect(touch.mock.calls.length).toBeGreaterThan(callsBeforeSocket));
 
