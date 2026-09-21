@@ -83,7 +83,7 @@ describe('managed CDP generation coordinator', () => {
   });
 
   it('does not reset the absolute deadline between bootstrap phases', async () => {
-    const harness = createHarness({ initialTimeoutMs: 45, phaseDelayMs: 20 });
+    const harness = createHarness({ initialTimeoutMs: 400, phaseDelayMs: 150 });
 
     await expect(startManagedCdpSession(harness.dependencies)).rejects.toThrow('timed out');
     expect(harness.events).toContain('browser_tabs');

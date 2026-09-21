@@ -1464,7 +1464,7 @@ describe('bridge config generation', () => {
 
       expect(runtime.config.browser?.launchOptions?.args).toContain('--remote-debugging-port=43123');
       expect(runtime.config.browser).toMatchObject(
-        profileMode === 'isolated' ? { isolated: true } : { userDataDir },
+        profileMode === 'isolated' ? { isolated: true } : { userDataDir: canonicalDirectory(userDataDir) },
       );
 
       runtime.dispose();
