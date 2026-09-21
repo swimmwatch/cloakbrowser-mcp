@@ -207,13 +207,15 @@ describe('streamable HTTP bridge', () => {
     await withFakeUpstream(async () => {
       const store = createSessionStore(defaultStreamableHttpOptions.sessionBackend);
       const touch = vi.spyOn(store, 'touch');
+      const sessionIdleTtlMs = 500;
       const server = await startHttpBridge({
         cdp: createCdpEndpointConfig({ processEnabled: false, portRange: '29310' }),
-        sessionIdleTtlMs: 500,
+        sessionIdleTtlMs,
         sessionMax: 1,
         sessionStore: store,
       });
       const sessionId = await initializeRawHttpSession(server, { cdpEnabled: true });
+      expect(await store.touch(sessionId, Date.now(), sessionIdleTtlMs)).toBeDefined();
       const info = await readBridgeInfo(server, sessionId);
       const discoveryUrl = (info.cdp as { discoveryUrl: string }).discoveryUrl;
       const callsBeforeCdp = touch.mock.calls.length;

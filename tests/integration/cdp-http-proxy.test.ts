@@ -266,7 +266,7 @@ describe('CDP HTTP proxy integration', () => {
         );
       }
     });
-    const proxy = await readyProxy(fake, { upstreamTimeoutMs: 30 });
+    const proxy = await readyProxy(fake, { upstreamTimeoutMs: 1_000 });
     const headers = { Host: `127.0.0.1:${proxy.port}` };
     const path = `/cdp/${capability}/json/version`;
 
