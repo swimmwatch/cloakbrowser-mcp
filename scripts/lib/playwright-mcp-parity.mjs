@@ -1,13 +1,12 @@
 export const localToolNames = ['cloakbrowser_binary_info', 'cloakbrowser_bridge_info'];
 
-const webMcpToolNames = ['browser_webmcp_call', 'browser_webmcp_list'];
-
 export const expectedDefaultTools = [
   'browser_click',
   'browser_close',
   'browser_console_messages',
   'browser_drag',
   'browser_drop',
+  'browser_emulate_media',
   'browser_evaluate',
   'browser_file_upload',
   'browser_fill_form',
@@ -27,14 +26,13 @@ export const expectedDefaultTools = [
   'browser_take_screenshot',
   'browser_type',
   'browser_wait_for',
-  ...webMcpToolNames,
 ];
 
-// The Docker image ships CloakBrowser's no-key Chromium build. It exposes the
-// upstream WebMCP tool contract but does not implement the browser-side API.
-// WebMCP runtime requires the current browser selected after free or paid login.
+// WebMCP page tools are added dynamically after a page snapshot. Their names
+// and schemas are supplied by the page, so default-container parity covers only
+// the fixed upstream tool surface.
 export const expectedDefaultScenarioTools = expectedDefaultTools.filter(
-  (name) => !webMcpToolNames.includes(name),
+  (name) => name !== 'browser_emulate_media',
 );
 
 export function normalizeToolResponseText(value) {

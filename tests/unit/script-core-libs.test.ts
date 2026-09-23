@@ -405,8 +405,7 @@ describe('Playwright MCP parity helpers', () => {
     expect(parity.localToolNames).toContain('cloakbrowser_binary_info');
     expect(parity.expectedDefaultTools).toContain('browser_find');
     expect(parity.expectedDefaultTools).toContain('browser_snapshot');
-    expect(parity.expectedDefaultTools).toContain('browser_webmcp_call');
-    expect(parity.expectedDefaultTools).toContain('browser_webmcp_list');
+    expect(parity.expectedDefaultTools).toContain('browser_emulate_media');
     expect(
       parity.normalizeToolResponseText(
         'saved /data/path/page-123456.png in 1234ms\n[box=12,34,56,78]\n### Events\n- unstable event\nDone',

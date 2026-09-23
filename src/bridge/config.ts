@@ -97,6 +97,7 @@ export interface BridgeRuntime {
 }
 
 export interface PrepareBridgeRuntimeOptions {
+  binaryPath?: string;
   env?: EnvReader;
   tempRoot?: string;
   ensureCloakBinary?: () => Promise<string>;
@@ -345,7 +346,9 @@ async function configureCloakRuntime(
   options: PrepareBridgeRuntimeOptions,
   extensionPaths: string[],
 ): Promise<string> {
-  const cloakBinaryPath = await suppressStdout(options.ensureCloakBinary ?? ensureBinary);
+  const configuredBinaryPath = resolveConfiguredCloakBinaryPath(runtime.env, options.binaryPath);
+  const cloakBinaryPath =
+    configuredBinaryPath ?? (await suppressStdout(options.ensureCloakBinary ?? ensureBinary));
   runtime.launchOptions.executablePath = cloakBinaryPath;
   runtime.childEnv.PLAYWRIGHT_MCP_EXECUTABLE_PATH = cloakBinaryPath;
   runtime.childEnv.CLOAKBROWSER_AUTO_UPDATE = runtime.childEnv.CLOAKBROWSER_AUTO_UPDATE ?? 'false';
@@ -498,6 +501,16 @@ function resolveConfiguredUserDataDir(
   });
 }
 
+function resolveConfiguredCloakBinaryPath(
+  env: EnvReader,
+  runtimeBinaryPath: string | undefined,
+): string | undefined {
+  if (runtimeBinaryPath !== undefined) return resolveFile(runtimeBinaryPath, 'binaryPath');
+  const envBinaryPath = optionalEnvString(env, 'CLOAKBROWSER_BINARY_PATH');
+  if (envBinaryPath === undefined) return undefined;
+  return resolveFile(envBinaryPath, 'CLOAKBROWSER_BINARY_PATH');
+}
+
 function resolveConfiguredExtensionPaths(
   env: EnvReader,
   runtimeExtensionPaths: string[] | undefined,
@@ -616,6 +629,28 @@ function resolveDirectory(
     throw new BridgeRuntimeConfigurationError(`${label} must point to a ${access} directory: ${resolved}`);
   }
   return realpathDirectory(resolved);
+}
+
+function resolveFile(value: string, label: string): string {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    throw new BridgeRuntimeConfigurationError(`${label} must be a non-empty path`);
+  }
+  const resolved = path.resolve(path.normalize(trimmed));
+  const stats = statSync(resolved, { throwIfNoEntry: false });
+  if (!stats?.isFile()) {
+    throw new BridgeRuntimeConfigurationError(`${label} must point to an existing file: ${resolved}`);
+  }
+  try {
+    accessSync(resolved, fsConstants.R_OK);
+  } catch {
+    throw new BridgeRuntimeConfigurationError(`${label} must point to a readable file: ${resolved}`);
+  }
+  try {
+    return path.normalize(realpathSync.native(resolved));
+  } catch {
+    return path.resolve(path.normalize(resolved));
+  }
 }
 
 function realpathDirectory(directory: string): string {

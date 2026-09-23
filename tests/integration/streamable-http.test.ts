@@ -113,6 +113,28 @@ describe('streamable HTTP bridge', () => {
     });
   });
 
+  it('uses one explicit custom binary path for all HTTP sessions', async () => {
+    await withFakeUpstream(
+      async () => {
+        const root = createTempRoot();
+        const binaryPath = path.join(root, 'custom-chrome');
+        writeFileSync(binaryPath, 'test binary');
+        const server = await startHttpBridge({ runtimeOptions: { binaryPath } });
+        const { client } = await connectHttpClient(server);
+
+        const result = await client.callTool({
+          name: LOCAL_TOOL_BINARY_INFO,
+          arguments: {},
+        });
+
+        expect(result.structuredContent).toMatchObject({
+          executablePath: canonicalDirectory(binaryPath),
+        });
+      },
+      { browserEngine: 'cloak' },
+    );
+  });
+
   it('applies independent runtime proxy metadata per HTTP session', async () => {
     await withFakeUpstream(async () => {
       const server = await startHttpBridge({ sessionMax: 4 });

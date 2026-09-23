@@ -18,7 +18,7 @@ import {
 const { image, reportPath } = parseArgs(process.argv.slice(2));
 const baselineImage =
   process.env.PLAYWRIGHT_MCP_BASELINE_IMAGE ??
-  'mcr.microsoft.com/playwright/mcp:v0.0.81@sha256:96999343986104be5a3755b2d873b039e2089f74bc4f449facd2608e789a9911';
+  'mcr.microsoft.com/playwright/mcp:v0.0.82@sha256:77dccc5ce9e94cb8ae7ebea87ddbb6cd54b05760c4d63c54e16accf2726b8734';
 
 const fixtureServer = await startFixtureServer();
 const baseline = await startMcpContainer('playwright', baselineImage, false);

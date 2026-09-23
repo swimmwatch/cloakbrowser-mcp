@@ -10,15 +10,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- Forwarded the new upstream WebMCP discovery and invocation tools from
-  Playwright MCP 0.0.81 unchanged through the bridge.
+- Preserved upstream dynamic WebMCP discovery and invocation tools for selected
+  CloakBrowser binaries that implement `document.modelContext`.
 - The bundled no-key CloakBrowser Chromium 146 does not implement WebMCP.
   A free CloakBrowser key selects the current binary, which supports it with
   one concurrent browser session.
+- Added `--binary-path` and validated `CLOAKBROWSER_BINARY_PATH` support for a
+  user-selected CloakBrowser executable. The selected path is process-scoped
+  for Streamable HTTP sessions.
 
 ### Changed
 
-- Updated Playwright MCP to 0.0.81 and aligned the Docker baseline with its
+- Updated Playwright MCP to 0.0.82 and aligned the Docker baseline with its
   pinned multi-architecture image, retaining the existing public CLI, MCP,
   HTTP, Node.js, platform, and transport contracts.
 - Refreshed supported npm and pinned GitHub Action dependencies.

@@ -10,6 +10,7 @@ import {
   type ListToolsRequest,
   ListToolsRequestSchema,
   type ListToolsResult,
+  ToolListChangedNotificationSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import {
   type BridgeRuntime,
@@ -24,6 +25,7 @@ export interface StartBridgeOptions {
   serverInfo?: Partial<Implementation>;
   runtimeOptions?: Pick<
     PrepareBridgeRuntimeOptions,
+    | 'binaryPath'
     | 'browserIsolated'
     | 'contextOptions'
     | 'extensionPaths'
@@ -66,8 +68,13 @@ export async function createBridgeServer(options: BridgeServerOptions = {}): Pro
   let upstreamToolCount = 0;
 
   const server = new Server(createServerInfo(options.serverInfo), {
-    capabilities: { tools: {} },
+    capabilities: { tools: { listChanged: true } },
     instructions: MCP_SERVER_INSTRUCTIONS,
+  });
+
+  upstreamClient.setNotificationHandler(ToolListChangedNotificationSchema, () => {
+    upstreamToolCache.clear();
+    void server.sendToolListChanged().catch(() => undefined);
   });
 
   server.setRequestHandler(ListToolsRequestSchema, async (request) => {

@@ -21,6 +21,7 @@ export const cliDescription = 'Playwright MCP bridge backed by CloakBrowser.';
 
 interface CommanderCliOptions {
   transport: BridgeTransportMode;
+  binaryPath?: string;
   geoipProxyMatch: boolean;
   humanize: boolean;
   humanPreset: HumanPreset;
@@ -103,6 +104,14 @@ export const cliOptionDefinitions: readonly CliOptionDefinition[] = [
     group: 'Bridge',
     defaultValue: defaultBridgeOptions.releaseChannel,
     choices: releaseChannels,
+  },
+  {
+    name: 'binaryPath',
+    flags: '--binary-path <path>',
+    description: 'Use this CloakBrowser executable instead of resolving a cached binary.',
+    env: 'CLOAKBROWSER_BINARY_PATH',
+    group: 'Bridge',
+    parser: parseNonEmptyString('CloakBrowser binary path must not be empty'),
   },
   {
     name: 'httpProtocol',
@@ -308,6 +317,7 @@ function toCliOptions(options: CommanderCliOptions, command: Command): CliOption
   return {
     transport: options.transport,
     bridge: {
+      binaryPath: optionalString(options.binaryPath),
       geoipProxyMatch: normalizeBoolean(
         options.geoipProxyMatch,
         readRawBooleanEnv(command, 'geoipProxyMatch'),

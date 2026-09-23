@@ -26,6 +26,7 @@ describe('Commander CLI options', () => {
 
       expect(options.transport).toBe(BRIDGE_TRANSPORT_STDIO);
       expect(options.bridge.geoipProxyMatch).toBe(false);
+      expect(options.bridge.binaryPath).toBeUndefined();
       expect(options.bridge.humanize).toBe(false);
       expect(options.bridge.humanPreset).toBe('default');
       expect(options.bridge.releaseChannel).toBe('stable');
@@ -86,6 +87,15 @@ describe('Commander CLI options', () => {
     withCliEnv({ CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL: 'preview' }, () => {
       expect(parseCliOptions([]).bridge.releaseChannel).toBe('preview');
       expect(parseCliOptions(['--release-channel', 'stable']).bridge.releaseChannel).toBe('stable');
+    });
+  });
+
+  it('reads the custom binary path from env and lets the CLI flag override it', () => {
+    withCliEnv({ CLOAKBROWSER_BINARY_PATH: '/opt/cloakbrowser/env-chrome' }, () => {
+      expect(parseCliOptions([]).bridge.binaryPath).toBe('/opt/cloakbrowser/env-chrome');
+      expect(parseCliOptions(['--binary-path', '/opt/cloakbrowser/cli-chrome']).bridge.binaryPath).toBe(
+        '/opt/cloakbrowser/cli-chrome',
+      );
     });
   });
 
