@@ -1,5 +1,7 @@
 export const localToolNames = ['cloakbrowser_binary_info', 'cloakbrowser_bridge_info'];
 
+const webMcpToolNames = ['browser_webmcp_call', 'browser_webmcp_list'];
+
 export const expectedDefaultTools = [
   'browser_click',
   'browser_close',
@@ -25,7 +27,15 @@ export const expectedDefaultTools = [
   'browser_take_screenshot',
   'browser_type',
   'browser_wait_for',
+  ...webMcpToolNames,
 ];
+
+// The Docker image ships CloakBrowser's no-key Chromium build. It exposes the
+// upstream WebMCP tool contract but does not implement the browser-side API.
+// WebMCP runtime requires the current browser selected after free or paid login.
+export const expectedDefaultScenarioTools = expectedDefaultTools.filter(
+  (name) => !webMcpToolNames.includes(name),
+);
 
 export function normalizeToolResponseText(value) {
   return value

@@ -9,6 +9,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import {
   assertEqual,
+  expectedDefaultScenarioTools,
   expectedDefaultTools,
   localToolNames,
   normalizeToolResponseText,
@@ -17,7 +18,7 @@ import {
 const { image, reportPath } = parseArgs(process.argv.slice(2));
 const baselineImage =
   process.env.PLAYWRIGHT_MCP_BASELINE_IMAGE ??
-  'mcr.microsoft.com/playwright/mcp:v0.0.80@sha256:dda1f7f9b812e22946635c8af7df9288b96d3b9e3f0f1b8576d6823e2031c1de';
+  'mcr.microsoft.com/playwright/mcp:v0.0.81@sha256:96999343986104be5a3755b2d873b039e2089f74bc4f449facd2608e789a9911';
 
 const fixtureServer = await startFixtureServer();
 const baseline = await startMcpContainer('playwright', baselineImage, false);
@@ -87,7 +88,6 @@ async function startMcpContainer(mode, containerImage, useCloakWrapper, humanize
   const dataDir = mkdtempSync(path.join(tmpdir(), `pwmcp-${mode}-`));
   chmodSync(dataDir, 0o777);
   writeFileSync(path.join(dataDir, 'upload.txt'), `upload from ${mode}\n`);
-
   const dockerArgs = ['run', '--rm', '--init', '-i', '--network', 'host', '-v', `${dataDir}:/data`];
   if (caps) dockerArgs.push('-e', `PLAYWRIGHT_MCP_CAPS=${caps}`);
   if (useCloakWrapper) {
@@ -230,7 +230,7 @@ async function runScenario(target, fixtureUrl) {
   await call('browser_close');
 
   const covered = [...new Set(calls.map((entry) => entry.name))].sort();
-  assertEqual(covered, expectedDefaultTools, `${target.mode} covered tools`);
+  assertEqual(covered, expectedDefaultScenarioTools, `${target.mode} covered tools`);
 
   return { mode: target.mode, tools: upstreamToolNames, screenshotSchema, calls };
 }

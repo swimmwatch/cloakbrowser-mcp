@@ -36,7 +36,7 @@ env:
   MCP_SERVER_NAME: io.github.swimmwatch/cloakbrowser-mcp
   DOCKER_PLATFORMS: linux/amd64,linux/arm64
   DOCKER_CACHE_SCOPE: cloakbrowser-mcp-docker
-  PLAYWRIGHT_MCP_IMAGE: mcr.microsoft.com/playwright/mcp:v0.0.80@sha256:dda1f7f9b812e22946635c8af7df9288b96d3b9e3f0f1b8576d6823e2031c1de
+  PLAYWRIGHT_MCP_IMAGE: mcr.microsoft.com/playwright/mcp:v0.0.81@sha256:96999343986104be5a3755b2d873b039e2089f74bc4f449facd2608e789a9911
   MCP_REGISTRY_API_URL: https://registry.modelcontextprotocol.io/v0.1
 
 jobs:
