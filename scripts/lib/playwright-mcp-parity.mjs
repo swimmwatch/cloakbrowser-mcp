@@ -6,6 +6,7 @@ export const expectedDefaultTools = [
   'browser_console_messages',
   'browser_drag',
   'browser_drop',
+  'browser_emulate_media',
   'browser_evaluate',
   'browser_file_upload',
   'browser_fill_form',
@@ -26,6 +27,13 @@ export const expectedDefaultTools = [
   'browser_type',
   'browser_wait_for',
 ];
+
+// WebMCP page tools are added dynamically after a page snapshot. Their names
+// and schemas are supplied by the page, so default-container parity covers only
+// the fixed upstream tool surface.
+export const expectedDefaultScenarioTools = expectedDefaultTools.filter(
+  (name) => name !== 'browser_emulate_media',
+);
 
 export function normalizeToolResponseText(value) {
   return value

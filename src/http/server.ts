@@ -54,6 +54,7 @@ export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions 
   serverInfo?: Partial<Implementation>;
   runtimeOptions?: Pick<
     PrepareBridgeRuntimeOptions,
+    | 'binaryPath'
     | 'contextOptions'
     | 'extensionPaths'
     | 'geoipProxyMatch'
@@ -364,6 +365,7 @@ class StreamableHttpBridgeController {
   ): PrepareBridgeRuntimeOptions {
     const defaults = this.#options.runtimeOptions;
     return {
+      binaryPath: defaults?.binaryPath,
       browserIsolated: true,
       geoipProxyMatch: preferSessionOption(sessionRuntimeOptions.geoipProxyMatch, defaults?.geoipProxyMatch),
       headless: preferSessionOption(sessionRuntimeOptions.headless, defaults?.headless),

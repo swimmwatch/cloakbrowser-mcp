@@ -72,6 +72,24 @@ remove the saved login. As an alternative, inject
 license keys in image layers, Compose files committed to source control, or
 command output captured as build evidence.
 
+## Custom CloakBrowser Binary
+
+Mount a compatible browser executable into the container and pass its container
+path through `--binary-path` (or `CLOAKBROWSER_BINARY_PATH`):
+
+```bash
+docker run --rm --init -i \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/custom-chrome:/browser/chrome:ro" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --binary-path /browser/chrome
+```
+
+The binary must be a readable Linux executable compatible with the image CPU
+architecture and with any libraries it needs available in the container. The
+selected path applies to every Streamable HTTP session in that container; run
+separate containers when clients require different browser binaries.
+
 ## Chrome Extensions
 
 Chrome extensions require a persistent profile and must be mounted separately.

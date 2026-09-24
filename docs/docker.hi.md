@@ -71,6 +71,23 @@ docker run --rm --init -i \
 कंट्रोल में कमिट की गई Compose फ़ाइल या बिल्ड प्रमाण के रूप में कैप्चर किए गए
 कमांड आउटपुट में न रखें।
 
+## कस्टम CloakBrowser बाइनरी
+
+संगत ब्राउज़र निष्पादन योग्य फ़ाइल को कंटेनर में माउंट करें और उसका कंटेनर पथ
+`--binary-path` (या `CLOAKBROWSER_BINARY_PATH`) से दें:
+
+```bash
+docker run --rm --init -i \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/custom-chrome:/browser/chrome:ro" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --binary-path /browser/chrome
+```
+
+फ़ाइल इमेज की CPU आर्किटेक्चर के अनुकूल पढ़ने योग्य Linux निष्पादन योग्य होनी चाहिए
+और इसकी आवश्यक लाइब्रेरी कंटेनर में उपलब्ध होनी चाहिए। यह पथ कंटेनर की सभी
+Streamable HTTP सत्रों पर लागू होता है; अलग ब्राउज़र बाइनरी के लिए अलग कंटेनर चलाएँ।
+
 ## Chrome एक्सटेंशन
 
 Chrome एक्सटेंशन के लिए स्थायी प्रोफ़ाइल आवश्यक है और उन्हें अलग से माउंट करना

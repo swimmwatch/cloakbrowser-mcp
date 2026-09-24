@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-09-22
+
+### Added
+
+- Preserved upstream dynamic WebMCP discovery and invocation tools for selected
+  CloakBrowser binaries that implement `document.modelContext`.
+- The bundled no-key CloakBrowser Chromium 146 does not implement WebMCP.
+  A free CloakBrowser key selects the current binary, which supports it with
+  one concurrent browser session.
+- Added `--binary-path` and validated `CLOAKBROWSER_BINARY_PATH` support for a
+  user-selected CloakBrowser executable. The selected path is process-scoped
+  for Streamable HTTP sessions.
+
+### Changed
+
+- Updated Playwright MCP to 0.0.82 and aligned the Docker baseline with its
+  pinned multi-architecture image, retaining the existing public CLI, MCP,
+  HTTP, Node.js, platform, and transport contracts.
+- Refreshed supported npm and pinned GitHub Action dependencies.
+
 ## [1.13.0] - 2026-09-03
 
 ### Changed
@@ -414,7 +434,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.13.0...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.14.0...HEAD
+[1.14.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.10.0...v1.11.0

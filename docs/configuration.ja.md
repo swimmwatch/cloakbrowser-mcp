@@ -37,6 +37,8 @@ Playwright MCP の動作には、アップストリームの `PLAYWRIGHT_MCP_*` 
 | `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Enables CloakBrowser human-like mouse, keyboard, and scroll behavior. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
 | `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` | `stable` | CloakBrowser バイナリのリリースチャネル: `stable` または Pro 限定の `preview`。 |
+| `CLOAKBROWSER_BINARY_PATH` | unset | カスタム CloakBrowser 実行ファイルへのパス。CLI オプション `--binary-path` が優先されます。 |
+| `CLOAKBROWSER_VERSION` | unset | カスタム実行ファイルを選択しない場合に CloakBrowser のキャッシュ解決に渡すバージョン固定。 |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
@@ -86,6 +88,29 @@ CloakBrowser がキーを解決し、ブリッジは生成されたブラウザ�
 `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` は CloakBrowser バイナリのリリースチャネルを選択します。既定値は `stable` です。`preview` は Pro 向けのプレビュー版ブラウザビルドを要求し、Pro ライセンスでのみ利用できます。明示的に固定した `CLOAKBROWSER_VERSION` が優先されます。プラットフォームで Preview を利用できない場合、CloakBrowser は Stable にフォールバックします。
 
 リリースチャネルはブリッジプロセスの起動時に選択されます。すべての Streamable HTTP セッションに適用され、initialize メタデータで設定または上書きすることはできません。変更するにはブリッジを再起動してください。
+
+## カスタム CloakBrowser バイナリ
+
+`--binary-path <path>` は、現在のブリッジプロセス用のカスタム CloakBrowser
+実行ファイルを選択します。`CLOAKBROWSER_BINARY_PATH` は環境ベースの配置で同じ
+設定を提供し、CLI オプションが優先されます。ブリッジはパスを解決し、読み取り
+可能な通常ファイルを要求して、生成した Playwright MCP 設定の
+`browser.launchOptions.executablePath` に書き込みます。
+
+```bash
+npx -y cloakbrowser-mcp@latest --binary-path /opt/cloakbrowser/chrome
+```
+
+ブリッジはカスタム実行ファイルをダウンロードまたは更新しません。カスタムパスを
+選ばない場合、代わりに `CLOAKBROWSER_VERSION` で CloakBrowser 管理バイナリの
+バージョンを固定できます。
+
+Streamable HTTP では、選択したバイナリはブリッジプロセスに属し、そのプロセスが
+作成するすべての MCP セッションで使用されます。`initialize` メタデータで実行
+ファイルのパスを選択または上書きすることはできません。異なるバイナリには別の
+ブリッジプロセスを実行してください。
+
+選択したバイナリが `document.modelContext` を実装している場合、アップストリームの Playwright MCP はページのスナップショット後に `webmcp_<page-tool>` 形式のツールを追加できます。`tools/list_changed` を送信し、ブリッジはその通知と更新済みのツール一覧を転送します。各動的ツールの名前とスキーマはページが定義します。
 
 ## GeoIPプロキシのマッチング
 

@@ -74,6 +74,24 @@ conteneur. Ne placez pas de clés de licence dans les couches d'image, les
 fichiers Compose suivis par le contrôle de version ou les sorties de commande
 capturées comme preuve de build.
 
+## Binaire CloakBrowser personnalisé
+
+Montez un exécutable de navigateur compatible dans le conteneur et transmettez son
+chemin interne avec `--binary-path` (ou `CLOAKBROWSER_BINARY_PATH`) :
+
+```bash
+docker run --rm --init -i \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/custom-chrome:/browser/chrome:ro" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --binary-path /browser/chrome
+```
+
+Le fichier doit être un exécutable Linux lisible compatible avec l’architecture CPU
+de l’image, et ses bibliothèques doivent être disponibles dans le conteneur. Le
+chemin s’applique à toutes les sessions Streamable HTTP du conteneur ; utilisez des
+conteneurs distincts pour des binaires de navigateur différents.
+
 ## Extensions Chrome
 
 Les extensions Chrome nécessitent un profil persistant et doivent être montées
