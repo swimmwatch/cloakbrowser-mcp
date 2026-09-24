@@ -50,12 +50,104 @@ For task-focused examples, see the [Recipes](recipes/index.md) section.
 | `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
 | `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |
 | `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset | Persistent Chromium profile directory. The bridge resolves it to an absolute path, creates it if missing, verifies it is writable, and writes it to generated `browser.userDataDir`. |
+| `PLAYWRIGHT_MCP_EXTENSION` | `false` | Connect through the separately installed official Playwright Extension instead of launching a bridge-owned browser. Requires a persistent user data directory and `PLAYWRIGHT_MCP_EXTENSION_TOKEN`. |
+| `PLAYWRIGHT_MCP_PROFILE_DIR_NAME` | unset | One relative profile-directory segment, such as `Profile 1`, used only by Playwright Extension connection mode. |
+| `PLAYWRIGHT_MCP_EXTENSION_TOKEN` | unset | Secret shared with the official Playwright Extension. Accepted only from the process environment; never from HTTP initialize metadata. |
 | `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset | JSON object with validated context options. Supported fields are listed below. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset | JSON array or comma-separated list of existing Chrome extension directories. Requires `PLAYWRIGHT_MCP_USER_DATA_DIR`. Use JSON arrays for Windows paths or paths containing commas. |
 | `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | Enables the console message compatibility patch. |
 | `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | Adds `--no-sandbox` and disables Chromium sandboxing. |
+
+## Managed CDP
+
+Managed Chrome DevTools Protocol (CDP) access is an explicit opt-in. It exposes the
+same Chromium browser generation controlled by MCP through a capability-bearing
+discovery URL. Configuring a port pool alone does not enable CDP.
+
+| CLI option | Environment variable | Default | Purpose |
+| --- | --- | --- | --- |
+| `--cdp-enabled`, `--no-cdp-enabled` | `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED` | `false` | Set the stdio value and the Streamable HTTP session default. |
+| `--cdp-port-range <port\|start-end>` | `CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE` | unset | Configure the process-local external proxy port pool. One enabled session leases one port. |
+| `--cdp-host <host>` | `CLOAK_PLAYWRIGHT_MCP_CDP_HOST` | `127.0.0.1` | Bind the managed CDP proxy. |
+| `--cdp-allow-remote`, `--no-cdp-allow-remote` | `CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE` | `false` | Permit or deny a non-loopback bind. |
+| `--cdp-advertised-host <host>` | `CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_HOST` | unset | Put a concrete externally reachable host in discovery URLs. Required for wildcard binds. |
+| `--cdp-advertised-scheme <http\|https>` | `CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_SCHEME` | `http` | Publish `http`/`ws` or `https`/`wss` URLs. This does not enable TLS. |
+
+Each CLI value overrides only its matching environment variable. In particular,
+`--no-cdp-enabled` overrides `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED=true`, and
+`--no-cdp-allow-remote` overrides `CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE=true`.
+An enabled session without a port pool is rejected before its upstream child starts.
+An effective false value creates no listener, port lease, or capability.
+
+For stdio, the process value applies directly:
+
+```bash
+cloakbrowser-mcp \
+  --cdp-enabled \
+  --cdp-port-range 9222
+```
+
+For Streamable HTTP, the flat `cdpEnabled` boolean in the authenticated
+`initialize` metadata overrides the process default for that session. Omitting the
+field inherits the process value. These examples explicitly opt one session in and
+another out:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "cdpEnabled": true
+      }
+    }
+  }
+}
+```
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "cdpEnabled": false
+      }
+    }
+  }
+}
+```
+
+One CDP-enabled HTTP session owns one external port lease. Disabled sessions do not
+consume the pool. Allocation is process-local, selects the lowest unleased candidate,
+and fails that session immediately if the selected external port is already occupied.
+Close sessions to release ports or configure a larger range when the pool is exhausted.
+
+Retrieve the current URL from `cloakbrowser_bridge_info`, then pass its
+`structuredContent.cdp.discoveryUrl` to a CDP client such as Playwright's
+`chromium.connectOverCDP()`. Treat that URL as a credential: it includes a random
+per-generation capability and becomes stale after browser replacement. Managed CDP is
+not a Playwright Server endpoint. `chromium.connect()` and the current Open WebUI
+`PLAYWRIGHT_WS_URL` flow are not supported.
+
+`--cdp-advertised-scheme https` publishes `https` discovery and `wss` WebSocket URLs
+only. The bridge does not provide TLS for managed CDP: its external listener and
+Chromium hop remain plaintext HTTP/WebSocket. An operator-owned TLS terminator must
+listen on the same advertised leased port, preserve the advertised `Host` and `Origin`
+authority, and forward one-to-one to that session's plaintext listener.
+
+CDP enablement starts Chromium during MCP initialization so ownership and external
+readiness can be verified. Configure the MCP client initialize timeout to at least 60
+seconds. When managed CDP is enabled, user-supplied
+`CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` must not contain `--remote-debugging-port`,
+`--remote-debugging-address`, or `--remote-debugging-pipe` (including `=` forms).
+Playwright's own internal `--remote-debugging-pipe` remains enabled alongside the
+bridge-managed loopback TCP endpoint.
+
+See [Tools](tools.md#cloakbrowser_bridge_info), [Docker](docker.md#managed-cdp),
+[Security](security.md#managed-cdp-security), and
+[Architecture](architecture.md#managed-cdp-ownership) for discovery state, deployment,
+limits, and restart behavior.
 
 ## CloakBrowser License And GitHub Sign-In
 
@@ -186,6 +278,38 @@ Windows drive-letter paths.
 
 See [Load Chrome Extension](recipes/load-chrome-extension.md) for a shorter copy-paste setup.
 
+## Playwright Extension connection mode
+
+Playwright Extension connection mode is separate from loading an unpacked extension with `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`. It connects through the official Playwright Extension already installed in a Chrome or Edge profile; the bridge does not install that extension.
+
+For stdio, configure the process environment:
+
+```bash
+PLAYWRIGHT_MCP_EXTENSION=true \
+  PLAYWRIGHT_MCP_EXTENSION_TOKEN='<secret-from-the-extension>' \
+  PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/playwright-extension" \
+  PLAYWRIGHT_MCP_PROFILE_DIR_NAME='Profile 1' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+For Streamable HTTP, `extensionMode` and `profileDirName` initialize metadata override their process-level values. `userDataDir` is also session-specific. The token remains process-environment-only:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "extensionMode": true,
+        "profileDirName": "Profile 1",
+        "userDataDir": "/absolute/path/to/profile"
+      }
+    }
+  }
+}
+```
+
+Extension mode requires a non-empty token and a persistent profile. Concurrent HTTP extension sessions must use different `userDataDir` values. The bridge rejects managed or external CDP endpoints, remote browser endpoints, headless or isolated launch configuration, proxy and GeoIP options, humanization, context mutation, unpacked `extensionPaths`, and explicitly supplied CloakBrowser launch options before starting the upstream child. Positive end-to-end verification is manual because the official Playwright Extension must already be installed in the selected browser profile.
+
 ## Streamable HTTP Runtime Metadata
 
 Streamable HTTP clients can choose selected runtime options per MCP session by adding
@@ -200,6 +324,8 @@ bridge-specific metadata to the `initialize` request:
         "proxyBypass": ".internal,localhost",
         "geoipProxyMatch": true,
         "headless": false,
+        "extensionMode": false,
+        "profileDirName": "Profile 1",
         "humanize": true,
         "humanPreset": "careful",
         "userDataDir": "/absolute/path/to/profile",
@@ -226,9 +352,14 @@ without changing other sessions. `humanPreset` can select `default` or `careful`
 for that session, but does not enable humanized behavior by itself. Existing
 sessions keep the behavior captured during `initialize`.
 
-`headless` can enable or disable headless browser mode for that session. Setting
-`headless` to `false` requires a usable display environment, especially in
-Docker or Linux server deployments.
+`headless` can enable or disable headless browser mode for that session. In the
+Docker image, setting `headless` to `false` starts a container-private virtual
+display on demand. Outside the image, a headed session still requires a usable
+display environment.
+
+`extensionMode` and `profileDirName` override `PLAYWRIGHT_MCP_EXTENSION` and
+`PLAYWRIGHT_MCP_PROFILE_DIR_NAME` for that session. `PLAYWRIGHT_MCP_EXTENSION_TOKEN`
+is never accepted in metadata.
 
 `userDataDir` enables a persistent Chromium profile for that session and
 overrides `PLAYWRIGHT_MCP_USER_DATA_DIR`. The bridge resolves the directory to
@@ -273,9 +404,13 @@ The bridge forwards `PLAYWRIGHT_MCP_*` settings to upstream Playwright MCP. That
 - `PLAYWRIGHT_MCP_ALLOW_UNRESTRICTED_FILE_ACCESS`
 - `PLAYWRIGHT_MCP_CAPS`
 - `PLAYWRIGHT_MCP_CONSOLE_LEVEL`
+- `PLAYWRIGHT_MCP_FILE_PATHS`
+- `PLAYWRIGHT_MCP_IDLE_TIMEOUT`
 - `PLAYWRIGHT_MCP_IMAGE_RESPONSES`
+- `PLAYWRIGHT_MCP_PROFILE_DIR_NAME`
 - `PLAYWRIGHT_MCP_SNAPSHOT_MODE`
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
+- `PLAYWRIGHT_MCP_WEBMCP`
 
 Refer to the upstream Playwright MCP documentation for the full upstream option surface.
 

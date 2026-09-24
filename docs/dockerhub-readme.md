@@ -15,13 +15,13 @@ docker pull swimmwatch/cloakbrowser-mcp:latest
 ## Run
 
 ```bash
-docker run --rm --init swimmwatch/cloakbrowser-mcp:latest --help
+docker run --rm swimmwatch/cloakbrowser-mcp:latest --help
 ```
 
 For stdio MCP usage with persisted artifacts:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
@@ -30,7 +30,7 @@ For a persistent browser profile, keep using `/data` as the container
 persistence root:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
@@ -40,13 +40,34 @@ For Chrome extensions, mount the extension directory separately and pass the
 container path:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/extensions/my-extension:/extensions/my-extension:ro" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
+
+## Managed CDP
+
+Managed Chrome DevTools Protocol access is opt-in and session-scoped. Publish the
+configured port range one-to-one, enable remote binding inside the container, and use
+a concrete advertised host:
+
+```bash
+docker run --rm -i \
+  -p 127.0.0.1:9222-9231:9222-9231 \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --cdp-enabled --cdp-port-range 9222-9231 \
+  --cdp-host 0.0.0.0 --cdp-allow-remote \
+  --cdp-advertised-host 127.0.0.1
+```
+
+Retrieve the capability URL with `cloakbrowser_bridge_info` and connect through a CDP
+API such as Playwright `chromium.connectOverCDP()`. Treat the URL as a credential.
+`--cdp-advertised-scheme https` advertises operator-terminated TLS; the bridge does not
+provide TLS for managed CDP. See the full
+[Docker guide](https://swimmwatch.github.io/cloakbrowser-mcp/docker/#managed-cdp).
 
 ## MCP client config
 
@@ -58,7 +79,6 @@ docker run --rm --init -i \
       "args": [
         "run",
         "--rm",
-        "--init",
         "-i",
         "-v",
         "/tmp/cloakbrowser-artifacts:/data",

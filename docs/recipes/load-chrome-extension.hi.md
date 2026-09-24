@@ -10,6 +10,8 @@ tags:
 
 Chrome extensions के लिए unpacked directory और persistent profile चाहिए।
 
+यह recipe CloakBrowser के unpacked extension launch का उपयोग करती है। अलग से installed आधिकारिक Playwright Extension connection mode में `PLAYWRIGHT_MCP_EXTENSION=true`, process-level `PLAYWRIGHT_MCP_EXTENSION_TOKEN` और dedicated persistent profile चाहिए। दोनों mechanisms को न मिलाएँ।
+
 ## npm
 
 ```bash
@@ -23,7 +25,7 @@ Multiple paths, commas या Windows drive-letter paths के लिए JSON a
 ## Docker
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
   -v "$PWD/artifacts:/data" \

@@ -45,6 +45,8 @@ Use it when you need:
 - Playwright MCP browser automation backed by CloakBrowser;
 - unchanged upstream browser tools plus two local introspection tools;
 - npm or Docker installation over stdio or Streamable HTTP;
+- opt-in, session-scoped [managed CDP access](docs/configuration.md#managed-cdp) for
+  CDP-capable clients through `chromium.connectOverCDP()`;
 - persistent browser profiles, validated context options, and Chrome extension loading;
 - GeoIP-aware proxy matching for regional QA;
 - humanized mouse, keyboard, and scroll behavior for interaction-sensitive flows.
@@ -76,7 +78,7 @@ See the generated [CLI Reference](https://swimmwatch.github.io/cloakbrowser-mcp/
 ## Install With Docker
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
@@ -84,7 +86,7 @@ docker run --rm --init -i \
 For Streamable HTTP:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -145,7 +147,6 @@ Add this server entry to the client's MCP JSON config:
       "args": [
         "run",
         "--rm",
-        "--init",
         "-i",
         "-v",
         "/tmp/cloakbrowser-artifacts:/data",

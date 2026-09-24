@@ -49,13 +49,17 @@ LABEL org.opencontainers.image.base.digest="${PLAYWRIGHT_MCP_IMAGE_DIGEST}"
  RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fonts-urw-base35=20200910-7 \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    fonts-urw-base35=20200910-7 \
+    tini=0.19.0-1+b3 \
+ && ln -s /usr/bin/tini /usr/local/bin/tini \
  && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=prod-deps --chown=node:node /src/node_modules ./node_modules
 COPY --from=build --chown=node:node /src/dist ./dist
 COPY --from=build --chown=node:node /src/package.json ./package.json
+RUN install -d -m 1777 /tmp/.X11-unix
 
 RUN mkdir -p /data /home/node/.cloakbrowser \
  && chown -R node:node /opt/cloakbrowser-mcp /data /home/node/.cloakbrowser
@@ -66,14 +70,11 @@ ENV CLOAKBROWSER_CACHE_DIR=/home/node/.cloakbrowser
 ENV CLOAKBROWSER_AUTO_UPDATE=false
 ENV PLAYWRIGHT_MCP_CLI_PATH=/app/cli.js
 ENV PLAYWRIGHT_MCP_BROWSER_ENGINE=cloak
-ENV PLAYWRIGHT_MCP_HEADLESS=true
 ENV PLAYWRIGHT_MCP_OUTPUT_DIR=/data
 ENV MCP_SERVER_VERSION=${RELEASE_VERSION}
 ENV MCP_SERVER_VERSION_TAG=${RELEASE_VERSION_TAG}
 ENV MCP_SERVER_REVISION=${VCS_REF}
 ENV CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK=true
-ENV CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS=true
-ENV CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX=true
 
 RUN --mount=type=cache,target=/home/node/.cache/cloakbrowser-build,uid=1000,gid=1000,sharing=locked \
     CLOAKBROWSER_CACHE_DIR=/home/node/.cache/cloakbrowser-build node node_modules/cloakbrowser/dist/cli.js install \
@@ -82,4 +83,6 @@ RUN --mount=type=cache,target=/home/node/.cache/cloakbrowser-build,uid=1000,gid=
  && rm -f /home/node/.cloakbrowser/_download_*.tar.gz
 
 VOLUME ["/data"]
-ENTRYPOINT ["node", "/opt/cloakbrowser-mcp/dist/cli.js"]
+HEALTHCHECK --interval=2s --timeout=3s --start-period=2s --retries=2 CMD ["node", "/opt/cloakbrowser-mcp/dist/docker/healthcheck.js"]
+ENTRYPOINT ["/usr/local/bin/tini", "-s", "--", "node", "/opt/cloakbrowser-mcp/dist/docker/launcher.js"]
+CMD []

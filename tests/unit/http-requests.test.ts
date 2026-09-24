@@ -12,6 +12,19 @@ import {
 import { BRIDGE_INITIALIZE_META_KEY, JSON_RPC_VERSION } from '@/protocol/constants.js';
 
 describe('HTTP request helpers', () => {
+  it('reads only a literal boolean cdpEnabled initialize override', () => {
+    expect(readBridgeRuntimeOptionsFromInitialize(createInitializeRequest())).toEqual({});
+    expect(readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ cdpEnabled: true }))).toEqual({
+      cdpEnabled: true,
+    });
+    expect(readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ cdpEnabled: false }))).toEqual({
+      cdpEnabled: false,
+    });
+    expect(() =>
+      readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ cdpEnabled: 'true' })),
+    ).toThrow(InvalidBridgeInitializeMetaError);
+  });
+
   it('detects JSON content types', () => {
     expect(hasJsonContentType(createRequest('', { 'content-type': 'application/json' }))).toBe(true);
     expect(hasJsonContentType(createRequest('', { 'content-type': 'Application/JSON; charset=utf-8' }))).toBe(
@@ -50,6 +63,7 @@ describe('HTTP request helpers', () => {
           proxyBypass: ' .internal ',
           geoipProxyMatch: true,
           headless: false,
+          extensionMode: true,
           humanize: true,
           humanPreset: 'careful',
           releaseChannel: 'preview',
@@ -60,6 +74,7 @@ describe('HTTP request helpers', () => {
             timezoneId: 'America/New_York',
           },
           extensionPaths: ['/tmp/ext-one', ' /tmp/ext-two '],
+          profileDirName: ' Profile 1 ',
         }),
       ),
     ).toEqual({
@@ -69,6 +84,7 @@ describe('HTTP request helpers', () => {
       },
       geoipProxyMatch: true,
       headless: false,
+      extensionMode: true,
       humanize: true,
       humanPreset: 'careful',
       userDataDir: '/tmp/profile',
@@ -78,6 +94,7 @@ describe('HTTP request helpers', () => {
         timezoneId: 'America/New_York',
       },
       extensionPaths: ['/tmp/ext-one', '/tmp/ext-two'],
+      profileDirName: 'Profile 1',
     });
 
     expect(
@@ -98,6 +115,11 @@ describe('HTTP request helpers', () => {
     expect(() =>
       readBridgeRuntimeOptionsFromInitialize(createInitializeRequest({ proxyBypass: '.internal' })),
     ).toThrow('proxyBypass requires proxyServer');
+    expect(() =>
+      readBridgeRuntimeOptionsFromInitialize(
+        createInitializeRequest({ extensionToken: 'must-not-be-accepted' }),
+      ),
+    ).toThrow('extensionToken is process environment only');
     expect(() =>
       readBridgeRuntimeOptionsFromInitialize(
         createInitializeRequest({ proxyServer: 'http://proxy.example:8080', geoipProxyMatch: 'true' }),

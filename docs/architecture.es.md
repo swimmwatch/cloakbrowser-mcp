@@ -23,6 +23,49 @@ tags:
 
 El proyecto Playwright MCP, situado en una fase anterior, ya cuenta con los contratos de las herramientas del navegador y evoluciona rápidamente. El modelo de puente permite que este proyecto siga siendo pequeño y evita tener que copiar la lógica de automatización del navegador.
 
+## Propiedad administrada de CDP { #managed-cdp-ownership }
+
+CDP administrado es una superficie de control secundaria opcional para la misma generación de navegador:
+
+```text
+MCP client -> outer bridge -> upstream Playwright MCP child -> Chromium
+                    |                    |                    |-- Playwright pipe
+                    |                    `-- generated config `-- internal loopback CDP
+                    `-- external capability proxy <--------- CDP client
+```
+
+La sesión MCP posee el arrendamiento del puerto externo, el proxy de capacidad, generado aguas arriba
+configuración, hijo reemplazable aguas arriba y generación actual Chromium. Un CDP
+el cliente nunca se conecta directamente al punto final de bucle interno. Bootstrap coloca un
+desafío de página de navegador de un solo uso a través de MCP y lo consume a través de CDP antes de la
+la capacidad externa está publicada. La tubería de depuración remota interna de Playwright permanece
+activo junto al endpoint TCP gestionado por el puente.
+
+El arrendamiento del puerto externo es estable para la sesión MCP, mientras que el proceso hijo,
+El punto final interno, el número de generación y la capacidad URL son reemplazables. Navegador
+la pérdida invalida la capacidad actual y cierra sus sockets en proxy, pero no
+iniciar un niño en segundo plano. La primera llamada posterior `browser_*` MCP aplica la
+regla de reinicio antes de avanzar:
+
+1. las llamadas concurrentes del navegador comparten un reinicio limitado;
+2. el niño viejo se vuelve inalcanzable y es desechado;
+3. un hijo de reemplazo utiliza la misma configuración de sesión y un nuevo puerto interno;
+4. la propiedad y la preparación externa se verifican antes de la publicación;
+5. Las llamadas de navegador en espera se reenvían exactamente una vez a la sustitución lista.
+
+Si la preparación falla, ninguna llamada de navegador en espera llega a un hijo ascendente, ninguna capacidad
+se publica, y una llamada posterior del navegador puede iniciar un nuevo intento acotado. Estado del navegador
+tales como pestañas y almacenamiento en memoria no se restauran después del reemplazo. Herramientas locales,
+listado de herramientas, lecturas de descubrimiento y desconexiones ordinarias de CDP no provocan reinicio.
+
+La limpieza invierte la accesibilidad: detener la admisión, invalidar la capacidad, cerrar el proxy
+enchufes, deseche el hijo ascendente y el navegador, cierre el oyente externo, luego
+liberar la concesión del puerto. Esto evita que un antiguo URL se mueva silenciosamente a un nuevo navegador.
+
+Los comandos MCP y CDP pueden ejecutarse concurrentemente. El puente no agrega compatibilidad entre protocolos
+transacciones o inferir qué llamador posee una página; los llamadores deben coordinar destructivo o
+operaciones conflictivas.
+
 ## Docker
 
 La imagen de Docker utiliza como imagen base la imagen oficial fijada de Playwright MCP. El puente se instala en `/opt/cloakbrowser-mcp`, mientras que el Playwright MCP de origen sigue estando disponible en `/app/cli.js`.

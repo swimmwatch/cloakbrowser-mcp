@@ -13,14 +13,18 @@ tags:
 ## 実行
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
 
 アーティファクトは、コンテナ内の `/data` に書き込まれます。このパスをマウントして、スクリーンショット、スナップショット、ダウンロードしたファイル、およびネットワーク出力を保存してください。
 
-`--init` の使用が推奨されます。これは、ブラウザの自動化処理によって短命な子プロセスが生成される可能性があるためです。Docker の init プロセスは、これらの子プロセスを適切にクリーンアップします。
+イメージはすでに Tini を PID 1 および subreaper として実行しているため、通常のコマンドに追加の Docker init プロセスは不要です。
+
+## Headed セッション、health check、制限された runtime
+
+headless: false では、コンテナは必要に応じてプライベートな Xvfb を起動し、コンテナ終了まで維持します。これは可視デスクトップでも VNC、noVNC、RDP、host X11、画面キャプチャのサービスでもありません。Playwright の context、page、profile、artifact は分離されますが、ネイティブ X11 の focus、clipboard、画面キャプチャは tenant 分離の境界ではありません。Docker health check はプライベート Unix socket で MCP CLI の event loop を確認し、Xvfb が起動済みならその可用性も確認します。MCP stdio 経由でトラフィックを送らず、/healthz や /readyz の代替でもありません。read-only root filesystem では /data をマウントし、headed セッションがあり得る場合は /tmp と /tmp/.X11-unix に writable tmpfs を用意してください。
 
 同じリリースタグが、Docker Hub には `swimmwatch/cloakbrowser-mcp`という形式で公開され、GHCRには`ghcr.io/swimmwatch/cloakbrowser-mcp`という形式で公開されます。
 
@@ -31,7 +35,7 @@ Docker はデフォルトでは永続的なブラウザプロファイルを有�
 既存の `/data` ボリュームを永続化ルートとして使用してください：
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
@@ -57,7 +61,7 @@ docker run --rm -it \
   swimmwatch/cloakbrowser-mcp:latest \
   /opt/cloakbrowser-mcp/node_modules/cloakbrowser/dist/cli.js login
 
-docker run --rm --init -i \
+docker run --rm -i \
   -v cloakbrowser-cache:/home/node/.cloakbrowser \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
@@ -94,7 +98,7 @@ Chrome 拡張機能には永続プロファイルが必要で、個別にマウ�
 拡張機能のマウントは読み取り専用にできます：
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
   -v "$PWD/artifacts:/data" \
@@ -106,12 +110,14 @@ docker run --rm --init -i \
 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` に JSON 配列を使用してください。
 拡張機能ファイルまたは拡張機能パスを変更した後は、コンテナを再起動してください。
 
+Playwright Extension 接続モードは、上記の展開済み拡張機能のマウントとは別です。persistent Chrome/Edge profile に公式拡張機能をインストールし、`PLAYWRIGHT_MCP_EXTENSION_TOKEN` を指定する必要があります。各 profile を別々の writable path にマウントし、token は secret manager から渡してください。`PLAYWRIGHT_MCP_EXTENSION=true` と `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` は併用しないでください。
+
 ## ストリーム可能なHTTP
 
 ローカルでの Streamable HTTP を使用する場合は、コンテナのポートをループバックで公開してください：
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -123,7 +129,7 @@ curl http://127.0.0.1:3000/readyz
 コンテナから直接HTTPSにアクセスするには、証明書ファイルをマウントし、「HTTPS」を選択してください：
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/certs:/certs:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -135,6 +141,62 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
 Streamable HTTP は、固定の `GET /healthz` および `GET /readyz` プローブを公開します。 `--http-auth-token` または `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` が設定されている場合、プローブには MCP リクエストと同じ `Authorization: Bearer ...` ヘッダーが必要です。
 すべての HTTP トランスポートフラグおよび環境変数については、生成された [CLI リファレンス](generated/cli.md) を参照してください。
 
+## 管理された CDP { #managed-cdp }
+
+構成された管理-CDP 範囲を一対一で公開します。この stdio の例では、一つを有効にします
+セッションとすべてのホストポートをループバックにバインドしたままにします:
+
+```bash
+docker run --rm -i \
+  -p 127.0.0.1:9222-9231:9222-9231 \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --cdp-enabled \
+  --cdp-port-range 9222-9231 \
+  --cdp-host 0.0.0.0 \
+  --cdp-allow-remote \
+  --cdp-advertised-host 127.0.0.1
+```
+
+`--cdp-host 0.0.0.0`はDockerのポートフォワーディングに必要なので、明示的な
+`--cdp-allow-remote`のオプトインと具体的な`--cdp-advertised-host`も必要です。
+範囲を異なるホストポート番号に再マップしないでください: ディスカバリーURLには含まれています
+リースされたポートと各公開ポートは、それぞれ所有するセッションに一対一でルーティングする必要があります。
+
+マルチセッション Streamable HTTP の場合、プールを設定して公開しますが、次を設定しないでください
+クライアントが個別にオプトインする場合のデフォルトの処理：
+
+```bash
+docker run --rm \
+  -p 127.0.0.1:3000:3000 \
+  -p 127.0.0.1:9222-9231:9222-9231 \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http \
+  --http-host 0.0.0.0 \
+  --http-port 3000 \
+  --cdp-port-range 9222-9231 \
+  --cdp-host 0.0.0.0 \
+  --cdp-allow-remote \
+  --cdp-advertised-host 127.0.0.1
+```
+
+`cdpEnabled: true`で認証された`initialize`リクエストは、1つの公開済みをリースします
+ポート。省略された値はプロセスのデフォルトを継承します、一方で`cdpEnabled: false`
+明示的にオプトアウトし、CDPポートを消費しません。プールの枯渇は新しいもののみを拒否します
+CDP対応セッション；無効なセッションの容量を減らすことはありません。
+
+`cloakbrowser_bridge_info`から能力を持つURLを読み取ります。それを入れないでください
+コンテナのログまたはヘルスチェック。CDP API のようなものと接続します
+`chromium.connectOverCDP()`；URLはPlaywrightと互換性がありません
+`chromium.connect()` または現在の Open WebUI フロー。
+
+`--cdp-advertised-scheme https` は公開された URL を `https`/`wss` に変更しますが、
+ブリッジは、管理された CDP に対して TLS を提供しません。オペレーター所有の TLS ターミネーターを使用してください
+外部ネットワーク名前空間で同じ宣伝されたポートを占有し、保持する
+`Host`/`Origin`、そしてプレーンテキストブリッジリスナーに一対一で転送します。
+bridge-to-Chromiumホップもプレーンテキストのループバックトラフィックとして残ります。
+
 ## GeoIPプロキシの照合
 
 Docker は npm と同じプロキシおよび GeoIP 環境変数を使用します。地域ごとの QA において、CloakBrowser のタイムゾーン、言語、および
@@ -142,7 +204,7 @@ Docker は npm と同じプロキシおよび GeoIP 環境変数を使用しま�
 GeoIP プロキシのマッチングを有効にしてください：
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
   -e CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
   -v "$PWD/artifacts:/data" \
@@ -194,7 +256,6 @@ docker run --rm --init -i \
       "args": [
         "run",
         "--rm",
-        "--init",
         "-i",
         "-v",
         "/tmp/cloakbrowser-artifacts:/data",

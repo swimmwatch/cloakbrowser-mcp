@@ -79,6 +79,95 @@ npx -y cloakbrowser@latest logout
 服务器，启动会因明确的 CloakBrowser 错误而失败。桥接会保留该错误；它不会
 掩盖错误，也不会静默切换到其他浏览器或许可证级别。
 
+## 已管理 CDP { #managed-cdp }
+
+托管的 Chrome 开发者工具协议 (CDP) 访问是需要明确选择加入的。它公开了
+由 MCP 通过具备能力的方式控制的相同 Chromium 浏览器版本
+发现 URL。仅配置端口池并不会启用 CDP。
+
+| CLI 选项 | 环境变量 | 默认 | 目的 |
+| --- | --- | --- | --- |
+| `--cdp-enabled`, `--no-cdp-enabled` | `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED` | `false` | 设置 stdio 值和 Streamable HTTP 会话默认值。 |
+| `--cdp-port-range <port\|start-end>` | `CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE` | 未设置 | 配置进程本地外部代理端口池。每个启用的会话租用一个端口。 |
+| `--cdp-host <host>` | `CLOAK_PLAYWRIGHT_MCP_CDP_HOST` | `127.0.0.1` | 绑定托管的 CDP 代理。 |
+| `--cdp-allow-remote`, `--no-cdp-allow-remote` | `CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE` | `false` | 允许或拒绝非回环绑定。 |
+| `--cdp-advertised-host <host>` | `CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_HOST` | 未设置 | 在发现 URL 中放置一个可外部访问的具体主机。通配符绑定需要此项。 |
+| `--cdp-advertised-scheme <http\|https>` | `CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_SCHEME` | `http` | 发布 `http`/`ws` 或 `https`/`wss` URL。这不会启用 TLS。 |
+
+每个 CLI 值仅覆盖其对应的环境变量。特别是，
+`--no-cdp-enabled` 覆盖 `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED=true`，并且
+`--no-cdp-allow-remote` 覆盖 `CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE=true`。
+启用的会话在其上游子开始之前，如果没有端口池，将被拒绝。
+一个有效的假值不会创建监听器、端口租赁或能力。
+
+对于 stdio，该进程值直接适用：
+
+```bash
+cloakbrowser-mcp \
+  --cdp-enabled \
+  --cdp-port-range 9222
+```
+
+对于 Streamable HTTP，经过身份验证的平坦 `cdpEnabled` 布尔值
+`initialize` 元数据覆盖该会话的进程默认设置。省略
+字段继承流程值。这些示例明确选择了一个会话并
+另一个出:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "cdpEnabled": true
+      }
+    }
+  }
+}
+```
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "cdpEnabled": false
+      }
+    }
+  }
+}
+```
+
+一个启用 CDP 的 HTTP 会话拥有一个外部端口租用。已禁用的会话没有。
+消耗池。分配是进程本地的，选择未租用的最低候选项，
+如果所选的外部端口已被占用，则会立即使该会话失败。
+关闭会话以释放端口，或在池耗尽时配置更大的范围。
+
+从 `cloakbrowser_bridge_info` 检索当前的 URL，然后传递它的
+`structuredContent.cdp.discoveryUrl` 到像 Playwright 的 CDP 客户
+`chromium.connectOverCDP()`。将那个 URL 视为凭证：它包含一个随机值
+每代能力，并且在浏览器更换后会变得过时。托管的 CDP 是
+不是 Playwright 服务器端点。`chromium.connect()` 和当前的 Open WebUI
+不支持 `PLAYWRIGHT_WS_URL` 流。
+
+`--cdp-advertised-scheme https` 发布 `https` 发现和 `wss` WebSocket 链接
+仅此而已。该桥不为受管 CDP 提供 TLS：它的外部监听器和
+Chromium 保持明文 HTTP/WebSocket。必须有运营商拥有的 TLS 终端器
+在相同的广告租用端口上监听，保留广告的 `Host` 和 `Origin`
+授权，并将其一对一地转发给该会话的明文监听器。
+
+CDP 启用从 MCP 初始化期间开始 Chromium，以便所有权和外部
+可以验证就绪情况。将 MCP 客户端初始化超时配置为至少 60
+秒。当启用管理的 CDP 时，由用户提供的
+`CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` 不得包含 `--remote-debugging-port`，
+`--remote-debugging-address`，或 `--remote-debugging-pipe`（包括 `=` 形式）。
+Playwright 自身的内部 `--remote-debugging-pipe` 仍然保持启用状态，同时
+由网桥管理的回环 TCP 端点。
+
+请参阅 [工具](tools.md#cloakbrowser_bridge_info), [Docker](docker.md#managed-cdp),
+[安全](security.md#managed-cdp-security)，以及
+[架构](architecture.md#managed-cdp-ownership) 用于发现状态、部署，
+限制和重启行为。
+
 ## CloakBrowser 发布通道
 
 `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` 选择 CloakBrowser 二进制文件的发布通道。默认值为 `stable`。`preview` 请求 Pro 浏览器预览构建，且仅适用于 Pro 许可证。显式固定的 `CLOAKBROWSER_VERSION` 优先。如果平台没有可用的 Preview，CloakBrowser 会回退到 Stable。
@@ -161,6 +250,10 @@ PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
 逗号、传入多个扩展，或使用带盘符的 Windows 路径时，请为
 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` 使用 JSON 数组。
 
+## Playwright Extension 连接模式
+
+此模式通过已安装在 Chrome 或 Edge 配置文件中的官方 Playwright Extension 连接，与通过 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` 加载解压扩展不同。对于 stdio，请设置 `PLAYWRIGHT_MCP_EXTENSION=true`、`PLAYWRIGHT_MCP_EXTENSION_TOKEN`、`PLAYWRIGHT_MCP_USER_DATA_DIR`，并可设置仅含一个相对路径段的 `PLAYWRIGHT_MCP_PROFILE_DIR_NAME`。在 Streamable HTTP 中，`extensionMode`、`profileDirName` 和 `userDataDir` 元数据覆盖进程值，但 token 只能来自进程环境。并行会话必须使用不同的 `userDataDir`；launch、CDP、proxy、GeoIP、humanization、context 和 `extensionPaths` 配置与此模式不兼容。
+
 ## 可流式传输的 HTTP 运行时元数据
 
 支持流式传输的 HTTP 客户端可以通过在 `initialize` 请求中添加
@@ -201,9 +294,7 @@ PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
 ，但本身不会启用人性化行为。 现有
 会话将保留在 `initialize` 期间捕获的行为。
 
-`headless` 可为该会话启用或禁用无头浏览器模式。 将
-`headless` 设置为 `false` 需要可用的显示环境，特别是在
-Docker 或 Linux 服务器部署中。
+在 Docker 中，`headless: false` 会按需启动私有虚拟显示器。在镜像外，有头会话仍需要可用的显示环境。
 
 `userDataDir` 为该会话启用持久化 Chromium 配置文件，并覆盖
 `PLAYWRIGHT_MCP_USER_DATA_DIR`。桥接器会将目录解析为平台原生绝对路径，

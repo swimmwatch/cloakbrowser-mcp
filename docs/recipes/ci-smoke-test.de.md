@@ -17,6 +17,8 @@ Der Smoke-Test findet fehlende runtime-Abhängigkeiten, bevor ein MCP-Client ver
 npx -y cloakbrowser-mcp@latest doctor --json
 ```
 
+Damit werden Node.js, Paketmetadaten, die tatsächlich verwendete Upstream-Playwright-MCP-CLI, die aufgelösten Versionen und Paketpfade von `@playwright/mcp`, `playwright` und `playwright-core`, der effektive Core-Bundle-Pfad sowie die Metadaten der CloakBrowser-Binärdatei überprüft, ohne die Bridge zu starten.
+
 ## Streamable-HTTP-Probe
 
 ```bash
@@ -35,7 +37,7 @@ wait "$server_pid" || true
 ## Docker-Paketprüfung
 
 ```bash
-docker run --rm --init \
+docker run --rm \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   doctor --json

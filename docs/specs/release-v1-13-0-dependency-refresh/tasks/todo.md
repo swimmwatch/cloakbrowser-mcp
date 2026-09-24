@@ -3,7 +3,7 @@
 - [x] 01 Dependency and supply-chain refresh
 - [x] 02 Bridge parity and integration coverage
 - [x] 03 Release metadata and documentation
-- [ ] 04 Full release verification (blocked: intermittent npm audit endpoint timeout)
+- [x] 04 Full release verification
 - [ ] 05 Manual GitHub delivery gates
 
 The checklist records completed packets only. External delivery actions remain

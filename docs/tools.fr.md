@@ -14,11 +14,11 @@ tags:
 
 La surface d'outils navigateur upstream par défaut doit correspondre à la dépendance Playwright MCP fixée. Elle inclut les outils principaux comme la navigation, les snapshots, les clics, la saisie, les captures d'écran, les onglets, les messages console, l'inspection réseau, l'envoi de fichiers, les dialogues et les outils d'évaluation non sûrs.
 
-Pour une référence upstream stable, consultez le test de capacités Playwright MCP `{{ project.playwright_mcp_package_tag }}` fixé au commit exact du paquet : [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/4c1fb03bad3bae379b0ae0e3d81d2660de56bd91/tests/capabilities.spec.ts#L19-L77).
+Pour une référence upstream stable, consultez le test de capacités Playwright MCP `{{ project.playwright_mcp_package_tag }}` fixé au commit exact du paquet : [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/f1257a5a67aff872f947fae274759f7d54853862/tests/capabilities.spec.ts#L19-L77).
 
 Ce projet considère upstream Playwright MCP comme source faisant autorité et ne maintient pas de référence de schéma copiée.
 
-L'ensemble par défaut contient 24 outils upstream.
+L'ensemble par défaut contient 25 outils upstream, dont `browser_emulate_media`.
 `PLAYWRIGHT_MCP_CAPS=devtools` transmet la capacité `devtools` au processus
 enfant sans option `--caps` propre au pont ; les outils et schémas upstream qui
 en résultent sont transmis sans modification, y compris
@@ -37,6 +37,12 @@ en résultent sont transmis sans modification, y compris
     [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) et
     [#176](https://github.com/CloakHQ/CloakBrowser/issues/176).
 
+### Outils WebMCP dynamiques
+
+Chromium prend en charge WebMCP à partir de la version 154. Les anciennes versions de CloakBrowser ignorent le feature flag ; utilisez une version de navigateur compatible ou `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright` lorsque WebMCP est requis.
+
+Lorsque Chromium est lancé avec `--enable-features=WebMCP`, les pages peuvent déclarer des outils `webmcp_*`. Le bridge transmet `notifications/tools/list_changed`, vide tout le cache `tools/list` et le client doit redemander la liste. Avec Streamable HTTP, seul le flux de notification ouvert de la session concernée reçoit l'événement ; même sans flux, le prochain `tools/list` reste à jour. Considérez le nom, la description, le schéma, les annotations et l'output comme des données de page non fiables. Le bridge n'active pas WebMCP automatiquement ; `PLAYWRIGHT_MCP_WEBMCP=false` désactive la collecte.
+
 ## Outils locaux
 
 ### `cloakbrowser_binary_info`
@@ -46,6 +52,56 @@ Retourne des informations structurées sur le paquet CloakBrowser, la plateforme
 ### `cloakbrowser_bridge_info`
 
 Retourne les métadonnées structurées du pont :
+
+L'objet additif `structuredContent.cdp` rapporte le CDP géré de la session appelante
+état :
+
+```json
+{ "enabled": false }
+```
+
+```json
+{
+  "enabled": true,
+  "state": "ready",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": "http://127.0.0.1:9222/cdp/<capability>",
+  "activeConnections": 0
+}
+```
+
+```json
+{
+  "enabled": true,
+  "state": "unavailable",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": null,
+  "activeConnections": 0
+}
+```
+
+`generation` augmente et `discoveryUrl` tourne après le remplacement du navigateur.
+`activeConnections` compte les connexions WebSocket acceptées via un proxy sans exposer
+identités des clients, identifiants cibles ou contenu du protocole. Traitez chaque découverte non nulle URL
+comme une référence.
+
+Utilisez la découverte URL avec un client compatible CDP :
+
+```ts
+import { chromium } from 'playwright';
+
+const browser = await chromium.connectOverCDP(discoveryUrl);
+```
+
+CDP géré n'est pas le protocole du serveur Playwright. Playwright
+`chromium.connect()` et l'intégration Open WebUI `PLAYWRIGHT_WS_URL` actuelle s'attendent
+un point de terminaison de serveur Playwright et ne sont pas compatibles avec ce URL.
 
 - nom et version du MCP server ;
 - mode d'exécution ;

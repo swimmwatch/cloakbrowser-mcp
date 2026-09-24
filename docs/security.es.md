@@ -10,6 +10,84 @@ tags:
 
 Este proyecto es un puente de automatización del navegador. Considéralo como una infraestructura para la ejecución de código de confianza.
 
+## Seguridad Gestionada CDP { #managed-cdp-security }
+
+CDP administrado está deshabilitado por defecto. Proporciona control arbitrario de Chromium DevTools,
+no es una herramienta de navegador reducida API. Habilítela solo para clientes de confianza. La capacidad en
+`cloakbrowser_bridge_info.cdp.discoveryUrl` es una credencial de portador: no la registres,
+guárdalo en tickets, o compártelo entre sesiones. Se rota después de reemplazar el navegador
+y un viejo URL nunca pasa a la generación de reemplazo.
+
+Un enlace CDP que no sea de loopback requiere tanto `--cdp-allow-remote` como un anuncio concreto
+host. Agregue controles de acceso a la red alrededor del puerto publicado. Seleccionando
+`--cdp-advertised-scheme https` no proporciona TLS. El oyente gestionado y
+Chromium hop permanecer en texto claro; un terminador TLS de mismo puerto propiedad del operador debe preservar
+la autoridad anunciada `Host` y `Origin` y mantener el enrutamiento uno a uno hacia la
+sesión propia.
+
+Los registros de tiempo de ejecución nunca incluyen rutas de capacidad, IDs de objetivo, cargas útiles CDP, datos del navegador,
+cookies, valores sin procesar `Host` o `Origin`, o rutas de perfil. Comprobaciones de seguridad rechazadas son
+reportado solo como una advertencia `cdp_security_rejections` con alcance de sesión con 60 segundos
+conteos de saturación para `capability`, `host` y `origin`; la limpieza vacía cualquier resto
+cuentas. Las verificaciones exitosas no crean registros de auditoría por solicitud.
+
+### Límites Fijos
+
+Los límites se aplican de manera independiente a cada sesión habilitada para CDP MCP:
+
+| Límite | Límite |
+| --- | --- |
+| Conexiones WebSocket activas a través de proxy, incluyendo los saludos en curso | 8 |
+| Solicitudes concurrentes de preactualización HTTP | 16 |
+| Encabezados de la solicitud | 16 KiB |
+| Cuerpo de la solicitud en rutas soportadas | No permitido |
+| Respuesta almacenada en búfer Chromium HTTP | 4 MiB |
+| Mensaje WebSocket entrante o saliente | 16 MiB |
+| Datos WebSocket no enviados en cola por dirección | 16 MiB |
+| Encabezados de solicitud, respuesta upstream HTTP, o handshake WebSocket | 10 segundos |
+| Apagado elegante del proxy antes del cierre forzado | 5 segundos |
+| Cuerpo de respuesta de error local | 8 KiB |
+
+### Errores HTTP
+
+Los fallos locales usan JSON `{"error":{"code":"...","message":"..."}}` con
+`Cache-Control: no-store`, `Content-Type: application/json; charset=utf-8`, y un
+exact `Content-Length`. Los fallos del método también incluyen `Allow`. Las asignaciones estables son:
+
+| Estado | Código |
+| --- | --- |
+| `400` | `bad_request` |
+| `403` | `forbidden` |
+| `404` | `not_found` |
+| `405` | `method_not_allowed` |
+| `408` | `request_timeout` |
+| `413` | `payload_too_large` |
+| `431` | `headers_too_large` |
+| `500` | `internal_error` |
+| `502` | `bad_gateway` |
+| `503` | `unavailable` |
+| `504` | `gateway_timeout` |
+| Chromium `400..499` | `upstream_error`, preservando el estado |
+
+Chromium redirecciona, errores del servidor, respuestas malformadas y fallos de transporte son
+normalizado en lugar de exponer los cuerpos de respuesta Chromium. Un rechazo generado por el puente
+antes de que el envío ascendente no tiene efecto secundario Chromium. Una solicitud de descubrimiento de solo lectura puede
+será reintentado después de corregir la condición. Para fallas ambiguas que cambian el estado,
+vuelve a leer `/json/list` y reconcilia el estado de la aplicación; no asumas `Retry-After` o
+idempotencia automática
+
+### WebSocket Cierra
+
+Los cierres generados localmente usan pares enmascarados fijos. Los cierres válidos de pares se retransmiten.
+
+| Código | Razón | Usar |
+| --- | --- | --- |
+| `1001` | `going_away` | Cierre de sesión, generación o proxy |
+| `1002` | `protocol_error` | Entrada del protocolo WebSocket malformada |
+| `1009` | `message_too_big` | El mensaje excede el límite configurado |
+| `1011` | `internal_error` | Desconexión inesperada de la fuente o fallo del relé |
+| `1013` | `try_again_later` | Límite de cola no enviada por dirección excedido |
+
 ## Límite de confianza
 
 El servidor externo es compatible con stdio y Streamable HTTP. Inicia el MCP de Playwright (upstream) como un proceso secundario y reenvía las llamadas de la herramienta. La automatización del navegador, la salida de archivos, el acceso a la red y el comportamiento de evaluación no segura están controlados por el MCP de Playwright (upstream).
@@ -21,6 +99,12 @@ Streamable HTTP se vincula a `127.0.0.1` a través de HTTP de forma predetermina
 ## Herramientas peligrosas
 
 Upstream Playwright MCP incluye herramientas como `browser_evaluate` y `browser_run_code_unsafe`. Estas herramientas pueden ejecutar JavaScript en el navegador o en el contexto del servidor de Playwright. Conecta este servidor únicamente a clientes de MCP en los que confíes.
+
+Las herramientas `webmcp_*` las define la página actual. Considera su nombre, descripción, schema, annotations y output como datos no confiables; el bridge los reenvía sin cambios. Usa `PLAYWRIGHT_MCP_WEBMCP=false` cuando no necesites recopilarlas.
+
+## Token de Playwright Extension
+
+Proporciona `PLAYWRIGHT_MCP_EXTENSION_TOKEN` solo mediante el entorno del proceso o un gestor de secretos. El bridge no acepta el token en metadata HTTP ni lo escribe en config, bridge metadata, logs, errores o diagnostic snapshots. Protege el persistent profile y no reutilices un `userDataDir` activo entre sesiones.
 
 ## Configuración
 
@@ -53,7 +137,8 @@ Si tu cliente MCP introduce credenciales en las sesiones del navegador, da prefe
 
 ## Docker
 
-Se recomienda utilizar Docker cuando se busque aislamiento y que las dependencias del navegador sean reproducibles. Monta solo el directorio de artefactos que necesites y utiliza `--init` para que los procesos secundarios del navegador se eliminen correctamente.
+Se recomienda Docker para el aislamiento y las dependencias reproducibles del navegador. Monta solo el directorio de artefactos necesario; la imagen ya incluye Tini, que recoge correctamente los procesos hijos del navegador. En un contenedor reforzado de solo lectura, mantén `/data` montado y proporciona montajes temporales con escritura en `/tmp` y `/tmp/.X11-unix` si pueden existir sesiones con interfaz gráfica.
+
 
 Al publicar Streamable HTTP desde Docker, es preferible utilizar `-p 127.0.0.1:3000:3000`. La publicación directa en una interfaz pública permite a cualquier navegador de cliente al que se pueda acceder realizar tareas de automatización, a menos que se añadan controles de autenticación y de red.
 

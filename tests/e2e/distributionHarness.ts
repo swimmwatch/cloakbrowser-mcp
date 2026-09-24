@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,7 +14,7 @@ export const fakeUpstreamPath = fileURLToPath(new URL('../fixtures/fake-upstream
 export const fakeUpstreamFixtureDir = fileURLToPath(new URL('../fixtures', import.meta.url));
 export const fakeUpstreamContainerDir = '/opt/cloakbrowser-mcp/tests/fixtures';
 export const fakeUpstreamContainerPath = `${fakeUpstreamContainerDir}/fake-upstream-mcp.mjs`;
-export const dockerImageTag = 'cloakbrowser-mcp:dev';
+export const dockerImageTag = process.env.CLOAKBROWSER_MCP_DOCKER_IMAGE ?? 'cloakbrowser-mcp:dev';
 
 const localToolNames = [LOCAL_TOOL_BINARY_INFO, LOCAL_TOOL_BRIDGE_INFO] as const;
 const expectedBridgeToolNames = [...fakeUpstreamToolNames, ...localToolNames];
@@ -33,6 +33,7 @@ export interface DistributionCommand {
 
 export function createTempRoot(prefix: string): string {
   const root = mkdtempSync(path.join(tmpdir(), prefix));
+  chmodSync(root, 0o777);
   tempRoots.push(root);
   return root;
 }
@@ -84,20 +85,37 @@ export function packAndInstallCurrentPackage(): DistributionCommand {
   };
 }
 
-export function createDockerDistributionCommand(): DistributionCommand {
-  const dataDir = createTempRoot('cloakbrowser-mcp-docker-data-');
+export function createDockerDistributionCommand(
+  options: {
+    dockerInit?: boolean;
+    extensionMode?: boolean;
+    headless?: boolean;
+    restrictedRuntime?: boolean;
+  } = {},
+): DistributionCommand {
   return {
     label: 'Docker image',
     command: 'docker',
     args: [
       'run',
       '--rm',
-      '--init',
       '-i',
+      ...(options.dockerInit ? ['--init'] : []),
+      ...(options.restrictedRuntime
+        ? [
+            '--cap-drop=ALL',
+            '--security-opt=no-new-privileges',
+            '--read-only',
+            '--tmpfs',
+            '/tmp:rw,nosuid,nodev,noexec,mode=1777',
+            '--tmpfs',
+            '/tmp/.X11-unix:rw,nosuid,nodev,noexec,mode=1777,uid=1000,gid=1000',
+          ]
+        : []),
       '--mount',
       `type=bind,source=${fakeUpstreamFixtureDir},target=${fakeUpstreamContainerDir},readonly`,
-      '--mount',
-      `type=bind,source=${dataDir},target=/data`,
+      '--tmpfs',
+      '/data:rw,nosuid,nodev,mode=1777',
       '-e',
       `PLAYWRIGHT_MCP_CLI_PATH=${fakeUpstreamContainerPath}`,
       '-e',
@@ -108,6 +126,15 @@ export function createDockerDistributionCommand(): DistributionCommand {
       'PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default',
       '-e',
       'CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK=false',
+      ...(options.extensionMode
+        ? [
+            '-e',
+            'PLAYWRIGHT_MCP_EXTENSION=true',
+            '-e',
+            'PLAYWRIGHT_MCP_EXTENSION_TOKEN=docker-extension-test-token',
+          ]
+        : []),
+      ...(options.headless === false ? ['-e', 'PLAYWRIGHT_MCP_HEADLESS=false'] : []),
       dockerImageTag,
     ],
     env: process.env as Record<string, string>,
@@ -176,6 +203,12 @@ export async function expectDistributionStdioBridge(command: DistributionCommand
     });
 
     expect(stderr.text).not.toMatch(/fatal:|Unhandled|Error:/iu);
+  } catch (error) {
+    if (stderr.text.trim().length === 0) {
+      throw error;
+    }
+
+    throw new Error(`${command.label} stderr:\n${stderr.text}`, { cause: error });
   } finally {
     await client.close().catch(() => undefined);
   }

@@ -10,6 +10,8 @@ tags:
 
 Chrome 拡張機能には展開済みディレクトリと永続プロファイルが必要です。
 
+このレシピは CloakBrowser の展開済み拡張機能の起動を使用します。別途インストールした公式 Playwright Extension 経由の接続では、`PLAYWRIGHT_MCP_EXTENSION=true`、process-level の `PLAYWRIGHT_MCP_EXTENSION_TOKEN`、専用の persistent profile を使用します。2 つの仕組みを併用しないでください。
+
 ## npm
 
 ```bash
@@ -23,7 +25,7 @@ PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
 ## Docker
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
   -v "$PWD/artifacts:/data" \

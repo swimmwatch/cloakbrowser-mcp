@@ -54,7 +54,7 @@ npx -y cloakbrowser-mcp@latest --humanize --human-preset careful
 Передайте ту же переменную среды в контейнер:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e CLOAK_PLAYWRIGHT_MCP_HUMANIZE=true \
   -e CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET=careful \
   -v "$PWD/artifacts:/data" \
@@ -65,7 +65,7 @@ docker run --rm --init -i \
 новых HTTP-сессий:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -e CLOAK_PLAYWRIGHT_MCP_HUMANIZE=true \
   -e CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET=careful \
   -v "$PWD/artifacts:/data" \

@@ -12,9 +12,9 @@ tags:
 
 ## Upstream Tools
 
-The default upstream browser tool surface is expected to match the pinned Playwright MCP dependency. It contains 24 tools, including navigation, snapshot, click, typing, screenshots, tabs, console messages, network inspection, file upload, dialogs, and unsafe evaluation tools.
+The default upstream browser tool surface is expected to match the pinned Playwright MCP dependency. It contains 25 tools, including `browser_emulate_media`, navigation, snapshot, click, typing, screenshots, tabs, console messages, network inspection, file upload, dialogs, and unsafe evaluation tools.
 
-For a stable upstream reference, see the Playwright MCP `{{ project.playwright_mcp_package_tag }}` capability test pinned to the exact package commit: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/4c1fb03bad3bae379b0ae0e3d81d2660de56bd91/tests/capabilities.spec.ts#L19-L77).
+For a stable upstream reference, see the Playwright MCP `{{ project.playwright_mcp_package_tag }}` capability test pinned to the exact package commit: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/f1257a5a67aff872f947fae274759f7d54853862/tests/capabilities.spec.ts#L19-L77).
 
 Set `PLAYWRIGHT_MCP_CAPS=devtools` to pass the upstream `devtools` capability to
 the child process. The bridge has no `--caps` flag and forwards the resulting
@@ -35,6 +35,14 @@ upstream tools and schemas unchanged, including `browser_start_recording` and
 
 This project treats upstream Playwright MCP as authoritative and does not maintain a copied schema reference.
 
+### Dynamic WebMCP tools
+
+Chromium implements WebMCP starting with version 154. Older CloakBrowser builds ignore the feature flag; use a compatible browser build or `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright` when WebMCP is required.
+
+When Chromium is started with `--enable-features=WebMCP`, Playwright MCP can add page-provided tools named `webmcp_*` while a page is open. These tools are dynamic: the bridge advertises `tools.listChanged`, invalidates its complete paginated tool cache when upstream sends `notifications/tools/list_changed`, and forwards the notification to the owning MCP client. Clients should listen for that notification and call `tools/list` again. A Streamable HTTP client receives it only while its session notification stream is open; the next `tools/list` is still fresh when no stream was open.
+
+Dynamic tools belong only to the MCP session and current managed-CDP browser generation that discovered them. Their names, descriptions, schemas, annotations, and outputs are untrusted page content and are forwarded without bridge rewriting. Review them before calling them. Set `PLAYWRIGHT_MCP_WEBMCP=false` to disable collection. The bridge never enables Chromium WebMCP automatically.
+
 ## Local Tools
 
 ### `cloakbrowser_binary_info`
@@ -51,13 +59,71 @@ Returns structured bridge metadata:
 - upstream tool count;
 - local Cloak-specific tool names.
 
+The additive `structuredContent.cdp` object reports the calling session's managed CDP
+state:
+
+```json
+{ "enabled": false }
+```
+
+```json
+{
+  "enabled": true,
+  "state": "ready",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": "http://127.0.0.1:9222/cdp/<capability>",
+  "activeConnections": 0
+}
+```
+
+```json
+{
+  "enabled": true,
+  "state": "unavailable",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": null,
+  "activeConnections": 0
+}
+```
+
+`generation` increases and `discoveryUrl` rotates after browser replacement.
+`activeConnections` counts accepted proxied WebSocket connections without exposing
+client identities, target IDs, or protocol content. Treat every non-null discovery URL
+as a credential.
+
+Use the discovery URL with a CDP-capable client:
+
+```ts
+import { chromium } from 'playwright';
+
+const browser = await chromium.connectOverCDP(discoveryUrl);
+```
+
+Managed CDP is not the Playwright Server protocol. Playwright
+`chromium.connect()` and the current Open WebUI `PLAYWRIGHT_WS_URL` integration expect
+a Playwright Server endpoint and are not compatible with this URL.
+
+With the pinned Playwright client, `browser.close()` on a browser returned by
+`connectOverCDP()` was verified to disconnect that client while leaving Chromium and
+the generation ready. This is a client-specific observation, not a guarantee for
+other CDP libraries. Sending raw CDP `Browser.close` is destructive: it terminates the
+shared Chromium generation, invalidates the capability, and affects MCP callers.
+Coordinate MCP and CDP operations because the bridge does not serialize conflicting
+navigation, page closure, input, or storage mutations.
+
 The local tool surface remains limited to these two introspection tools.
 `SessionSeats` and `getSessionSeats` are not exposed as an MCP tool because
 CloakBrowser 0.5.10 does not export that API from its public entry point.
 
 ## Parity
 
-CI builds the Docker image and runs `npm run bridge:compare`. That script starts the official Playwright MCP image and the CloakBrowser bridge image in parallel, compares the default 24-tool upstream surface and the `PLAYWRIGHT_MCP_CAPS=devtools` schemas, and exercises the default upstream browser tools against the same fixture page.
+CI builds the Docker image and runs `npm run bridge:compare`. That script starts the official Playwright MCP image and the CloakBrowser bridge image in parallel, compares the default 25-tool upstream surface and the `PLAYWRIGHT_MCP_CAPS=devtools` schemas, and exercises the default upstream browser tools against the same fixture page.
 
 Use `--report` to write a machine-readable JSON parity report:
 

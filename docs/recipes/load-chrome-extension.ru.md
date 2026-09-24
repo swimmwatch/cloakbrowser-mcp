@@ -10,6 +10,8 @@ tags:
 
 Для расширений Chrome требуется распакованный каталог расширений и постоянный профиль. Настройте оба параметра перед запуском браузера.
 
+Этот рецепт использует запуск распакованного расширения CloakBrowser. Режим подключения через отдельно установленное официальное Playwright Extension использует `PLAYWRIGHT_MCP_EXTENSION=true`, process-level `PLAYWRIGHT_MCP_EXTENSION_TOKEN` и отдельный persistent profile. Не сочетайте эти механизмы.
+
 ## npm
 
 ```bash
@@ -23,7 +25,7 @@ PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
 ## Docker
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
   -v "$PWD/artifacts:/data" \

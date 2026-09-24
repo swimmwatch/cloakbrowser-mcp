@@ -13,14 +13,18 @@ La imagen publicada muestra el entorno de ejecución recomendado para un uso rep
 ## Correr
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
 
 Los artefactos se guardan en `/data` dentro del contenedor. Monta esa ruta para conservar capturas de pantalla, instantáneas, descargas y datos de salida de red.
 
-Se recomienda utilizar `--init`, ya que la automatización del navegador puede crear procesos secundarios de corta duración. El proceso de inicialización de Docker elimina esos procesos secundarios de forma limpia.
+La imagen ya ejecuta Tini como PID 1 y subreaper, por lo que los comandos normales no necesitan un proceso init adicional de Docker.
+
+## Sesiones headed, health check y runtime restringido
+
+Con headless: false, el contenedor inicia Xvfb privado bajo demanda y lo conserva hasta que el contenedor termina. No es un escritorio visible ni un servicio de VNC, noVNC, RDP, host X11 o captura de pantalla. Los contextos, páginas, perfiles y artefactos de Playwright están aislados, pero el focus, clipboard y la captura de pantalla nativos de X11 no son límites de aislamiento entre tenants. El health check de Docker usa un Unix socket privado para comprobar el event loop de MCP CLI y, si Xvfb se inició, su disponibilidad; no envía tráfico por MCP stdio ni sustituye /healthz o /readyz. Para un read-only root filesystem, monte /data y proporcione tmpfs writable para /tmp y /tmp/.X11-unix si son posibles las sesiones headed.
 
 Las mismas etiquetas de versión se publican en Docker Hub como `swimmwatch/cloakbrowser-mcp` y en GHCR como `ghcr.io/swimmwatch/cloakbrowser-mcp`.
 
@@ -32,7 +36,7 @@ cookies, el almacenamiento local, la caché o el estado de las extensiones
 sobrevivan a los reinicios del contenedor:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
@@ -60,7 +64,7 @@ docker run --rm -it \
   swimmwatch/cloakbrowser-mcp:latest \
   /opt/cloakbrowser-mcp/node_modules/cloakbrowser/dist/cli.js login
 
-docker run --rm --init -i \
+docker run --rm -i \
   -v cloakbrowser-cache:/home/node/.cloakbrowser \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
@@ -98,7 +102,7 @@ separado. Usa rutas del contenedor en las variables de entorno, no rutas del
 host. El montaje de la extensión puede ser de solo lectura:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
   -v "$PWD/artifacts:/data" \
@@ -110,12 +114,14 @@ Usa una matriz JSON para `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` cuando una ruta
 contenga comas o al pasar varios directorios de extensiones. Reinicia el
 contenedor después de cambiar archivos o rutas de extensiones.
 
+El modo de conexión Playwright Extension es distinto del montaje de una extensión desempaquetada mostrado arriba. Requiere la extensión oficial en un persistent Chrome/Edge profile y `PLAYWRIGHT_MCP_EXTENSION_TOKEN`. Monta cada profile en un writable path separado, inyecta el token con un secret manager y no combines `PLAYWRIGHT_MCP_EXTENSION=true` con `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`.
+
 ## HTTP con transmisión continua
 
 Para el uso local de Streamable HTTP, publica el puerto del contenedor en el bucle de retorno:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -127,7 +133,7 @@ curl http://127.0.0.1:3000/readyz
 Para acceder directamente a HTTPS desde el contenedor, monta los archivos de tu certificado y selecciona HTTPS:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/certs:/certs:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -139,6 +145,62 @@ La conexión `127.0.0.1:3000` del lado del host mantiene el punto final en el en
 Streamable HTTP expone las pruebas fijas `GET /healthz` y `GET /readyz` en el mismo host y puerto. Si se configura `--http-auth-token` o `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN`, las sondas requieren el mismo encabezado `Authorization: Bearer ...` que las solicitudes MCP.
 Consulte la [Referencia de la CLI](generated/cli.md) generada para conocer todos los indicadores de transporte HTTP y las variables de entorno.
 
+## Gestionado CDP { #managed-cdp }
+
+Publique el rango gestionado CDP configurado uno a uno. Este ejemplo de stdio permite uno
+sesión y mantiene cada puerto del host vinculado al bucle local:
+
+```bash
+docker run --rm -i \
+  -p 127.0.0.1:9222-9231:9222-9231 \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --cdp-enabled \
+  --cdp-port-range 9222-9231 \
+  --cdp-host 0.0.0.0 \
+  --cdp-allow-remote \
+  --cdp-advertised-host 127.0.0.1
+```
+
+`--cdp-host 0.0.0.0` es necesario para el reenvío de puertos de Docker, por lo que el explícito
+También se requiere la participación voluntaria `--cdp-allow-remote` y el concreto `--cdp-advertised-host`.
+No reasigne el rango a diferentes números de puerto del host: las URL de descubrimiento contienen el
+El puerto arrendado y cada puerto publicado deben enrutarse uno a uno a su sesión propietaria.
+
+Para Streamable HTTP de múltiples sesiones, configure y publique el grupo sin establecer el
+procesar por defecto si los clientes deben optar individualmente:
+
+```bash
+docker run --rm \
+  -p 127.0.0.1:3000:3000 \
+  -p 127.0.0.1:9222-9231:9222-9231 \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http \
+  --http-host 0.0.0.0 \
+  --http-port 3000 \
+  --cdp-port-range 9222-9231 \
+  --cdp-host 0.0.0.0 \
+  --cdp-allow-remote \
+  --cdp-advertised-host 127.0.0.1
+```
+
+Una solicitud autenticada `initialize` con arrendamientos `cdpEnabled: true` publica uno
+puerto. Un valor omitido hereda el valor predeterminado del proceso, mientras que `cdpEnabled: false`
+se excluye explícitamente y no consume ningún puerto CDP. La saturación de la reserva rechaza solo uno nuevo
+Sesión habilitada con CDP; no reduce la capacidad de las sesiones deshabilitadas.
+
+Lea el URL portador de capacidad desde `cloakbrowser_bridge_info`. No lo ponga dentro
+registros de contenedores o verificaciones de estado. Conéctese con un CDP API como
+`chromium.connectOverCDP()`; el URL no es compatible con Playwright
+`chromium.connect()` o el flujo actual Open WebUI.
+
+`--cdp-advertised-scheme https` cambia las URLs publicadas a `https`/`wss`, pero el
+el puente no proporciona TLS para CDP gestionado. Utilice un terminador TLS propiedad del operador que
+ocupa el mismo puerto anunciado en el espacio de nombres de la red externa, conserva
+`Host`/`Origin`, y reenvía uno a uno al oyente del puente de texto plano. El
+El puente a Chromium hop también mantiene el tráfico de bucle invertido en texto plano.
+
 ## Coincidencia de proxies GeoIP
 
 Docker utiliza las mismas variables de entorno de proxy y GeoIP que npm. Activa
@@ -146,7 +208,7 @@ la coincidencia de proxy GeoIP cuando el control de calidad regional necesite qu
 configuración regional para ajustarse a la ubicación del proxy configurada:
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
   -e CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
   -v "$PWD/artifacts:/data" \
@@ -200,7 +262,6 @@ casos de uso multirregión y limitaciones.
       "args": [
         "run",
         "--rm",
-        "--init",
         "-i",
         "-v",
         "/tmp/cloakbrowser-artifacts:/data",

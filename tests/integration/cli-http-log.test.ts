@@ -21,7 +21,7 @@ function createTempRoot(): string {
 }
 
 describe('streamable HTTP CLI logging', () => {
-  it('logs the listening URL and requests to stdout', async () => {
+  it('logs the listening URL and requests to stderr while keeping stdout protocol-safe', async () => {
     const root = createTempRoot();
     const child = spawn(
       process.execPath,
@@ -58,31 +58,31 @@ describe('streamable HTTP CLI logging', () => {
     const stdout = collectStream(child.stdout);
     const stderr = collectStream(child.stderr);
 
-    const stdoutLine = await waitForLine(
+    const stderrLine = await waitForLine(
       child,
-      stdout,
+      stderr,
       / INFO cloakbrowser-mcp streamable-http listening /u,
-      () => stderr.text,
+      () => stdout.text,
       20_000,
     );
-    expect(stdoutLine).toMatch(
+    expect(stderrLine).toMatch(
       /^\d{4}-\d{2}-\d{2}T\S+Z INFO cloakbrowser-mcp streamable-http listening url=http:\/\/127\.0\.0\.1:\d+\/mcp$/u,
     );
 
-    await expect(fetchHealth(stdoutLine.replace(/^.* url=/u, ''))).resolves.toMatchObject({
+    await expect(fetchHealth(stderrLine.replace(/^.* url=/u, ''))).resolves.toMatchObject({
       status: 200,
     });
 
     await expect(
       waitForLine(
         child,
-        stdout,
+        stderr,
         /^\d{4}-\d{2}-\d{2}T\S+Z INFO cloakbrowser-mcp http request duration_ms=\d+ method=GET path=\/healthz status=200$/u,
-        () => stderr.text,
+        () => stdout.text,
         10_000,
       ),
     ).resolves.toBeDefined();
-    expect(stderr.text).toBe('');
+    expect(stdout.text).toBe('');
   }, 45_000);
 });
 

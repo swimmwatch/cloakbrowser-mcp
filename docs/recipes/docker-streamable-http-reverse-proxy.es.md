@@ -16,7 +16,7 @@ Este patrón sirve cuando un reverse proxy termina TLS y aplica controles de acc
 ```bash
 export MCP_AUTH_TOKEN="replace-with-a-secret-token"
 
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -e CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN="$MCP_AUTH_TOKEN" \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \

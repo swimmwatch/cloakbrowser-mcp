@@ -10,6 +10,8 @@ tags:
 
 Les extensions Chrome nécessitent un répertoire décompressé et un profil persistant.
 
+Cette recette utilise le lancement d'extensions décompressées de CloakBrowser. Le mode de connexion via l'extension Playwright officielle installée séparément utilise `PLAYWRIGHT_MCP_EXTENSION=true`, un `PLAYWRIGHT_MCP_EXTENSION_TOKEN` de process-level et un persistent profile dédié. Ne combinez pas les deux mécanismes.
+
 ## npm
 
 ```bash
@@ -23,7 +25,7 @@ Utilisez un JSON array pour plusieurs paths, virgules ou Windows drive-letter pa
 ## Docker
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
   -v "$PWD/artifacts:/data" \

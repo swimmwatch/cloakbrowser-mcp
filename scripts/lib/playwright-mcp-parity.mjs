@@ -28,16 +28,10 @@ export const expectedDefaultTools = [
   'browser_wait_for',
 ];
 
-// WebMCP page tools are added dynamically after a page snapshot. Their names
-// and schemas are supplied by the page, so default-container parity covers only
-// the fixed upstream tool surface.
-export const expectedDefaultScenarioTools = expectedDefaultTools.filter(
-  (name) => name !== 'browser_emulate_media',
-);
-
 export function normalizeToolResponseText(value) {
   return value
     .replaceAll(/\n### Events\n(?:- .*(?:\n|$))+/g, '')
+    .replaceAll(/\n- Console: \d+ errors?, \d+ warnings?/g, '')
     .replaceAll(/\/data\/[^\s)"']+/g, '/data/<artifact>')
     .replaceAll(/page-\d+\.(png|jpeg|pdf)/g, 'page-<timestamp>.$1')
     .replaceAll(

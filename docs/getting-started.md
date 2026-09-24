@@ -32,7 +32,7 @@ npx -y {{ project.npm_pin }}
 
 The npm package requires Node.js 22.13+ in the 22.x line, or Node.js 24+. CloakBrowser downloads its Chromium binary on first use unless it is already cached.
 
-Use `doctor` to verify the local Node.js runtime, package metadata, upstream Playwright MCP CLI resolution, and CloakBrowser binary metadata before connecting a client. The command does not start the bridge or download a browser.
+Use `doctor` to verify the local Node.js runtime, package metadata, the effective upstream Playwright MCP CLI, the resolved `@playwright/mcp`, `playwright`, and `playwright-core` versions and package paths, the effective core bundle path, and CloakBrowser binary metadata before connecting a client. The command does not start the bridge or download a browser.
 
 The default transport is stdio. Use `--transport streamable-http` when your MCP client connects to an HTTP endpoint instead of spawning a stdio process. The HTTP endpoint defaults to `http://127.0.0.1:3000/mcp`, with fixed `GET /healthz` and `GET /readyz` probes on the same host and port. Use `--http-protocol https` with `--https-cert` and `--https-key` or `--https-pfx` when the bridge should terminate TLS directly.
 See the generated [CLI Reference](generated/cli.md) for the full flag list and matching environment variables.
@@ -41,7 +41,7 @@ See the generated [CLI Reference](generated/cli.md) for the full flag list and m
 
 ```bash
 docker pull swimmwatch/cloakbrowser-mcp:latest
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
@@ -52,7 +52,7 @@ The same tags are also published to `ghcr.io/swimmwatch/cloakbrowser-mcp`.
 For local Streamable HTTP with Docker, publish the port on loopback and bind the server inside the container:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -64,7 +64,7 @@ curl http://127.0.0.1:3000/readyz
 For direct HTTPS from Docker, mount your certificate files and select HTTPS:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/certs:/certs:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -78,7 +78,7 @@ Pin a release when reproducibility matters:
 
 ```bash
 docker pull {{ project.docker_image }}
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   {{ project.docker_image }}
 ```
@@ -91,7 +91,7 @@ Most local MCP clients work best with stdio and npm:
 npx -y cloakbrowser-mcp@latest
 ```
 
-Use Docker when you want a repeatable runtime. Keep `-i` so stdio stays connected and add `--init` so browser child processes are reaped correctly.
+Use Docker when you want a repeatable runtime. Keep `-i` so stdio stays connected; the image already includes Tini to reap browser child processes.
 
 For Streamable HTTP clients, start the server separately and configure the client URL as `http://127.0.0.1:3000/mcp` or `https://127.0.0.1:3000/mcp`. If `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` or `--http-auth-token` is set, send the same Bearer token to `/mcp`, `/healthz`, and `/readyz`.
 
@@ -266,7 +266,6 @@ For shorter task-focused setup paths, see the [Claude Desktop](recipes/connect-c
           "args": [
             "run",
             "--rm",
-            "--init",
             "-i",
             "-v",
             "/tmp/cloakbrowser-artifacts:/data",

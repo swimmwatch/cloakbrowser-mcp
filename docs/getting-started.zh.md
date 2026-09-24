@@ -32,7 +32,7 @@ npx -y {{ project.npm_pin }}
 
 该 npm 包需要 Node.js 22.x 系列中的 22.13 或更高版本，或 Node.js 24 或更高版本。CloakBrowser 在首次使用时会下载其 Chromium 二进制文件，除非该文件已被缓存。
 
-在连接客户端之前，请使用 `doctor` 来验证本地 Node.js 运行时、包元数据、上游 Playwright MCP CLI 的解析情况以及 CloakBrowser 二进制文件的元数据。 该命令不会启动桥接服务，也不会下载浏览器。
+在连接客户端之前，请使用 `doctor` 验证本地 Node.js 运行时、包元数据、实际使用的 upstream Playwright MCP CLI、已解析的 `@playwright/mcp`、`playwright` 和 `playwright-core` 版本及包路径、实际的 core bundle 路径，以及 CloakBrowser 二进制文件元数据。该命令不会启动桥接服务，也不会下载浏览器。
 
 默认传输方式为 stdio。当您的 MCP 客户端连接到 HTTP 端点时，请使用 `--transport streamable-http`，而不是启动一个 stdio 进程。 HTTP 端点默认设置为 `http://127.0.0.1:3000/mcp`，其中 `GET /healthz` 和 `GET /readyz` 探测位于同一主机和端口上。请使用 `--http-protocol https` 时，应将其与 `--https-cert` 以及 `--https-key` 或 `--https-pfx`，当桥接器需直接终止 TLS 时。
 请参阅生成的 [CLI 参考](generated/cli.md)，以获取完整的标志列表及对应的环境变量。
@@ -41,7 +41,7 @@ npx -y {{ project.npm_pin }}
 
 ```bash
 docker pull swimmwatch/cloakbrowser-mcp:latest
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
@@ -52,7 +52,7 @@ Docker 是最易于重现的运行时环境，因为该镜像基于已固定的�
 若要在 Docker 中运行本地 Streamable HTTP 服务，请将端口发布到回环地址，并在容器内部绑定服务器：
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -64,7 +64,7 @@ curl http://127.0.0.1:3000/readyz
 若要从 Docker 直接使用 HTTPS，请挂载您的证书文件并选择 HTTPS：
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/certs:/certs:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -78,10 +78,12 @@ docker run --rm --init -p 127.0.0.1:3000:3000 \
 
 ```bash
 docker pull {{ project.docker_image }}
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   {{ project.docker_image }}
 ```
+
+使用 Docker 可获得可复现的运行时环境。保留 `-i` 以保持 stdio 连接；镜像已包含 Tini，可正确回收浏览器子进程。对于 Streamable HTTP 客户端，请单独启动服务器，并将客户端 URL 配置为 `http://127.0.0.1:3000/mcp` 或 `https://127.0.0.1:3000/mcp`。若设置了 `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` 或 `--http-auth-token`，请向 `/mcp`、`/healthz` 和 `/readyz` 发送同一 Bearer 令牌。
 
 ## MCP 客户端配置
 
@@ -91,7 +93,6 @@ docker run --rm --init -i \
 npx -y cloakbrowser-mcp@latest
 ```
 
-若需可重复的运行时环境，请使用 Docker。保留 `-i` 以保持 stdio 连接，并添加 `--init`，以确保浏览器子进程能被正确回收。
 
 对于 Streamable HTTP 客户端，请单独启动服务器，并将客户端 URL 配置为 `http://127.0.0.1:3000/mcp` 或 `https://127.0.0.1:3000/mcp`。 如果设置了 `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` 或 `--http-auth-token` 被设置，则将相同的 Bearer 令牌发送至 `/mcp`， `/healthz` 以及 `/readyz`。
 
@@ -264,7 +265,6 @@ npx -y cloakbrowser-mcp@latest
           "args": [
             "run",
             "--rm",
-            "--init",
             "-i",
             "-v",
             "/tmp/cloakbrowser-artifacts:/data",

@@ -1,0 +1,54 @@
+schema_version: 1
+depth: deep
+confirmed: true
+rationale:
+  - Deep remains required because this evolves public configuration and initialize metadata, adds a security-critical network proxy, and supports external clients across Node and Docker.
+  - The user confirmed all MCP transport modes including multiple independent Streamable HTTP sessions and both cloak and playwright browser engines.
+  - Current Chromium binds browser CDP only to loopback, so the user selected one bridge-owned external proxy port per CDP-enabled MCP runtime.
+  - A deterministic architecture model is now warranted to map MCP session ownership, browser process, internal CDP endpoint, external proxy endpoint, and cleanup.
+  - Measurable real-browser concurrency, isolation, failure, and security scenarios remain required.
+profiles:
+  - id: core
+    reason: Adds public opt-in CLI, environment, and Streamable HTTP initialize metadata contracts that change Chromium launch behavior.
+    state: active
+  - id: backend
+    reason: Adds a bridge-owned per-session HTTP/WebSocket proxy for external Chromium CDP clients and endpoint discovery.
+    state: active
+  - id: operations
+    reason: Port pools, internal and external listeners, Docker networking, per-session lifecycle, collisions, readiness, and diagnostics are material.
+    state: active
+  - id: security
+    reason: The proxy exposes privileged unauthenticated browser control and can reveal cookies, pages, and profile state outside MCP authentication.
+    state: active
+  - id: cross-surface
+    reason: MCP, bridge proxy, and CDP clients concurrently control and observe the same session-owned browser state.
+    state: active
+  - id: ui
+    reason: No visual product interface or user interaction design is added.
+    state: not_applicable
+  - id: events
+    reason: No project-owned asynchronous event contract is introduced; CDP events remain Chromium protocol behavior.
+    state: not_applicable
+  - id: data
+    reason: No new stored schema or migration is introduced; existing browser profile data remains owned by each browser runtime.
+    state: not_applicable
+planning_artifacts:
+  - quality/scenarios.yaml
+  - architecture/model.dsl
+extensions:
+  workflow_mcp_receipts:
+    - id: 74e85db1068fa7302a2b994318584b3210accb8c8f2790c2599d448abb06c912
+      result:
+        confirmed: true
+        depth: deep
+        next: Load only the confirmed active profile references.
+    - id: 98c9e4e484eef8445ebf598f62f7cfefe77af71f9581cc1a7144832bb8d45968
+      result:
+        confirmed: true
+        depth: deep
+        next: Load only the confirmed active profile references.
+    - id: cd9907017ff61a5e3c8327029a95cfa2bd50fd6e87b3b341de830183b6f90f62
+      result:
+        confirmed: true
+        depth: deep
+        next: Load only the confirmed active profile references.

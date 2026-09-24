@@ -64,7 +64,7 @@ npx -y cloakbrowser-mcp@latest
 Перадайце тыя ж зменныя кантэйнеру. Пры магчымасці захоўвайце праксі-пасведчанні ў вашым кіраўніку сакрэтаў або асяроддзі кліента MCP.
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
   -e CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
   -v "$PWD/artifacts:/data" \
@@ -74,7 +74,7 @@ docker run --rm --init -i \
 Для Streamable HTTP у Docker апублікуйце HTTP-порт як звычайна і захавайце зменныя проксі як стандартныя для асяроддзя кантэйнера:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -e PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
   -e CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
   -v "$PWD/artifacts:/data" \

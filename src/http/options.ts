@@ -1,4 +1,5 @@
 import type { HumanPreset, ReleaseChannel } from '#src/bridge/config';
+import type { CdpEndpointConfig } from '#src/cdp/config';
 
 export const BRIDGE_TRANSPORT_STDIO = 'stdio' as const;
 export const BRIDGE_TRANSPORT_STREAMABLE_HTTP = 'streamable-http' as const;
@@ -56,6 +57,7 @@ export interface BridgeOptions {
 export interface CliOptions {
   transport: BridgeTransportMode;
   bridge: BridgeOptions;
+  cdp: CdpEndpointConfig;
   http: StreamableHttpOptions;
 }
 

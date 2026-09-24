@@ -1,8 +1,11 @@
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { type IncomingMessage, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
+import process from 'node:process';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { type Implementation } from '@modelcontextprotocol/sdk/types.js';
+import { CdpPortAllocator, CdpPortBindError, CdpPortPoolExhaustedError } from '#src/cdp/allocator';
+import { type CdpEndpointConfig, resolveCdpSessionEnabled } from '#src/cdp/config';
 import {
   BRIDGE_TRANSPORT_STREAMABLE_HTTP,
   HEALTHZ_PATH,
@@ -20,7 +23,7 @@ import {
 import { HttpStatus, JsonRpcErrorCode } from '#src/http/status';
 import type { BridgeLogger } from '#src/logging/logger';
 import { MCP_SESSION_ID_HEADER } from '#src/protocol/constants';
-import { type BridgeServer, createBridgeServer } from '#src/server';
+import { type BridgeServer, createBridgeServer, startManagedCdpBridge } from '#src/server';
 import {
   closeHttpServer,
   createStreamableNodeServer,
@@ -42,30 +45,39 @@ import {
 } from '#src/http/requests';
 import { endResponse, writeJsonResponse, writeJsonRpcError } from '#src/http/responses';
 import {
+  type BridgeRuntime,
   BridgeRuntimeConfigurationError,
+  prepareBridgeRuntime,
   type PrepareBridgeRuntimeOptions,
   type ReleaseChannel,
+  resolveEffectiveHeadless,
 } from '#src/bridge/config';
 
 const allowedMethods = 'GET, POST, DELETE';
 
 export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions {
+  cdp?: CdpEndpointConfig;
+  cdpAllocator?: CdpPortAllocator;
   releaseChannel?: ReleaseChannel;
   serverInfo?: Partial<Implementation>;
   runtimeOptions?: Pick<
     PrepareBridgeRuntimeOptions,
     | 'binaryPath'
     | 'contextOptions'
+    | 'extensionMode'
     | 'extensionPaths'
     | 'geoipProxyMatch'
     | 'headless'
     | 'humanize'
     | 'humanPreset'
     | 'proxy'
+    | 'profileDirName'
     | 'userDataDir'
   >;
+  ensureDockerDisplay?: () => Promise<void>;
   sessionStore?: SessionStore;
   logger?: BridgeLogger;
+  startManagedCdpBridge?: typeof startManagedCdpBridge;
 }
 
 export interface StreamableHttpBridgeServer {
@@ -102,6 +114,7 @@ export function isAuthorizedRequest(req: IncomingMessage, authToken: string | un
 export { isEndpointRequest } from '#src/http/requests';
 
 class StreamableHttpBridgeController {
+  readonly #cdpAllocator: CdpPortAllocator | undefined;
   readonly #options: StartStreamableHttpBridgeOptions;
   readonly #store: SessionStore;
   readonly #sessions = new Map<string, ActiveHttpSession>();
@@ -113,6 +126,9 @@ class StreamableHttpBridgeController {
 
   constructor(options: StartStreamableHttpBridgeOptions) {
     this.#options = options;
+    this.#cdpAllocator =
+      options.cdpAllocator ??
+      (options.cdp?.portRange === undefined ? undefined : new CdpPortAllocator(options.cdp.portRange));
     this.#store = options.sessionStore ?? createSessionStore(options.sessionBackend);
     const requestListener = (req: IncomingMessage, res: ServerResponse): void => {
       void this.#handleRequest(req, res);
@@ -287,12 +303,60 @@ class StreamableHttpBridgeController {
     const sessionId = randomUUID();
     const record = this.#createSessionRecord(sessionId, Date.now());
     const transport = this.#createSessionTransport(sessionId, record);
+    const runtimeOptions = this.#createRuntimeOptionsForSession(sessionRuntimeOptions);
+    let runtime: BridgeRuntime | undefined;
 
     try {
-      const bridge = await createBridgeServer({
-        serverInfo: this.#options.serverInfo,
-        runtimeOptions: this.#createRuntimeOptionsForSession(sessionRuntimeOptions),
-      });
+      const cdpEnabled = resolveCdpSessionEnabled(
+        this.#options.cdp?.processEnabled ?? false,
+        sessionRuntimeOptions.cdpEnabled,
+      );
+      let bridge: BridgeServer;
+      if (cdpEnabled) {
+        if (!this.#options.cdp || !this.#cdpAllocator) {
+          throw new BridgeRuntimeConfigurationError('Managed CDP requires a configured CDP port range');
+        }
+        const startManaged = this.#options.startManagedCdpBridge ?? startManagedCdpBridge;
+        bridge = await startManaged(
+          {
+            beforeConnect: async (prepared) => {
+              await this.#prepareRuntimeEnvironment(prepared, runtimeOptions);
+            },
+            onCdpActivity: () => {
+              void this.#store.touch(sessionId, Date.now(), this.#options.sessionIdleTtlMs);
+            },
+            onCdpCleanupError: () => {
+              this.#options.logger?.warn({}, 'managed CDP cleanup failed');
+            },
+            onCdpRecoveryError: () => {
+              this.#options.logger?.warn({}, 'managed CDP recovery failed');
+            },
+            onCdpSecurityRejections: (summary) => {
+              this.#options.logger?.warn(
+                {
+                  capability: summary.capability,
+                  host: summary.host,
+                  origin: summary.origin,
+                  window_seconds: summary.windowSeconds,
+                },
+                'cdp_security_rejections',
+              );
+            },
+            runtimeOptions,
+            serverInfo: this.#options.serverInfo,
+          },
+          this.#options.cdp,
+          this.#cdpAllocator,
+        );
+      } else {
+        runtime = await prepareBridgeRuntime(runtimeOptions);
+        await this.#prepareRuntimeEnvironment(runtime, runtimeOptions);
+        bridge = await createBridgeServer({
+          serverInfo: this.#options.serverInfo,
+          runtime,
+        });
+        runtime = undefined;
+      }
       this.#sessions.set(sessionId, { id: sessionId, bridge, transport });
       await bridge.start(transport);
       await transport.handleRequest(req, res, parsedBody);
@@ -301,8 +365,19 @@ class StreamableHttpBridgeController {
       if (this.#handleInitializeError(res, error)) return;
       throw error;
     } finally {
+      runtime?.dispose();
       this.#pendingSessionInitializations -= 1;
     }
+  }
+
+  async #prepareRuntimeEnvironment(
+    runtime: BridgeRuntime,
+    runtimeOptions: PrepareBridgeRuntimeOptions,
+  ): Promise<void> {
+    if (!resolveEffectiveHeadless(runtimeOptions)) {
+      await this.#options.ensureDockerDisplay?.();
+    }
+    if (process.env.DISPLAY !== undefined) runtime.childEnv.DISPLAY = process.env.DISPLAY;
   }
 
   #readSessionRuntimeOptions(
@@ -364,9 +439,11 @@ class StreamableHttpBridgeController {
     sessionRuntimeOptions: BridgeInitializeRuntimeOptions,
   ): PrepareBridgeRuntimeOptions {
     const defaults = this.#options.runtimeOptions;
+    const extensionMode = preferSessionOption(sessionRuntimeOptions.extensionMode, defaults?.extensionMode);
     return {
       binaryPath: defaults?.binaryPath,
-      browserIsolated: true,
+      browserIsolated: extensionMode === true ? false : true,
+      extensionMode,
       geoipProxyMatch: preferSessionOption(sessionRuntimeOptions.geoipProxyMatch, defaults?.geoipProxyMatch),
       headless: preferSessionOption(sessionRuntimeOptions.headless, defaults?.headless),
       humanize: preferSessionOption(sessionRuntimeOptions.humanize, defaults?.humanize),
@@ -376,13 +453,25 @@ class StreamableHttpBridgeController {
       contextOptions: mergeContextOptions(defaults?.contextOptions, sessionRuntimeOptions.contextOptions),
       extensionPaths: preferSessionOption(sessionRuntimeOptions.extensionPaths, defaults?.extensionPaths),
       proxy: preferSessionOption(sessionRuntimeOptions.proxy, defaults?.proxy),
+      profileDirName: preferSessionOption(sessionRuntimeOptions.profileDirName, defaults?.profileDirName),
     };
   }
 
   #handleInitializeError(res: ServerResponse, error: unknown): boolean {
-    if (!(error instanceof BridgeRuntimeConfigurationError)) return false;
-    writeJsonRpcError(res, HttpStatus.BadRequest, JsonRpcErrorCode.ServerError, error.message);
-    return true;
+    if (error instanceof BridgeRuntimeConfigurationError) {
+      writeJsonRpcError(res, HttpStatus.BadRequest, JsonRpcErrorCode.ServerError, error.message);
+      return true;
+    }
+    if (error instanceof CdpPortPoolExhaustedError || error instanceof CdpPortBindError) {
+      writeJsonRpcError(
+        res,
+        HttpStatus.ServiceUnavailable,
+        JsonRpcErrorCode.ServerError,
+        'Managed CDP capacity unavailable',
+      );
+      return true;
+    }
+    return false;
   }
 
   async #handleSessionRequest(

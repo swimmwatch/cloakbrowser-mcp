@@ -10,6 +10,8 @@ tags:
 
 Chrome 扩展需要解压目录和持久配置文件。
 
+本配方使用 CloakBrowser 的解压扩展启动方式。通过单独安装的官方 Playwright Extension 连接时，应使用 `PLAYWRIGHT_MCP_EXTENSION=true`、process-level `PLAYWRIGHT_MCP_EXTENSION_TOKEN` 和独立的 persistent profile。不要混用这两种机制。
+
 ## npm
 
 ```bash
@@ -23,7 +25,7 @@ PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
 ## Docker
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_USER_DATA_DIR=/data/profiles/default \
   -e CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS=/extensions/my-extension \
   -v "$PWD/artifacts:/data" \

@@ -32,7 +32,7 @@ npx -y {{ project.npm_pin }}
 
 El paquete npm requiere Node.js 22.13+ en la línea 22.x, o Node.js 24+. CloakBrowser descarga su binario de Chromium la primera vez que se utiliza, a menos que ya esté almacenado en la caché.
 
-Utiliza `doctor` para verificar el entorno de ejecución local de Node.js, los metadatos del paquete, la resolución de la CLI de Playwright MCP (upstream) y los metadatos del binario de CloakBrowser antes de conectar un cliente. El comando no inicia el puente ni descarga ningún navegador.
+Utiliza `doctor` antes de conectar un cliente para verificar el entorno de ejecución local de Node.js, los metadatos del paquete, la CLI efectiva de Playwright MCP upstream, las versiones y rutas de paquete resueltas de `@playwright/mcp`, `playwright` y `playwright-core`, la ruta efectiva del core bundle y los metadatos del binario de CloakBrowser. El comando no inicia el puente ni descarga ningún navegador.
 
 El transporte predeterminado es stdio. Utiliza `--transport streamable-http` cuando tu cliente MCP se conecte a un punto final HTTP en lugar de iniciar un proceso stdio. El punto final HTTP es, por defecto, `http://127.0.0.1:3000/mcp`, con sondas fijas `GET /healthz` y `GET /readyz` en el mismo host y puerto. Utilice `--http-protocol https` junto con `--https-cert` y `--https-key` o `--https-pfx` cuando el puente deba finalizar TLS directamente.
 Consulte la [Referencia de la CLI](generated/cli.md) generada para ver la lista completa de indicadores y las variables de entorno correspondientes.
@@ -41,7 +41,7 @@ Consulte la [Referencia de la CLI](generated/cli.md) generada para ver la lista 
 
 ```bash
 docker pull swimmwatch/cloakbrowser-mcp:latest
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest
 ```
@@ -52,7 +52,7 @@ Las mismas etiquetas también se publican en `ghcr.io/swimmwatch/cloakbrowser-mc
 Para utilizar Streamable HTTP local con Docker, publica el puerto en el bucle de retorno y vincula el servidor dentro del contenedor:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
@@ -64,7 +64,7 @@ curl http://127.0.0.1:3000/readyz
 Para utilizar HTTPS directamente desde Docker, monta los archivos de tu certificado y selecciona HTTPS:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/certs:/certs:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -78,10 +78,12 @@ Marca una versión cuando la reproducibilidad sea importante:
 
 ```bash
 docker pull {{ project.docker_image }}
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   {{ project.docker_image }}
 ```
+
+Utiliza Docker para un entorno de ejecución reproducible. Conserva `-i` para que stdio siga conectado; la imagen ya incluye Tini para recoger correctamente los procesos hijos del navegador. Para clientes de Streamable HTTP, inicia el servidor por separado y configura la URL del cliente como `http://127.0.0.1:3000/mcp` o `https://127.0.0.1:3000/mcp`. Si se configura `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` o `--http-auth-token`, envía el mismo token Bearer a `/mcp`, `/healthz` y `/readyz`.
 
 ## Configuración del cliente MCP
 
@@ -91,7 +93,6 @@ La mayoría de los clientes locales de MCP funcionan mejor con stdio y npm:
 npx -y cloakbrowser-mcp@latest
 ```
 
-Utiliza Docker cuando quieras un entorno de ejecución repetible. Mantén `-i` para que stdio permanezca conectado y añade `--init` para que los procesos secundarios del navegador se recojan correctamente.
 
 En el caso de los clientes HTTP de Streamable, inicia el servidor por separado y configura la URL del cliente como `http://127.0.0.1:3000/mcp` o `https://127.0.0.1:3000/mcp`. Si está configurado `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` o `--http-auth-token`, envía el mismo token Bearer a `/mcp`, `/healthz` y `/readyz`.
 
@@ -264,7 +265,6 @@ En el caso de los clientes HTTP de Streamable, inicia el servidor por separado y
           "args": [
             "run",
             "--rm",
-            "--init",
             "-i",
             "-v",
             "/tmp/cloakbrowser-artifacts:/data",

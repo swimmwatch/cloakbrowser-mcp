@@ -6,24 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-## [1.14.0] - 2026-09-22
+## [1.14.0] - 2026-09-24
 
 ### Added
 
+- Added managed CDP endpoints with capability-scoped access to individual
+  CloakBrowser sessions, including generation recovery after a browser closes.
 - Preserved upstream dynamic WebMCP discovery and invocation tools for selected
-  CloakBrowser binaries that implement `document.modelContext`.
+  CloakBrowser binaries that implement `document.modelContext`, including
+  session-scoped `tools/list_changed` notifications and paginated cache
+  invalidation.
 - The bundled no-key CloakBrowser Chromium 146 does not implement WebMCP.
   A free CloakBrowser key selects the current binary, which supports it with
   one concurrent browser session.
 - Added `--binary-path` and validated `CLOAKBROWSER_BINARY_PATH` support for a
   user-selected CloakBrowser executable. The selected path is process-scoped
   for Streamable HTTP sessions.
+- Added stdio and Streamable HTTP configuration for official Playwright Extension
+  connection mode, persistent-profile locking, and token redaction.
 
 ### Changed
 
-- Updated Playwright MCP to 0.0.82 and aligned the Docker baseline with its
-  pinned multi-architecture image, retaining the existing public CLI, MCP,
-  HTTP, Node.js, platform, and transport contracts.
+- Updated Playwright MCP to 0.0.82, Playwright to
+  1.64.0-alpha-1789764292000, and aligned the Docker baseline with its pinned
+  multi-architecture image, retaining the existing public CLI, MCP, HTTP,
+  Node.js, platform, and transport contracts.
+- Updated the default upstream parity surface from 24 to 25 tools with
+  `browser_emulate_media`.
 - Refreshed supported npm and pinned GitHub Action dependencies.
 
 ## [1.13.0] - 2026-09-03

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
 import { AnimatedEmoji } from '@remotion/animated-emoji';

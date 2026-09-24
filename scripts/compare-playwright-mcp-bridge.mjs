@@ -9,7 +9,6 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import {
   assertEqual,
-  expectedDefaultScenarioTools,
   expectedDefaultTools,
   localToolNames,
   normalizeToolResponseText,
@@ -32,6 +31,24 @@ const baselineDevtools = await startMcpContainer(
   'devtools',
 );
 const cloakDevtools = await startMcpContainer('cloak-devtools', image, true, false, 'devtools');
+const baselineWebmcp = await startMcpContainer(
+  'playwright-webmcp',
+  baselineImage,
+  false,
+  false,
+  undefined,
+  true,
+);
+const bridgeWebmcp = await startMcpContainer('bridge-webmcp', image, true, false, undefined, true);
+const bridgeWebmcpDisabled = await startMcpContainer(
+  'bridge-webmcp-disabled',
+  image,
+  true,
+  false,
+  undefined,
+  true,
+  false,
+);
 
 try {
   const baselineRun = await runScenario(baseline, fixtureServer.url);
@@ -42,16 +59,26 @@ try {
   const baselineDevtoolsRun = await runDevtoolsSchemaScenario(baselineDevtools);
   const cloakDevtoolsRun = await runDevtoolsSchemaScenario(cloakDevtools);
   compareDevtoolsSchemaRuns(baselineDevtoolsRun, cloakDevtoolsRun);
+  const baselineWebmcpRun = await runWebmcpScenario(baselineWebmcp, fixtureServer.url);
+  const bridgeWebmcpRun = await runWebmcpScenario(bridgeWebmcp, fixtureServer.url);
+  compareWebmcpRuns(baselineWebmcpRun, bridgeWebmcpRun);
+  await assertWebmcpDisabled(bridgeWebmcpDisabled, fixtureServer.url);
   if (reportPath) {
-    writeReport(reportPath, createReport(baselineRun, cloakRun, humanizationRun, baselineDevtoolsRun));
+    writeReport(
+      reportPath,
+      createReport(baselineRun, cloakRun, humanizationRun, baselineDevtoolsRun, baselineWebmcpRun),
+    );
   }
-  printSummary(baselineRun, cloakRun, humanizationRun, baselineDevtoolsRun);
+  printSummary(baselineRun, cloakRun, humanizationRun, baselineDevtoolsRun, baselineWebmcpRun);
 } finally {
   await baseline.close();
   await cloak.close();
   await cloakHumanized.close();
   await baselineDevtools.close();
   await cloakDevtools.close();
+  await baselineWebmcp.close();
+  await bridgeWebmcp.close();
+  await bridgeWebmcpDisabled.close();
   await fixtureServer.close();
 }
 
@@ -84,10 +111,25 @@ function parseArgs(args) {
   return parsed;
 }
 
-async function startMcpContainer(mode, containerImage, useCloakWrapper, humanize = false, caps) {
+async function startMcpContainer(
+  mode,
+  containerImage,
+  useCloakWrapper,
+  humanize = false,
+  caps,
+  webmcp = false,
+  webmcpEnabled = true,
+) {
   const dataDir = mkdtempSync(path.join(tmpdir(), `pwmcp-${mode}-`));
   chmodSync(dataDir, 0o777);
   writeFileSync(path.join(dataDir, 'upload.txt'), `upload from ${mode}\n`);
+  if (webmcp && !useCloakWrapper) {
+    writeFileSync(
+      path.join(dataDir, 'webmcp.config.json'),
+      `${JSON.stringify({ browser: { launchOptions: { args: ['--enable-features=WebMCP'] } } })}\n`,
+    );
+  }
+
   const dockerArgs = ['run', '--rm', '--init', '-i', '--network', 'host', '-v', `${dataDir}:/data`];
   if (caps) dockerArgs.push('-e', `PLAYWRIGHT_MCP_CAPS=${caps}`);
   if (useCloakWrapper) {
@@ -113,6 +155,14 @@ async function startMcpContainer(mode, containerImage, useCloakWrapper, humanize
     if (humanize) {
       dockerArgs.splice(-1, 0, '-e', 'CLOAK_PLAYWRIGHT_MCP_HUMANIZE=true');
     }
+    if (webmcp) {
+      // CloakBrowser 146 predates Chromium's WebMCP implementation (landed in 154).
+      // Exercise the bridge notification/cache path with the image's bundled Playwright Chromium.
+      dockerArgs.splice(-1, 0, '-e', 'PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright');
+      dockerArgs.splice(-1, 0, '-e', 'PLAYWRIGHT_MCP_NO_SANDBOX=true');
+      dockerArgs.splice(-1, 0, '-e', 'CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS=--enable-features=WebMCP');
+      if (!webmcpEnabled) dockerArgs.splice(-1, 0, '-e', 'PLAYWRIGHT_MCP_WEBMCP=false');
+    }
   } else {
     dockerArgs.push(
       containerImage,
@@ -128,6 +178,7 @@ async function startMcpContainer(mode, containerImage, useCloakWrapper, humanize
       '1280x720',
       '--ignore-https-errors',
     );
+    if (webmcp) dockerArgs.push('--config', '/data/webmcp.config.json');
   }
 
   const client = new Client({ name: `compare-${mode}`, version: '1.0.0' });
@@ -194,10 +245,14 @@ async function runScenario(target, fixtureUrl) {
 
   await call('browser_resize', { width: 1280, height: 720 });
   await call('browser_navigate', { url: fixtureUrl });
+  await call('browser_emulate_media', {
+    colorScheme: 'dark',
+    media: 'screen',
+    reducedMotion: 'reduce',
+  });
   const snapshot = await call('browser_snapshot');
   assertSnapshotIncludesBoxes(snapshot, target.mode);
   await call('browser_find', { text: 'Cloak MCP fixture' });
-  await call('browser_console_messages', { level: 'info', all: true });
   await call('browser_wait_for', { text: 'Cloak MCP fixture' });
   await call('browser_evaluate', { function: '() => document.title' });
   await call('browser_fill_form', {
@@ -215,6 +270,8 @@ async function runScenario(target, fixtureUrl) {
   await call('browser_drop', { target: '#drop-target', data: { 'text/plain': 'dropped payload' } });
   await call('browser_click', { target: '#file-input' });
   await call('browser_file_upload', { paths: [target.uploadPath] });
+  await call('browser_click', { target: '#file-input' });
+  await call('browser_file_upload', { paths: [target.uploadPath] });
   await call('browser_take_screenshot', { type: 'webp', filename: 'page.webp' });
   await call('browser_network_requests', { static: false });
   await call('browser_network_request', { index: 1, part: 'response-body' });
@@ -227,10 +284,13 @@ async function runScenario(target, fixtureUrl) {
   await call('browser_navigate_back');
   await call('browser_click', { target: '#dialog-button' });
   await call('browser_handle_dialog', { accept: true, promptText: 'accepted' });
+  const consoleMessages = await call('browser_console_messages', { level: 'debug', all: true });
+  assertConsoleMethods(consoleMessages, target.mode);
+  await call('browser_evaluate', { function: '() => document.body.dataset.consoleProbe' });
   await call('browser_close');
 
   const covered = [...new Set(calls.map((entry) => entry.name))].sort();
-  assertEqual(covered, expectedDefaultScenarioTools, `${target.mode} covered tools`);
+  assertEqual(covered, expectedDefaultTools, `${target.mode} covered tools`);
 
   return { mode: target.mode, tools: upstreamToolNames, screenshotSchema, calls };
 }
@@ -274,6 +334,110 @@ async function runHumanizationScenario(target, fixtureUrl) {
   await call('browser_close');
 
   return { calls };
+}
+
+async function runWebmcpScenario(target, fixtureUrl) {
+  const dynamicNames = async () =>
+    (await target.client.listTools()).tools
+      .map((tool) => tool.name)
+      .filter((name) => name.startsWith('webmcp_'))
+      .sort();
+  const expectDynamicNames = async (expected, label) => {
+    const deadline = Date.now() + 2_000;
+    let actual = await dynamicNames();
+    while (JSON.stringify(actual) !== JSON.stringify(expected) && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      actual = await dynamicNames();
+    }
+    if (actual.length === 0 && expected.length > 0) {
+      const diagnostic = await target.client.callTool({
+        name: 'browser_run_code_unsafe',
+        arguments: {
+          code: `async (page) => ({
+            browserVersion: page.context().browser()?.version(),
+            hasModelContext: await page.evaluate(() => Boolean(document.modelContext || navigator.modelContext))
+          })`,
+        },
+      });
+      throw new Error(
+        `${label} mismatch; browser diagnostic: ${normalizeToolResponseText(toolResultText(diagnostic))}`,
+      );
+    }
+    assertEqual(actual, expected, label);
+  };
+
+  await expectDynamicNames([], `${target.mode} initial WebMCP tools`);
+  await target.client.callTool({
+    name: 'browser_navigate',
+    arguments: { url: new URL('webmcp', fixtureUrl).href },
+  });
+  await expectDynamicNames(['webmcp_add'], `${target.mode} first-tab WebMCP tools`);
+
+  const addTool = (await target.client.listTools()).tools.find((tool) => tool.name === 'webmcp_add');
+  if (addTool?.inputSchema?.properties?.a?.type !== 'number') {
+    throw new Error(`${target.mode} webmcp_add schema was not forwarded`);
+  }
+  if (addTool.annotations?.readOnlyHint !== true) {
+    throw new Error(`${target.mode} webmcp_add annotations were not forwarded`);
+  }
+  const addResult = await target.client.callTool({
+    name: 'webmcp_add',
+    arguments: { a: 2, b: 40 },
+  });
+  if (addResult.isError || !toolResultText(addResult).includes('42')) {
+    throw new Error(`${target.mode} webmcp_add did not return 42`);
+  }
+
+  await target.client.callTool({
+    name: 'browser_tabs',
+    arguments: { action: 'new', url: new URL('webmcp-second', fixtureUrl).href },
+  });
+  await expectDynamicNames(['webmcp_echo'], `${target.mode} second-tab WebMCP tools`);
+  await target.client.callTool({ name: 'browser_tabs', arguments: { action: 'select', index: 0 } });
+  await expectDynamicNames(['webmcp_add'], `${target.mode} restored first-tab WebMCP tools`);
+
+  await target.client.callTool({
+    name: 'browser_navigate',
+    arguments: { url: new URL('plain', fixtureUrl).href },
+  });
+  await expectDynamicNames([], `${target.mode} removed WebMCP tools`);
+  const removedResult = await target.client.callTool({
+    name: 'webmcp_add',
+    arguments: { a: 1, b: 1 },
+  });
+  if (removedResult.isError !== true) {
+    throw new Error(`${target.mode} removed WebMCP tool remained callable`);
+  }
+  await target.client.callTool({ name: 'browser_close', arguments: {} });
+  return {
+    addSchema: addTool.inputSchema,
+    addAnnotations: addTool.annotations,
+    addResponse: normalizeToolResponseText(toolResultText(addResult)),
+  };
+}
+
+function compareWebmcpRuns(baselineRun, cloakRun) {
+  assertEqual(cloakRun, baselineRun, 'WebMCP dynamic tool parity');
+}
+
+async function assertWebmcpDisabled(target, fixtureUrl) {
+  await target.client.callTool({
+    name: 'browser_navigate',
+    arguments: { url: new URL('webmcp', fixtureUrl).href },
+  });
+  const deadline = Date.now() + 2_000;
+  do {
+    const dynamicTools = (await target.client.listTools()).tools.filter((tool) =>
+      tool.name.startsWith('webmcp_'),
+    );
+    assertEqual(dynamicTools, [], `${target.mode} disabled WebMCP tools`);
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  } while (Date.now() < deadline);
+  await target.client.callTool({ name: 'browser_close', arguments: {} });
+}
+
+function toolResultText(result) {
+  return result.content.map((item) => (item.type === 'text' ? item.text : `[${item.type}]`)).join('\n');
 }
 
 async function runDevtoolsSchemaScenario(target) {
@@ -349,6 +513,19 @@ function assertSnapshotIncludesBoxes(result, mode) {
   }
 }
 
+function assertConsoleMethods(result, mode) {
+  const text =
+    result.content
+      ?.filter((item) => item.type === 'text')
+      .map((item) => item.text)
+      .join('\n') ?? '';
+  for (const method of ['log', 'warn', 'error', 'info', 'debug']) {
+    if (!text.includes(`console-probe-${method}`)) {
+      throw new Error(`${mode} console probe is missing console.${method}`);
+    }
+  }
+}
+
 function compareRuns(baselineRun, cloakRun) {
   assertEqual(cloakRun.tools, baselineRun.tools, 'upstream tool list parity');
   assertEqual(cloakRun.screenshotSchema, baselineRun.screenshotSchema, 'screenshot schema parity');
@@ -361,6 +538,8 @@ function compareRuns(baselineRun, cloakRun) {
   for (const [index, call] of cloakRun.calls.entries()) {
     const baseline = baselineRun.calls[index];
     if (baseline.ok !== call.ok) throw new Error(`${call.name} success mismatch at call ${index + 1}`);
+    // Console history differs by browser engine; assertConsoleMethods validates the current page output.
+    if (call.name === 'browser_console_messages') continue;
     if (baseline.text !== call.text) {
       throw new Error(
         `${call.name} response mismatch at call ${index + 1}\n` +
@@ -379,7 +558,7 @@ async function assertLocalTools(target) {
   }
 }
 
-function printSummary(baselineRun, cloakRun, humanizationRun, devtoolsRun) {
+function printSummary(baselineRun, cloakRun, humanizationRun, devtoolsRun, webmcpRun) {
   const width = Math.max(...baselineRun.calls.map((call) => call.name.length));
   process.stdout.write(
     `Compared ${baselineRun.tools.length} upstream Playwright MCP tools\nBaseline image: ${baselineImage}\nCloak image: ${image}\n`,
@@ -401,12 +580,15 @@ function printSummary(baselineRun, cloakRun, humanizationRun, devtoolsRun) {
   process.stdout.write(
     `Devtools schemas: matched ${devtoolsRun.tools.length} upstream tools including browser_start_recording and browser_stop_recording\n`,
   );
+  process.stdout.write(
+    `WebMCP: dynamic add/call/remove and tab switching verified (${webmcpRun.addResponse})\n`,
+  );
   if (reportPath) {
     process.stdout.write(`Parity report: ${reportPath}\n`);
   }
 }
 
-function createReport(baselineRun, cloakRun, humanizationRun, devtoolsRun) {
+function createReport(baselineRun, cloakRun, humanizationRun, devtoolsRun, webmcpRun) {
   return {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
@@ -432,6 +614,12 @@ function createReport(baselineRun, cloakRun, humanizationRun, devtoolsRun) {
       recordingTools: ['browser_start_recording', 'browser_stop_recording'],
       toolSchemaCount: devtoolsRun.tools.length,
       schemasMatched: true,
+    },
+    webmcp: {
+      dynamicLifecycle: true,
+      tabSwitching: true,
+      disabledMode: true,
+      addResponse: webmcpRun.addResponse,
     },
     calls: baselineRun.calls.map((baselineCall, index) => {
       const cloakCall = cloakRun.calls[index];
@@ -471,6 +659,21 @@ async function startFixtureServer() {
     if (url.pathname === '/nested-inner') {
       response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
       response.end(nestedInnerFixtureHtml());
+      return;
+    }
+    if (url.pathname === '/webmcp') {
+      response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+      response.end(webmcpFixtureHtml('add'));
+      return;
+    }
+    if (url.pathname === '/webmcp-second') {
+      response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+      response.end(webmcpFixtureHtml('echo'));
+      return;
+    }
+    if (url.pathname === '/plain') {
+      response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+      response.end('<!doctype html><title>Plain page</title><h1>No WebMCP tools</h1>');
       return;
     }
     response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
@@ -524,7 +727,12 @@ function fixtureHtml() {
     <iframe id="nested-outer" src="/nested-outer" title="Nested fixture"></iframe>
     <pre id="status">ready</pre>
     <script>
-      console.log('fixture-loaded');
+    console.log('console-probe-log');
+    console.warn('console-probe-warn');
+    console.error('console-probe-error');
+    console.info('console-probe-info');
+    console.debug('console-probe-debug');
+    document.body.dataset.consoleProbe = 'complete';
       fetch('/api/data').then(r => r.json()).then(data => {
         document.querySelector('#status').textContent = 'api:' + data.ok;
       });
@@ -565,6 +773,47 @@ function nestedInnerFixtureHtml() {
 <html>
   <body>
     <label>Nested key input <input id="nested-key-input" /></label>
+  </body>
+</html>`;
+}
+
+function webmcpFixtureHtml(tool) {
+  const registration =
+    tool === 'add'
+      ? `modelContext.registerTool({
+          name: 'add',
+          description: 'Adds two numbers',
+          inputSchema: {
+            type: 'object',
+            properties: { a: { type: 'number' }, b: { type: 'number' } },
+            required: ['a', 'b']
+          },
+          annotations: { readOnlyHint: true },
+          async execute(input) {
+            return { content: [{ type: 'text', text: String(input.a + input.b) }] };
+          }
+        });`
+      : `modelContext.registerTool({
+          name: 'echo',
+          description: 'Echoes text',
+          inputSchema: {
+            type: 'object',
+            properties: { value: { type: 'string' } },
+            required: ['value']
+          },
+          async execute(input) {
+            return { content: [{ type: 'text', text: input.value }] };
+          }
+        });`;
+  return `<!doctype html>
+<html>
+  <head><title>WebMCP ${tool}</title></head>
+  <body>
+    <h1>WebMCP ${tool}</h1>
+    <script>
+      const modelContext = document.modelContext || navigator.modelContext;
+      ${registration}
+    </script>
   </body>
 </html>`;
 }

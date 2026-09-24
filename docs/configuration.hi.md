@@ -56,6 +56,95 @@ Playwright MCP व्यवहार के लिए अपस्ट्री�
 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
 | `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | Adds `--no-sandbox` and disables Chromium sandboxing. |
 
+## मैनेज्ड CDP { #managed-cdp }
+
+प्रबंधित क्रोम डेवलपर टूल्स प्रोटोकॉल (CDP) तक पहुँच एक स्पष्ट ऑप्ट-इन है। यह प्रकट करता है
+उसी Chromium ब्राउज़र जेनरेशन को MCP के माध्यम से क्षमता-धारी द्वारा नियंत्रित किया गया
+discovery URL। केवल एक पोर्ट पूल कॉन्फ़िगर करना CDP को सक्षम नहीं करता।
+
+| CLI विकल्प | पर्यावरण चर | डिफ़ॉल्ट | उद्देश्य |
+| --- | --- | --- | --- |
+| `--cdp-enabled`, `--no-cdp-enabled` | `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED` | `false` | stdio मान और Streamable HTTP सत्र डिफ़ॉल्ट सेट करें। |
+| `--cdp-port-range <port\|start-end>` | `CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE` | असंपादित | प्रक्रिया-स्थानीय बाहरी प्रॉक्सी पोर्ट पूल को कॉन्फ़िगर करें। एक सक्षम सत्र एक पोर्ट लीज़ पर लेता है। |
+| `--cdp-host <host>` | `CLOAK_PLAYWRIGHT_MCP_CDP_HOST` | `127.0.0.1` | संचालित CDP प्रॉक्सी को बाइंड करें। |
+| `--cdp-allow-remote`, `--no-cdp-allow-remote` | `CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE` | `false` | नॉन-लूपबैक बाइंड की अनुमति दें या अस्वीकार करें। |
+| `--cdp-advertised-host <host>` | `CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_HOST` | असंपादित | डिस्कवरी URL में एक ठोस बाहरी रूप से पहुंच योग्य होस्ट डालें। वाइल्डकार्ड बाइंड्स के लिए आवश्यक। |
+| `--cdp-advertised-scheme <http\|https>` | `CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_SCHEME` | `http` | `http`/`ws` या `https`/`wss` URL प्रकाशित करें। यह TLS को सक्षम नहीं करता। |
+
+प्रत्येक CLI मान केवल उसके मेल खाने वाले पर्यावरण चर को ओवरराइड करता है। विशेष रूप से,
+`--no-cdp-enabled`, `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED=true` को अतिक्रमित करता है, और
+`--no-cdp-allow-remote`, `CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE=true` को ओवरराइड करता है।
+एक सक्षम सत्र बिना पोर्ट पूल के उसके अपस्ट्रीम चाइल्ड शुरू होने से पहले अस्वीकृत कर दिया जाता है।
+एक प्रभावी झूठा मान कोई श्रोता, पोर्ट पट्टा, या क्षमता नहीं बनाता।
+
+स्ट्डियो के लिए, प्रक्रिया मान सीधे लागू होता है:
+
+```bash
+cloakbrowser-mcp \
+  --cdp-enabled \
+  --cdp-port-range 9222
+```
+
+Streamable HTTP के लिए, प्रमाणीकरण में फ्लैट `cdpEnabled` बूलियन
+`initialize` मेटाडेटा उस सत्र के लिए प्रक्रिया डिफ़ॉल्ट को ओवरराइड करता है। छोड़ना
+फील्ड प्रक्रिया मान को वारिस करता है। ये उदाहरण स्पष्ट रूप से एक सत्र को चुनते हैं और
+एक और बाहर:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "cdpEnabled": true
+      }
+    }
+  }
+}
+```
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "cdpEnabled": false
+      }
+    }
+  }
+}
+```
+
+एक CDP-सक्षम HTTP सत्र एक बाहरी पोर्ट पट्टे का स्वामी होता है। अक्षम सत्र नहीं होते।
+पूल का उपभोग करें। आवंटन процесс-स्थानीय है, सबसे कम अप्रवर्तित उम्मीदवार का चयन करता है,
+और यदि चयनित बाहरी पोर्ट पहले से ही व्यस्त है तो उस सत्र को तुरंत असफल कर देता है।
+पोर्ट मुक्त करने के लिए सत्र बंद करें या जब पूल समाप्त हो जाए तो बड़ी सीमा कॉन्फ़िगर करें।
+
+`cloakbrowser_bridge_info` से वर्तमान URL प्राप्त करें, फिर इसे पास करें
+`structuredContent.cdp.discoveryUrl` को Playwright के जैसे CDP क्लाइंट को
+`chromium.connectOverCDP()`। उस URL को एक क्रेडेंशियल के रूप में मानें: इसमें एक रैंडम शामिल है
+प्रति-पीढ़ी क्षमता और ब्राउज़र बदलने के बाद पुराना हो जाता है। प्रबंधित CDP है
+Playwright सर्वर एंडपॉइंट नहीं। `chromium.connect()` और वर्तमान Open WebUI
+`PLAYWRIGHT_WS_URL` फ्लो का समर्थन नहीं किया जाता है।
+
+`--cdp-advertised-scheme https` ने `https` की खोज और `wss` WebSocket यूआरएल प्रकाशित किए
+केवल। पुल प्रबंधित CDP के लिए TLS प्रदान नहीं करता: इसका बाहरी श्रोता और
+Chromium होप रहना प्लेनटेक्स्ट HTTP/WebSocket। एक ऑपरेटर-स्वामित्व वाला TLS टर्मिनेटर होना चाहिए
+समान विज्ञापित लीज़्ड पोर्ट पर सुनें, विज्ञापित `Host` और `Origin` को संरक्षित करें
+प्राधिकरण, और उस सत्र के प्लेनटेक्स्ट श्रेता को सीधे वन-टू-वन अग्रेषित करें।
+
+CDP सक्षम करना Chromium के दौरान MCP आरंभिकरण ताकि स्वामित्व और बाहरी
+तैयारी की पुष्टि की जा सकती है। MCP क्लाइंट इनिशियलाइज़ टाइमआउट को कम से कम 60 पर कॉन्फ़िगर करें
+सेकंड। जब प्रबंधित CDP सक्षम होता है, उपयोगकर्ता-प्रदान किया गया
+`CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` में `--remote-debugging-port` नहीं होना चाहिए,
+`--remote-debugging-address`, या `--remote-debugging-pipe` (`=` रूपों सहित)।
+Playwright का अपना आंतरिक `--remote-debugging-pipe` सक्रिय रहता है साथ ही
+ब्रिज-प्रबंधित लूपबैक TCP एंडपॉइंट।
+
+देखें [साधन](tools.md#cloakbrowser_bridge_info), [डॉकर](docker.md#managed-cdp),
+[सुरक्षा](security.md#managed-cdp-security), और
+[वास्तुकला](architecture.md#managed-cdp-ownership) खोज स्थिति, परिनियोजन के लिए,
+सीमाएँ, और पुनरारंभ व्यवहार।
+
 ## CloakBrowser लाइसेंस और GitHub साइन-इन
 
 लाइसेंस सेटअप अपस्ट्रीम CloakBrowser CLI का उपयोग करता है; `cloakbrowser-mcp`
@@ -166,6 +255,10 @@ HTTP सत्र बनाएँ। जब पथों में कॉमा 
 ड्राइव-लेटर पथों का उपयोग करना हो, तो
 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` के लिए JSON ऐरे का उपयोग करें।
 
+## Playwright Extension connection mode
+
+यह mode Chrome या Edge profile में पहले से installed आधिकारिक Playwright Extension के जरिए जुड़ता है और `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` से unpacked extension लोड करने से अलग है। stdio के लिए `PLAYWRIGHT_MCP_EXTENSION=true`, `PLAYWRIGHT_MCP_EXTENSION_TOKEN`, `PLAYWRIGHT_MCP_USER_DATA_DIR` और जरूरत पर एक relative segment वाला `PLAYWRIGHT_MCP_PROFILE_DIR_NAME` सेट करें। Streamable HTTP में `extensionMode`, `profileDirName` और `userDataDir` metadata process values को override करते हैं, लेकिन token केवल process environment से लिया जाता है। Parallel sessions को अलग `userDataDir` चाहिए; launch, CDP, proxy, GeoIP, humanization, context और `extensionPaths` options incompatible हैं।
+
 ## स्ट्रीम करने योग्य HTTP रनटाइम मेटाडेटा
 
 स्ट्रीमएबल HTTP क्लाइंट `initialize` अनुरोध में ब्रिज-विशिष्ट मेटाडेटा जोड़कर प्रति MCP सत्र के लिए चयनित रनटाइम विकल्प चुन सकते हैं:
@@ -202,8 +295,7 @@ HTTP सत्र बनाएँ। जब पथों में कॉमा 
 उस सत्र के लिए, लेकिन यह अपने आप मानवीकृत व्यवहार को सक्षम नहीं करता। मौजूदा
 सत्र `initialize` के दौरान कैप्चर किए गए व्यवहार को बनाए रखते हैं।
 
-`headless` उस सत्र के लिए हेडलेस ब्राउज़र मोड को सक्षम या अक्षम कर सकता है। `headless` को `false` पर सेट करने के लिए एक उपयोग योग्य डिस्प्ले वातावरण की आवश्यकता होती है, विशेष रूप से
-Docker या Linux सर्वर डिप्लॉयमेंट्स में।
+Docker में `headless: false` आवश्यकता होने पर निजी वर्चुअल डिस्प्ले शुरू करता है। इमेज के बाहर, ग्राफ़िकल इंटरफ़ेस वाले सत्र के लिए अभी भी उपयोग योग्य डिस्प्ले वातावरण आवश्यक है।
 
 `userDataDir` उस सत्र के लिए स्थायी Chromium प्रोफ़ाइल सक्षम करता है और
 `PLAYWRIGHT_MCP_USER_DATA_DIR` को ओवरराइड करता है। ब्रिज निर्देशिका को

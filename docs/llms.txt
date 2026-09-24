@@ -40,7 +40,7 @@ npx -y cloakbrowser-mcp@latest
 Docker stdio alternative:
 
 ```bash
-docker run --rm --init -i -v /tmp/cloakbrowser-artifacts:/data swimmwatch/cloakbrowser-mcp:latest
+docker run --rm -i -v /tmp/cloakbrowser-artifacts:/data swimmwatch/cloakbrowser-mcp:latest
 ```
 
 Generic stdio JSON for Claude Desktop, Cursor, Cline-style clients, Windsurf, Warp, and other `mcpServers` clients:

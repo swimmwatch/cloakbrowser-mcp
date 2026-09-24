@@ -14,11 +14,11 @@ tags:
 
 Espera-se que a superfície padrão de ferramentas de navegador upstream corresponda à dependência fixada do Playwright MCP. Ela inclui ferramentas principais como navegação, snapshots, cliques, digitação, screenshots, abas, mensagens de console, inspeção de rede, upload de arquivos, diálogos e ferramentas de avaliação insegura.
 
-Como referência upstream estável, veja o teste de capacidades do Playwright MCP `{{ project.playwright_mcp_package_tag }}` fixado no commit exato do pacote: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/4c1fb03bad3bae379b0ae0e3d81d2660de56bd91/tests/capabilities.spec.ts#L19-L77).
+Como referência upstream estável, veja o teste de capacidades do Playwright MCP `{{ project.playwright_mcp_package_tag }}` fixado no commit exato do pacote: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/f1257a5a67aff872f947fae274759f7d54853862/tests/capabilities.spec.ts#L19-L77).
 
 Este projeto trata o upstream Playwright MCP como fonte autorizada e não mantém uma referência de esquemas copiada.
 
-O conjunto padrão contém 24 ferramentas upstream. `PLAYWRIGHT_MCP_CAPS=devtools`
+O conjunto padrão contém 25 ferramentas upstream, incluindo `browser_emulate_media`. `PLAYWRIGHT_MCP_CAPS=devtools`
 passa a capacidade `devtools` ao processo filho sem uma opção `--caps` da
 ponte; as ferramentas e os esquemas upstream resultantes são encaminhados sem
 alterações, incluindo `browser_start_recording` e `browser_stop_recording`.
@@ -35,6 +35,12 @@ alterações, incluindo `browser_start_recording` e `browser_stop_recording`.
     [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) e
     [#176](https://github.com/CloakHQ/CloakBrowser/issues/176).
 
+### Ferramentas WebMCP dinâmicas
+
+O Chromium implementa WebMCP a partir da versão 154. Builds anteriores do CloakBrowser ignoram o feature flag; quando o WebMCP for necessário, use um build de navegador compatível ou `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright`.
+
+Quando o Chromium é iniciado com `--enable-features=WebMCP`, as páginas podem declarar ferramentas `webmcp_*`. A ponte encaminha `notifications/tools/list_changed`, limpa todo o cache de `tools/list` e o cliente deve solicitar a lista novamente. No Streamable HTTP, somente o fluxo aberto da sessão correspondente recebe a notificação; o próximo `tools/list` continua atualizado mesmo sem fluxo. Trate nome, descrição, esquema, annotations e output como dados de página não confiáveis. A ponte não ativa o WebMCP automaticamente; `PLAYWRIGHT_MCP_WEBMCP=false` desativa a coleta.
+
 ## Ferramentas locais
 
 ### `cloakbrowser_binary_info`
@@ -44,6 +50,56 @@ Retorna informações estruturadas sobre o pacote CloakBrowser, a plataforma atu
 ### `cloakbrowser_bridge_info`
 
 Retorna metadados estruturados da ponte:
+
+O objeto aditivo `structuredContent.cdp` reporta o CDP gerenciado da sessão de chamada
+estado:
+
+```json
+{ "enabled": false }
+```
+
+```json
+{
+  "enabled": true,
+  "state": "ready",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": "http://127.0.0.1:9222/cdp/<capability>",
+  "activeConnections": 0
+}
+```
+
+```json
+{
+  "enabled": true,
+  "state": "unavailable",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": null,
+  "activeConnections": 0
+}
+```
+
+`generation` aumenta e `discoveryUrl` gira após a substituição do navegador.
+`activeConnections` conta conexões WebSocket aceitas por proxy sem expor
+identidades de clientes, IDs de alvo ou conteúdo de protocolo. Trate toda descoberta não nula URL
+como uma credencial.
+
+Use a descoberta URL com um cliente compatível com CDP:
+
+```ts
+import { chromium } from 'playwright';
+
+const browser = await chromium.connectOverCDP(discoveryUrl);
+```
+
+CDP gerenciado não é o protocolo do servidor Playwright. Playwright
+A integração atual Open WebUI `PLAYWRIGHT_WS_URL` e `chromium.connect()` esperam
+um endpoint de servidor Playwright e não são compatíveis com este URL.
 
 - nome e versão do servidor MCP;
 - modo de runtime;

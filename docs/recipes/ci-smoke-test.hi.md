@@ -17,6 +17,8 @@ Smoke test MCP client connect होने से पहले missing runtime d
 npx -y cloakbrowser-mcp@latest doctor --json
 ```
 
+यह ब्रिज शुरू किए बिना Node.js, पैकेज मेटाडेटा, प्रभावी upstream Playwright MCP CLI, `@playwright/mcp`, `playwright` और `playwright-core` के resolve किए गए version और package path, प्रभावी core bundle path तथा CloakBrowser binary metadata की जाँच करता है।
+
 ## Streamable HTTP probe
 
 ```bash
@@ -35,7 +37,7 @@ wait "$server_pid" || true
 ## Docker package check
 
 ```bash
-docker run --rm --init \
+docker run --rm \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   doctor --json

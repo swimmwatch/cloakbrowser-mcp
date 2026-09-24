@@ -64,7 +64,7 @@ Playwright प्रॉक्सी ऑब्जेक्ट बनाए रख
 कंटेनर को वही वेरिएबल पास करें। जहाँ संभव हो, प्रॉक्सी क्रेडेंशियल को अपने सीक्रेट मैनेजर या MCP क्लाइंट वातावरण में रखें।
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -e PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
   -e CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
   -v "$PWD/artifacts:/data" \
@@ -74,7 +74,7 @@ docker run --rm --init -i \
 Docker में स्ट्रीमएबल HTTP के लिए, HTTP पोर्ट को सामान्य रूप से पब्लिश करें और प्रॉक्सी वेरिएबल्स को कंटेनर एन्वायरनमेंट डिफ़ॉल्ट्स के रूप में रखें:
 
 ```bash
-docker run --rm --init -p 127.0.0.1:3000:3000 \
+docker run --rm -p 127.0.0.1:3000:3000 \
   -e PLAYWRIGHT_MCP_PROXY_SERVER="http://user:pass@proxy.example:8080" \
   -e CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH=true \
   -v "$PWD/artifacts:/data" \

@@ -10,6 +10,84 @@ tags:
 
 该项目是一个浏览器自动化桥接工具。请将其视为可信代码执行基础设施。
 
+## 托管 CDP 安全 { #managed-cdp-security }
+
+受管理的 CDP 默认情况下被禁用。它提供任意的 Chromium 开发者工具控制，
+不是简化版浏览器工具 API。仅在受信任的客户端上启用它。该功能在
+`cloakbrowser_bridge_info.cdp.discoveryUrl` 是一种持有者凭证：不要记录它，
+将其存储在票据中，或在会话之间共享。它会在更换浏览器后轮换
+而一个旧的 URL 从不转移到替换代。
+
+非回环 CDP 绑定需要同时具有 `--cdp-allow-remote` 和一个具体的广告
+主机。对已发布的端口添加网络访问控制。选择
+`--cdp-advertised-scheme https` 不提供 TLS。托管监听器和
+Chromium 跳保持明文；一个运营商拥有的同端口 TLS 终端必须保持
+所宣传的 `Host` 和 `Origin` 权限，并保持一对一路由到
+拥有会话。
+
+运行时日志从不包含功能路径、目标ID、CDP有效负载、浏览器数据，
+cookies、原始 `Host` 或 `Origin` 值，或配置文件路径。被拒绝的安全检查是
+仅以会话范围的 `cdp_security_rejections` 警告报告，持续 60 秒
+正在为 `capability`、`host` 和 `origin` 进行饱和计数；清理会刷新任何剩余的内容
+计数。成功的检查不会创建每次请求的审计记录。
+
+### 固定限制
+
+限制独立适用于每个启用 CDP 的 MCP 会话：
+
+| 边界 | 限制 |
+| --- | --- |
+| 活动的代理 WebSocket 连接，包括进行中的握手 | 8 |
+| 并发预升级 HTTP 请求 | 16 |
+| 请求头 | 16 千字节 |
+| 受支持路由的请求体 | 不允许 |
+| 缓冲的 Chromium HTTP 响应 | 4 兆字节 |
+| 传入或传出 WebSocket 消息 | 16 兆字节 |
+| 按方向排队的未发送 WebSocket 数据 | 16 兆字节 |
+| 请求头，上游 HTTP 响应，或 WebSocket 握手 | 10秒 |
+| 在强制关闭之前优雅的代理关闭 | 5秒 |
+| 本地错误响应体 | 8 千字节 |
+
+### HTTP 错误
+
+本地故障使用 JSON `{"error":{"code":"...","message":"..."}}` 与
+`Cache-Control: no-store`、`Content-Type: application/json; charset=utf-8`，以及一个
+确切的 `Content-Length`。方法失败还包括 `Allow`。稳定的映射是：
+
+| 状态 | 代码 |
+| --- | --- |
+| `400` | `bad_request` |
+| `403` | `forbidden` |
+| `404` | `not_found` |
+| `405` | `method_not_allowed` |
+| `408` | `request_timeout` |
+| `413` | `payload_too_large` |
+| `431` | `headers_too_large` |
+| `500` | `internal_error` |
+| `502` | `bad_gateway` |
+| `503` | `unavailable` |
+| `504` | `gateway_timeout` |
+| Chromium `400..499` | `upstream_error`，保持现状 |
+
+Chromium 重定向、服务器错误、格式错误的响应和传输失败是
+已规范化，而不是暴露 Chromium 响应体。由桥接生成的拒绝
+在上游调度之前没有 Chromium 副作用。只读发现请求可能
+在纠正条件后重试。对于状态改变不明确的失败，
+重新读取 `/json/list` 并协调应用状态；不要假设 `Retry-After` 或
+自动幂等性
+
+### WebSocket 关闭
+
+本地生成的关闭使用固定的已遮蔽对。有效的对等关闭会被转发。
+
+| 代码 | 原因 | 使用 |
+| --- | --- | --- |
+| `1001` | `going_away` | 会话、生成或代理关闭 |
+| `1002` | `protocol_error` | 格式错误的 WebSocket 协议输入 |
+| `1009` | `message_too_big` | 消息超出配置的限制 |
+| `1011` | `internal_error` | 意外的上游断开或中继故障 |
+| `1013` | `try_again_later` | 超过每方向未发送队列的限制 |
+
 ## 信任边界
 
 外部服务器支持 stdio 和 Streamable HTTP。它会将上游的 Playwright MCP 作为子进程启动，并转发工具调用。浏览器自动化、文件输出、网络访问以及不安全评估行为均由上游的 Playwright MCP 控制。
@@ -21,6 +99,12 @@ tags:
 ## 不安全的工具
 
 Upstream Playwright MCP 包含诸如 `browser_evaluate` 和 `browser_run_code_unsafe` 之类的工具。 这些工具可在浏览器或 Playwright 服务器环境中执行 JavaScript。请仅将此服务器连接至您信任的 MCP 客户端。
+
+`webmcp_*` 工具由当前页面定义。名称、描述、schema、annotations 和 output 都是不受信任的数据；桥接器会原样转发。不需要动态工具时，请设置 `PLAYWRIGHT_MCP_WEBMCP=false`。
+
+## Playwright Extension token
+
+仅通过进程环境或密钥管理器提供 `PLAYWRIGHT_MCP_EXTENSION_TOKEN`。桥接器不接受 HTTP metadata 中的 token，也不会将其写入 config、bridge metadata、日志、错误或 diagnostic snapshots。请保护 persistent profile，不要在多个会话中复用同一个活动 `userDataDir`。
 
 ## 配置
 
@@ -53,7 +137,8 @@ CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX=false
 
 ## Docker
 
-如果您需要实现隔离并确保浏览器依赖项的可重现性，建议使用 Docker。仅挂载您需要的构建产物目录，并使用 `--init`，以确保浏览器子进程能被正确清理。
+建议使用 Docker 来实现隔离和可复现的浏览器依赖。仅挂载所需的工件目录；镜像已包含 Tini，可正确回收浏览器子进程。在加固的只读容器中，请保持挂载 `/data`；若可能存在有头会话，还应为 `/tmp` 和 `/tmp/.X11-unix` 提供可写的临时挂载。
+
 
 从 Docker 发布 Streamable HTTP 时，建议使用 `-p 127.0.0.1:3000:3000`。直接发布到公共接口会使任何可访问的客户端浏览器都具备自动化操作能力，除非您添加身份验证和网络控制措施。
 

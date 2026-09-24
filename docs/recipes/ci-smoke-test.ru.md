@@ -17,7 +17,7 @@ tags:
 npx -y cloakbrowser-mcp@latest doctor --json
 ```
 
-При этом проверяется Node.js, метаданные пакета, upstream Playwright MCP разрешение CLI и двоичные метаданные CloakBrowser без запуска моста.
+При этом без запуска моста проверяются Node.js, метаданные пакета, фактически используемый upstream CLI Playwright MCP, определённые версии и пути пакетов `@playwright/mcp`, `playwright` и `playwright-core`, фактический путь к core bundle и метаданные бинарного файла CloakBrowser.
 
 ## Streamable HTTP Зонд
 
@@ -39,7 +39,7 @@ wait "$server_pid" || true
 ## Docker Проверка пакета
 
 ```bash
-docker run --rm --init \
+docker run --rm \
   -v "$PWD/artifacts:/data" \
   swimmwatch/cloakbrowser-mcp:latest \
   doctor --json

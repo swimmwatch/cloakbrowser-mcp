@@ -104,14 +104,24 @@ export interface PrepareBridgeRuntimeOptions {
   buildCloakLaunchOptions?: CloakBuildLaunchOptions;
   browserIsolated?: boolean;
   contextOptions?: BridgeContextOptions;
+  extensionMode?: boolean;
   extensionPaths?: string[];
   geoipProxyMatch?: boolean;
   headless?: boolean;
   humanize?: boolean;
   humanPreset?: HumanPreset;
+  managedCdpInternalPort?: number;
   proxy?: BridgeRuntimeProxy;
+  profileDirName?: string;
   releaseChannel?: ReleaseChannel;
   userDataDir?: string;
+}
+
+export function resolveEffectiveHeadless(
+  options: Pick<PrepareBridgeRuntimeOptions, 'headless'>,
+  env: EnvReader = process.env,
+): boolean {
+  return options.headless ?? envBool(env, 'PLAYWRIGHT_MCP_HEADLESS', true);
 }
 
 export interface PlaywrightMcpBridgeConfig {
@@ -202,6 +212,7 @@ interface PreparedBridgeRuntimeBase {
   tempDir: string;
   outputDir: string;
   browserEngine: BrowserEngine;
+  extensionMode: boolean;
   useCloak: boolean;
   headless: boolean;
   humanPreset: HumanPreset;
@@ -224,13 +235,17 @@ export async function prepareBridgeRuntime(
 
   try {
     const runtime = createPreparedBridgeRuntimeBase(env, options, tempDir);
+    validateManagedCdpLaunchArgs(runtime.launchOptions.args ?? [], options.managedCdpInternalPort);
     releaseProfileLock = applyConfiguredUserDataDir(runtime, options.userDataDir);
     const extensionPaths = applyConfiguredContextAndExtensions(runtime, options);
     applyConfiguredProxy(runtime, options.proxy);
     applyBrowserIsolation(runtime, options.browserIsolated);
-    const cloakBinaryPath = runtime.useCloak
-      ? await configureCloakRuntime(runtime, options, extensionPaths)
-      : undefined;
+    validateAndApplyExtensionConnectionMode(runtime, options, extensionPaths);
+    const cloakBinaryPath =
+      runtime.useCloak && !runtime.extensionMode
+        ? await configureCloakRuntime(runtime, options, extensionPaths)
+        : undefined;
+    applyManagedCdpLaunchOption(runtime, options.managedCdpInternalPort);
     configureConsoleFallback(runtime);
     const configPath = writeBridgeConfig(runtime);
 
@@ -250,14 +265,20 @@ function createPreparedBridgeRuntimeBase(
   const outputDir = envString(env, 'PLAYWRIGHT_MCP_OUTPUT_DIR', path.resolve('.playwright-mcp'));
   mkdirSync(outputDir, { recursive: true });
 
-  const browserEngine = parseBrowserEngine(envString(env, 'PLAYWRIGHT_MCP_BROWSER_ENGINE', 'cloak'));
+  const extensionMode = options.extensionMode ?? envBool(env, 'PLAYWRIGHT_MCP_EXTENSION', false);
+  const browserEngine = extensionMode
+    ? 'playwright'
+    : parseBrowserEngine(envString(env, 'PLAYWRIGHT_MCP_BROWSER_ENGINE', 'cloak'));
   const useCloak = browserEngine === 'cloak';
-  const headless = options.headless ?? envBool(env, 'PLAYWRIGHT_MCP_HEADLESS', true);
+  const headless = extensionMode ? false : resolveEffectiveHeadless(options, env);
   const codegen = readCodegenLanguage(env);
   const snapshotBoxes = readSnapshotBoxes(env);
   const humanPreset =
     options.humanPreset ?? parseHumanPreset(envString(env, 'CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET', 'default'));
   const childEnv = createChildEnv(env, outputDir, options.proxy, headless, humanPreset);
+  if (!useCloak && !extensionMode) {
+    childEnv.PLAYWRIGHT_MCP_BROWSER ??= 'chromium';
+  }
   const chromiumSandbox = useCloak ? !envBool(env, 'CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX', true) : undefined;
   const launchOptions: BridgeLaunchOptions = {
     headless,
@@ -275,6 +296,7 @@ function createPreparedBridgeRuntimeBase(
     tempDir,
     outputDir,
     browserEngine,
+    extensionMode,
     useCloak,
     headless,
     humanPreset,
@@ -341,6 +363,107 @@ function applyBrowserIsolation(
   }
 }
 
+function validateAndApplyExtensionConnectionMode(
+  runtime: PreparedBridgeRuntimeBase,
+  options: PrepareBridgeRuntimeOptions,
+  extensionPaths: readonly string[],
+): void {
+  const profileDirName = resolveProfileDirName(runtime.env, options.profileDirName);
+  if (profileDirName !== undefined) {
+    runtime.childEnv.PLAYWRIGHT_MCP_PROFILE_DIR_NAME = profileDirName;
+  }
+  runtime.childEnv.PLAYWRIGHT_MCP_EXTENSION = String(runtime.extensionMode);
+  if (!runtime.extensionMode) {
+    delete runtime.childEnv.PLAYWRIGHT_MCP_EXTENSION_TOKEN;
+    return;
+  }
+
+  if (optionalEnvString(runtime.env, 'PLAYWRIGHT_MCP_EXTENSION_TOKEN') === undefined) {
+    throw new BridgeRuntimeConfigurationError(
+      'PLAYWRIGHT_MCP_EXTENSION_TOKEN must be a non-empty process environment value in extension mode',
+    );
+  }
+  if (runtime.browserConfig.userDataDir === undefined) {
+    throw new BridgeRuntimeConfigurationError(
+      'PLAYWRIGHT_MCP_USER_DATA_DIR or initialize metadata userDataDir is required in extension mode',
+    );
+  }
+
+  const conflicts = collectExtensionModeConflicts(runtime, options, extensionPaths);
+  if (conflicts.length > 0) {
+    throw new BridgeRuntimeConfigurationError(
+      `Playwright Extension connection mode is incompatible with ${conflicts.join(', ')}`,
+    );
+  }
+
+  delete runtime.browserConfig.isolated;
+  runtime.browserConfig.launchOptions = {};
+  delete runtime.childEnv.PLAYWRIGHT_MCP_ISOLATED;
+  runtime.childEnv.PLAYWRIGHT_MCP_HEADLESS = 'false';
+}
+
+function collectExtensionModeConflicts(
+  runtime: PreparedBridgeRuntimeBase,
+  options: PrepareBridgeRuntimeOptions,
+  extensionPaths: readonly string[],
+): string[] {
+  const conflicts: string[] = [];
+  const add = (condition: boolean, label: string): void => {
+    if (condition) conflicts.push(label);
+  };
+
+  add(options.managedCdpInternalPort !== undefined, 'managed CDP');
+  add(
+    optionalEnvString(runtime.env, 'PLAYWRIGHT_MCP_CDP_ENDPOINT') !== undefined,
+    'PLAYWRIGHT_MCP_CDP_ENDPOINT',
+  );
+  add(optionalEnvString(runtime.env, 'PLAYWRIGHT_MCP_ENDPOINT') !== undefined, 'PLAYWRIGHT_MCP_ENDPOINT');
+  add(
+    options.headless === true ||
+      (runtime.env.PLAYWRIGHT_MCP_HEADLESS !== undefined &&
+        envBool(runtime.env, 'PLAYWRIGHT_MCP_HEADLESS', false)),
+    'headless launch',
+  );
+  add(envBool(runtime.env, 'PLAYWRIGHT_MCP_ISOLATED', false), 'PLAYWRIGHT_MCP_ISOLATED');
+  add(runtime.launchOptions.proxy !== undefined, 'proxy configuration');
+  add(shouldMatchProxyGeoip(runtime.env, options.geoipProxyMatch), 'GeoIP matching');
+  add(shouldHumanize(runtime.env, options.humanize), 'humanization');
+  add(runtime.browserConfig.contextOptions !== undefined, 'browser context mutation');
+  add(extensionPaths.length > 0, 'CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS');
+
+  for (const name of [
+    'CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS',
+    'CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX',
+    'CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL',
+    'CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS',
+  ] as const) {
+    add(runtime.env[name] !== undefined, name);
+  }
+  return conflicts;
+}
+
+function resolveProfileDirName(
+  env: EnvReader,
+  runtimeProfileDirName: string | undefined,
+): string | undefined {
+  const value = runtimeProfileDirName ?? optionalEnvString(env, 'PLAYWRIGHT_MCP_PROFILE_DIR_NAME');
+  if (value === undefined) return undefined;
+  const trimmed = value.trim();
+  if (
+    trimmed.length === 0 ||
+    trimmed === '.' ||
+    trimmed === '..' ||
+    path.posix.isAbsolute(trimmed) ||
+    path.win32.isAbsolute(trimmed) ||
+    trimmed.includes('/') ||
+    trimmed.includes('\\')
+  ) {
+    const label = runtimeProfileDirName === undefined ? 'PLAYWRIGHT_MCP_PROFILE_DIR_NAME' : 'profileDirName';
+    throw new BridgeRuntimeConfigurationError(`${label} must be one relative path segment`);
+  }
+  return trimmed;
+}
+
 async function configureCloakRuntime(
   runtime: PreparedBridgeRuntimeBase,
   options: PrepareBridgeRuntimeOptions,
@@ -381,7 +504,13 @@ async function configureCloakRuntime(
 }
 
 function configureConsoleFallback(runtime: PreparedBridgeRuntimeBase): void {
-  if (!runtime.useCloak || !envBool(runtime.env, 'CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK', true)) return;
+  if (
+    runtime.extensionMode ||
+    !runtime.useCloak ||
+    !envBool(runtime.env, 'CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK', true)
+  ) {
+    return;
+  }
 
   const initScriptPath = path.join(runtime.tempDir, 'console-fallback-init.js');
   const preloadPath = path.join(runtime.tempDir, 'console-fallback.cjs');
@@ -392,6 +521,41 @@ function configureConsoleFallback(runtime: PreparedBridgeRuntimeBase): void {
     runtime.childEnv.NODE_OPTIONS,
     `--require=${quoteNodeOptionValue(preloadPath)}`,
   );
+}
+
+function applyManagedCdpLaunchOption(
+  runtime: PreparedBridgeRuntimeBase,
+  internalPort: number | undefined,
+): void {
+  for (const name of Object.keys(runtime.childEnv)) {
+    if (name.startsWith('PLAYWRIGHT_MCP_CDP_') || name.startsWith('CLOAK_PLAYWRIGHT_MCP_CDP_')) {
+      delete runtime.childEnv[name];
+    }
+  }
+  if (internalPort === undefined) return;
+  if (!Number.isInteger(internalPort) || internalPort < 1 || internalPort > 65_535) {
+    throw new BridgeRuntimeConfigurationError('managedCdpInternalPort must be an integer from 1 to 65535');
+  }
+
+  const args = runtime.launchOptions.args ?? [];
+  validateManagedCdpLaunchArgs(args, internalPort);
+  runtime.launchOptions.args = [...args, `--remote-debugging-port=${internalPort}`];
+}
+
+function validateManagedCdpLaunchArgs(args: string[], internalPort: number | undefined): void {
+  if (internalPort === undefined) return;
+  const prohibitedPrefixes = [
+    '--remote-debugging-port',
+    '--remote-debugging-address',
+    '--remote-debugging-pipe',
+    '--remote-allow-origins',
+  ];
+  const conflict = args.find((arg) =>
+    prohibitedPrefixes.some((prefix) => arg === prefix || arg.startsWith(`${prefix}=`)),
+  );
+  if (conflict !== undefined) {
+    throw new BridgeRuntimeConfigurationError(`${conflict.split('=')[0]} conflicts with managed CDP`);
+  }
 }
 
 function writeBridgeConfig(runtime: PreparedBridgeRuntimeBase): string {

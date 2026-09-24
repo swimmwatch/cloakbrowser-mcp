@@ -331,9 +331,13 @@ describe('bridge config generation', () => {
         PLAYWRIGHT_BROWSERS_PATH: path.join(root, 'playwright-cache'),
         PLAYWRIGHT_MCP_ALLOWED_ORIGINS: 'https://example.test',
         PLAYWRIGHT_MCP_BROWSER_ENGINE: 'playwright',
+        PLAYWRIGHT_MCP_FILE_PATHS: 'absolute',
+        PLAYWRIGHT_MCP_IDLE_TIMEOUT: '250',
+        PLAYWRIGHT_MCP_IMAGE_RESPONSES: 'only',
         PLAYWRIGHT_MCP_OUTPUT_DIR: outputDir,
         PLAYWRIGHT_MCP_PROXY_BYPASS: '.internal',
         PLAYWRIGHT_MCP_PROXY_SERVER: 'http://proxy.example:8080',
+        PLAYWRIGHT_MCP_WEBMCP: 'false',
         TMPDIR: root,
       },
     });
@@ -345,8 +349,12 @@ describe('bridge config generation', () => {
     expect(runtime.childEnv.NODE_EXTRA_CA_CERTS).toBe(path.join(root, 'ca.pem'));
     expect(runtime.childEnv.PLAYWRIGHT_BROWSERS_PATH).toBe(path.join(root, 'playwright-cache'));
     expect(runtime.childEnv.PLAYWRIGHT_MCP_ALLOWED_ORIGINS).toBe('https://example.test');
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_FILE_PATHS).toBe('absolute');
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_IDLE_TIMEOUT).toBe('250');
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_IMAGE_RESPONSES).toBe('only');
     expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_SERVER).toBe('http://proxy.example:8080');
     expect(runtime.childEnv.PLAYWRIGHT_MCP_PROXY_BYPASS).toBe('.internal');
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_WEBMCP).toBe('false');
     expect(runtime.childEnv.CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS).toBe('false');
     expect(runtime.childEnv.CLOAKBROWSER_CACHE_DIR).toBe(path.join(root, 'cloak-cache'));
     expect(runtime.childEnv.CLOAKBROWSER_AUTO_UPDATE).toBe('true');
@@ -540,6 +548,172 @@ describe('bridge config generation', () => {
     ).rejects.toThrow('already active');
 
     runtime.dispose();
+  });
+
+  it('configures Playwright Extension mode without launching CloakBrowser or serializing its token', async () => {
+    const root = createTempRoot();
+    const profileDir = path.join(root, 'profiles', 'extension');
+    let ensuredCloak = false;
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      ensureCloakBinary: async () => {
+        ensuredCloak = true;
+        return fakeCloakBinaryPath;
+      },
+      env: {
+        PLAYWRIGHT_MCP_EXTENSION: 'true',
+        PLAYWRIGHT_MCP_EXTENSION_TOKEN: 'extension-secret-token',
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        PLAYWRIGHT_MCP_PROFILE_DIR_NAME: 'Profile 1',
+        PLAYWRIGHT_MCP_USER_DATA_DIR: profileDir,
+      },
+    });
+
+    expect(runtime.browserEngine).toBe('playwright');
+    expect(runtime.cloakBinaryPath).toBeUndefined();
+    expect(ensuredCloak).toBe(false);
+    expect(runtime.childEnv).toMatchObject({
+      PLAYWRIGHT_MCP_EXTENSION: 'true',
+      PLAYWRIGHT_MCP_EXTENSION_TOKEN: 'extension-secret-token',
+      PLAYWRIGHT_MCP_HEADLESS: 'false',
+      PLAYWRIGHT_MCP_PROFILE_DIR_NAME: 'Profile 1',
+      PLAYWRIGHT_MCP_USER_DATA_DIR: canonicalDirectory(profileDir),
+    });
+    expect(runtime.config.browser).toMatchObject({
+      browserName: 'chromium',
+      launchOptions: {},
+      userDataDir: canonicalDirectory(profileDir),
+    });
+    expect(JSON.stringify(runtime.config)).not.toContain('extension-secret-token');
+    expect(readFileSync(runtime.configPath, 'utf8')).not.toContain('extension-secret-token');
+
+    runtime.dispose();
+  });
+
+  it('lets runtime extension metadata override process-level mode and profile name', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      extensionMode: true,
+      profileDirName: 'Profile 2',
+      userDataDir: path.join(root, 'profiles', 'extension'),
+      env: {
+        PLAYWRIGHT_MCP_EXTENSION: 'false',
+        PLAYWRIGHT_MCP_EXTENSION_TOKEN: 'token',
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        PLAYWRIGHT_MCP_PROFILE_DIR_NAME: 'Profile 1',
+      },
+    });
+
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_EXTENSION).toBe('true');
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_PROFILE_DIR_NAME).toBe('Profile 2');
+    runtime.dispose();
+  });
+
+  it('lets runtime metadata disable process-level extension mode', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      extensionMode: false,
+      ensureCloakBinary: async () => fakeCloakBinaryPath,
+      env: {
+        PLAYWRIGHT_MCP_EXTENSION: 'true',
+        PLAYWRIGHT_MCP_EXTENSION_TOKEN: 'must-not-reach-non-extension-child',
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    expect(runtime.browserEngine).toBe('cloak');
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_EXTENSION).toBe('false');
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_EXTENSION_TOKEN).toBeUndefined();
+    expect(runtime.cloakBinaryPath).toBe(fakeCloakBinaryPath);
+    runtime.dispose();
+  });
+
+  it('requires a process token and persistent profile for Playwright Extension mode', async () => {
+    const root = createTempRoot();
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: root,
+        extensionMode: true,
+        userDataDir: path.join(root, 'profiles', 'extension'),
+        env: { PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts') },
+      }),
+    ).rejects.toThrow('PLAYWRIGHT_MCP_EXTENSION_TOKEN');
+
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: root,
+        extensionMode: true,
+        env: {
+          PLAYWRIGHT_MCP_EXTENSION_TOKEN: 'token',
+          PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        },
+      }),
+    ).rejects.toThrow('userDataDir is required');
+  });
+
+  it.each(['.', '..', '/absolute', 'nested/profile', 'nested\\profile', 'C:\\profile'])(
+    'rejects unsafe Playwright Extension profile directory name %s',
+    async (profileDirName) => {
+      const root = createTempRoot();
+      await expect(
+        prepareBridgeRuntime({
+          tempRoot: root,
+          extensionMode: true,
+          profileDirName,
+          userDataDir: path.join(root, 'profiles', 'extension'),
+          env: {
+            PLAYWRIGHT_MCP_EXTENSION_TOKEN: 'token',
+            PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+          },
+        }),
+      ).rejects.toThrow('profileDirName must be one relative path segment');
+    },
+  );
+
+  it.each([
+    ['PLAYWRIGHT_MCP_CDP_ENDPOINT', 'http://127.0.0.1:9222'],
+    ['PLAYWRIGHT_MCP_ENDPOINT', 'ws://127.0.0.1:3001'],
+    ['PLAYWRIGHT_MCP_ISOLATED', 'true'],
+    ['CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS', '--disable-gpu'],
+  ] as const)('rejects extension mode with %s', async (name, value) => {
+    const root = createTempRoot();
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: root,
+        extensionMode: true,
+        userDataDir: path.join(root, 'profiles', name.toLowerCase()),
+        env: {
+          PLAYWRIGHT_MCP_EXTENSION_TOKEN: 'token',
+          PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+          [name]: value,
+        },
+      }),
+    ).rejects.toThrow(name);
+  });
+
+  it.each([
+    ['managed CDP', { managedCdpInternalPort: 43123 }],
+    ['headless launch', { headless: true }],
+    ['humanization', { humanize: true }],
+    ['browser context mutation', { contextOptions: { locale: 'en-US' } }],
+    ['proxy configuration', { proxy: { server: 'http://proxy.example:8080' } }],
+  ] as const)('rejects %s with Playwright Extension mode', async (conflict, conflictingOptions) => {
+    const root = createTempRoot();
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: root,
+        extensionMode: true,
+        userDataDir: path.join(root, 'profiles', conflict.replaceAll(' ', '-')),
+        env: {
+          PLAYWRIGHT_MCP_EXTENSION_TOKEN: 'token',
+          PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        },
+        ...conflictingOptions,
+      }),
+    ).rejects.toThrow(conflict);
   });
 
   it('rejects persistent profile directories locked by another process', async () => {
@@ -1328,6 +1502,7 @@ describe('bridge config generation', () => {
 
     expect(runtime.cloakBinaryPath).toBeUndefined();
     expect(runtime.childEnv.PLAYWRIGHT_MCP_EXECUTABLE_PATH).toBeUndefined();
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_BROWSER).toBe('chromium');
     expect(runtime.childEnv.PLAYWRIGHT_MCP_ISOLATED).toBeUndefined();
     expect(runtime.config.browser?.isolated).toBeUndefined();
     expect(runtime.config.browser?.initPage).toBeUndefined();
@@ -1337,6 +1512,131 @@ describe('bridge config generation', () => {
     expect(called).toBe(false);
 
     runtime.dispose();
+  });
+
+  it('preserves an explicit upstream browser in Playwright engine mode', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      env: {
+        PLAYWRIGHT_MCP_BROWSER_ENGINE: 'playwright',
+        PLAYWRIGHT_MCP_BROWSER: 'chrome',
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+      },
+    });
+
+    expect(runtime.childEnv.PLAYWRIGHT_MCP_BROWSER).toBe('chrome');
+    runtime.dispose();
+  });
+
+  it.each(['cloak', 'playwright'] as const)(
+    'adds only the bridge-owned debugging port for the %s engine',
+    async (browserEngine) => {
+      const root = createTempRoot();
+      const runtime = await prepareBridgeRuntime({
+        tempRoot: root,
+        managedCdpInternalPort: 43123,
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
+        buildCloakLaunchOptions: async () => ({ args: ['--cloak-built'] }),
+        env: {
+          PLAYWRIGHT_MCP_BROWSER_ENGINE: browserEngine,
+          PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+          CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+          CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED: 'true',
+          PLAYWRIGHT_MCP_CDP_PORT_RANGE: '9222-9322',
+        },
+      });
+
+      expect(runtime.config.browser?.launchOptions?.args).toContain('--remote-debugging-port=43123');
+      expect(runtime.config.browser?.launchOptions?.args).not.toContain('--remote-debugging-address=0.0.0.0');
+      expect(runtime.config.browser?.launchOptions?.args).not.toContain('--remote-allow-origins=*');
+      expect(runtime.config.browser?.launchOptions?.args).not.toContain('--remote-debugging-pipe');
+      expect(runtime.config.browser?.launchOptions?.ignoreDefaultArgs ?? []).not.toContain(
+        '--remote-debugging-pipe',
+      );
+      expect(runtime.childEnv.CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED).toBeUndefined();
+      expect(runtime.childEnv.PLAYWRIGHT_MCP_CDP_PORT_RANGE).toBeUndefined();
+
+      runtime.dispose();
+    },
+  );
+
+  it('removes managed CDP control variables from a disabled child environment', async () => {
+    const root = createTempRoot();
+    const runtime = await prepareBridgeRuntime({
+      tempRoot: root,
+      env: {
+        PLAYWRIGHT_MCP_BROWSER_ENGINE: 'playwright',
+        PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED: 'false',
+        CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE: '9222',
+      },
+    });
+
+    expect(runtime.childEnv.CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED).toBeUndefined();
+    expect(runtime.childEnv.CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE).toBeUndefined();
+    expect(runtime.config.browser?.launchOptions?.args ?? []).not.toContain(
+      expect.stringMatching(/^--remote-debugging-port=/u),
+    );
+    runtime.dispose();
+  });
+
+  it.each(['isolated', 'persistent'] as const)(
+    'preserves the managed debugging port in %s profile mode',
+    async (profileMode) => {
+      const root = createTempRoot();
+      const userDataDir = path.join(root, 'profile');
+      const runtime = await prepareBridgeRuntime({
+        tempRoot: root,
+        managedCdpInternalPort: 43123,
+        browserIsolated: profileMode === 'isolated',
+        userDataDir: profileMode === 'persistent' ? userDataDir : undefined,
+        env: {
+          PLAYWRIGHT_MCP_BROWSER_ENGINE: 'playwright',
+          PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts'),
+        },
+      });
+
+      expect(runtime.config.browser?.launchOptions?.args).toContain('--remote-debugging-port=43123');
+      expect(runtime.config.browser).toMatchObject(
+        profileMode === 'isolated' ? { isolated: true } : { userDataDir: canonicalDirectory(userDataDir) },
+      );
+
+      runtime.dispose();
+    },
+  );
+
+  it.each([
+    '--remote-debugging-port=9222',
+    '--remote-debugging-address=0.0.0.0',
+    '--remote-debugging-pipe',
+    '--remote-allow-origins=*',
+  ])('rejects a conflicting raw Chromium argument with managed CDP: %s', async (argument) => {
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: createTempRoot(),
+        managedCdpInternalPort: 43123,
+        env: {
+          PLAYWRIGHT_MCP_BROWSER_ENGINE: 'playwright',
+          CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS: argument,
+        },
+      }),
+    ).rejects.toThrow(argument.split('=')[0]);
+  });
+
+  it('rejects a raw managed-CDP conflict before Cloak launch-option transformation', async () => {
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: createTempRoot(),
+        managedCdpInternalPort: 43123,
+        ensureCloakBinary: async () => fakeCloakBinaryPath,
+        buildCloakLaunchOptions: async () => ({ args: [] }),
+        env: {
+          CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS: '--remote-debugging-port=9222',
+        },
+      }),
+    ).rejects.toThrow('--remote-debugging-port');
   });
 
   it('rejects unsupported bridge engines', async () => {

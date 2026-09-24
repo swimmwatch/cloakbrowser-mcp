@@ -1,0 +1,266 @@
+schema_version: 1
+specification:
+  source_version: 2188bfd27a0e17211a046f2653cd820636ce6cf36bf3d0a3593a12552c03efcf
+  specification_version: d8e7076dc352609d000ebb95568ad104aae6e4b84ce145113dfbdc285d9d5a58
+  review_ref: f008baec-bf84-4454-88db-dab9801e85df
+
+defaults:
+  runtime: Node.js 22.13 or later
+  process_cdp_enabled: false
+  cdp_bind_host: 127.0.0.1
+  cdp_allow_remote: false
+  cdp_advertised_scheme: http
+  admission_deadline_seconds: 60
+  request_header_timeout_seconds: 10
+  upstream_response_timeout_seconds: 10
+  websocket_handshake_timeout_seconds: 10
+  graceful_shutdown_seconds: 5
+
+observation:
+  - MCP JSON-RPC responses and session-local bridge-info structuredContent
+  - bridge-owned listener and process-local lease state through public lifecycle effects
+  - fake-upstream call records and real Chromium process arguments
+  - fake-Chromium request, response, WebSocket, and close observations
+  - redacted stderr and byte-exact MCP stdout
+  - active WebSocket counts, session-store timestamps, and cleanup completion
+
+scenarios:
+  - id: CDP-QS-001
+    title: Configuration precedence and transport-specific enablement fail closed
+    requirements: [CDP-001, CDP-011, CDP-012, CDP-014]
+    profiles: [core, security, cross-surface]
+    setup:
+      - Instrument listener, lease, upstream child, and generated child-environment creation.
+      - Exercise CLI, environment, stdio, and Streamable HTTP initialize metadata.
+    actions:
+      - Cover valid single-port and inclusive-range boundaries plus whitespace, empty, descending, duplicate-separator, non-decimal, signed, exponent, and out-of-range values.
+      - Cover each CLI value overriding an invalid or conflicting lower-precedence environment value.
+      - Cover --cdp-enabled and --no-cdp-enabled, --cdp-allow-remote and --no-cdp-allow-remote, and reject both forms of one option in the same invocation.
+      - Run the HTTP matrix for process default false and true with metadata absent, cdpEnabled true, and cdpEnabled false; run stdio with process default false and true.
+      - Cover pool-only configuration, effective true without a pool, loopback and non-loopback hosts, wildcard hosts, advertised host validation, and conflicting raw Chromium debugging arguments.
+      - Cover absent, http, https, and invalid advertised-scheme values.
+    expected:
+      - CLI wins independently over the corresponding environment value; only the resulting effective configuration is validated.
+      - Stdio uses the process default. HTTP metadata absent inherits it; literal true and false override it for only that session.
+      - A port pool alone creates no listener, internal endpoint, lease, capability, or upstream CDP bootstrap.
+      - Effective true without a pool fails process configuration for stdio/process-default use and only the requesting HTTP session for a metadata override.
+      - --no-cdp-enabled and --no-cdp-allow-remote override environment true; positive plus negative CLI forms fail before resource allocation.
+      - The unset/http scheme publishes http and ws. The https scheme publishes https and wss without changing the plaintext bridge listener or loopback Chromium transport.
+      - Bridge-owned CLOAK_PLAYWRIGHT_MCP_CDP_* values never reach the upstream child environment.
+    red_signal: A rejected or disabled configuration creates a CDP resource, an HTTP session ignores an explicit false, or https enables an in-process TLS listener.
+
+  - id: CDP-QS-002
+    title: Process-local leasing and session isolation are deterministic
+    requirements: [CDP-002, CDP-004, CDP-012]
+    profiles: [backend, operations, cross-surface]
+    setup:
+      - Start several opted-in and opted-out HTTP sessions in one bridge process.
+      - Reserve selected candidates both in-process and externally.
+    actions:
+      - Race enabled sessions for the same pool and exhaust every in-process lease.
+      - Cause an operating-system collision on the selected candidate while later candidates are free.
+      - Dispose a session and reuse its numeric port from a new session.
+    expected:
+      - Each enabled session owns a distinct lowest in-process candidate and one upstream child; disabled sessions own neither.
+      - In-process exhaustion is distinct from an external bind failure and does not consume MCP sessionMax capacity for a later disabled session.
+      - An external collision fails immediately without scanning later candidates.
+      - The listener remains the reservation until sockets and listener close; reuse receives a new capability and the stale URL remains rejected.
+    red_signal: Two sessions share a lease, an external collision scans forward, a lease is released before reachability closes, or a stale URL reaches a later session.
+
+  - id: CDP-QS-003
+    title: Initial browser bootstrap proves endpoint ownership before initialize succeeds
+    requirements: [CDP-003, CDP-007, CDP-009, CDP-011, CDP-014]
+    profiles: [backend, operations, security]
+    setup:
+      - Provide a fake-upstream call recorder and a controllable loopback DevTools endpoint.
+      - Reserve the internal port across the launch handoff.
+    actions:
+      - Run success, delay, early browser exit, invalid discovery, substituted endpoint, identity mismatch, challenge mismatch, challenge cleanup failure, and unusable external discovery cases.
+      - Repeat both cloak and playwright launch-option paths while observing Playwright's remote-debugging-pipe.
+    expected:
+      - Admission issues exactly one browser_tabs action=list bootstrap and uses one removable one-use challenge.
+      - The internal endpoint is loopback-only, distinct from the external pool, and accepted only for the upstream-owned browser.
+      - Success includes a usable rewritten /json/version/ endpoint within one absolute 60-second deadline.
+      - Every failure removes challenge material and rolls back child, browser, temporary reservation, proxy, sockets, capability, and lease.
+    red_signal: Initialize succeeds before ownership proof, a phase resets the absolute deadline, challenge data remains, or any provisional resource survives failure.
+
+  - id: CDP-QS-004
+    title: HTTP errors follow one typed redacted contract
+    requirements: [CDP-005, CDP-006, CDP-007, CDP-013, CDP-014]
+    profiles: [backend, operations, security]
+    setup:
+      - Record every request reaching fake Chromium and return controlled success, redirect, 4xx, 5xx, malformed, oversized, disconnected, and delayed responses.
+      - Capture exact status, headers, and body bytes for every local or normalized failure.
+    actions:
+      - Exercise missing, malformed, wrong, expired, and stale capabilities plus unsupported paths.
+      - Exercise unsupported methods on every supported route, malformed Host/Origin/query/target input, denied Host/Origin, a non-empty body, oversized headers, request-header timeout, unavailable state, and capacity exhaustion.
+      - Exercise upstream 3xx, each representative 4xx, 5xx, disconnect, malformed response, oversized response, timeout, and an injected unexpected bridge failure.
+    expected:
+      - 'Capability/path failures are 404 not_found; unsupported methods are 405 method_not_allowed with an exact route-specific Allow header.'
+      - 'Malformed request fields are 400 bad_request; request-header timeout is 408 request_timeout; non-empty body is 413 payload_too_large; oversized headers are 431 headers_too_large.'
+      - 'Denied Host/Origin is 403 forbidden; unavailable or capacity exhaustion is 503 unavailable.'
+      - 'A valid upstream 4xx keeps its status but becomes upstream_error; upstream 3xx/5xx, disconnect, malformed or oversized responses become 502 bad_gateway.'
+      - 'Upstream response or WebSocket handshake timeout is 504 gateway_timeout; the unexpected fallback is 500 internal_error.'
+      - Every error has application/json; charset=utf-8, Cache-Control no-store, exact Content-Length, one bounded generic error object, no upstream body/header, no Retry-After, and no protected value.
+      - All not_found variants are byte-indistinguishable and every locally rejected request produces zero fake-Chromium hits.
+    red_signal: A branch leaks upstream data or capability validity, has a different not_found body, returns a wrong status/code/header, or reaches Chromium before validation.
+
+  - id: CDP-QS-005
+    title: Authority policy and advertised TLS topology preserve the trust boundary
+    requirements: [CDP-001, CDP-005, CDP-006, CDP-012, CDP-013]
+    profiles: [backend, operations, security, cross-surface]
+    setup:
+      - Configure loopback, hostname, IPv6, wildcard, and remote bind cases.
+      - Place a test TLS terminator in front of the bridge's plaintext listener with one-to-one port routing.
+    actions:
+      - Send valid and invalid Host and Origin authorities through direct http/ws and terminated https/wss paths.
+      - Change the terminator Host, Origin, or port; attempt direct TLS against the plaintext bridge listener.
+      - Exercise absent Origin and cross-origin browser WebSocket attempts.
+    expected:
+      - Authority checks use the selected advertised host and leased port for both advertised schemes.
+      - The TLS terminator preserves Host and Origin authority and forwards plaintext to only the owning session listener.
+      - https/wss succeeds through the terminator; the bridge itself neither terminates TLS nor validates the terminator.
+      - Missing Origin is accepted only where the specification permits it; a present denied Origin never reaches Chromium.
+      - Remote enablement emits one redacted unencrypted-control warning without capability data.
+    red_signal: Scheme selection weakens authority checks, a terminator can cross-route sessions, or selecting https changes internal/bridge transport to TLS.
+
+  - id: CDP-QS-006
+    title: Discovery rewriting and WebSocket relay preserve protocol while enforcing bounds
+    requirements: [CDP-005, CDP-006, CDP-008, CDP-010, CDP-013]
+    profiles: [backend, operations, security, cross-surface]
+    setup:
+      - Return controlled Chromium version, target-list, protocol, create, activate, and close responses containing internal authorities.
+      - Use controllable client and fake-Chromium WebSocket peers with delayed reads and close capture.
+    actions:
+      - Inspect webSocketDebuggerUrl, authority-bearing ws parameters in devtoolsFrontendUrl, headers, unrelated page URLs, and arbitrary strings under http/ws and https/wss publication.
+      - Relay concurrent text and binary messages in both directions at and one byte above message and queue limits.
+      - Open eight then nine connections; exercise malformed protocol input, queue overflow, upstream disconnect without valid close, lifecycle shutdown, and valid peer close.
+    expected:
+      - Only authority-bearing DevTools values are rewritten to the current capability prefix; internal authority and unsupported response headers never escape.
+      - Unrelated payload values are byte-equivalent and connectOverCDP can use the advertised discovery base.
+      - Text/binary identity, ordering, valid peer close, and backpressure are preserved; only the offending connection closes when a bound is exceeded.
+      - Local close pairs are exactly 1001/going_away, 1002/protocol_error, 1009/message_too_big, 1011/internal_error, and 1013/try_again_later for their specified causes.
+      - Fixed reasons are at most 123 UTF-8 bytes and contain no capability, authority, target ID, upstream reason, or browser data.
+    red_signal: Internal authority leaks, unrelated JSON changes, a local failure uses an arbitrary close reason, or one slow client blocks MCP or another session.
+
+  - id: CDP-QS-007
+    title: HTTP and proxy resource bounds are exact and session-local
+    requirements: [CDP-005, CDP-007, CDP-013, CDP-014]
+    profiles: [backend, operations, security]
+    setup:
+      - Expose slow, oversized, malformed, and disconnected fake-Chromium responses.
+      - Make clocks, streams, and shutdown completion observable.
+    actions:
+      - Exercise 16 and 17 concurrent pre-upgrade requests, 16 KiB and one-byte-larger headers, 4 MiB and one-byte-larger responses, 8 KiB error envelopes, and a non-empty body.
+      - Cross the request-header, upstream-response, and WebSocket-handshake 10-second deadlines.
+      - Close the proxy with active requests and sockets across the five-second graceful budget.
+    expected:
+      - Every at-limit operation completes when otherwise valid; every over-limit operation fails through the CDP-QS-004 contract.
+      - Oversized payloads are not fully buffered, rejected bodies never reach Chromium, and diagnostics remain bounded and redacted.
+      - Shutdown stops new admission, waits no more than five seconds, force-closes owned sockets, and affects no other session.
+    red_signal: An off-by-one input succeeds, a timeout maps to the wrong class, oversized data is retained, or one session's pressure affects another.
+
+  - id: CDP-QS-008
+    title: Browser loss triggers one bounded upstream-child restart before later tool forwarding
+    requirements: [CDP-003, CDP-007, CDP-008, CDP-009, CDP-013, CDP-014]
+    profiles: [core, backend, operations, cross-surface]
+    setup:
+      - Start one ready generation with active discovery and WebSocket clients, and record the upstream child PID, internal port, external port, configuration, and forwarded calls.
+      - Make old-child cleanup, replacement preparation, connection, bootstrap, challenge, and external readiness independently controllable.
+    actions:
+      - Trigger loss through MCP browser_close, raw CDP Browser.close, injected crash, upstream disconnect, and identity mismatch.
+      - Observe the idle unavailable state, then send one and several concurrent later browser-tool calls.
+      - Fail each restart phase before forwarding, retry with a later call, and return both success and upstream failure after successful readiness.
+      - Make one forwarded tool cause a new browser loss and race session shutdown against an in-flight restart.
+    expected:
+      - Loss immediately rejects the current capability, closes generation sockets, reports unavailable, and starts no replacement by itself.
+      - The first later browser tool starts one shared restart; the old child is unreachable before one replacement child is created with the same session configuration.
+      - The external port and lease remain stable, while internal port, child PID, capability, and generation rotate only after ownership and external readiness succeed.
+      - No waiting call is forwarded before readiness. After readiness, every waiter is forwarded to the replacement exactly once and returns its upstream success or failure unchanged.
+      - A pre-forward restart failure forwards nothing, cleans provisional resources, remains unavailable, and permits one new bounded attempt on a later browser call.
+      - A tool-caused post-forward loss invalidates the new generation without retrying the tool; session shutdown cancels restart and leaves no replacement child.
+    red_signal: Loss starts an eager child, any call reaches the old child or runs twice, concurrent calls create overlapping children, the deadline resets, or shutdown leaves a child or releases the external lease early.
+
+  - id: CDP-QS-009
+    title: MCP and CDP share one generation without bridge-level command locking
+    requirements: [CDP-002, CDP-010, CDP-014]
+    profiles: [backend, cross-surface]
+    setup:
+      - Connect MCP and several CDP clients to one ready session generation.
+    actions:
+      - Create and observe pages, cookies, storage, target events, and non-conflicting concurrent reads through both surfaces.
+      - Run caller-controlled conflicting operations and disconnect individual CDP clients.
+    expected:
+      - All clients observe the same browser runtime and non-conflicting work proceeds without bridge-wide serialization.
+      - Active connection count changes without exposing client or target identity.
+      - The bridge does not synthesize ordering guarantees or translate CDP commands/events.
+    red_signal: The bridge starts a second browser, serializes unrelated work globally, or hides caller-controlled conflict outcomes.
+
+  - id: CDP-QS-010
+    title: Session expiry and shutdown close reachability before lease release
+    requirements: [CDP-004, CDP-009, CDP-013, CDP-014]
+    profiles: [operations, security, cross-surface]
+    setup:
+      - Use controlled Streamable HTTP time and active, quiet, malformed, and closing CDP sockets.
+    actions:
+      - Send accepted HTTP requests and WebSocket frames, then leave a socket quiet across idle expiry.
+      - Exercise MCP DELETE, startup rollback, stdio EOF, SIGINT, SIGTERM, and concurrent upgrade/shutdown races.
+      - Race each shutdown path against old-child cleanup and replacement-child bootstrap.
+    expected:
+      - Accepted CDP requests and frames refresh only their owning HTTP session; an open or quiet socket does not.
+      - Expiry or shutdown rejects new admission, invalidates capability, closes sockets/listener, disposes child/browser/temp resources, then releases the lease exactly once.
+      - Shutdown cancels and wins against restart; no provisional or replacement child survives and no waiting browser tool is forwarded.
+      - No old connection can reach Chromium after the numeric port becomes reusable.
+    red_signal: A quiet socket keeps a session alive, a lease releases before reachability closes, or cleanup exceeds its bound without an explicit failure.
+
+  - id: CDP-QS-011
+    title: Logs, errors, and stdout preserve protocol safety and confidentiality
+    requirements: [CDP-001, CDP-005, CDP-006, CDP-013, CDP-014]
+    profiles: [operations, security]
+    setup:
+      - Capture byte-exact stdout and stderr under success, rejection, timeout, replacement failure, and remote opt-in.
+      - Seed capabilities, authorities, discovery bodies, target IDs, cookies, page contents, proxy credentials, profile paths, and upstream error text with unique sentinels.
+    actions:
+      - Trigger every HTTP error code and every local WebSocket close class.
+      - Trigger allocation, readiness, recovery, and shutdown diagnostics.
+    expected:
+      - Stdout contains only MCP protocol messages.
+      - Stderr and typed error envelopes contain no protected sentinel and remain actionable by event class only.
+      - Remote opt-in produces one clear warning about privileged unencrypted control without exposing capability data.
+    red_signal: Any sentinel appears in diagnostics, stdout contains a log line, or an upstream reason enters a local WebSocket reason.
+
+  - id: CDP-QS-012
+    title: Real-browser matrix proves shared state, isolation, and teardown semantics
+    requirements: [CDP-002, CDP-003, CDP-005, CDP-009, CDP-010, CDP-011, CDP-012, CDP-014, CDP-015]
+    profiles: [backend, operations, security, cross-surface]
+    setup:
+      - Run packaged Node stdio and two-session Streamable HTTP with cloak and playwright engines.
+      - Use Playwright connectOverCDP and a raw CDP client.
+    actions:
+      - Verify eager bootstrap, retained Playwright pipe, ownership challenge, MCP/CDP shared state, isolated persistent profiles, multiple CDP clients, replacement, and cleanup.
+      - Observe Playwright client browser.close separately from raw Browser.close without assuming equivalent semantics.
+      - After raw Browser.close, record the old child PID and prove the first later browser tool is forwarded exactly once only after a different child reaches readiness.
+      - Repeat advertised http/ws directly and https/wss through a test TLS terminator.
+    expected:
+      - All four engine/transport pairs pass and simultaneous HTTP sessions remain isolated.
+      - Advertised discovery is immediately usable by the matching client path and never leaks internal authority.
+      - Both engines deterministically replace the upstream child after raw Browser.close, retain the external port, rotate capability and generation, and preserve the exactly-once upstream result.
+      - Client-specific teardown observations are recorded for Packet 08 without treating Playwright browser.close as raw Browser.close.
+    red_signal: Fake-upstream evidence is the only browser proof, TLS publication is untested, or client teardown behavior is inferred rather than observed.
+
+  - id: CDP-QS-013
+    title: Docker and delivery-stage evidence remain architecture-specific
+    requirements: [CDP-012, CDP-014, CDP-015]
+    profiles: [operations, cross-surface]
+    setup:
+      - Publish the configured external range one-to-one into a test container.
+      - Keep pull-request and release-only runtime evidence separate.
+    actions:
+      - On pull requests, run linux/amd64 default-cloak discovery and a real WebSocket connection.
+      - Before release, run linux/amd64 playwright smoke and native linux/arm64 smoke for both engines.
+      - When native arm64 execution is unavailable, build the image but mark runtime smoke unverified.
+    expected:
+      - Disabled sessions expose no endpoint and consume no published pool entry.
+      - Required available-platform checks gate their delivery stage; emulation or image build is never reported as native runtime evidence.
+      - Missing native arm64 runtime evidence remains an explicit release blocker.
+    red_signal: Port publication cross-routes sessions, an image build is reported as runtime proof, or a missing release gate is silently treated as passed.

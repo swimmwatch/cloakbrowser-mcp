@@ -14,11 +14,11 @@ tags:
 
 Очікується, що стандартна поверхня upstream-інструментів браузера відповідає закріпленій залежності Playwright MCP. Вона включає основні браузерні інструменти: навігацію, snapshot, кліки, введення тексту, скриншоти, вкладки, повідомлення консолі, перевірку мережі, завантаження файлів, діалоги та небезпечні інструменти виконання.
 
-Для стабільного upstream-посилання див. capability test Playwright MCP `{{ project.playwright_mcp_package_tag }}`, закріплений на точному коміті пакета: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/4c1fb03bad3bae379b0ae0e3d81d2660de56bd91/tests/capabilities.spec.ts#L19-L77).
+Для стабільного upstream-посилання див. capability test Playwright MCP `{{ project.playwright_mcp_package_tag }}`, закріплений на точному коміті пакета: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/f1257a5a67aff872f947fae274759f7d54853862/tests/capabilities.spec.ts#L19-L77).
 
 Цей проект вважає upstream Playwright MCP авторитетним джерелом і не підтримує скопійований довідник схем.
 
-Базовий набір містить 24 upstream-інструменти. `PLAYWRIGHT_MCP_CAPS=devtools`
+Базовий набір містить 25 upstream-інструментів, включно з `browser_emulate_media`. `PLAYWRIGHT_MCP_CAPS=devtools`
 передає можливість `devtools` дочірньому процесу без прапорця моста `--caps`;
 отримані upstream-інструменти та схеми передаються без змін, зокрема
 `browser_start_recording` і `browser_stop_recording`.
@@ -35,6 +35,12 @@ tags:
     [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) і
     [#176](https://github.com/CloakHQ/CloakBrowser/issues/176).
 
+### Динамічні інструменти WebMCP
+
+Chromium підтримує WebMCP починаючи з версії 154. Старіші збірки CloakBrowser ігнорують feature flag; якщо WebMCP обов'язковий, використовуйте сумісну збірку браузера або `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright`.
+
+Коли Chromium запущено з `--enable-features=WebMCP`, сторінки можуть оголошувати інструменти `webmcp_*`. Міст передає `notifications/tools/list_changed`, очищає весь кеш `tools/list`, а клієнт має повторно запросити список. У Streamable HTTP сповіщення отримує лише відкритий потік відповідної сесії; наступний `tools/list` лишається актуальним і без потоку. Вважайте назву, опис, схему, annotations та output недовіреними даними сторінки. Міст не вмикає WebMCP автоматично; `PLAYWRIGHT_MCP_WEBMCP=false` вимикає збір.
+
 ## Локальні інструменти
 
 ### `cloakbrowser_binary_info`
@@ -44,6 +50,56 @@ tags:
 ### `cloakbrowser_bridge_info`
 
 Повертає структуровані метадані моста:
+
+Об'єкт додатку `structuredContent.cdp` повідомляє про керований CDP викликаної сесії
+стан:
+
+```json
+{ "enabled": false }
+```
+
+```json
+{
+  "enabled": true,
+  "state": "ready",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": "http://127.0.0.1:9222/cdp/<capability>",
+  "activeConnections": 0
+}
+```
+
+```json
+{
+  "enabled": true,
+  "state": "unavailable",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": null,
+  "activeConnections": 0
+}
+```
+
+`generation` збільшується, а `discoveryUrl` обертається після заміни браузера.
+`activeConnections` рахує прийняті проксовані WebSocket з’єднання, не піддаючи їх загрозі
+ідентичності клієнтів, цільові ідентифікатори або вміст протоколу. Обробляйте кожне ненульове відкриття URL
+як документ, що підтверджує кваліфікацію.
+
+Використовуйте відкриття URL з клієнтом, що підтримує CDP:
+
+```ts
+import { chromium } from 'playwright';
+
+const browser = await chromium.connectOverCDP(discoveryUrl);
+```
+
+Керований CDP не є протоколом сервера Playwright. Playwright
+`chromium.connect()` та поточна інтеграція Open WebUI `PLAYWRIGHT_WS_URL` очікують
+кінцева точка сервера Playwright і не сумісна з цим URL.
 
 - ім'я та версію MCP-сервера;
 - режим виконання;

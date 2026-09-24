@@ -85,6 +85,95 @@ o no puede comunicarse con su servidor de licencias, el inicio falla con el
 error explícito de CloakBrowser. El puente conserva ese error: no lo oculta ni
 cambia silenciosamente a otro navegador o nivel de licencia.
 
+## CDP gestionado { #managed-cdp }
+
+El acceso administrado al Protocolo de Chrome DevTools (CDP) es una opción explícita de aceptación. Expone el
+misma generación de navegador Chromium controlada por MCP a través de una capacidad portadora
+descubrimiento URL. Configurar solo un grupo de puertos no habilita CDP.
+
+| Opción CLI | Variable de entorno | predeterminada | Propósito |
+| --- | --- | --- | --- |
+| `--cdp-enabled`, `--no-cdp-enabled` | `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED` | `false` | Establezca el valor de stdio y la sesión predeterminada Streamable HTTP. |
+| `--cdp-port-range <port\|start-end>` | `CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE` | desajustar | Configure el grupo de puertos del proxy externo local del proceso. Una sesión habilitada ocupa un puerto. |
+| `--cdp-host <host>` | `CLOAK_PLAYWRIGHT_MCP_CDP_HOST` | `127.0.0.1` | Vincule el proxy gestionado CDP. |
+| `--cdp-allow-remote`, `--no-cdp-allow-remote` | `CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE` | `false` | Permitir o denegar una vinculación que no sea de bucle invertido. |
+| `--cdp-advertised-host <host>` | `CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_HOST` | desactivar | Coloca un host concreto accesible externamente en las URLs de descubrimiento. Requerido para enlaces comodín. |
+| `--cdp-advertised-scheme <http\|https>` | `CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_SCHEME` | `http` | Publicar las URLs `http`/`ws` o `https`/`wss`. Esto no habilita TLS. |
+
+Cada valor CLI anula únicamente su variable de entorno correspondiente. En particular,
+`--no-cdp-enabled` reemplaza a `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED=true`, y
+`--no-cdp-allow-remote` anula `CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE=true`.
+Una sesión habilitada sin un grupo de puertos es rechazada antes de que su hijo ascendente comience.
+Un valor falso eficaz no crea ningún oyente, arrendamiento de puerto ni capacidad.
+
+Para stdio, el valor del proceso se aplica directamente:
+
+```bash
+cloakbrowser-mcp \
+  --cdp-enabled \
+  --cdp-port-range 9222
+```
+
+Para Streamable HTTP, el booleano plano `cdpEnabled` en el autenticado
+Los metadatos `initialize` anulan el valor predeterminado del proceso para esa sesión. Omitir el
+el campo hereda el valor del proceso. Estos ejemplos optan explícitamente por una sesión y
+otro fuera:
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "cdpEnabled": true
+      }
+    }
+  }
+}
+```
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "cdpEnabled": false
+      }
+    }
+  }
+}
+```
+
+Una sesión CDP habilitada con HTTP posee un arrendamiento de puerto externo. Las sesiones deshabilitadas no lo hacen
+consume la piscina. La asignación es local al proceso, selecciona el candidato no arrendado más bajo,
+y falla esa sesión inmediatamente si el puerto externo seleccionado ya está ocupado.
+Cierre sesiones para liberar puertos o configure un rango más grande cuando el grupo esté agotado.
+
+Recupere el URL actual de `cloakbrowser_bridge_info`, luego pase su
+`structuredContent.cdp.discoveryUrl` a un cliente CDP como el de Playwright
+`chromium.connectOverCDP()`. Trata ese URL como una credencial: incluye un aleatorio
+capacidad por generación y se vuelve obsoleta después del reemplazo del navegador. CDP gestionado es
+no es un endpoint del servidor Playwright. `chromium.connect()` y el Open WebUI actual
+El flujo `PLAYWRIGHT_WS_URL` no es compatible.
+
+`--cdp-advertised-scheme https` publica `https` descubrimiento y `wss` WebSocket URLs
+solo. El puente no proporciona TLS para CDP gestionado: su oyente externo y
+Chromium mantener la parte en texto claro HTTP/WebSocket. Un terminador TLS propiedad del operador debe
+escuchar en el mismo puerto arrendado anunciado, preservar los anuncios `Host` y `Origin`
+autoridad, y reenviar uno a uno a ese oyente de texto plano de la sesión.
+
+La habilitación de CDP comienza Chromium durante la inicialización de MCP, por lo que la propiedad y externa
+se puede verificar la preparación. Configure el tiempo de espera de inicialización del cliente MCP a al menos 60
+segundos. Cuando se habilita CDP gestionado, suministrado por el usuario
+`CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` no debe contener `--remote-debugging-port`,
+`--remote-debugging-address`, o `--remote-debugging-pipe` (incluyendo las formas `=`).
+El propio Playwright mantiene interno `--remote-debugging-pipe` activado junto con el
+punto final TCP de bucle invertido gestionado por el puente.
+
+Ver [Herramientas](tools.md#cloakbrowser_bridge_info), [Docker](docker.md#managed-cdp),
+[Seguridad](security.md#managed-cdp-security), y
+[Arquitectura](architecture.md#managed-cdp-ownership) para el estado de descubrimiento, despliegue,
+límites y comportamiento de reinicio.
+
 ## Canal de lanzamiento de CloakBrowser
 
 `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` selecciona el canal de lanzamiento del binario de CloakBrowser. El valor predeterminado es `stable`. `preview` solicita una compilación previa de navegador Pro y solo está disponible con una licencia Pro. Una versión fijada explícitamente mediante `CLOAKBROWSER_VERSION` tiene prioridad. Si Preview no está disponible para la plataforma, CloakBrowser vuelve a Stable.
@@ -177,6 +266,10 @@ rutas de extensiones. Usa una matriz JSON para
 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` cuando las rutas contengan comas, al
 pasar varias extensiones o al usar rutas de Windows con letras de unidad.
 
+## Modo de conexión Playwright Extension
+
+Este modo se conecta mediante la extensión oficial de Playwright ya instalada en un perfil de Chrome o Edge y es distinto de cargar extensiones desempaquetadas con `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`. Para stdio, configura `PLAYWRIGHT_MCP_EXTENSION=true`, `PLAYWRIGHT_MCP_EXTENSION_TOKEN`, `PLAYWRIGHT_MCP_USER_DATA_DIR` y, si hace falta, un solo segmento relativo en `PLAYWRIGHT_MCP_PROFILE_DIR_NAME`. En Streamable HTTP, los metadatos `extensionMode`, `profileDirName` y `userDataDir` sustituyen los valores del proceso, pero el token solo se acepta desde el entorno del proceso. Las sesiones paralelas deben usar distintos `userDataDir`; las opciones de launch, CDP, proxy, GeoIP, humanization, context y `extensionPaths` son incompatibles.
+
 ## Metadatos de tiempo de ejecución HTTP transmitibles
 
 Los clientes HTTP de transmisión pueden seleccionar determinadas opciones de tiempo de ejecución para cada sesión de MCP añadiendo
@@ -217,9 +310,7 @@ sin afectar a las demás sesiones. `humanPreset` puede seleccionar `default` o `
 para esa sesión, pero no activa por sí mismo el comportamiento humanizado. Las sesiones
 existentes conservan el comportamiento capturado durante `initialize`.
 
-`headless` puede activar o desactivar el modo de navegador sin interfaz gráfica para esa sesión. Configurar
-`headless` en `false` requiere un entorno de visualización operativo, especialmente en
-implementaciones en Docker o en servidores Linux.
+En Docker, `headless: false` inicia una pantalla virtual privada bajo demanda. Fuera de la imagen, una sesión con interfaz gráfica todavía requiere un entorno de pantalla utilizable.
 
 `userDataDir` habilita un perfil persistente de Chromium para esa sesión y
 sobrescribe `PLAYWRIGHT_MCP_USER_DATA_DIR`. El puente resuelve el directorio

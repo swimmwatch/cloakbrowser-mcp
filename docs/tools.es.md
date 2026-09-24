@@ -14,11 +14,11 @@ tags:
 
 Se espera que la superficie predeterminada de herramientas de navegador upstream coincida con la dependencia fijada de Playwright MCP. Incluye herramientas principales como navegación, snapshots, clics, escritura, capturas de pantalla, pestañas, mensajes de consola, inspección de red, subida de archivos, diálogos y herramientas de evaluación insegura.
 
-Como referencia upstream estable, consulta la prueba de capacidades de Playwright MCP `{{ project.playwright_mcp_package_tag }}` fijada al commit exacto del paquete: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/4c1fb03bad3bae379b0ae0e3d81d2660de56bd91/tests/capabilities.spec.ts#L19-L77).
+Como referencia upstream estable, consulta la prueba de capacidades de Playwright MCP `{{ project.playwright_mcp_package_tag }}` fijada al commit exacto del paquete: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/f1257a5a67aff872f947fae274759f7d54853862/tests/capabilities.spec.ts#L19-L77).
 
 Este proyecto trata a upstream Playwright MCP como fuente autorizada y no mantiene una copia de referencia de esquemas.
 
-El conjunto predeterminado contiene 24 herramientas upstream.
+El conjunto predeterminado contiene 25 herramientas upstream, incluida `browser_emulate_media`.
 `PLAYWRIGHT_MCP_CAPS=devtools` pasa la capacidad `devtools` al proceso hijo sin
 una opción `--caps` del puente; las herramientas y los esquemas upstream
 resultantes se reenvían sin cambios, incluidos `browser_start_recording` y
@@ -36,6 +36,12 @@ resultantes se reenvían sin cambios, incluidos `browser_start_recording` y
     [#340](https://github.com/CloakHQ/CloakBrowser/issues/340) y
     [#176](https://github.com/CloakHQ/CloakBrowser/issues/176).
 
+### Herramientas WebMCP dinámicas
+
+Chromium implementa WebMCP a partir de la versión 154. Las compilaciones anteriores de CloakBrowser ignoran el feature flag; si necesitas WebMCP, usa una compilación de navegador compatible o `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright`.
+
+Cuando Chromium se inicia con `--enable-features=WebMCP`, las páginas pueden declarar herramientas `webmcp_*`. El bridge reenvía `notifications/tools/list_changed`, limpia toda la caché de `tools/list` y el cliente debe volver a solicitar la lista. En Streamable HTTP, solo el flujo abierto de la sesión correspondiente recibe la notificación; el siguiente `tools/list` sigue siendo actual incluso sin flujo. Considera el nombre, la descripción, el esquema, las annotations y el output como datos de página no confiables. El bridge no activa WebMCP automáticamente; `PLAYWRIGHT_MCP_WEBMCP=false` desactiva la recopilación.
+
 ## Herramientas locales
 
 ### `cloakbrowser_binary_info`
@@ -45,6 +51,56 @@ Devuelve información estructurada sobre el paquete CloakBrowser, la plataforma 
 ### `cloakbrowser_bridge_info`
 
 Devuelve metadatos estructurados del puente:
+
+El objeto aditivo `structuredContent.cdp` informa sobre el CDP administrado de la sesión que llama
+estado:
+
+```json
+{ "enabled": false }
+```
+
+```json
+{
+  "enabled": true,
+  "state": "ready",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": "http://127.0.0.1:9222/cdp/<capability>",
+  "activeConnections": 0
+}
+```
+
+```json
+{
+  "enabled": true,
+  "state": "unavailable",
+  "generation": 1,
+  "bindHost": "127.0.0.1",
+  "port": 9222,
+  "advertisedHost": null,
+  "discoveryUrl": null,
+  "activeConnections": 0
+}
+```
+
+`generation` aumenta y `discoveryUrl` rota después del reemplazo del navegador.
+`activeConnections` cuenta las conexiones proxied WebSocket aceptadas sin exponer
+identidades de clientes, IDs de destino o contenido del protocolo. Trate cada descubrimiento no nulo URL
+como una credencial.
+
+Use el descubrimiento URL con un cliente compatible con CDP:
+
+```ts
+import { chromium } from 'playwright';
+
+const browser = await chromium.connectOverCDP(discoveryUrl);
+```
+
+CDP administrado no es el protocolo del servidor Playwright. Playwright
+`chromium.connect()` y la integración actual Open WebUI `PLAYWRIGHT_WS_URL` esperan
+un punto de conexión del servidor Playwright y no son compatibles con este URL.
 
 - nombre y versión del servidor MCP;
 - modo de ejecución;
