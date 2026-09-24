@@ -434,6 +434,8 @@ plugins:
       locale: en
       enable_creation_date: true
       enable_git_follow: false
+      exclude:
+        - generated/cli.md
       fallback_to_build_date: true
       strict: false
   - privacy:
