@@ -647,6 +647,11 @@ function resolveFile(value: string, label: string): string {
     throw new BridgeRuntimeConfigurationError(`${label} must point to a readable file: ${resolved}`);
   }
   try {
+    accessSync(resolved, fsConstants.X_OK);
+  } catch {
+    throw new BridgeRuntimeConfigurationError(`${label} must point to an executable file: ${resolved}`);
+  }
+  try {
     return path.normalize(realpathSync.native(resolved));
   } catch {
     return path.resolve(path.normalize(resolved));
@@ -1098,15 +1103,25 @@ export function getCurrentCloakBinaryInfo(): ReturnType<typeof binaryInfo> {
   return binaryInfo();
 }
 
-async function withCloakBinaryPath<T>(cloakBinaryPath: string, fn: () => Promise<T>): Promise<T> {
-  const previous = process.env.CLOAKBROWSER_BINARY_PATH;
-  process.env.CLOAKBROWSER_BINARY_PATH = cloakBinaryPath;
-  try {
-    return await fn();
-  } finally {
-    if (previous === undefined) delete process.env.CLOAKBROWSER_BINARY_PATH;
-    else process.env.CLOAKBROWSER_BINARY_PATH = previous;
-  }
+let cloakLaunchOptionsQueue: Promise<void> = Promise.resolve();
+
+function withCloakBinaryPath<T>(cloakBinaryPath: string, fn: () => Promise<T>): Promise<T> {
+  // CloakBrowser reads this process-wide override during asynchronous launch option generation.
+  const result = cloakLaunchOptionsQueue.then(async () => {
+    const previous = process.env.CLOAKBROWSER_BINARY_PATH;
+    process.env.CLOAKBROWSER_BINARY_PATH = cloakBinaryPath;
+    try {
+      return await fn();
+    } finally {
+      if (previous === undefined) delete process.env.CLOAKBROWSER_BINARY_PATH;
+      else process.env.CLOAKBROWSER_BINARY_PATH = previous;
+    }
+  });
+  cloakLaunchOptionsQueue = result.then(
+    () => undefined,
+    () => undefined,
+  );
+  return result;
 }
 
 function parseBrowserEngine(value: string): BrowserEngine {

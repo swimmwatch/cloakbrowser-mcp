@@ -118,7 +118,7 @@ describe('streamable HTTP bridge', () => {
       async () => {
         const root = createTempRoot();
         const binaryPath = path.join(root, 'custom-chrome');
-        writeFileSync(binaryPath, 'test binary');
+        writeFileSync(binaryPath, 'test binary', { mode: 0o755 });
         const server = await startHttpBridge({ runtimeOptions: { binaryPath } });
         const { client } = await connectHttpClient(server);
 
@@ -816,7 +816,7 @@ async function withFakeUpstream(
   process.env.CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK = 'false';
   if (options.browserEngine === 'cloak') {
     const fakeBinaryPath = path.join(root, process.platform === 'win32' ? 'fake-chrome.exe' : 'fake-chrome');
-    writeFileSync(fakeBinaryPath, '');
+    writeFileSync(fakeBinaryPath, '', { mode: 0o755 });
     process.env.CLOAKBROWSER_BINARY_PATH = fakeBinaryPath;
   }
 

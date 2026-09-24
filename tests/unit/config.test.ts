@@ -38,7 +38,7 @@ function canonicalDirectory(directory: string): string {
 
 function createBinaryFile(root: string, name: string): string {
   const binaryPath = path.join(root, name);
-  writeFileSync(binaryPath, 'test binary');
+  writeFileSync(binaryPath, 'test binary', { mode: 0o755 });
   return binaryPath;
 }
 
@@ -144,6 +144,65 @@ describe('bridge config generation', () => {
         },
       }),
     ).rejects.toThrow('CLOAKBROWSER_BINARY_PATH must point to an existing file');
+  });
+
+  it.skipIf(process.platform === 'win32')('rejects a binary without execute permission', async () => {
+    const root = createTempRoot();
+    const binaryPath = path.join(root, 'not-executable');
+    writeFileSync(binaryPath, 'test binary', { mode: 0o644 });
+
+    await expect(
+      prepareBridgeRuntime({
+        tempRoot: root,
+        binaryPath,
+        env: { PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, 'artifacts') },
+      }),
+    ).rejects.toThrow('binaryPath must point to an executable file');
+  });
+
+  it('restores the binary override while parallel launch builders are pending', async () => {
+    const root = createTempRoot();
+    const binaryPaths = [createBinaryFile(root, 'first-chrome'), createBinaryFile(root, 'second-chrome')];
+    const gates = [deferred(), deferred()];
+    const started = [deferred(), deferred()];
+    const startedOrder: number[] = [];
+    const binaryPathsAtStart: Array<string | undefined> = [];
+    const binaryPathsAfterWait: Array<string | undefined> = [];
+    const previousBinaryPath = process.env.CLOAKBROWSER_BINARY_PATH;
+    const preparations = binaryPaths.map((binaryPath, index) =>
+      prepareBridgeRuntime({
+        tempRoot: root,
+        binaryPath,
+        env: {
+          PLAYWRIGHT_MCP_OUTPUT_DIR: path.join(root, `artifacts-${index}`),
+          CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK: 'false',
+        },
+        buildCloakLaunchOptions: async (options) => {
+          binaryPathsAtStart[index] = process.env.CLOAKBROWSER_BINARY_PATH;
+          startedOrder.push(index);
+          started[index]?.resolve();
+          await gates[index]?.promise;
+          binaryPathsAfterWait[index] = process.env.CLOAKBROWSER_BINARY_PATH;
+          return { executablePath: binaryPath, headless: true, args: options?.args ?? [] };
+        },
+      }),
+    );
+
+    await started[0]?.promise;
+    const secondStartedBeforeFirstCompleted = startedOrder.includes(1);
+    gates[0]?.resolve();
+    await started[1]?.promise;
+    gates[1]?.resolve();
+    const runtimes = await Promise.all(preparations);
+    try {
+      expect(secondStartedBeforeFirstCompleted).toBe(false);
+      expect(binaryPathsAtStart).toEqual(binaryPaths.map(canonicalDirectory));
+      expect(binaryPathsAfterWait).toEqual(binaryPaths.map(canonicalDirectory));
+      expect(process.env.CLOAKBROWSER_BINARY_PATH).toBe(previousBinaryPath);
+      expect(runtimes.map((runtime) => runtime.cloakBinaryPath)).toEqual(binaryPaths.map(canonicalDirectory));
+    } finally {
+      runtimes.forEach((runtime) => runtime.dispose());
+    }
   });
 
   it('propagates buildLaunchOptions failures and removes the temporary runtime', async () => {
