@@ -69,6 +69,23 @@ docker run --rm -i \
 也可以通过容器的机密管理注入 `CLOAKBROWSER_LICENSE_KEY`。请勿将许可证密钥写入
 镜像层、提交到版本控制的 Compose 文件，或作为构建证据捕获的命令输出中。
 
+## 自定义 CloakBrowser 二进制文件
+
+将兼容的浏览器可执行文件挂载到容器中，并通过 `--binary-path`（或
+`CLOAKBROWSER_BINARY_PATH`）传递其容器内路径：
+
+```bash
+docker run --rm --init -i \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/custom-chrome:/browser/chrome:ro" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --binary-path /browser/chrome
+```
+
+该文件必须是与镜像 CPU 架构兼容的可读 Linux 可执行文件，且所需库必须在容器中
+可用。该路径适用于容器中的所有 Streamable HTTP 会话；需要不同浏览器二进制文件
+时，请运行单独的容器。
+
 ## Chrome 扩展
 
 Chrome 扩展需要持久化配置文件，并且必须单独挂载。请在环境变量中使用容器路径，

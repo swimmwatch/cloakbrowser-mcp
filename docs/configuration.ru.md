@@ -37,6 +37,8 @@ tags:
 | `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Enables CloakBrowser human-like mouse, keyboard, and scroll behavior. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
 | `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` | `stable` | Канал выпуска двоичного файла CloakBrowser: `stable` или доступный только для Pro `preview`. |
+| `CLOAKBROWSER_BINARY_PATH` | unset | Путь к пользовательскому исполняемому файлу CloakBrowser. Параметр CLI `--binary-path` имеет приоритет. |
+| `CLOAKBROWSER_VERSION` | unset | Закреплённая версия для кэшированного бинарного файла CloakBrowser, когда пользовательский файл не выбран. |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
@@ -177,6 +179,29 @@ CloakBrowser. Мост сохраняет эту ошибку: он не мас�
 `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` выбирает канал выпуска двоичного файла CloakBrowser. По умолчанию используется `stable`. `preview` запрашивает предварительную Pro-сборку браузера и доступен только с лицензией Pro. Явное закрепление `CLOAKBROWSER_VERSION` имеет приоритет. Если Preview недоступен для платформы, CloakBrowser переключается на Stable.
 
 Канал выпуска выбирается при запуске процесса моста. Он применяется ко всем сеансам Streamable HTTP и не может задаваться или переопределяться в метаданных initialize. Чтобы изменить его, перезапустите мост.
+
+## Пользовательский бинарный файл CloakBrowser
+
+`--binary-path <path>` выбирает пользовательский исполняемый файл CloakBrowser для
+текущего процесса моста. `CLOAKBROWSER_BINARY_PATH` задаёт то же значение для
+развёртываний через окружение; параметр CLI имеет приоритет. Мост нормализует путь,
+требует доступный для чтения обычный файл и записывает его в
+`browser.launchOptions.executablePath` созданной конфигурации Playwright MCP.
+
+```bash
+npx -y cloakbrowser-mcp@latest --binary-path /opt/cloakbrowser/chrome
+```
+
+Мост не скачивает и не обновляет пользовательский исполняемый файл. Если путь не
+задан, `CLOAKBROWSER_VERSION` может закрепить версию бинарного файла, которым
+управляет CloakBrowser.
+
+Для Streamable HTTP выбранный бинарный файл принадлежит процессу моста и
+используется всеми созданными им сессиями MCP. Метаданные `initialize` не могут
+выбирать или переопределять исполняемый путь; для разных бинарных файлов запускайте
+отдельные процессы моста.
+
+Если выбранный бинарный файл реализует `document.modelContext`, upstream Playwright MCP может после снимка страницы добавлять инструменты вида `webmcp_<page-tool>`. Он отправляет уведомление `tools/list_changed`, а мост пересылает его вместе с обновлённым списком инструментов. Имена и схемы динамических инструментов задаёт страница.
 
 ## Сопоставление прокси-серверов по GeoIP
 

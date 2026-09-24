@@ -37,6 +37,8 @@ tags:
 | `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Enables CloakBrowser human-like mouse, keyboard, and scroll behavior. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
 | `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` | `stable` | CloakBrowser 二进制文件发布通道：`stable` 或仅限 Pro 的 `preview`。 |
+| `CLOAKBROWSER_BINARY_PATH` | unset | 自定义 CloakBrowser 可执行文件的路径。CLI 选项 `--binary-path` 优先。 |
+| `CLOAKBROWSER_VERSION` | unset | 未选择自定义可执行文件时传递给 CloakBrowser 缓存解析器的版本固定。 |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
@@ -171,6 +173,26 @@ Playwright 自身的内部 `--remote-debugging-pipe` 仍然保持启用状态，
 `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` 选择 CloakBrowser 二进制文件的发布通道。默认值为 `stable`。`preview` 请求 Pro 浏览器预览构建，且仅适用于 Pro 许可证。显式固定的 `CLOAKBROWSER_VERSION` 优先。如果平台没有可用的 Preview，CloakBrowser 会回退到 Stable。
 
 发布通道在桥接进程启动时选定。它适用于所有 Streamable HTTP 会话，且不能在 initialize 元数据中设置或覆盖。请重启桥接进程以更改它。
+
+## 自定义 CloakBrowser 二进制文件
+
+`--binary-path <path>` 为当前桥接进程选择自定义的 CloakBrowser 可执行文件。
+`CLOAKBROWSER_BINARY_PATH` 为基于环境的部署提供相同设置；CLI 选项优先。桥接会
+解析该路径，要求它是可读的普通文件，并将解析后的路径写入生成的 Playwright MCP
+配置的 `browser.launchOptions.executablePath`。
+
+```bash
+npx -y cloakbrowser-mcp@latest --binary-path /opt/cloakbrowser/chrome
+```
+
+桥接不会下载或更新自定义可执行文件。未选择自定义路径时，可使用
+`CLOAKBROWSER_VERSION` 固定由 CloakBrowser 管理的二进制版本。
+
+对于 Streamable HTTP，所选二进制文件属于桥接进程，并由其创建的每个 MCP 会话
+使用。`initialize` 元数据不能选择或覆盖可执行文件路径；需要不同二进制文件的
+会话应运行单独的桥接进程。
+
+当所选二进制文件实现 `document.modelContext` 时，上游 Playwright MCP 可在页面快照后添加 `webmcp_<page-tool>` 形式的工具。它会发送 `tools/list_changed`；桥接会转发该通知和更新后的工具列表。每个动态工具的名称和模式由页面定义。
 
 ## GeoIP 代理匹配
 

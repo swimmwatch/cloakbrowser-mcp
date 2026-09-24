@@ -37,6 +37,8 @@ Playwright MCP व्यवहार के लिए अपस्ट्री�
 | `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Enables CloakBrowser human-like mouse, keyboard, and scroll behavior. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
 | `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` | `stable` | CloakBrowser बाइनरी रिलीज़ चैनल: `stable` या केवल Pro के लिए `preview`। |
+| `CLOAKBROWSER_BINARY_PATH` | unset | कस्टम CloakBrowser निष्पादन योग्य फ़ाइल का पथ। CLI विकल्प `--binary-path` को प्राथमिकता मिलती है। |
+| `CLOAKBROWSER_VERSION` | unset | कस्टम निष्पादन योग्य फ़ाइल न चुने जाने पर CloakBrowser कैश रिज़ॉल्वर को दिया गया संस्करण पिन। |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
@@ -176,6 +178,28 @@ CloakBrowser कुंजी को रिज़ॉल्व करता है
 `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` CloakBrowser बाइनरी रिलीज़ चैनल चुनता है। इसका डिफ़ॉल्ट `stable` है। `preview` Pro ब्राउज़र की Preview बिल्ड का अनुरोध करता है और केवल Pro लाइसेंस के साथ उपलब्ध है। स्पष्ट रूप से पिन किया गया `CLOAKBROWSER_VERSION` प्राथमिकता लेता है। यदि प्लेटफ़ॉर्म के लिए Preview उपलब्ध नहीं है, तो CloakBrowser Stable पर वापस आ जाता है।
 
 रिलीज़ चैनल ब्रिज प्रक्रिया शुरू होने पर चुना जाता है। यह सभी Streamable HTTP सत्रों पर लागू होता है और initialize मेटाडेटा में इसे सेट या ओवरराइड नहीं किया जा सकता। इसे बदलने के लिए ब्रिज को पुनः आरंभ करें।
+
+## कस्टम CloakBrowser बाइनरी
+
+`--binary-path <path>` वर्तमान ब्रिज प्रक्रिया के लिए कस्टम CloakBrowser निष्पादन
+योग्य फ़ाइल चुनता है। `CLOAKBROWSER_BINARY_PATH` पर्यावरण-आधारित परिनियोजन के लिए
+वही सेटिंग देता है; CLI विकल्प को प्राथमिकता मिलती है। ब्रिज पथ को हल करता है,
+पढ़ने योग्य नियमित फ़ाइल की अपेक्षा करता है और उसे बनाई गई Playwright MCP
+कॉन्फ़िगरेशन के `browser.launchOptions.executablePath` में लिखता है।
+
+```bash
+npx -y cloakbrowser-mcp@latest --binary-path /opt/cloakbrowser/chrome
+```
+
+ब्रिज कस्टम निष्पादन योग्य फ़ाइल को डाउनलोड या अपडेट नहीं करता। कोई कस्टम पथ न चुने
+जाने पर `CLOAKBROWSER_VERSION` CloakBrowser द्वारा प्रबंधित बाइनरी संस्करण को पिन कर
+सकता है।
+
+Streamable HTTP में चुनी गई बाइनरी ब्रिज प्रक्रिया की होती है और उसकी सभी MCP
+सत्रों में उपयोग होती है। `initialize` मेटाडेटा निष्पादन योग्य पथ को चुन या बदल
+नहीं सकता; अलग बाइनरी के लिए अलग ब्रिज प्रक्रियाएँ चलाएँ।
+
+जब चुनी गई बाइनरी `document.modelContext` लागू करती है, upstream Playwright MCP पेज स्नैपशॉट के बाद `webmcp_<page-tool>` रूप के टूल जोड़ सकता है। वह `tools/list_changed` भेजता है; ब्रिज सूचना और अद्यतन टूल सूची को अग्रेषित करता है। हर गतिशील टूल का नाम और स्कीमा पेज तय करता है।
 
 ## GeoIP प्रॉक्सी मिलान
 

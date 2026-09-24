@@ -73,6 +73,24 @@ docker run --rm -i \
 バージョン管理に登録する Compose ファイル、またはビルド証拠として記録する
 コマンド出力に含めないでください。
 
+## カスタム CloakBrowser バイナリ
+
+互換性のあるブラウザ実行ファイルをコンテナにマウントし、コンテナ内のパスを
+`--binary-path`（または `CLOAKBROWSER_BINARY_PATH`）で渡します。
+
+```bash
+docker run --rm --init -i \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/custom-chrome:/browser/chrome:ro" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --binary-path /browser/chrome
+```
+
+このファイルはイメージの CPU アーキテクチャと互換性のある読み取り可能な Linux
+実行ファイルであり、必要なライブラリがコンテナ内に存在する必要があります。この
+パスはコンテナ内のすべての Streamable HTTP セッションに適用されます。異なる
+ブラウザバイナリには別のコンテナを実行してください。
+
 ## Chrome 拡張機能
 
 Chrome 拡張機能には永続プロファイルが必要で、個別にマウントする必要があります。

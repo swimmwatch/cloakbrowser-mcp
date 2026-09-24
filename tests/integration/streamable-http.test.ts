@@ -562,6 +562,28 @@ describe('streamable HTTP bridge', () => {
     });
   });
 
+  it('uses one explicit custom binary path for all HTTP sessions', async () => {
+    await withFakeUpstream(
+      async () => {
+        const root = createTempRoot();
+        const binaryPath = path.join(root, 'custom-chrome');
+        writeFileSync(binaryPath, 'test binary', { mode: 0o755 });
+        const server = await startHttpBridge({ runtimeOptions: { binaryPath } });
+        const { client } = await connectHttpClient(server);
+
+        const result = await client.callTool({
+          name: LOCAL_TOOL_BINARY_INFO,
+          arguments: {},
+        });
+
+        expect(result.structuredContent).toMatchObject({
+          executablePath: canonicalDirectory(binaryPath),
+        });
+      },
+      { browserEngine: 'cloak' },
+    );
+  });
+
   it('applies independent runtime proxy metadata per HTTP session', async () => {
     await withFakeUpstream(async () => {
       const server = await startHttpBridge({ sessionMax: 4 });
@@ -1447,7 +1469,7 @@ async function withFakeUpstream(
   process.env.CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK = 'false';
   if (options.browserEngine === 'cloak') {
     const fakeBinaryPath = path.join(root, process.platform === 'win32' ? 'fake-chrome.exe' : 'fake-chrome');
-    writeFileSync(fakeBinaryPath, '');
+    writeFileSync(fakeBinaryPath, '', { mode: 0o755 });
     process.env.CLOAKBROWSER_BINARY_PATH = fakeBinaryPath;
   }
 

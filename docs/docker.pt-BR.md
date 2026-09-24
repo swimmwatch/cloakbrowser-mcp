@@ -76,6 +76,24 @@ ou remover o login salvo. Como alternativa, injete
 Não coloque chaves de licença em camadas da imagem, arquivos Compose
 versionados ou saídas de comandos capturadas como evidência de build.
 
+## Binário personalizado do CloakBrowser
+
+Monte um executável de navegador compatível no contêiner e passe o caminho dentro
+do contêiner por `--binary-path` (ou `CLOAKBROWSER_BINARY_PATH`):
+
+```bash
+docker run --rm --init -i \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/custom-chrome:/browser/chrome:ro" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --binary-path /browser/chrome
+```
+
+O arquivo deve ser um executável Linux legível compatível com a arquitetura de CPU
+da imagem, e as bibliotecas necessárias devem estar disponíveis no contêiner. O
+caminho se aplica a todas as sessões Streamable HTTP do contêiner; execute
+contêineres separados para binários de navegador diferentes.
+
 ## Extensões do Chrome
 
 Extensões do Chrome exigem um perfil persistente e devem ser montadas

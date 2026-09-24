@@ -76,6 +76,24 @@ Secret-Verwaltung des Containers einspeisen. Legen Sie Lizenzschlüssel nicht in
 Image-Layern, versionierten Compose-Dateien oder als Buildnachweis erfassten
 Befehlsausgaben ab.
 
+## Benutzerdefinäre CloakBrowser-Binärdatei
+
+Binden Sie eine kompatible Browser-Binärdatei in den Container ein und übergeben
+Sie ihren Containerpfad über `--binary-path` (oder `CLOAKBROWSER_BINARY_PATH`):
+
+```bash
+docker run --rm --init -i \
+  -v "$PWD/artifacts:/data" \
+  -v "$PWD/custom-chrome:/browser/chrome:ro" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --binary-path /browser/chrome
+```
+
+Die Datei muss ein lesbares Linux-Programm sein, das zur CPU-Architektur des Images
+passt; benötigte Bibliotheken müssen im Container verfügbar sein. Der Pfad gilt für
+alle Streamable-HTTP-Sitzungen in diesem Container; verwenden Sie getrennte
+Container für unterschiedliche Browser-Binärdateien.
+
 ## Chrome-Erweiterungen
 
 Chrome-Erweiterungen erfordern ein persistentes Profil und müssen separat

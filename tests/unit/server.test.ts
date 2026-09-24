@@ -423,6 +423,49 @@ describe('bridge server', () => {
     }
   });
 
+  it('refreshes the cached upstream tools after an upstream list change notification', async () => {
+    let dynamicToolAvailable = false;
+    let listToolCalls = 0;
+    let upstreamToolListChangedHandler: ((notification: unknown) => void) | undefined;
+    const upstreamClient = {
+      async listTools() {
+        listToolCalls += 1;
+        return {
+          tools: [
+            createTool('browser_snapshot'),
+            ...(dynamicToolAvailable ? [createTool('webmcp_echo')] : []),
+          ],
+        };
+      },
+      async callTool() {
+        return { content: [] };
+      },
+      async close() {},
+      removeNotificationHandler() {},
+      setNotificationHandler(_schema: unknown, handler: (notification: unknown) => void) {
+        upstreamToolListChangedHandler = handler;
+      },
+    } as unknown as Client;
+    const bridge = await createBridgeServer({ runtime: createRuntime(), upstreamClient });
+    try {
+      const client = await connectBridge(bridge);
+      const notifications: unknown[] = [];
+      client.setNotificationHandler(ToolListChangedNotificationSchema, (notification) => {
+        notifications.push(notification);
+      });
+
+      expect((await client.listTools()).tools.map((tool) => tool.name)).not.toContain('webmcp_echo');
+      dynamicToolAvailable = true;
+      upstreamToolListChangedHandler?.({ method: 'notifications/tools/list_changed' });
+
+      await vi.waitFor(() => expect(notifications).toHaveLength(1));
+      expect((await client.listTools()).tools.map((tool) => tool.name)).toContain('webmcp_echo');
+      expect(listToolCalls).toBe(2);
+    } finally {
+      await bridge.dispose();
+    }
+  });
+
   it('disposes the upstream client, server, and runtime', async () => {
     const close = vi.fn(async () => {});
     const disposeRuntime = vi.fn();

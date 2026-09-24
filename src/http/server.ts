@@ -62,6 +62,7 @@ export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions 
   serverInfo?: Partial<Implementation>;
   runtimeOptions?: Pick<
     PrepareBridgeRuntimeOptions,
+    | 'binaryPath'
     | 'contextOptions'
     | 'extensionMode'
     | 'extensionPaths'
@@ -440,6 +441,7 @@ class StreamableHttpBridgeController {
     const defaults = this.#options.runtimeOptions;
     const extensionMode = preferSessionOption(sessionRuntimeOptions.extensionMode, defaults?.extensionMode);
     return {
+      binaryPath: defaults?.binaryPath,
       browserIsolated: extensionMode === true ? false : true,
       extensionMode,
       geoipProxyMatch: preferSessionOption(sessionRuntimeOptions.geoipProxyMatch, defaults?.geoipProxyMatch),

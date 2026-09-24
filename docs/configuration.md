@@ -38,6 +38,8 @@ For task-focused examples, see the [Recipes](recipes/index.md) section.
 | `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Enables CloakBrowser human-like mouse, keyboard, and scroll behavior. |
 | `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
 | `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` | `stable` | CloakBrowser binary release channel: `stable` or Pro-only `preview`. |
+| `CLOAKBROWSER_BINARY_PATH` | unset | Path to a custom CloakBrowser executable. The `--binary-path` CLI option takes precedence. |
+| `CLOAKBROWSER_VERSION` | unset | Version pin passed to CloakBrowser's cache resolver when no custom executable is selected. |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
@@ -186,6 +188,32 @@ platform, CloakBrowser falls back to Stable.
 The release channel is selected when the bridge process starts. It applies to
 all Streamable HTTP sessions and cannot be set or overridden in initialize
 metadata. Restart the bridge to change it.
+
+## Custom CloakBrowser Binary
+
+`--binary-path <path>` selects a custom CloakBrowser executable for the current
+bridge process. `CLOAKBROWSER_BINARY_PATH` provides the same setting for
+environment-based deployments; the CLI option takes precedence. The bridge
+resolves the path, requires a readable regular file, and writes the resolved
+path to Playwright MCP's generated `browser.launchOptions.executablePath`.
+
+```bash
+npx -y cloakbrowser-mcp@latest --binary-path /opt/cloakbrowser/chrome
+```
+
+The bridge does not download or update a custom executable. When no custom path
+is selected, `CLOAKBROWSER_VERSION` can pin the CloakBrowser-managed binary
+version instead.
+
+When the selected binary implements `document.modelContext`, upstream
+Playwright MCP can add `webmcp_<page-tool>` tools after a page snapshot. It
+sends `tools/list_changed`; the bridge forwards the notification and refreshed
+tool list. The page defines each dynamic tool's name and schema.
+
+For Streamable HTTP, the selected binary belongs to the bridge process and is
+used by every MCP session it creates. `initialize` metadata cannot select or
+override an executable path; run separate bridge processes when sessions need
+different binaries.
 
 ## GeoIP Proxy Matching
 

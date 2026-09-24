@@ -52,6 +52,7 @@ export interface StartBridgeOptions {
   serverInfo?: Partial<Implementation>;
   runtimeOptions?: Pick<
     PrepareBridgeRuntimeOptions,
+    | 'binaryPath'
     | 'browserIsolated'
     | 'contextOptions'
     | 'extensionMode'

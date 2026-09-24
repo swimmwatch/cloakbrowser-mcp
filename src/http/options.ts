@@ -47,6 +47,7 @@ export interface StreamableHttpOptions {
 }
 
 export interface BridgeOptions {
+  binaryPath?: string;
   geoipProxyMatch: boolean;
   humanize: boolean;
   humanPreset: HumanPreset;

@@ -130,7 +130,7 @@ async function startMcpContainer(
     );
   }
 
-  const dockerArgs = ['run', '--rm', '-i', '--network', 'host', '-v', `${dataDir}:/data`];
+  const dockerArgs = ['run', '--rm', '--init', '-i', '--network', 'host', '-v', `${dataDir}:/data`];
   if (caps) dockerArgs.push('-e', `PLAYWRIGHT_MCP_CAPS=${caps}`);
   if (useCloakWrapper) {
     dockerArgs.push(
