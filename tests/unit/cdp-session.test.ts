@@ -71,6 +71,21 @@ describe('managed CDP generation coordinator', () => {
     ]);
   });
 
+  it.each([
+    { name: 'browser_tabs', options: { tabsResult: { isError: true } } },
+    { name: 'browser_evaluate', options: { evaluateResult: { isError: true } } },
+  ])('fails immediately when $name returns an MCP tool error', async ({ name, options }) => {
+    const harness = createHarness(options);
+
+    await expect(startManagedCdpSession(harness.dependencies)).rejects.toThrow(
+      `Managed CDP bootstrap tool ${name} failed`,
+    );
+    expect(harness.events).not.toContain('discover');
+    expect(harness.events).toContain('proxy-close');
+    expect(harness.events).toContain('upstream-dispose');
+    expect(harness.events).toContain('runtime-dispose');
+  });
+
   it('uses one absolute deadline and rolls back a hung bootstrap', async () => {
     const harness = createHarness({ hangTabs: true, initialTimeoutMs: 20 });
     const startedAt = Date.now();
@@ -562,7 +577,9 @@ function createHarness(
     replacementConnectGate?: Promise<void>;
     replacementRuntimeDisposeGate?: Promise<void>;
     tabsError?: Error;
+    tabsResult?: unknown;
     tabsGate?: Promise<void>;
+    evaluateResult?: unknown;
     upstreamDisposeDelayMs?: number;
     upstreamDisposeError?: Error;
     upstreamDisposeErrorAt?: number;
@@ -599,6 +616,14 @@ function createHarness(
     if (name === 'browser_tabs' && options.tabsError !== undefined) throw options.tabsError;
     if (name === 'browser_tabs' && options.tabsGate !== undefined) await options.tabsGate;
     if (name === 'browser_tabs' && options.hangTabs === true) await new Promise(() => undefined);
+    if (name === 'browser_tabs' && options.tabsResult !== undefined) return options.tabsResult;
+    if (
+      name === 'browser_evaluate' &&
+      !source.includes('delete globalThis') &&
+      options.evaluateResult !== undefined
+    ) {
+      return options.evaluateResult;
+    }
     if (source.includes('delete globalThis') && options.deleteChallengeError !== undefined) {
       throw options.deleteChallengeError;
     }
