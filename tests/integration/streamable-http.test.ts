@@ -539,6 +539,52 @@ describe('streamable HTTP bridge', () => {
     });
   });
 
+  it('preserves a session when DELETE has an unsupported protocol version', async () => {
+    await withFakeUpstream(async () => {
+      const server = await startHttpBridge();
+      const { transport } = await connectHttpClient(server);
+      const sessionId = transport.sessionId;
+      expect(sessionId).toBeDefined();
+
+      const rejected = await fetch(server.url, {
+        method: 'DELETE',
+        headers: {
+          'mcp-session-id': sessionId ?? '',
+          'mcp-protocol-version': 'unsupported',
+        },
+      });
+      expect(rejected.status).toBe(HttpStatus.BadRequest);
+
+      const active = await postToolsList(server.url, sessionId);
+      expect(active.status).toBe(HttpStatus.Ok);
+
+      await transport.terminateSession();
+      const closed = await postToolsList(server.url, sessionId);
+      expect(closed.status).toBe(HttpStatus.NotFound);
+    });
+  });
+
+  it('terminates the upstream child process with DELETE', async () => {
+    await withFakeUpstream(async () => {
+      const server = await startHttpBridge();
+      const { client, transport } = await connectHttpClient(server);
+      const result = await client.callTool({
+        name: 'browser_navigate',
+        arguments: { url: 'https://example.com', includePid: true },
+      });
+      const content = result.structuredContent as { upstreamPid: number };
+
+      await transport.terminateSession();
+
+      await vi.waitFor(
+        () => {
+          expect(isProcessRunning(content.upstreamPid)).toBe(false);
+        },
+        { timeout: 5_000 },
+      );
+    });
+  });
+
   it('keeps separate upstream child processes per HTTP session', async () => {
     await withFakeUpstream(async () => {
       const server = await startHttpBridge({ sessionMax: 4 });
@@ -1492,6 +1538,16 @@ async function withFakeUpstream(
     restoreEnv('PLAYWRIGHT_MCP_EXTENSION', previous.extensionMode);
     restoreEnv('PLAYWRIGHT_MCP_EXTENSION_TOKEN', previous.extensionToken);
     restoreEnv('PLAYWRIGHT_MCP_PROFILE_DIR_NAME', previous.profileDirName);
+  }
+}
+
+function isProcessRunning(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ESRCH') return false;
+    throw error;
   }
 }
 

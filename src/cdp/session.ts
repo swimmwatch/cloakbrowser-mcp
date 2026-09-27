@@ -257,16 +257,22 @@ class ManagedCdpSessionRuntime implements ManagedCdpSession {
     let challengeRemoved = false;
 
     try {
-      await withinDeadline(owner.upstream.callTool('browser_tabs', { action: 'list' }), signal);
-      await withinDeadline(
-        owner.upstream.callTool('browser_evaluate', {
-          function: createChallengePlacementFunction(
-            challenge.propertyName,
-            challenge.value,
-            this.#dependencies.initialTimeoutMs ?? 60_000,
-          ),
-        }),
-        signal,
+      assertBootstrapToolSucceeded(
+        await withinDeadline(owner.upstream.callTool('browser_tabs', { action: 'list' }), signal),
+        'browser_tabs',
+      );
+      assertBootstrapToolSucceeded(
+        await withinDeadline(
+          owner.upstream.callTool('browser_evaluate', {
+            function: createChallengePlacementFunction(
+              challenge.propertyName,
+              challenge.value,
+              this.#dependencies.initialTimeoutMs ?? 60_000,
+            ),
+          }),
+          signal,
+        ),
+        'browser_evaluate',
       );
       challengePlaced = true;
       const discovery = await withinDeadline(owner.chromium.discover(signal), signal);
@@ -493,6 +499,12 @@ class ManagedCdpSessionRuntime implements ManagedCdpSession {
     } catch {
       // State observers are diagnostic and do not change lifecycle outcomes.
     }
+  }
+}
+
+function assertBootstrapToolSucceeded(result: unknown, name: string): void {
+  if (typeof result === 'object' && result !== null && 'isError' in result && result.isError === true) {
+    throw new Error(`Managed CDP bootstrap tool ${name} failed`);
   }
 }
 

@@ -90,6 +90,7 @@ interface ActiveHttpSession {
   id: string;
   bridge: BridgeServer;
   transport: StreamableHTTPServerTransport;
+  termination: { accepted: boolean };
 }
 
 export async function startStreamableHttpBridge(
@@ -302,7 +303,8 @@ class StreamableHttpBridgeController {
 
     const sessionId = randomUUID();
     const record = this.#createSessionRecord(sessionId, Date.now());
-    const transport = this.#createSessionTransport(sessionId, record);
+    const termination = { accepted: false };
+    const transport = this.#createSessionTransport(sessionId, record, termination);
     const runtimeOptions = this.#createRuntimeOptionsForSession(sessionRuntimeOptions);
     let runtime: BridgeRuntime | undefined;
 
@@ -357,7 +359,7 @@ class StreamableHttpBridgeController {
         });
         runtime = undefined;
       }
-      this.#sessions.set(sessionId, { id: sessionId, bridge, transport });
+      this.#sessions.set(sessionId, { id: sessionId, bridge, transport, termination });
       await bridge.start(transport);
       await transport.handleRequest(req, res, parsedBody);
     } catch (error) {
@@ -420,7 +422,11 @@ class StreamableHttpBridgeController {
     };
   }
 
-  #createSessionTransport(sessionId: string, record: HttpSessionRecord): StreamableHTTPServerTransport {
+  #createSessionTransport(
+    sessionId: string,
+    record: HttpSessionRecord,
+    termination: { accepted: boolean },
+  ): StreamableHTTPServerTransport {
     return new StreamableHTTPServerTransport({
       sessionIdGenerator: () => sessionId,
       onsessioninitialized: async (initializedSessionId) => {
@@ -430,7 +436,10 @@ class StreamableHttpBridgeController {
         await this.#store.create(record);
       },
       onsessionclosed: async (closedSessionId) => {
-        if (closedSessionId) await this.#store.markClosed(closedSessionId, Date.now());
+        if (closedSessionId) {
+          termination.accepted = true;
+          await this.#store.markClosed(closedSessionId, Date.now());
+        }
       },
     });
   }
@@ -497,10 +506,10 @@ class StreamableHttpBridgeController {
     }
 
     await this.#store.touch(sessionId, Date.now(), this.#options.sessionIdleTtlMs);
-    await session.transport.handleRequest(req, res, parsedBody);
-
-    if (req.method === 'DELETE') {
-      await this.#closeSession(sessionId);
+    try {
+      await session.transport.handleRequest(req, res, parsedBody);
+    } finally {
+      if (req.method === 'DELETE' && session.termination.accepted) await this.#closeSession(sessionId);
     }
   }
 
