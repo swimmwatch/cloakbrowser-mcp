@@ -539,6 +539,31 @@ describe('streamable HTTP bridge', () => {
     });
   });
 
+  it('preserves a session when DELETE has an unsupported protocol version', async () => {
+    await withFakeUpstream(async () => {
+      const server = await startHttpBridge();
+      const { transport } = await connectHttpClient(server);
+      const sessionId = transport.sessionId;
+      expect(sessionId).toBeDefined();
+
+      const rejected = await fetch(server.url, {
+        method: 'DELETE',
+        headers: {
+          'mcp-session-id': sessionId ?? '',
+          'mcp-protocol-version': 'unsupported',
+        },
+      });
+      expect(rejected.status).toBe(HttpStatus.BadRequest);
+
+      const active = await postToolsList(server.url, sessionId);
+      expect(active.status).toBe(HttpStatus.Ok);
+
+      await transport.terminateSession();
+      const closed = await postToolsList(server.url, sessionId);
+      expect(closed.status).toBe(HttpStatus.NotFound);
+    });
+  });
+
   it('terminates the upstream child process with DELETE', async () => {
     await withFakeUpstream(async () => {
       const server = await startHttpBridge();
