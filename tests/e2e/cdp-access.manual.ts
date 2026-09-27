@@ -8,6 +8,7 @@ import type { Readable } from 'node:stream';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import { binaryInfo } from 'cloakbrowser';
 import { type Browser, chromium, type Page } from 'playwright';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { type RawData, WebSocket } from 'ws';
@@ -23,6 +24,9 @@ import { startTestTlsTerminator } from '@tests/helpers/tls-terminator.js';
 
 type BrowserEngine = 'cloak' | 'playwright';
 const nodeBrowserEngines = ['cloak', 'playwright'] as const satisfies readonly BrowserEngine[];
+// A cached Pro binary may be licensed for only one concurrent browser session.
+const multiSessionCloakBinaryPath = process.env.CLOAKBROWSER_MCP_CDP_MULTI_SESSION_BINARY_PATH;
+const multiSessionCloakEnabled = multiSessionCloakBinaryPath !== undefined || binaryInfo().tier === 'free';
 
 interface ReadyCdpInfo {
   activeConnections: number;
@@ -205,68 +209,73 @@ describe.each<BrowserEngine>(nodeBrowserEngines)('packaged Node managed CDP with
     }
   });
 
-  it('isolates two Streamable HTTP sessions with explicit CDP enablement', async () => {
-    const fixture = await startFixtureServer();
-    const range = await findFreePortRange(3);
-    const server = await startPackagedHttpBridge(engine, false, range);
-    const sessions: RawHttpSession[] = [];
-    const browsers: Browser[] = [];
+  it.skipIf(engine === 'cloak' && !multiSessionCloakEnabled)(
+    'isolates two Streamable HTTP sessions with explicit CDP enablement',
+    async () => {
+      const fixture = await startFixtureServer();
+      const range = await findFreePortRange(3);
+      const server = await startPackagedHttpBridge(engine, false, range, multiSessionCloakBinaryPath);
+      const sessions: RawHttpSession[] = [];
+      const browsers: Browser[] = [];
 
-    try {
-      const first = await initializeRawHttpSession(server, { cdpEnabled: true });
-      const second = await initializeRawHttpSession(server, { cdpEnabled: true });
-      const disabled = await initializeRawHttpSession(server, { cdpEnabled: false });
-      sessions.push(first, second, disabled);
+      try {
+        const first = await initializeRawHttpSession(server, { cdpEnabled: true });
+        sessions.push(first);
+        const second = await initializeRawHttpSession(server, { cdpEnabled: true });
+        sessions.push(second);
+        const disabled = await initializeRawHttpSession(server, { cdpEnabled: false });
+        sessions.push(disabled);
 
-      const firstInfo = await readHttpCdpInfo(first);
-      const secondInfo = await readHttpCdpInfo(second);
-      expect(firstInfo.port).not.toBe(secondInfo.port);
-      expect(firstInfo.discoveryUrl).not.toBe(secondInfo.discoveryUrl);
-      expect(await readHttpCdpState(disabled)).toEqual({ enabled: false });
+        const firstInfo = await readHttpCdpInfo(first);
+        const secondInfo = await readHttpCdpInfo(second);
+        expect(firstInfo.port).not.toBe(secondInfo.port);
+        expect(firstInfo.discoveryUrl).not.toBe(secondInfo.discoveryUrl);
+        expect(await readHttpCdpState(disabled)).toEqual({ enabled: false });
 
-      await Promise.all([
-        callHttpTool(first, 'browser_navigate', { url: `${fixture.url}?session=first` }),
-        callHttpTool(second, 'browser_navigate', { url: `${fixture.url}?session=second` }),
-      ]);
+        await Promise.all([
+          callHttpTool(first, 'browser_navigate', { url: `${fixture.url}?session=first` }),
+          callHttpTool(second, 'browser_navigate', { url: `${fixture.url}?session=second` }),
+        ]);
 
-      const firstBrowser = await connectOverManagedCdp(firstInfo.discoveryUrl);
-      const secondBrowser = await connectOverManagedCdp(secondInfo.discoveryUrl);
-      browsers.push(firstBrowser, secondBrowser);
-      const firstPage = await findPage(firstBrowser, fixture.url);
-      const secondPage = await findPage(secondBrowser, fixture.url);
+        const firstBrowser = await connectOverManagedCdp(firstInfo.discoveryUrl);
+        const secondBrowser = await connectOverManagedCdp(secondInfo.discoveryUrl);
+        browsers.push(firstBrowser, secondBrowser);
+        const firstPage = await findPage(firstBrowser, fixture.url);
+        const secondPage = await findPage(secondBrowser, fixture.url);
 
-      await firstPage.evaluate("localStorage.setItem('session-owner', 'first')");
-      await secondPage.evaluate("localStorage.setItem('session-owner', 'second')");
-      await firstPage.context().addCookies([{ name: 'session-owner', value: 'first', url: fixture.url }]);
-      await secondPage.context().addCookies([{ name: 'session-owner', value: 'second', url: fixture.url }]);
+        await firstPage.evaluate("localStorage.setItem('session-owner', 'first')");
+        await secondPage.evaluate("localStorage.setItem('session-owner', 'second')");
+        await firstPage.context().addCookies([{ name: 'session-owner', value: 'first', url: fixture.url }]);
+        await secondPage.context().addCookies([{ name: 'session-owner', value: 'second', url: fixture.url }]);
 
-      await expect(firstPage.evaluate("localStorage.getItem('session-owner')")).resolves.toBe('first');
-      await expect(secondPage.evaluate("localStorage.getItem('session-owner')")).resolves.toBe('second');
-      await expect(firstPage.context().cookies(fixture.url)).resolves.toEqual(
-        expect.arrayContaining([expect.objectContaining({ name: 'session-owner', value: 'first' })]),
-      );
-      await expect(secondPage.context().cookies(fixture.url)).resolves.toEqual(
-        expect.arrayContaining([expect.objectContaining({ name: 'session-owner', value: 'second' })]),
-      );
+        await expect(firstPage.evaluate("localStorage.getItem('session-owner')")).resolves.toBe('first');
+        await expect(secondPage.evaluate("localStorage.getItem('session-owner')")).resolves.toBe('second');
+        await expect(firstPage.context().cookies(fixture.url)).resolves.toEqual(
+          expect.arrayContaining([expect.objectContaining({ name: 'session-owner', value: 'first' })]),
+        );
+        await expect(secondPage.context().cookies(fixture.url)).resolves.toEqual(
+          expect.arrayContaining([expect.objectContaining({ name: 'session-owner', value: 'second' })]),
+        );
 
-      const firstContext = firstBrowser.contexts()[0];
-      const secondContext = secondBrowser.contexts()[0];
-      if (firstContext === undefined || secondContext === undefined) {
-        throw new Error('Expected default browser contexts for both HTTP sessions');
+        const firstContext = firstBrowser.contexts()[0];
+        const secondContext = secondBrowser.contexts()[0];
+        if (firstContext === undefined || secondContext === undefined) {
+          throw new Error('Expected default browser contexts for both HTTP sessions');
+        }
+        const secondTargetCount = secondContext.pages().length;
+        const targetCreated = firstContext.waitForEvent('page');
+        const newTarget = await firstContext.newPage();
+        await expect(targetCreated).resolves.toBe(newTarget);
+        await newTarget.goto(`${fixture.url}?target=first`);
+        expect(secondContext.pages()).toHaveLength(secondTargetCount);
+      } finally {
+        await Promise.allSettled(browsers.map((browser) => browser.close()));
+        await Promise.allSettled(sessions.map((session) => closeRawHttpSession(session)));
+        await closePackagedHttpBridge(server);
+        await fixture.close();
       }
-      const secondTargetCount = secondContext.pages().length;
-      const targetCreated = firstContext.waitForEvent('page');
-      const newTarget = await firstContext.newPage();
-      await expect(targetCreated).resolves.toBe(newTarget);
-      await newTarget.goto(`${fixture.url}?target=first`);
-      expect(secondContext.pages()).toHaveLength(secondTargetCount);
-    } finally {
-      await Promise.allSettled(browsers.map((browser) => browser.close()));
-      await Promise.allSettled(sessions.map((session) => closeRawHttpSession(session)));
-      await closePackagedHttpBridge(server);
-      await fixture.close();
-    }
-  });
+    },
+  );
 
   it('honors the HTTP process default and an explicit disabled session', async () => {
     const range = await findFreePortRange(2);
@@ -435,6 +444,7 @@ async function startPackagedHttpBridge(
   engine: BrowserEngine,
   processEnabled: boolean,
   range: { end: number; start: number },
+  binaryPath?: string,
 ): Promise<RunningHttpBridge> {
   const { PLAYWRIGHT_MCP_CLI_PATH: _fakeUpstream, ...baseEnv } = packagedCommand.env;
   const child = spawn(
@@ -455,6 +465,7 @@ async function startPackagedHttpBridge(
         PLAYWRIGHT_MCP_HEADLESS: 'true',
         CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED: String(processEnabled),
         CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE: `${String(range.start)}-${String(range.end)}`,
+        ...(binaryPath === undefined ? {} : { CLOAKBROWSER_BINARY_PATH: binaryPath }),
       },
     },
   );
