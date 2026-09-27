@@ -539,6 +539,27 @@ describe('streamable HTTP bridge', () => {
     });
   });
 
+  it('terminates the upstream child process with DELETE', async () => {
+    await withFakeUpstream(async () => {
+      const server = await startHttpBridge();
+      const { client, transport } = await connectHttpClient(server);
+      const result = await client.callTool({
+        name: 'browser_navigate',
+        arguments: { url: 'https://example.com', includePid: true },
+      });
+      const content = result.structuredContent as { upstreamPid: number };
+
+      await transport.terminateSession();
+
+      await vi.waitFor(
+        () => {
+          expect(isProcessRunning(content.upstreamPid)).toBe(false);
+        },
+        { timeout: 5_000 },
+      );
+    });
+  });
+
   it('keeps separate upstream child processes per HTTP session', async () => {
     await withFakeUpstream(async () => {
       const server = await startHttpBridge({ sessionMax: 4 });
@@ -1492,6 +1513,16 @@ async function withFakeUpstream(
     restoreEnv('PLAYWRIGHT_MCP_EXTENSION', previous.extensionMode);
     restoreEnv('PLAYWRIGHT_MCP_EXTENSION_TOKEN', previous.extensionToken);
     restoreEnv('PLAYWRIGHT_MCP_PROFILE_DIR_NAME', previous.profileDirName);
+  }
+}
+
+function isProcessRunning(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ESRCH') return false;
+    throw error;
   }
 }
 
