@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.14.1] - 2026-09-27
+
+### Fixed
+
+- Fixed Streamable HTTP session termination so accepted `DELETE` requests
+  dispose the upstream child process while rejected requests leave the session usable.
+- Fixed managed CDP startup to stop when upstream browser tools report errors
+  instead of continuing with an invalid browser generation.
+
 ## [1.14.0] - 2026-09-24
 
 ### Added
@@ -443,7 +452,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Generated configuration documentation based on the removed native config schema.
 - Public SEO setup guide and stale roadmap page from the published documentation.
 
-[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.14.0...HEAD
+[Unreleased]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.14.1...HEAD
+[1.14.1]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.14.0...v1.14.1
 [1.14.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/swimmwatch/cloakbrowser-mcp/compare/v1.11.0...v1.12.0
