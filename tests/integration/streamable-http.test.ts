@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LOCAL_TOOL_BINARY_INFO, LOCAL_TOOL_BRIDGE_INFO } from '@/bridge/tools.js';
 import { defaultStreamableHttpOptions } from '@/http/options.js';
 import { startStreamableHttpBridge, type StreamableHttpBridgeServer } from '@/http/server.js';
@@ -87,6 +87,27 @@ describe('streamable HTTP bridge', () => {
 
       const response = await postToolsList(server.url, sessionId);
       expect(response.status).toBe(HttpStatus.NotFound);
+    });
+  });
+
+  it('terminates the upstream child process with DELETE', async () => {
+    await withFakeUpstream(async () => {
+      const server = await startHttpBridge();
+      const { client, transport } = await connectHttpClient(server);
+      const result = await client.callTool({
+        name: 'browser_navigate',
+        arguments: { url: 'https://example.com', includePid: true },
+      });
+      const content = result.structuredContent as { upstreamPid: number };
+
+      await transport.terminateSession();
+
+      await vi.waitFor(
+        () => {
+          expect(isProcessRunning(content.upstreamPid)).toBe(false);
+        },
+        { timeout: 5_000 },
+      );
     });
   });
 
@@ -836,6 +857,16 @@ async function withFakeUpstream(
     restoreEnv('PLAYWRIGHT_MCP_USER_DATA_DIR', previous.userDataDir);
     restoreEnv('CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS', previous.contextOptions);
     restoreEnv('CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS', previous.extensionPaths);
+  }
+}
+
+function isProcessRunning(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ESRCH') return false;
+    throw error;
   }
 }
 

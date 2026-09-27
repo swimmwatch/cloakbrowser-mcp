@@ -408,10 +408,10 @@ class StreamableHttpBridgeController {
     }
 
     await this.#store.touch(sessionId, Date.now(), this.#options.sessionIdleTtlMs);
-    await session.transport.handleRequest(req, res, parsedBody);
-
-    if (req.method === 'DELETE') {
-      await this.#closeSession(sessionId);
+    try {
+      await session.transport.handleRequest(req, res, parsedBody);
+    } finally {
+      if (req.method === 'DELETE') await this.#closeSession(sessionId);
     }
   }
 
