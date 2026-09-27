@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
 import { createServer, type Server } from 'node:http';
 import { request as createHttpsRequest } from 'node:https';
+import { resolve } from 'node:path';
 import type { Readable } from 'node:stream';
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -24,9 +25,16 @@ import { startTestTlsTerminator } from '@tests/helpers/tls-terminator.js';
 
 type BrowserEngine = 'cloak' | 'playwright';
 const nodeBrowserEngines = ['cloak', 'playwright'] as const satisfies readonly BrowserEngine[];
-// A cached Pro binary may be licensed for only one concurrent browser session.
+// A Pro binary may be licensed for only one concurrent browser session.
 const multiSessionCloakBinaryPath = process.env.CLOAKBROWSER_MCP_CDP_MULTI_SESSION_BINARY_PATH;
-const multiSessionCloakEnabled = multiSessionCloakBinaryPath !== undefined || binaryInfo().tier === 'free';
+const installedCloakBinary = binaryInfo();
+const configuredCloakBinaryPath = process.env.CLOAKBROWSER_BINARY_PATH;
+const knownFreeCloakBinary =
+  installedCloakBinary.tier === 'free' &&
+  (configuredCloakBinaryPath === undefined ||
+    resolve(configuredCloakBinaryPath) === resolve(installedCloakBinary.binaryPath));
+// The tier of an unrelated custom binary is unknown; opt in with the multi-session path.
+const multiSessionCloakEnabled = multiSessionCloakBinaryPath !== undefined || knownFreeCloakBinary;
 
 interface ReadyCdpInfo {
   activeConnections: number;
