@@ -92,13 +92,13 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
-    "@playwright/mcp": "^0.0.82",
+    "@playwright/mcp": "^0.0.83",
     "cloakbrowser": "^0.5.10",
     "commander": "^15.0.0",
     "mmdb-lib": "^3.0.3",
     "pino": "^10.3.1",
     "socks-proxy-agent": "^10.1.0",
-    "ws": "8.21.3"
+    "ws": "8.22.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -112,7 +112,7 @@
     "eslint": "^10.9.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import-x": "^4.17.1",
-    "eslint-plugin-jsdoc": "^64.3.4",
+    "eslint-plugin-jsdoc": "^65.0.0",
     "eslint-plugin-n": "^18.3.0",
     "eslint-plugin-no-secrets": "^2.3.3",
     "eslint-plugin-perfectionist": "^5.11.0",
@@ -120,7 +120,7 @@
     "eslint-plugin-regexp": "^3.2.0",
     "eslint-plugin-sonarjs": "^4.2.0",
     "fast-check": "^4.9.0",
-    "playwright": "1.64.0-alpha-1789764292000",
+    "playwright": "1.64.0-alpha-1790635538000",
     "prettier": "^3.9.6",
     "tsx": "^4.23.13",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
