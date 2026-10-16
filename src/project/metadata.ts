@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-
 interface PackageMetadata {
   name: string;
   version: string;
@@ -8,18 +7,24 @@ interface PackageMetadata {
   license?: string;
   mcpName?: string;
 }
-
-const packageMetadata = JSON.parse(
-  readFileSync(new URL('../../package.json', import.meta.url), 'utf8'),
-) as PackageMetadata;
+const uRL = new URL('../../package.json', import.meta.url);
+const fileSyncResult = readFileSync(uRL, 'utf8');
+const packageMetadata = JSON.parse(fileSyncResult) as PackageMetadata;
 const requireFromHere = createRequire(import.meta.url);
-
 export const PLAYWRIGHT_MCP_PACKAGE = '@playwright/mcp';
 export const PLAYWRIGHT_MCP_VERSION = readDependencyVersion(PLAYWRIGHT_MCP_PACKAGE);
 export const PLAYWRIGHT_MCP_BROWSER_TOOL_COUNT = 25;
 export const CLOAKBROWSER_TOOL_COUNT = 2;
-
-export const PROJECT_METADATA = Object.freeze({
+const freezeOptions: {
+  packageName: string;
+  version: string;
+  license: string;
+  mcpName: string;
+  title: 'CloakBrowser MCP';
+  description: string;
+  websiteUrl: 'https://swimmwatch.github.io/cloakbrowser-mcp/';
+  icons: { src: string; mimeType: string; sizes: string[] }[];
+} = {
   packageName: packageMetadata.name,
   version: packageMetadata.version,
   license: packageMetadata.license ?? 'MIT',
@@ -36,16 +41,19 @@ export const PROJECT_METADATA = Object.freeze({
       sizes: ['any'],
     },
   ],
-});
-
+};
+export const PROJECT_METADATA = Object.freeze(freezeOptions);
 export const MCP_SERVER_INSTRUCTIONS = [
   'This server forwards upstream Playwright MCP browser tools and runs them with CloakBrowser by default.',
   'Use browser_snapshot before interacting with unfamiliar pages.',
   'Use cloakbrowser_bridge_info and cloakbrowser_binary_info for bridge diagnostics.',
 ].join(' ');
-
 function readDependencyVersion(packageName: string): string {
-  const packageJson = requireFromHere.resolve(`${packageName}/package.json`);
-  const metadata = JSON.parse(readFileSync(packageJson, 'utf8')) as { version?: string };
+  const message = `${packageName}/package.json`;
+  const packageJson = requireFromHere.resolve(message);
+  const fileSyncResult2 = readFileSync(packageJson, 'utf8');
+  const metadata = JSON.parse(fileSyncResult2) as {
+    version?: string;
+  };
   return metadata.version ?? 'unknown';
 }

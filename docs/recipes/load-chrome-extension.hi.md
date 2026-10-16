@@ -37,10 +37,10 @@ Extension files या paths बदलने के बाद server restart क
 
 ## सत्यापन
 
-Use the MCP client to open a page where the extension should be active, then inspect behavior or capture a screenshot.
+MCP क्लाइंट से वह पेज खोलने को कहें जहां एक्सटेंशन सक्रिय होना चाहिए, फिर व्यवहार जांचें या स्क्रीनशॉट लें। ब्रिज की अपेक्षित पैकेज संस्करण जांचने के लिए `cloakbrowser_bridge_info` भी बुला सकते हैं।
 
 ## संबंधित
 
-- [Configuration](../configuration.md)
-- [Docker](../docker.md)
+- [विन्यास](../configuration.md#chrome-extensions)
+- [डॉकर](../docker.md#chrome-extensions)
 - [स्थायी लॉगिन प्रोफ़ाइल](persistent-login-profile.md)

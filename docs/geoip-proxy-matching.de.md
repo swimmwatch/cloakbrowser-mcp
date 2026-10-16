@@ -15,6 +15,8 @@ Durch den GeoIP-Proxy-Abgleich werden die Browser-Fingerprint-Einstellungen an d
 vom vorgelagerten Playwright MCP verwendeten Proxy-Standort angepasst. Dies ist nützlich, wenn die regionale Qualitätssicherung
 auf einen konsistenten Proxy, eine konsistente Zeitzone, Sprache und ein konsistentes Ländereinstellungsprofil angewiesen ist.
 
+Schrittweise Anleitungen: [Regionale QA über Proxy](recipes/regional-qa-through-proxy.md).
+
 Die Bridge erzeugt oder leitet keinen Proxy-Datenverkehr selbst weiter. Sie
 übergibt `PLAYWRIGHT_MCP_PROXY_SERVER` an die Startvorbereitung von
 CloakBrowser. Wenn das Matching aktiviert ist, ermittelt CloakBrowser den
@@ -169,7 +171,7 @@ Projektdateien festzuschreiben.
 | Bestehende Sitzungen | Behalten Proxy und GeoIP-Einstellung, die während `initialize` erfasst wurden. |
 | Authentifizierter HTTP-Proxy | Verwendet bei unterstützten Binärdateien die native Inline-Authentifizierung von CloakBrowser in der URL und bei älteren Binärdateien das Playwright-Proxyobjekt. |
 | Unverarbeitete Zeitzonen-/Ländereinstellungs-Flags | Explizite Werte für `--fingerprint-timezone`, `--lang` und `--fingerprint-locale` in `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` haben Vorrang vor GeoIP-abgeleiteten Werten und werden nicht dupliziert. |
-| Browser geolocation API | Wird von dieser Funktion nicht konfiguriert; sie gleicht nur die Fingerprint-Werte für Zeitzone, Sprache, Ländereinstellung und WebRTC-IP von CloakBrowser ab. |
+| Geolokalisierungs-API des Browsers | Wird von dieser Funktion nicht konfiguriert; sie gleicht nur die Fingerprint-Flags für Zeitzone, Sprache und Gebietsschema von CloakBrowser ab. |
 
 GeoIP-Standortdaten sind ungefähre Angaben und hängen von der Proxy-IP sowie der
 GeoIP-Datenbank von CloakBrowser ab. CloakBrowser lädt diese Offline-Datenbank bei der ersten
@@ -190,19 +192,18 @@ Nutzen Sie diese Funktion für legitime Qualitätssicherung, Lokalisierung und T
 Konsistenz der Umgebungen. Sie sollte nicht als Möglichkeit zur Umgehung von Zugriffskontrollen oder regionalen
 Richtlinienprüfungen betrachtet werden.
 
-Die GeoIP-Zuordnung arbeitet fail-closed. Kann CloakBrowser die
-Proxy-Ausgangs-IP nicht auflösen, die GeoIP-Datenbank nicht herunterladen oder
-lesen oder keine Zeitzone beziehungsweise kein Gebietsschema ableiten, schlägt
-der Browserstart fehl, statt mit einem nur teilweise passenden Fingerabdruck
-fortzufahren. Die GeoIP-Auflösung ist auf 20 Sekunden begrenzt; der erste
-Download der Offline-GeoIP-Datenbank erfolgt getrennt und kann länger dauern.
+Die GeoIP-Zuordnung verhindert den Start, wenn CloakBrowser die Proxy-Ausgangs-IP nicht auflösen, die GeoIP-Datenbank nicht herunterladen oder lesen oder keine Zeitzone ermitteln kann. Ab CloakBrowser 0.6.3 führt ein fehlender Ländereintrag in der Gebietsschematabelle zu einer Warnung und zur Verwendung von `en-US`; für die Seychellen wird `en-SC` verwendet. Die GeoIP-Auflösung ist auf 20 Sekunden begrenzt; der erste Download der Offline-Datenbank fällt nicht unter dieses Zeitlimit und kann länger dauern.
 
 ## Zugehörige Konfiguration
 
 - [Konfiguration](configuration.md) listet alle Bridge- und Upstream-Umgebungsvariablen auf.
 - [Docker](docker.md) erläutert die Standardwerte für die Container-Laufzeit und die Streamable-HTTP-Veröffentlichung.
-- [Tools](tools.md) erläutert, warum die Upstream-Browser-Tools von Playwright MCP unverändert weitergeleitet werden.
+- [Werkzeuge](tools.md) erläutert, warum die Upstream-Browser-Tools von Playwright MCP unverändert weitergeleitet werden.
 
 ## Weitere praktische Pfade
 
 Für die Entscheidung zwischen upstream Playwright MCP und diesem Paket nutzen Sie den [Vergleich](comparison.md). Für kurze Aufgaben nutzen Sie die [Rezepte](recipes/index.md): persistentes Profil, Erweiterungen, reverse proxy, regionale QA, Claude Desktop, Codex CLI und CI-Smoke-Test.
+
+## CloakBrowser 0.6.0
+
+Wenn ein SOCKS5- oder authentifizierter HTTP-Proxy über das Browser-Flag `--proxy-server` gesetzt wird, verwenden `context.request`, `page.request` und `route.fetch()` diesen Proxy nicht. Verwenden Sie `fetch()` innerhalb der Seite für Anfragen, die dem Routing des Browsers folgen müssen. Diese Bridge installiert die automatische CloakBrowser-Warnung nicht.

@@ -14,6 +14,16 @@ npm install
 npm run check
 ```
 
+## 测试报告
+
+通过 `test:report:generate` 生成的本地报告仍是独立的 HTML 文件。合并的 CI 报告使用单独的 HTML、JavaScript 和数据文件，以避免超过 GitHub 的文件大小限制。下载并解压整个 `combined-test-report` 构件，然后打开其目录：
+
+```bash
+npm run test:report:open -- --report /path/to/extracted-report
+```
+
+对于多文件报告，此命令会启动已安装的 Allure 查看器。查看报告时请保持其运行，按 `Ctrl+C` 停止。GitHub Pages 发布会将报告资源保存在单独的报告仓库中。
+
 ## Pull Request 检查清单
 
 - [ ] `npm run check` 通过测试。

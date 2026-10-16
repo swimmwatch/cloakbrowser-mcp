@@ -43,10 +43,10 @@ tags:
 
 ## Праверыць
 
-Папытаеце Claude Desktop выкарыстаць сервер `cloakbrowser`, каб адкрыць старонку і зрабіць здымак браўзэра. Інструменты аглядальніка Playwright MCP уверх па плыні павінны быць даступныя без зменаў.
+Папрасіце Claude Desktop выкарыстаць сервер `cloakbrowser`, каб адкрыць старонку і атрымаць здымак браўзера. Зыходныя браўзерныя інструменты Playwright MCP павінны быць даступнымі без змен.
 
 ## ЗВЯЗАНАЕ
 
-- [Getting Started](../getting-started.md)
-- [Persistent Login Profile](persistent-login-profile.md)
-- [Tools](../tools.md)
+- [Пачатак працы](../getting-started.md#mcp-client-config)
+- [Пастаянны профіль уваходу](persistent-login-profile.md)
+- [Інструменты](../tools.md)

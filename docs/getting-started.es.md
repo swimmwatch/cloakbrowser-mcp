@@ -9,6 +9,8 @@ tags:
 
 Utiliza el paquete npm publicado o la imagen de Docker. Solo es necesario instalarlo desde el código fuente para el desarrollo.
 
+Guías paso a paso: [Conectar con Claude Desktop](recipes/connect-claude-desktop.md), [Conectar con Codex CLI](recipes/connect-codex-cli.md), [Docker Streamable HTTP detrás de proxy inverso](recipes/docker-streamable-http-reverse-proxy.md).
+
 Elige npm si tu cliente MCP ya se ejecuta en tu equipo y tienes Node.js instalado. Elige Docker si deseas un entorno de ejecución reproducible con la imagen base de Playwright MCP de origen y la caché de CloakBrowser preparada dentro del contenedor.
 
 Para obtener una visión general rápida de las preguntas más frecuentes sobre la configuración, consulta las [Preguntas frecuentes](faq.md).
@@ -30,7 +32,7 @@ Marca una versión cuando la reproducibilidad sea importante:
 npx -y {{ project.npm_pin }}
 ```
 
-El paquete npm requiere Node.js 22.13+ en la línea 22.x, o Node.js 24+. CloakBrowser descarga su binario de Chromium la primera vez que se utiliza, a menos que ya esté almacenado en la caché.
+El paquete npm requiere Node.js `{{ project.node_engine_range }}`. CloakBrowser descarga su binario de Chromium la primera vez que se utiliza, a menos que ya esté almacenado en la caché.
 
 Utiliza `doctor` antes de conectar un cliente para verificar el entorno de ejecución local de Node.js, los metadatos del paquete, la CLI efectiva de Playwright MCP upstream, las versiones y rutas de paquete resueltas de `@playwright/mcp`, `playwright` y `playwright-core`, la ruta efectiva del core bundle y los metadatos del binario de CloakBrowser. El comando no inicia el puente ni descarga ningún navegador.
 
@@ -85,7 +87,7 @@ docker run --rm -i \
 
 Utiliza Docker para un entorno de ejecución reproducible. Conserva `-i` para que stdio siga conectado; la imagen ya incluye Tini para recoger correctamente los procesos hijos del navegador. Para clientes de Streamable HTTP, inicia el servidor por separado y configura la URL del cliente como `http://127.0.0.1:3000/mcp` o `https://127.0.0.1:3000/mcp`. Si se configura `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` o `--http-auth-token`, envía el mismo token Bearer a `/mcp`, `/healthz` y `/readyz`.
 
-## Configuración del cliente MCP
+## Configuración del cliente MCP { #mcp-client-config }
 
 La mayoría de los clientes locales de MCP funcionan mejor con stdio y npm:
 

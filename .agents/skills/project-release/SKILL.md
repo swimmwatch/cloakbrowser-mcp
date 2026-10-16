@@ -1,6 +1,6 @@
 ---
 name: project-release
-description: Prepare, publish, verify, or recover a cloakbrowser-mcp release only when the user explicitly requests release work. Require a Prompt MCP-confirmed target version and stability, follow the repository's version, changelog, PR, GitHub Release, npm, Docker, MCP Registry, and docs process, and never tag, publish, create/update a release PR, or mutate external release state without separate explicit authorization.
+description: Prepare, publish, verify, or recover a cloakbrowser-mcp release only when the user explicitly requests release work. Require a user-confirmed target version and stability, follow the repository's version, changelog, PR, GitHub Release, npm, Docker, MCP Registry, and docs process, and never tag, publish, create/update a release PR, or mutate external release state without separate explicit authorization.
 ---
 
 # Project Release
@@ -9,7 +9,8 @@ Use this skill only for `cloakbrowser-mcp` release work. Require a confirmed
 target version such as `v1.2.8`, and decide whether it is stable or prerelease
 before preparing, publishing, or recovering a release. If the user has not
 provided a target version, propose one from the unreleased changes and ask the
-user through Prompt MCP to confirm it or choose a different tag before release
+user through Codex's standard Request User Input tool (`request_user_input`) to
+confirm it or choose a different tag before release
 execution.
 
 Release tags use Semantic Versioning 2.0.0 with the repository's `v` prefix,
@@ -18,10 +19,16 @@ for example `v1.2.8` or `v1.2.8-rc.1`. The pinned specification URL is
 
 ## Authorization And Interview
 
-- Start or reopen a persistent workspace Prompt MCP interview with a stable ID
-  such as `release:vX.Y.Z` after inspecting the callable schemas.
+- Use Codex's standard **Request User Input** tool (`request_user_input`) for
+  unresolved release choices, following its exposed schema and current host
+  constraints. A separate interview server is not required.
 - Record target tag and stable/prerelease selection as separate material
-  decisions. Treat only committed answers as confirmation.
+  decisions in the release handoff. Explicit user decisions already in the
+  conversation count as confirmation; do not ask them again. An empty,
+  cancelled or unanswered question is not confirmation.
+- If the tool is unavailable, follow the host's supported question mechanism;
+  do not infer a reserved release decision. Permission requests follow the
+  host's approval process, not a clarification tool.
 - Release preparation, commit, push, release PR creation/update, merge, tag or
   GitHub Release creation, npm publication, Docker publication, MCP Registry
   publication, workflow rerun, and recovery mutations are separate
@@ -50,7 +57,7 @@ git log --oneline <previous-tag>..HEAD
   - `PATCH` for backward-compatible fixes, dependency updates, docs, CI, or
     packaging-only changes.
 - Present the proposed tag and short rationale, then ask the user to confirm it
-  or choose another tag through Prompt MCP. Do not run
+  or choose another tag through Request User Input (`request_user_input`). Do not run
   `npm run version:apply` until the tag is confirmed and release preparation is
   explicitly authorized.
 
@@ -137,7 +144,9 @@ the smallest release-relevant cause and rerun the relevant command.
   summary and validation list.
 - Call out security-sensitive release workflow changes, especially registry
   credentials, public image publishing, OIDC, or token behavior.
-- Wait for required PR checks to pass before merging.
+- Merge only after completed required PR checks have passed. Inspect remote CI
+  when the user requests verification; do not wait for completion or poll.
+  Pending jobs leave acceptance open.
 - After separate publication authorization, create a published GitHub Release
   for stable releases with:
   - tag `vX.Y.Z`;
@@ -150,16 +159,18 @@ the smallest release-relevant cause and rerun the relevant command.
 
 ## Post-Release Verification
 
-Watch the unified `Release` workflow until `metadata`, `npm`, `docker`,
-`mcp-registry`, `docs-build`, and `docs-deploy` complete. `docs-deploy`
-must run only after npm, Docker, and MCP Registry publishing have succeeded.
+Inspect the unified `Release` workflow when the user requests verification.
+If `metadata`, `npm`, `docker`, `mcp-registry`, `docs-build`, or `docs-deploy`
+is still running, leave verification open; do not wait or poll for completion.
+`docs-deploy` must run only after npm, Docker, and MCP Registry publishing have
+succeeded.
 
-Then verify:
+Once the required jobs have completed successfully, verify:
 
 ```bash
 npm view cloakbrowser-mcp@X.Y.Z version
 docker pull swimmwatch/cloakbrowser-mcp:X.Y.Z
-docker run --rm --init swimmwatch/cloakbrowser-mcp:X.Y.Z --help
+docker run --rm swimmwatch/cloakbrowser-mcp:X.Y.Z --help
 docker pull ghcr.io/swimmwatch/cloakbrowser-mcp:X.Y.Z
 npm run registry:check -- --version X.Y.Z
 ```

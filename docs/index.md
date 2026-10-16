@@ -39,6 +39,7 @@ Current version: {{ project.version_tag }}.
 
 | cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base                 | CloakBrowser | Transport              | Parity         |
 | ---------------- | --------------- | ------------------------------------------ | ------------ | ---------------------- | -------------- |
+| `1.15.0`         | `^0.0.83`       | `mcr.microsoft.com/playwright/mcp:v0.0.83` | `^0.6.3`     | stdio, Streamable HTTP | Compared in CI |
 | `1.14.1`         | `^0.0.82`       | `mcr.microsoft.com/playwright/mcp:v0.0.82` | `^0.5.10`    | stdio, Streamable HTTP | Compared in CI |
 | `1.14.0`         | `^0.0.82`       | `mcr.microsoft.com/playwright/mcp:v0.0.82` | `^0.5.10`    | stdio, Streamable HTTP | Compared in CI |
 | `1.13.0`         | `^0.0.80`       | `mcr.microsoft.com/playwright/mcp:v0.0.80` | `^0.5.10`    | stdio, Streamable HTTP | Compared in CI |

@@ -4,7 +4,7 @@ render_macros: false
 
 # Packet 06 — Upstream-Child Restart, Activity, And Ordered Cleanup
 
-Status: Reopened by the current Approved CDP-009 contract. Ready only for one explicit Packet 06 incremental-implementation invocation. Existing activity and cleanup behavior is partial prerequisite evidence, not completion of this revised packet.
+Status: Complete locally; retained execution evidence is recorded in todo.md and handoff.md.
 
 ## Outcome
 

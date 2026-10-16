@@ -15,36 +15,35 @@ import {
 } from '#scripts/lib/cloakbrowser-upstream';
 import { toVersionTag } from '#scripts/lib/semver';
 import { renderTemplateFile } from '#scripts/lib/template';
-
 const defaultIssueAssignee = 'swimmwatch';
-const scriptDir = dirname(fileURLToPath(import.meta.url));
+const fileURLToPathResult = fileURLToPath(import.meta.url);
+const scriptDir = dirname(fileURLToPathResult);
 const issueTemplatePath = join(scriptDir, 'templates', 'cloakbrowser-update-issue.md');
-const issueBodyPath = join(tmpdir(), 'cloakbrowser-mcp-cloakbrowser-upstream-update.md');
-
+const tmpdirResult = tmpdir();
+const issueBodyPath = join(tmpdirResult, 'cloakbrowser-mcp-cloakbrowser-upstream-update.md');
 const githubToken = process.env.GITHUB_TOKEN;
 const issueAssignee = process.env.UPSTREAM_MONITOR_ASSIGNEE ?? defaultIssueAssignee;
-const fetchJson = (url) => fetchJsonWithAuth(url, { githubToken });
-
+const fetchJson = (url) => {
+  const fetchJsonWithAuthOptions = { githubToken };
+  return fetchJsonWithAuth(url, fetchJsonWithAuthOptions);
+};
 const currentNpmVersion = await readCurrentCloakBrowserVersion();
 const latestNpmVersion = await getLatestNpmVersion(fetchJson);
 const updateAvailable = currentNpmVersion !== latestNpmVersion;
 const latestVersionTag = toVersionTag(latestNpmVersion);
 const issueTitle = `Update CloakBrowser to ${latestVersionTag}`;
-
 let releaseCount = 0;
-
 if (updateAvailable) {
   const releases = await getReleaseNotes(fetchJson, currentNpmVersion, latestNpmVersion);
   releaseCount = releases.length;
-
-  await writeIssueBody({
+  const writeIssueBodyOptions = {
     currentNpmVersion,
     latestNpmVersion,
     latestVersionTag,
     releaseNotesSummary: createReleaseNotesSummary(releases),
-  });
+  };
+  await writeIssueBody(writeIssueBodyOptions);
 }
-
 const result = {
   updateAvailable,
   currentNpmVersion,
@@ -55,8 +54,7 @@ const result = {
   issueAssignee,
   releaseCount,
 };
-
-await appendGithubOutput({
+const appendGithubOutputOptions = {
   update_available: String(result.updateAvailable),
   current_npm_version: result.currentNpmVersion,
   latest_npm_version: result.latestNpmVersion,
@@ -65,17 +63,17 @@ await appendGithubOutput({
   issue_body_path: result.issueBodyPath,
   issue_assignee: result.issueAssignee,
   release_count: String(result.releaseCount),
-});
-
-process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-
+};
+await appendGithubOutput(appendGithubOutputOptions);
+const message = `${JSON.stringify(result, null, 2)}\n`;
+process.stdout.write(message);
 async function writeIssueBody({
   currentNpmVersion,
   latestNpmVersion,
   latestVersionTag,
   releaseNotesSummary,
 }) {
-  const issueBody = await renderTemplateFile(issueTemplatePath, {
+  const renderTemplateFileOptions = {
     currentNpmVersion,
     encodedNpmPackageName: encodeURIComponent(upstreamConfig.npmPackageName),
     latestNpmVersion,
@@ -83,7 +81,7 @@ async function writeIssueBody({
     npmPackageName: upstreamConfig.npmPackageName,
     releaseNotesSummary,
     upstreamRepository: upstreamConfig.upstreamRepository,
-  });
-
+  };
+  const issueBody = await renderTemplateFile(issueTemplatePath, renderTemplateFileOptions);
   await writeFile(issueBodyPath, issueBody);
 }

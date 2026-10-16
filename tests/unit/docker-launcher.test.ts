@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { resolveDockerLauncherExitCode } from '@/docker/launcher.js';
-
 describe('resolveDockerLauncherExitCode', () => {
   it('does not let a later successful CLI exit mask infrastructure failure', () => {
-    expect(resolveDockerLauncherExitCode(0, new Error('Xvfb exited unexpectedly'))).toBe(1);
+    const error = new Error('Xvfb exited unexpectedly');
+    const resolveDockerLauncherExitCodeResult = resolveDockerLauncherExitCode(0, error);
+    expect(resolveDockerLauncherExitCodeResult).toBe(1);
   });
-
   it('preserves normal CLI exit status without infrastructure failure', () => {
-    expect(resolveDockerLauncherExitCode(7, undefined)).toBe(7);
+    const resolveDockerLauncherExitCodeResult2 = resolveDockerLauncherExitCode(7, undefined);
+    expect(resolveDockerLauncherExitCodeResult2).toBe(7);
   });
 });

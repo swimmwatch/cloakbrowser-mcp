@@ -16,6 +16,8 @@ The unified `Release` workflow resolves the tag once, then passes the derived `v
 arguments, image labels, server metadata, README markers, and documentation
 markers.
 
+All application test suites, coverage, package installation and dependency signature checks run before merge and are enforced by `required-ci`. The `Release` workflow builds and publishes the tested revision using `package:pack` and `docs:build:site`, with release metadata and artifact inventory validation.
+
 ## GitHub Repository Settings
 
 Configure these settings before the first release.
@@ -221,12 +223,11 @@ The repository uses free security tooling:
 | `Dependency Review` | GitHub Dependency Review | pull request | No external account or token. |
 | `OpenSSF Scorecard` | OpenSSF Scorecard | push, weekly, manual | Enable code scanning to view SARIF results. |
 | `Zizmor` | zizmor | workflow changes, manual | No external account or token. |
-| `CI` / `Release` | Trivy | Docker build and release | Enable code scanning to view SARIF results. |
-| `CI` / npm release | `npm audit --omit=dev --audit-level=high` | PR CI and npm publish job | No external account or token. |
+| `CI` | Trivy | PR Docker build | Enable code scanning to view SARIF results. |
+| `CI` | `npm audit --omit=dev --audit-level=high` | PR CI | No external account or token. |
 
-Action SHA pinning is tracked as a future hardening pass. Current workflows use
-versioned action references so updates stay manageable while the release
-infrastructure is still young.
+External GitHub Actions are pinned to full commit SHAs with readable version
+comments. Keep those pins when updating workflows.
 
 ## Documentation Publishing
 

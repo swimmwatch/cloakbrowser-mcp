@@ -34,6 +34,8 @@ docker run --rm -i \
 
 ## Streamable HTTP session metadata
 
+एक Streamable HTTP सर्वर हर MCP सत्र के लिए अलग प्रॉक्सी सेटिंग स्वीकार कर सकता है:
+
 ```json
 {
   "params": {
@@ -48,10 +50,14 @@ docker run --rm -i \
 }
 ```
 
-Existing sessions initialize के समय captured proxy रखती हैं; region बदलने के लिए नई session बनाएँ।
+मौजूदा सत्र `initialize` के दौरान निर्धारित प्रॉक्सी रखते हैं; क्षेत्र बदलने के लिए नया सत्र शुरू करें।
+
+## सत्यापन
+
+MCP क्लाइंट से IP या स्थानीयकरण परीक्षण पेज खोलने को कहें और दिखाई देने वाले क्षेत्र, भाषा तथा समय क्षेत्र की तुलना प्रॉक्सी प्रदाता के अपेक्षित स्थान से करें।
 
 ## संबंधित
 
-- [GeoIP Proxy Matching](../geoip-proxy-matching.md)
-- [Configuration](../configuration.md)
-- [Docker](../docker.md)
+- [GeoIP प्रॉक्सी मिलान](../geoip-proxy-matching.md)
+- [विन्यास](../configuration.md#streamable-http-runtime-metadata)
+- [डॉकर](../docker.md#geoip-proxy-matching)

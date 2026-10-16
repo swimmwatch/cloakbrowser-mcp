@@ -16,19 +16,21 @@ tags:
 参数、镜像标签、服务器元数据、README 标记和文档
 标记中。
 
+所有应用测试套件、覆盖率、包安装和依赖签名检查都在合并前运行，并由 `required-ci` 强制要求。`Release` 工作流通过 `package:pack` 和 `docs:build:site` 构建并发布已测试的代码版本，同时验证发布元数据和产物文件清单。
+
 ## GitHub 仓库设置
 
 请在首次发布之前配置这些设置。
 
-| Area | Required setting |
+| 范围 | 所需设置 |
 | --- | --- |
-| Actions | Enable GitHub Actions for the repository. |
-| Actions token | Allow workflows to request the permissions declared in each workflow. |
-| Branch protection | Require `Actionlint`, `CI`, `CodeQL`, and `Dependency Review` before merging to `main`. |
-| Pages | Set `Build and deployment -> Source` to `GitHub Actions`. |
-| Packages | Allow GitHub Actions to publish packages to GitHub Packages. |
-| Environments | Create `npm-production`, `docker-production`, `github-pages`, and `mcp-registry-production`. |
-| Code scanning | Enable code scanning to view CodeQL, Scorecard, and Trivy SARIF results. |
+| Actions | 为仓库启用 GitHub Actions。 |
+| Actions 令牌 | 允许工作流请求各自声明的权限。 |
+| 分支保护 | 合并到 `main` 前，要求 `Actionlint`、`CI`、`CodeQL` 和 `Dependency Review` 通过。 |
+| Pages | 将 `Build and deployment -> Source` 设置为 `GitHub Actions`。 |
+| Packages | 允许 GitHub Actions 将包发布到 GitHub Packages。 |
+| 环境 | 创建 `npm-production`、`docker-production`、`github-pages` 和 `mcp-registry-production`。 |
+| 代码扫描 | 启用代码扫描，以查看 CodeQL、Scorecard 和 Trivy 的 SARIF 结果。 |
 
 将必要的审阅者添加到 `npm-production`、`docker-production` 以及
 `mcp-registry-production`，以便在
@@ -42,13 +44,13 @@ Actions OIDC 进行发布。它不使用 `NPM_TOKEN` 进行发布。
 
 请使用以下确切值在 npmjs.com 上配置可信发布者：
 
-| npm Trusted Publisher field | Value |
+| npm Trusted Publisher 字段 | 值 |
 | --- | --- |
-| Provider | GitHub Actions |
-| Repository | `swimmwatch/cloakbrowser-mcp` |
-| Workflow filename | `release.yml` |
-| Environment | `npm-production` |
-| Allowed action | `npm publish` |
+| 提供方 | GitHub Actions |
+| 仓库 | `swimmwatch/cloakbrowser-mcp` |
+| 工作流文件名 | `release.yml` |
+| 环境 | `npm-production` |
+| 允许的操作 | `npm publish` |
 
 `npm` 任务在 GitHub 托管的运行器上运行，使用 Node.js 24，并保留
 `id-token: write`，以便 npm 能够将 GitHub Actions OIDC 令牌兑换为
@@ -157,10 +159,7 @@ Docker 的发布会在注册表发布开始之前完成。文档部署声明了 
 已可见，使用`mcp-publisher login github-oidc` 进行身份验证，发布
 服务器元数据，并验证最终的注册表条目。
 
-If a transient registry failure happens, rerun the failed `mcp-registry` job in
-在 npm 和 Docker 任务显示为绿色后，将执行原始发布流程。手册
-`workflow_dispatch` 触发器针对 `Release`，用于完整发布管道的运行，其中包含
-一个显式标签。
+如果注册表发生暂时性故障，请在 npm 和 Docker 作业成功后，在原始发布运行中重新运行失败的 `mcp-registry` 作业。`Release` 的手动 `workflow_dispatch` 触发器用于使用明确指定的标签运行完整发布流水线。
 
 使用以下命令验证已发布的注册表项：
 
@@ -209,18 +208,16 @@ Glama 目录评分与 GitHub 发布以及官方 MCP
 
 该代码库使用免费的安全工具：
 
-| Workflow | Tool | Trigger | User setup |
+| 工作流 | 工具 | 触发条件 | 用户设置 |
 | --- | --- | --- | --- |
-| `CodeQL` | GitHub CodeQL | push, pull request, weekly, manual | Enable code scanning to view SARIF results. |
-| `Dependency Review` | GitHub Dependency Review | pull request | No external account or token. |
-| `OpenSSF Scorecard` | OpenSSF Scorecard | push, weekly, manual | Enable code scanning to view SARIF results. |
-| `Zizmor` | zizmor | workflow changes, manual | No external account or token. |
-| `CI` / `Release` | Trivy | Docker build and release | Enable code scanning to view SARIF results. |
-| `CI` / npm release | `npm audit --omit=dev --audit-level=high` | PR CI and npm publish job | No external account or token. |
+| `CodeQL` | GitHub CodeQL | push, pull request, 每周, 手动 | 启用代码扫描以查看 SARIF 结果。 |
+| `Dependency Review` | GitHub Dependency Review | pull request | 无需外部账户或令牌。 |
+| `OpenSSF Scorecard` | OpenSSF Scorecard | push, 每周, 手动 | 启用代码扫描以查看 SARIF 结果。 |
+| `Zizmor` | zizmor | 工作流变更, 手动 | 无需外部账户或令牌。 |
+| `CI` | Trivy | PR Docker 构建 | 启用代码扫描以查看 SARIF 结果。 |
+| `CI` | `npm audit --omit=dev --audit-level=high` | PR CI | 无需外部账户或令牌。 |
 
-操作 SHA 固定功能将作为未来的一次强化迭代进行跟踪。当前的工作流采用
-带版本号的操作引用，因此在发布
-基础设施尚处于初期阶段时，更新仍可保持可控。
+外部 GitHub Actions 固定到完整的提交 SHA，并附有可读的版本注释。更新工作流时请保留这些固定引用。
 
 ## 文档发布
 
@@ -272,10 +269,10 @@ npm run upstream:check
 
 ## 发布标签
 
-| Release type | GitHub Release setting | npm dist-tag | Docker tags |
+| 发布类型 | GitHub Release 设置 | npm dist-tag | Docker 标签 |
 | --- | --- | --- | --- |
-| Stable | Not prerelease | `latest` | `vX.Y.Z`, `X.Y.Z`, `X.Y`, `latest` |
-| Prerelease | Prerelease | `next` | `vX.Y.Z-prerelease`, `X.Y.Z-prerelease` |
+| 稳定版 | 非预发布版 | `latest` | `vX.Y.Z`, `X.Y.Z`, `X.Y`, `latest` |
+| 预发布版 | 预发布版 | `next` | `vX.Y.Z-prerelease`, `X.Y.Z-prerelease` |
 
 ## 检查清单
 

@@ -27,11 +27,13 @@ O contêiner escuta 0.0.0.0 internamente, mas o Docker publica a porta apenas no
 
 ## Proxy do endpoint
 
+Configure seu proxy reverso para encaminhar tráfego HTTPS autenticado para:
+
 ```text
 http://127.0.0.1:3000/mcp
 ```
 
-Reenvie Authorization e mcp-session-id sem alterações. Mantenha health probes com auth ou só em rede confiável.
+Encaminhe os cabeçalhos `Authorization` e `mcp-session-id` sem alterações. Restrinja `/healthz` e `/readyz` a verificações de saúde confiáveis ou exija o mesmo token Bearer.
 
 ## Verificar
 
@@ -40,8 +42,14 @@ curl -H "Authorization: Bearer $MCP_AUTH_TOKEN" http://127.0.0.1:3000/healthz
 curl -H "Authorization: Bearer $MCP_AUTH_TOKEN" http://127.0.0.1:3000/readyz
 ```
 
+Em seguida, configure o cliente MCP com a URL HTTPS pública, por exemplo:
+
+```text
+https://mcp.example.com/mcp
+```
+
 ## Relacionado
 
-- [Docker](../docker.md)
-- [Configuration](../configuration.md)
-- [Security](../security.md)
+- [Docker](../docker.md#streamable-http)
+- [Configuração](../configuration.md#https)
+- [Segurança](../security.md)

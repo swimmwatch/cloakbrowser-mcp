@@ -12,6 +12,8 @@ Claude Desktop が必要時にサーバーを起動する場合は stdio を使�
 
 ## サーバーを追加
 
+この設定を `claude_desktop_config.json` に追加し、Claude Desktop を再起動します：
+
 ```json
 {
   "mcpServers": {
@@ -41,10 +43,10 @@ Claude Desktop が必要時にサーバーを起動する場合は stdio を使�
 
 ## 確認
 
-Ask Claude Desktop to open a page with the cloakbrowser server and take a browser snapshot.
+Claude Desktop に `cloakbrowser` サーバーでページを開き、ブラウザのスナップショットを取得させてください。上流 Playwright MCP のブラウザツールは変更されずに利用できます。
 
 ## 関連
 
-- [Getting Started](../getting-started.md)
+- [はじめに](../getting-started.md#mcp-client-config)
 - [永続ログインプロファイル](persistent-login-profile.md)
-- [Tools](../tools.md)
+- [ツール](../tools.md)

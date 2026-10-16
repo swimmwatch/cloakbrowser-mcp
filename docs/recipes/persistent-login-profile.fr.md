@@ -34,12 +34,17 @@ Utilisez des chemins de conteneur dans les variables d’environnement ; le chem
 
 ## Vérifier
 
-1. Sign in once.
-2. Restart with the same PLAYWRIGHT_MCP_USER_DATA_DIR.
-3. Confirm the session remains active.
+1. Demandez au client MCP d’ouvrir une page de connexion et connectez-vous.
+2. Arrêtez le serveur correctement.
+3. Redémarrez-le avec le même `PLAYWRIGHT_MCP_USER_DATA_DIR`.
+4. Demandez au client de revisiter le site et vérifiez que la connexion est conservée.
 
 ## Liens associés
 
-- [Configuration](../configuration.md)
-- [Docker](../docker.md)
+- [Configuration](../configuration.md#streamable-http-runtime-metadata)
+- [Docker](../docker.md#persistent-profiles)
 - [Charger une extension Chrome](load-chrome-extension.md)
+
+## CloakBrowser 0.6.0
+
+Lorsque le mode stealth de CloakBrowser est activé, un profil persistant configuré explicitement conserve sa graine d’empreinte dans `.cloakbrowser-seed`. Le premier démarrage après la mise à jour attribue une graine si le fichier est absent. Un `--fingerprint` explicite, y compris `--fingerprint=off`, est prioritaire et laisse le fichier intact. Avec stealth désactivé, le fichier ne change pas. Les fichiers corrompus sont régénérés avec un avertissement ; les erreurs d’accès empêchent le démarrage.

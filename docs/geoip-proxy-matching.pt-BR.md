@@ -15,6 +15,8 @@ A correspondência de proxy por GeoIP mantém as configurações de impressão d
 do proxy utilizado pelo MCP do Playwright a montante. Isso é útil quando o controle de qualidade regional depende
 de um proxy, fuso horário, idioma e perfil de localização consistentes.
 
+Guias passo a passo: [QA regional via proxy](recipes/regional-qa-through-proxy.md).
+
 A ponte não cria nem roteia o tráfego de proxy por conta própria. Ela passa
 `PLAYWRIGHT_MCP_PROXY_SERVER` para a preparação da inicialização do
 CloakBrowser. Quando a correspondência está habilitada, o CloakBrowser resolve
@@ -169,7 +171,7 @@ arquivos do projeto.
 | Sessões existentes | Mantêm o proxy e a configuração GeoIP capturados durante `initialize`. |
 | Proxy HTTP autenticado | Usa autenticação nativa incorporada à URL do CloakBrowser em binários compatíveis e o objeto de proxy do Playwright em binários antigos. |
 | Sinalizadores brutos de fuso horário/localidade | Valores explícitos de `--fingerprint-timezone`, `--lang` e `--fingerprint-locale` em `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` têm precedência sobre os valores derivados do GeoIP e não são duplicados. |
-| Browser geolocation API | Não é configurada por este recurso; ele apenas alinha os valores de impressão digital de fuso horário, idioma, localidade e IP do WebRTC do CloakBrowser. |
+| API de geolocalização do navegador | Este recurso não a configura; ele apenas alinha as opções de impressão digital de fuso horário, idioma e localidade do CloakBrowser. |
 
 Os dados de localização do GeoIP são aproximados e dependem do IP do proxy e do
 banco de dados do GeoIP do CloakBrowser. O CloakBrowser baixa e armazena em cache esse banco de dados offline na primeira
@@ -189,12 +191,7 @@ npx -y cloakbrowser-mcp@latest
 Utilize esse recurso para testes legítimos de controle de qualidade, localização e consistência de ambiente.
 Ele não deve ser tratado como uma forma de contornar controles de acesso ou verificações de políticas regionais.
 
-A correspondência GeoIP funciona em fail-closed. Se o CloakBrowser não puder
-resolver o IP de saída do proxy, baixar ou ler o banco de dados GeoIP, ou obter
-um fuso horário ou localidade, a inicialização do navegador falha em vez de
-continuar com uma impressão digital parcialmente correspondente. A resolução
-GeoIP é limitada a 20 segundos; o primeiro download do banco GeoIP offline é
-separado e pode levar mais tempo.
+A correspondência GeoIP impede a inicialização se o CloakBrowser não conseguir resolver o IP de saída do proxy, baixar ou ler o banco de dados GeoIP ou obter um fuso horário. A partir do CloakBrowser 0.6.3, um país ausente na tabela de localidades gera um aviso e usa `en-US`; Seychelles usa `en-SC`. A resolução GeoIP tem um limite de 20 segundos; o download inicial do banco de dados offline fica fora desse limite e pode demorar mais.
 
 ## Configuração relacionada
 
@@ -205,3 +202,7 @@ separado e pode levar mais tempo.
 ## Mais caminhos práticos
 
 Para escolher entre o Playwright MCP upstream e este pacote, consulte a [comparação](comparison.md). Para tarefas rápidas, use as [receitas](recipes/index.md): perfil persistente, extensões, reverse proxy, QA regional, Claude Desktop, Codex CLI e teste smoke de CI.
+
+## CloakBrowser 0.6.0
+
+Quando um proxy SOCKS5 ou HTTP autenticado é configurado pela opção `--proxy-server` do navegador, `context.request`, `page.request` e `route.fetch()` não usam esse proxy. Use `fetch()` dentro da página para solicitações que devam seguir a rota do navegador. Esta ponte não instala o aviso automático do CloakBrowser.

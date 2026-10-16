@@ -50,6 +50,6 @@ https://mcp.example.com/mcp
 
 ## Связанный
 
-- [Docker](../docker.md)
-- [Конфигурация](../configuration.md)
+- [Docker](../docker.md#streamable-http)
+- [Конфигурация](../configuration.md#https)
 - [Безопасность](../security.md)

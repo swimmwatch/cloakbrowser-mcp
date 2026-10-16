@@ -16,19 +16,21 @@ tags:
 引数、イメージラベル、サーバーメタデータ、READMEマーカー、およびドキュメント
 マーカーを通じて渡します。
 
+すべてのアプリケーションスイート、カバレッジ、パッケージのインストール、依存関係の署名チェックはマージ前に実行され、`required-ci` で必須となります。`Release` ワークフローは `package:pack` と `docs:build:site` でテスト済みリビジョンをビルドして公開し、リリースのメタデータと成果物のファイル一覧を検証します。
+
 ## GitHub リポジトリの設定
 
 初回リリース前に、これらの設定を行ってください。
 
-| Area | Required setting |
+| 対象 | 必要な設定 |
 | --- | --- |
-| Actions | Enable GitHub Actions for the repository. |
-| Actions token | Allow workflows to request the permissions declared in each workflow. |
-| Branch protection | Require `Actionlint`, `CI`, `CodeQL`, and `Dependency Review` before merging to `main`. |
-| Pages | Set `Build and deployment -> Source` to `GitHub Actions`. |
-| Packages | Allow GitHub Actions to publish packages to GitHub Packages. |
-| Environments | Create `npm-production`, `docker-production`, `github-pages`, and `mcp-registry-production`. |
-| Code scanning | Enable code scanning to view CodeQL, Scorecard, and Trivy SARIF results. |
+| Actions | リポジトリで GitHub Actions を有効にします。 |
+| Actions トークン | 各ワークフローが宣言した権限を要求できるようにします。 |
+| ブランチ保護 | `main` へのマージ前に `Actionlint`、`CI`、`CodeQL`、`Dependency Review` の成功を必須とします。 |
+| Pages | `Build and deployment -> Source` を `GitHub Actions` に設定します。 |
+| Packages | GitHub Actions による GitHub Packages へのパッケージ公開を許可します。 |
+| 環境 | `npm-production`、`docker-production`、`github-pages`、`mcp-registry-production` を作成します。 |
+| コードスキャン | コードスキャンを有効にして CodeQL、Scorecard、Trivy の SARIF 結果を表示します。 |
 
 `npm-production`、`docker-production`、および
 `mcp-registry-production` に必須のレビュー担当者を追加してください。これにより、
@@ -42,13 +44,13 @@ Actions OIDC を利用した npm Trusted Publishing を通じて公開されま�
 
 npmjs.com の信頼済みパブリッシャーを、以下の値とまったく同じ値で設定してください：
 
-| npm Trusted Publisher field | Value |
+| npm Trusted Publisher の項目 | 値 |
 | --- | --- |
-| Provider | GitHub Actions |
-| Repository | `swimmwatch/cloakbrowser-mcp` |
-| Workflow filename | `release.yml` |
-| Environment | `npm-production` |
-| Allowed action | `npm publish` |
+| プロバイダー | GitHub Actions |
+| リポジトリ | `swimmwatch/cloakbrowser-mcp` |
+| ワークフローファイル名 | `release.yml` |
+| 環境 | `npm-production` |
+| 許可する操作 | `npm publish` |
 
 `npm` ジョブは GitHub がホストするランナー上で実行され、Node.js 24 を使用し、
 `id-token: write` を保持するため、npm が GitHub Actions の OIDC トークンを
@@ -208,18 +210,16 @@ Glamaの必須チェックリスト項目に課金が必要とされる場合、
 
 このリポジトリでは、無料のセキュリティツールを使用しています：
 
-| Workflow | Tool | Trigger | User setup |
+| ワークフロー | ツール | 実行条件 | ユーザーによる設定 |
 | --- | --- | --- | --- |
-| `CodeQL` | GitHub CodeQL | push, pull request, weekly, manual | Enable code scanning to view SARIF results. |
-| `Dependency Review` | GitHub Dependency Review | pull request | No external account or token. |
-| `OpenSSF Scorecard` | OpenSSF Scorecard | push, weekly, manual | Enable code scanning to view SARIF results. |
-| `Zizmor` | zizmor | workflow changes, manual | No external account or token. |
-| `CI` / `Release` | Trivy | Docker build and release | Enable code scanning to view SARIF results. |
-| `CI` / npm release | `npm audit --omit=dev --audit-level=high` | PR CI and npm publish job | No external account or token. |
+| `CodeQL` | GitHub CodeQL | push, pull request, 毎週, 手動 | コードスキャンを有効にして SARIF 結果を表示します。 |
+| `Dependency Review` | GitHub Dependency Review | pull request | 外部アカウントやトークンは不要です。 |
+| `OpenSSF Scorecard` | OpenSSF Scorecard | push, 毎週, 手動 | コードスキャンを有効にして SARIF 結果を表示します。 |
+| `Zizmor` | zizmor | ワークフローの変更, 手動 | 外部アカウントやトークンは不要です。 |
+| `CI` | Trivy | PR の Docker ビルド | コードスキャンを有効にして SARIF 結果を表示します。 |
+| `CI` | `npm audit --omit=dev --audit-level=high` | PR CI | 外部アカウントやトークンは不要です。 |
 
-アクションのSHA固定については、今後の強化作業の一環として追跡されます。現在のワークフローでは
-バージョン管理されたアクション参照を使用しているため、リリース
-インフラがまだ整備途上の段階でも、更新を管理しやすい状態を維持しています。
+外部 GitHub Actions は、読みやすいバージョンコメントを付けて完全なコミット SHA に固定されています。ワークフローの更新時にも、この固定を維持してください。
 
 ## ドキュメントの公開
 
@@ -269,10 +269,10 @@ npm run upstream:check
 
 ## リリースタグ
 
-| Release type | GitHub Release setting | npm dist-tag | Docker tags |
+| リリースの種類 | GitHub Release の設定 | npm dist-tag | Docker タグ |
 | --- | --- | --- | --- |
-| Stable | Not prerelease | `latest` | `vX.Y.Z`, `X.Y.Z`, `X.Y`, `latest` |
-| Prerelease | Prerelease | `next` | `vX.Y.Z-prerelease`, `X.Y.Z-prerelease` |
+| 安定版 | プレリリースではない | `latest` | `vX.Y.Z`, `X.Y.Z`, `X.Y`, `latest` |
+| プレリリース | プレリリース | `next` | `vX.Y.Z-prerelease`, `X.Y.Z-prerelease` |
 
 ## チェックリスト
 

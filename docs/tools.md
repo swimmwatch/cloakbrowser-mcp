@@ -14,7 +14,7 @@ tags:
 
 The default upstream browser tool surface is expected to match the pinned Playwright MCP dependency. It contains 25 tools, including `browser_emulate_media`, navigation, snapshot, click, typing, screenshots, tabs, console messages, network inspection, file upload, dialogs, and unsafe evaluation tools.
 
-For a stable upstream reference, see the Playwright MCP `{{ project.playwright_mcp_package_tag }}` capability test pinned to the exact package commit: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/f1257a5a67aff872f947fae274759f7d54853862/tests/capabilities.spec.ts#L19-L77).
+For a stable upstream reference, see the Playwright MCP `@playwright/mcp@0.0.83` capability test pinned to that package's commit: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/f183dad4a52965583e3cc1d59b88cdc279e2e57d/tests/capabilities.spec.ts#L19-L74). The installed dependency defines the current tool surface.
 
 Set `PLAYWRIGHT_MCP_CAPS=devtools` to pass the upstream `devtools` capability to
 the child process. The bridge has no `--caps` flag and forwards the resulting
@@ -23,7 +23,7 @@ upstream tools and schemas unchanged, including `browser_start_recording` and
 
 !!! warning "Recording limitation with the public CloakBrowser v146 binary"
     The recording tools are available, but the public no-key Chromium 146
-    binary used by CloakBrowser 0.5.10 intentionally disables Playwright's
+    binary intentionally disables Playwright's
     page-to-host binding for stealth. As a result, `browser_stop_recording` may
     return partial code: navigation is recorded while successful input and
     click actions are omitted. Review generated recordings before reuse.
@@ -37,7 +37,9 @@ This project treats upstream Playwright MCP as authoritative and does not mainta
 
 ### Dynamic WebMCP tools
 
-Chromium implements WebMCP starting with version 154. Older CloakBrowser builds ignore the feature flag; use a compatible browser build or `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright` when WebMCP is required.
+WebMCP support depends on the selected browser build and enabled features. The installed Playwright MCP expects `document.modelContext` or `navigator.modelContext` with a `getTools()` method. Use a compatible CloakBrowser build or `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright` when WebMCP is required.
+
+[Chrome's WebMCP documentation](https://developer.chrome.com/docs/ai/webmcp) describes an origin trial from Chrome 149, a local testing flag, and headless limitations. A Chromium version number alone does not guarantee compatibility with the API expected by Playwright MCP.
 
 When Chromium is started with `--enable-features=WebMCP`, Playwright MCP can add page-provided tools named `webmcp_*` while a page is open. These tools are dynamic: the bridge advertises `tools.listChanged`, invalidates its complete paginated tool cache when upstream sends `notifications/tools/list_changed`, and forwards the notification to the owning MCP client. Clients should listen for that notification and call `tools/list` again. A Streamable HTTP client receives it only while its session notification stream is open; the next `tools/list` is still fresh when no stream was open.
 
@@ -119,7 +121,7 @@ navigation, page closure, input, or storage mutations.
 
 The local tool surface remains limited to these two introspection tools.
 `SessionSeats` and `getSessionSeats` are not exposed as an MCP tool because
-CloakBrowser 0.5.10 does not export that API from its public entry point.
+the supported CloakBrowser public entry point does not export that API.
 
 ## Parity
 

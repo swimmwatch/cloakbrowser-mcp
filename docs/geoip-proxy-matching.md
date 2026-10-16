@@ -174,11 +174,7 @@ GeoIP location data is approximate and depends on the proxy IP and CloakBrowser'
 GeoIP database. CloakBrowser downloads and caches that offline database on first
 use when it is needed.
 
-GeoIP matching is fail-closed. If CloakBrowser cannot resolve the proxy exit IP,
-download or read the GeoIP database, or derive a timezone or locale, browser
-startup fails instead of continuing with a partially matched fingerprint. The
-GeoIP resolution timeout is at most 20 seconds; the initial offline database
-download is outside that timeout and can take longer.
+GeoIP matching fails closed if CloakBrowser cannot resolve the proxy exit IP, download or read the GeoIP database, or derive a timezone. Starting with CloakBrowser 0.6.3, a country missing from the locale map produces a warning and uses `en-US`; Seychelles maps to `en-SC`. The GeoIP resolution timeout is at most 20 seconds; the initial offline database download is outside that timeout and can take longer.
 
 For example, the following keeps the explicit timezone and locale while still
 using GeoIP matching to resolve the proxy exit IP:
@@ -200,3 +196,7 @@ policy checks.
 - [Docker](docker.md) explains container runtime defaults and Streamable HTTP publishing.
 - [Regional QA Through Proxy](recipes/regional-qa-through-proxy.md) gives a task-focused setup.
 - [Tools](tools.md) explains why upstream Playwright MCP browser tools are forwarded unchanged.
+
+## CloakBrowser 0.6.0
+
+When a SOCKS5 or authenticated HTTP proxy is set through the browser’s `--proxy-server` flag, `context.request`, `page.request`, and `route.fetch()` do not use that proxy. Use in-page `fetch()` for requests that must follow browser routing. CloakBrowser’s automatic warning is not installed by this bridge.

@@ -14,6 +14,16 @@ npm install
 npm run check
 ```
 
+## テストレポート
+
+`test:report:generate` で生成するローカルレポートは、引き続き単独の HTML ファイルです。統合 CI レポートは GitHub のファイルサイズ制限を超えないよう、HTML、JavaScript、データを別々のファイルに保存します。`combined-test-report` アーティファクト全体をダウンロードして展開し、そのディレクトリを開いてください。
+
+```bash
+npm run test:report:open -- --report /path/to/extracted-report
+```
+
+複数ファイルのレポートでは、このコマンドがインストール済みの Allure ビューアーを起動します。閲覧中は実行したままにし、終了するには `Ctrl+C` を押してください。GitHub Pages への公開では、レポートのリソースを専用のレポートリポジトリに保存します。
+
 ## プルリクエストのチェックリスト
 
 - [ ] `npm run check` は合格しました。

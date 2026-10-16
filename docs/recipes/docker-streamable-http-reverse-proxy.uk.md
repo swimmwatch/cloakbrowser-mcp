@@ -27,11 +27,13 @@ docker run --rm -p 127.0.0.1:3000:3000 \
 
 ## Проксування endpoint
 
+Налаштуйте зворотний проксі для пересилання автентифікованого трафіку HTTPS до:
+
 ```text
 http://127.0.0.1:3000/mcp
 ```
 
-Передавайте Authorization і mcp-session-id без змін. Health probes залишайте за auth або тільки для довіреної мережі.
+Передавайте заголовки `Authorization` і `mcp-session-id` без змін. Надавайте доступ до `/healthz` і `/readyz` лише довіреним перевіркам стану або вимагайте той самий Bearer-токен.
 
 ## Перевірка
 
@@ -40,8 +42,14 @@ curl -H "Authorization: Bearer $MCP_AUTH_TOKEN" http://127.0.0.1:3000/healthz
 curl -H "Authorization: Bearer $MCP_AUTH_TOKEN" http://127.0.0.1:3000/readyz
 ```
 
+Потім налаштуйте клієнт MCP на публічну HTTPS-адресу, наприклад:
+
+```text
+https://mcp.example.com/mcp
+```
+
 ## Повʼязані матеріали
 
-- [Docker](../docker.md)
-- [Configuration](../configuration.md)
-- [Security](../security.md)
+- [Docker](../docker.md#streamable-http)
+- [Налаштування](../configuration.md#https)
+- [Безпека](../security.md)

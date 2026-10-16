@@ -15,76 +15,46 @@ La [Référence CLI](generated/cli.md) générée constitue la liste de référe
 
 ## Options de pont
 
-| Variable | Default | Description |
+| Variable | Valeur par défaut | Description |
 | --- | --- | --- |
-| `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` | Bridge transport: `stdio` or `streamable-http`. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` | Streamable HTTP listener protocol: `http` or `https`. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` | Streamable HTTP bind host. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_PORT` | `3000` | Streamable HTTP bind port. Use `0` for an ephemeral port in tests. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_ENDPOINT` | `/mcp` | Streamable HTTP endpoint path. `/healthz` and `/readyz` are reserved for probes. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` | unset | Optional Bearer token required on Streamable HTTP requests. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_BACKEND` | `memory` | Session metadata backend. Only `memory` is implemented in this release. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_IDLE_TTL_MS` | `3600000` | Idle TTL for Streamable HTTP sessions. Expired sessions dispose their bridge and upstream child process. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` | Maximum active Streamable HTTP sessions in one process. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTPS_CERT` | unset | TLS certificate PEM path for HTTPS Streamable HTTP. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTPS_KEY` | unset | TLS private key PEM path for HTTPS Streamable HTTP. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTPS_PFX` | unset | TLS PFX/PKCS12 path for HTTPS Streamable HTTP. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTPS_PASSPHRASE` | unset | Passphrase for an encrypted HTTPS key or PFX. |
-| `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` | Streamable HTTP operational log level: `trace`, `debug`, `info`, `warn`, `error`, `fatal`, or `silent`. |
-| `PLAYWRIGHT_MCP_PROXY_SERVER` | unset | Upstream Playwright MCP proxy server. Used as the GeoIP source when matching is enabled. |
-| `PLAYWRIGHT_MCP_PROXY_BYPASS` | unset | Upstream proxy bypass list for hosts that should not use `PLAYWRIGHT_MCP_PROXY_SERVER`. |
-| `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | Resolves `PLAYWRIGHT_MCP_PROXY_SERVER` GeoIP and matches CloakBrowser timezone and locale fingerprint flags to that proxy location. |
-| `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Enables CloakBrowser human-like mouse, keyboard, and scroll behavior. |
-| `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
+| `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` | Transport du pont : `stdio` ou `streamable-http`. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` | Protocole du serveur d’écoute Streamable HTTP : `http` ou `https`. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` | Adresse hôte sur laquelle écoute le serveur Streamable HTTP. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_PORT` | `3000` | Port sur lequel écoute le serveur Streamable HTTP. Utilisez `0` pour obtenir un port temporaire dans les tests. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_ENDPOINT` | `/mcp` | Chemin du point de terminaison Streamable HTTP. `/healthz` et `/readyz` sont réservés aux sondes. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` | unset | Jeton Bearer facultatif. Lorsqu’il est défini, les requêtes Streamable HTTP doivent le fournir. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_BACKEND` | `memory` | Backend des métadonnées de session. Seul `memory` est implémenté dans cette version. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_IDLE_TTL_MS` | `3600000` | Durée de validité des sessions Streamable HTTP inactives. À l’expiration, les ressources du pont sont libérées et le processus enfant upstream est arrêté. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` | Nombre maximal de sessions Streamable HTTP actives dans un processus. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_CERT` | unset | Chemin du fichier de certificat TLS au format PEM pour Streamable HTTP via HTTPS. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_KEY` | unset | Chemin de la clé privée TLS au format PEM pour Streamable HTTP via HTTPS. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_PFX` | unset | Chemin du fichier TLS au format PFX/PKCS12 pour Streamable HTTP via HTTPS. |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_PASSPHRASE` | unset | Phrase secrète de la clé HTTPS chiffrée ou du fichier PFX. |
+| `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` | Niveau des journaux opérationnels Streamable HTTP : `trace`, `debug`, `info`, `warn`, `error`, `fatal` ou `silent`. |
+| `PLAYWRIGHT_MCP_PROXY_SERVER` | unset | Serveur proxy utilisé par Playwright MCP upstream. Lorsque la correspondance est activée, il sert de source pour les informations GeoIP. |
+| `PLAYWRIGHT_MCP_PROXY_BYPASS` | unset | Liste upstream des hôtes qui ne doivent pas utiliser `PLAYWRIGHT_MCP_PROXY_SERVER`. |
+| `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | Détermine les informations GeoIP de `PLAYWRIGHT_MCP_PROXY_SERVER` et aligne les paramètres d’empreinte de fuseau horaire et de locale de CloakBrowser sur l’emplacement du proxy. |
+| `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Active les actions de souris, de clavier et de défilement de CloakBrowser qui reproduisent un comportement humain. |
+| `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | Préréglage du comportement humain de CloakBrowser : `default` ou `careful`. Utilisé uniquement lorsque humanize est activé. |
 | `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` | `stable` | Canal de publication du binaire CloakBrowser : `stable` ou `preview`, réservé à Pro. |
 | `CLOAKBROWSER_BINARY_PATH` | unset | Chemin vers un exécutable CloakBrowser personnalisé. L’option CLI `--binary-path` est prioritaire. |
-| `CLOAKBROWSER_VERSION` | unset | Version épinglée transmise au résolveur de cache CloakBrowser lorsqu’aucun exécutable personnalisé n’est sélectionné. |
-| `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
-| `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
-| `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
+| `CLOAKBROWSER_VERSION` | unset | Version épinglée transmise au résolveur de cache CloakBrowser lorsqu’aucun exécutable personnalisé n’est choisi. Une clé valide de l’offre gratuite ignore la version épinglée ; CloakBrowser peut réutiliser un binaire en cache. |
+| `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` utilise le binaire CloakBrowser. `playwright` ignore le remplacement de l’exécutable propre à Cloak. |
+| `PLAYWRIGHT_MCP_HEADLESS` | `true` | Exécute Chromium en mode sans interface graphique. |
+| `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Répertoire des artefacts pour npm. Docker utilise `/data`. |
 | `PLAYWRIGHT_MCP_CODEGEN` | `typescript` | Langage cible pour la génération de code : `typescript`, `python`, `java`, `csharp` ou `none`. Le pont valide la valeur et écrit `codegen` dans sa configuration Playwright MCP générée. |
 | `PLAYWRIGHT_MCP_SNAPSHOT_BOXES` | `false` | `true` ou `false` ; inclut la boîte englobante de chaque élément sous la forme `[box=x,y,width,height]` dans les instantanés. Le pont valide la valeur et écrit `snapshot.boxes` dans sa configuration Playwright MCP générée. |
 | `PLAYWRIGHT_MCP_TIMEOUT_SETTLE` | `500` | Attente upstream en millisecondes après une action, le temps que le travail déclenché se stabilise. Transmise directement à Playwright MCP. |
-| `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | Default action timeout in milliseconds. |
-| `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
-| `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |
+| `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | Délai maximal par défaut des actions, en millisecondes. |
+| `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Délai maximal par défaut des navigations, en millisecondes. |
+| `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Dimensions de la zone d’affichage du navigateur au format `WIDTHxHEIGHT`. |
 | `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset | Répertoire de profil Chromium persistant. Le pont le résout en chemin absolu, le crée s'il manque, vérifie qu'il est accessible en écriture et l'écrit dans le `browser.userDataDir` généré. |
 | `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset | Objet JSON contenant des options de contexte validées. Les champs pris en charge sont listés ci-dessous. |
 | `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset | Tableau JSON ou liste séparée par des virgules de répertoires d'extensions Chrome existants. Nécessite `PLAYWRIGHT_MCP_USER_DATA_DIR`. Utilisez des tableaux JSON pour les chemins Windows ou les chemins contenant des virgules. |
-| `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | Enables the console message compatibility patch. |
-| `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
-| `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
-| `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | Adds `--no-sandbox` and disables Chromium sandboxing. |
-
-## Licence CloakBrowser et connexion GitHub
-
-La configuration de la licence utilise la CLI CloakBrowser en amont ;
-`cloakbrowser-mcp` n'ajoute pas de commandes de connexion ou de déconnexion :
-
-```bash
-npx -y cloakbrowser@latest login
-npx -y cloakbrowser@latest info
-npx -y cloakbrowser@latest logout
-```
-
-`login` accepte une clé payante ou lance la connexion GitHub afin d'obtenir une
-clé de l'offre gratuite. La clé validée est stockée dans
-`~/.cloakbrowser/license.key` ; `logout` supprime ce fichier. `info` indique le
-niveau de licence actif et, pour les licences Pro, le nombre de sessions
-actives.
-
-Vous pouvez aussi définir `CLOAKBROWSER_LICENSE_KEY` dans l'environnement du
-serveur MCP. Le pont transmet cette variable au processus enfant en
-amont/du navigateur sans la journaliser. Lorsque `CLOAKBROWSER_CACHE_DIR`
-pointe vers un cache personnalisé contenant `license.key`, CloakBrowser résout
-la clé et le pont ne transmet que cette clé résolue depuis l'environnement
-généré du navigateur. Les autres entrées d'environnement générées ne sont pas
-copiées.
-
-Si CloakBrowser rejette la clé de licence fournie, ne peut pas la vérifier ou
-ne peut pas joindre son serveur de licences, le démarrage échoue avec l'erreur
-explicite de CloakBrowser. Le pont préserve cette erreur : il ne la masque pas
-et ne bascule pas silencieusement vers un autre navigateur ou niveau de licence.
+| `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | Active le correctif de compatibilité des messages de console. |
+| `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Ajoute les arguments de lancement furtif par défaut de CloakBrowser. |
+| `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Arguments Chromium supplémentaires sous forme de liste séparée par des virgules ou de tableau JSON. |
+| `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | Ajoute `--no-sandbox` et désactive le bac à sable de Chromium. |
 
 ## CDP géré { #managed-cdp }
 
@@ -175,9 +145,38 @@ Voir [Outils](tools.md#cloakbrowser_bridge_info), [Docker](docker.md#managed-cdp
 [Architecture](architecture.md#managed-cdp-ownership) pour l'état de découverte, le déploiement,
 limites et comportement de redémarrage.
 
+## Licence CloakBrowser et connexion GitHub
+
+La configuration de la licence utilise la CLI CloakBrowser en amont ;
+`cloakbrowser-mcp` n'ajoute pas de commandes de connexion ou de déconnexion :
+
+```bash
+npx -y cloakbrowser@latest login
+npx -y cloakbrowser@latest info
+npx -y cloakbrowser@latest logout
+```
+
+`login` accepte une clé payante ou lance la connexion GitHub afin d'obtenir une
+clé de l'offre gratuite. La clé validée est stockée dans
+`~/.cloakbrowser/license.key` ; `logout` supprime ce fichier. `info` indique le
+niveau de licence actif et, pour les licences Pro, le nombre de sessions
+actives.
+
+Vous pouvez aussi définir `CLOAKBROWSER_LICENSE_KEY` dans l'environnement du
+serveur MCP. Le pont transmet cette variable au processus enfant en
+amont/du navigateur sans la journaliser. Lorsque `CLOAKBROWSER_CACHE_DIR`
+pointe vers un cache personnalisé contenant `license.key`, CloakBrowser résout
+la clé et le pont ne transmet que cette clé résolue depuis l'environnement
+généré du navigateur. Les autres entrées d'environnement générées ne sont pas
+copiées.
+
+Si CloakBrowser rejette la clé de licence fournie ou ne peut la valider ni via le serveur de licences ni via la validation en cache, le démarrage échoue avec l’erreur explicite de CloakBrowser. Le pont conserve cette erreur : il ne la masque pas et ne bascule pas silencieusement vers un autre navigateur ou niveau de licence.
+
+CloakBrowser peut réutiliser la validation en cache lorsque son serveur de licences est indisponible. Cela ne garantit pas un démarrage hors ligne : le téléchargement du binaire ou le démarrage du navigateur peuvent encore échouer.
+
 ## Canal de publication de CloakBrowser
 
-`CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` sélectionne le canal de publication du binaire CloakBrowser. La valeur par défaut est `stable`. `preview` demande une version Preview du navigateur Pro et est disponible uniquement avec une licence Pro. Un verrouillage explicite de `CLOAKBROWSER_VERSION` est prioritaire. Si Preview n'est pas disponible pour la plateforme, CloakBrowser revient à Stable.
+`CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` sélectionne le canal de publication du binaire CloakBrowser. La valeur par défaut est `stable`. `preview` demande une compilation Preview du navigateur Pro et nécessite une licence Pro. Une version explicitement épinglée avec `CLOAKBROWSER_VERSION` est prioritaire pour les téléchargements sans clé ou avec une clé payante. Une clé valide de l’offre gratuite ignore la version épinglée et peut réutiliser un binaire en cache. Si Preview n’est pas disponible pour la plateforme, CloakBrowser revient à Stable.
 
 Le canal de publication est choisi au démarrage du processus de pont. Il s'applique à toutes les sessions Streamable HTTP et ne peut pas être défini ni remplacé dans les métadonnées initialize. Redémarrez le pont pour le modifier.
 
@@ -202,7 +201,7 @@ utilisé par toutes les sessions MCP qu'il crée. Les métadonnées `initialize`
 peuvent pas sélectionner ni remplacer un chemin exécutable ; lancez des processus
 distincts pour des binaires différents.
 
-Lorsque le binaire sélectionné implémente `document.modelContext`, Playwright MCP en amont peut ajouter des outils `webmcp_<page-tool>` après un instantané de page. Il envoie `tools/list_changed` ; le pont relaie la notification et la liste d’outils actualisée. La page définit le nom et le schéma de chaque outil dynamique.
+Si la compilation choisie fournit `document.modelContext` ou `navigator.modelContext` avec une méthode `getTools()`, upstream Playwright MCP peut ajouter des outils `webmcp_<page-tool>` après un instantané de la page. Il envoie `tools/list_changed` ; le pont transmet la notification et la liste actualisée. La page définit le nom et le schéma de chaque outil dynamique.
 
 ## Correspondance via le proxy GeoIP
 
@@ -216,12 +215,7 @@ comme solution de repli pour les anciens binaires.
 Consultez la section [Correspondance de proxy GeoIP](geoip-proxy-matching.md) pour découvrir des exemples de configuration, les métadonnées de proxy HTTP
 Streamable en exécution, les cas d'utilisation, les règles de priorité et les limitations.
 
-La correspondance fonctionne en fail-closed : si CloakBrowser ne peut pas
-résoudre l'IP de sortie du proxy, la base GeoIP, le fuseau horaire ou les
-paramètres régionaux, le navigateur ne démarre pas avec une empreinte
-partiellement correspondante. La résolution GeoIP est limitée à 20 secondes ;
-le premier téléchargement de la base GeoIP hors ligne est distinct et peut
-prendre plus de temps.
+Pour une procédure concise, voir [QA régionale via un proxy](recipes/regional-qa-through-proxy.md).
 
 ## Comportement d'entrée humanisé
 
@@ -233,7 +227,7 @@ restent inchangés.
 Consultez la section [Comportement d'entrée humanisé](humanized-input-behavior.md) pour découvrir des exemples de configuration,
 les métadonnées HTTP Streamable en exécution, les cas d'utilisation et les limitations.
 
-## Extensions Chrome
+## Extensions Chrome { #chrome-extensions }
 
 Les extensions Chrome sont chargées au démarrage du navigateur. Configurez-les
 donc avant de démarrer le pont ou avant de créer une session Streamable HTTP.
@@ -268,11 +262,41 @@ fichiers ou chemins d'extensions. Utilisez un tableau JSON pour
 virgules, lors du passage de plusieurs extensions ou lors de l'utilisation de
 chemins Windows avec lettres de lecteur.
 
-## Mode de connexion Playwright Extension
+Pour une configuration courte à copier, voir [Charger une extension Chrome](recipes/load-chrome-extension.md).
 
-Ce mode se connecte au moyen de l'extension Playwright officielle déjà installée dans un profil Chrome ou Edge ; il est distinct du chargement d'extensions décompressées avec `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`. Pour stdio, définissez `PLAYWRIGHT_MCP_EXTENSION=true`, `PLAYWRIGHT_MCP_EXTENSION_TOKEN`, `PLAYWRIGHT_MCP_USER_DATA_DIR` et, si nécessaire, un seul segment relatif dans `PLAYWRIGHT_MCP_PROFILE_DIR_NAME`. Avec Streamable HTTP, les métadonnées `extensionMode`, `profileDirName` et `userDataDir` remplacent les valeurs du processus, mais le token n'est accepté que depuis l'environnement du processus. Les sessions parallèles doivent utiliser des `userDataDir` différents ; les options launch, CDP, proxy, GeoIP, humanization, context et `extensionPaths` sont incompatibles.
+## Mode de connexion Playwright Extension { #playwright-extension-connection-mode }
 
-## Métadonnées d'exécution HTTP diffusables en continu
+Le mode de connexion Playwright Extension est distinct du chargement d’une extension décompressée avec `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`. Il se connecte via l’extension officielle Playwright Extension déjà installée dans un profil Chrome ou Edge ; le pont n’installe pas cette extension.
+
+Pour stdio, configurez l’environnement du processus :
+
+```bash
+PLAYWRIGHT_MCP_EXTENSION=true \
+  PLAYWRIGHT_MCP_EXTENSION_TOKEN='<secret-from-the-extension>' \
+  PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/playwright-extension" \
+  PLAYWRIGHT_MCP_PROFILE_DIR_NAME='Profile 1' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+Pour Streamable HTTP, `extensionMode` et `profileDirName` dans les métadonnées `initialize` remplacent les valeurs correspondantes du processus. `userDataDir` est également propre à chaque session. Le jeton reste accepté uniquement via l’environnement du processus :
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "extensionMode": true,
+        "profileDirName": "Profile 1",
+        "userDataDir": "/absolute/path/to/profile"
+      }
+    }
+  }
+}
+```
+
+Le mode extension nécessite un jeton non vide et un profil persistant. Les sessions HTTP simultanées en mode extension doivent utiliser des valeurs `userDataDir` différentes. Avant de démarrer le processus enfant upstream, le pont rejette les points de terminaison CDP gérés ou externes, les points de terminaison de navigateurs distants, les configurations de lancement sans interface ou isolées, les options de proxy et GeoIP, l’humanisation, les modifications du contexte, les `extensionPaths` d’extensions décompressées et les options de lancement CloakBrowser explicitement fournies. La vérification de bout en bout d’une connexion réussie est manuelle, car l’extension officielle Playwright Extension doit déjà être installée dans le profil de navigateur choisi.
+
+## Métadonnées d'exécution HTTP diffusables en continu { #streamable-http-runtime-metadata }
 
 Les clients HTTP prenant en charge le streaming peuvent choisir certaines options d'exécution pour chaque session MCP en ajoutant
 des métadonnées spécifiques au pont à la requête `initialize` :
@@ -286,6 +310,8 @@ des métadonnées spécifiques au pont à la requête `initialize` :
         "proxyBypass": ".internal,localhost",
         "geoipProxyMatch": true,
         "headless": false,
+        "extensionMode": false,
+        "profileDirName": "Profile 1",
         "humanize": true,
         "humanPreset": "careful",
         "userDataDir": "/absolute/path/to/profile",
@@ -312,7 +338,9 @@ sans modifier les autres sessions. `humanPreset` permet de sélectionner `defaul
 pour cette session, mais n’active pas en soi le comportement humanisé. Les
 sessions existantes conservent le comportement enregistré pendant `initialize`.
 
-Dans Docker, `headless: false` démarre un affichage virtuel privé à la demande. En dehors de l’image, une session avec interface graphique requiert toujours un environnement d’affichage utilisable.
+`headless` peut activer ou désactiver le mode sans interface du navigateur pour cette session. Dans l’image Docker, définir `headless` à `false` démarre à la demande un affichage virtuel privé au conteneur. En dehors de cette image, une session avec interface nécessite toujours un environnement d’affichage utilisable.
+
+`extensionMode` et `profileDirName` remplacent `PLAYWRIGHT_MCP_EXTENSION` et `PLAYWRIGHT_MCP_PROFILE_DIR_NAME` pour cette session. `PLAYWRIGHT_MCP_EXTENSION_TOKEN` n’est jamais accepté dans les métadonnées.
 
 `userDataDir` active un profil Chromium persistant pour cette session et
 remplace `PLAYWRIGHT_MCP_USER_DATA_DIR`. Le pont résout le répertoire en chemin
@@ -349,6 +377,8 @@ comme solution de repli pour la compatibilité.
 Pour les modèles de contrôle qualité multi-sites, voir [Correspondance de proxy GeoIP](geoip-proxy-matching.md).
 Pour les modèles de réalisme d'interaction, voir [Comportement d'entrée humanisé](humanized-input-behavior.md).
 
+Pour réutiliser une connexion et configurer les extensions, voir [Profil de connexion persistant](recipes/persistent-login-profile.md) et [Charger une extension Chrome](recipes/load-chrome-extension.md).
+
 ## Options en amont
 
 Le pont transmet les paramètres `PLAYWRIGHT_MCP_*` au MCP Playwright en amont. Cela inclut les options en amont telles que :
@@ -358,9 +388,13 @@ Le pont transmet les paramètres `PLAYWRIGHT_MCP_*` au MCP Playwright en amont. 
 - `PLAYWRIGHT_MCP_ALLOW_UNRESTRICTED_FILE_ACCESS`
 - `PLAYWRIGHT_MCP_CAPS`
 - `PLAYWRIGHT_MCP_CONSOLE_LEVEL`
+- `PLAYWRIGHT_MCP_FILE_PATHS`
+- `PLAYWRIGHT_MCP_IDLE_TIMEOUT`
 - `PLAYWRIGHT_MCP_IMAGE_RESPONSES`
+- `PLAYWRIGHT_MCP_PROFILE_DIR_NAME`
 - `PLAYWRIGHT_MCP_SNAPSHOT_MODE`
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
+- `PLAYWRIGHT_MCP_WEBMCP`
 
 Consultez la documentation officielle de Playwright MCP pour découvrir l'ensemble des options disponibles.
 
@@ -372,7 +406,7 @@ pont.
 
 En mode HTTP « Streamable », les journaux de démarrage et de requêtes, lisibles par l'utilisateur, sont écrits sur stdout. En mode « stdio », aucun journal d'exploitation courant n'est généré ; ainsi, la sortie stdout de MCP JSON-RPC reste conforme au protocole. Les échecs fatals au démarrage de l'interface CLI sont toujours consignés sur stderr.
 
-## HTTPS
+## HTTPS { #https }
 
 HTTP Streamable utilise par défaut le protocole HTTP local. Sélectionnez le TLS direct avec `--http-protocol https` ou `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL=https`, puis fournissez soit une paire certificat/clé, soit un fichier PFX :
 
@@ -387,7 +421,7 @@ Pour une exposition externe ou sans bouclage, utilisez le protocole HTTPS avec `
 
 ## Sessions HTTP en continu
 
-Chaque session HTTP MCP de Streamable dispose de son propre environnement d’exécution « bridge » et de son propre processus enfant Playwright MCP en amont. Les sessions HTTP exécutent Playwright MCP en amont avec un profil de navigateur isolé, de sorte que les utilisateurs simultanés ne se disputent pas le même profil Chromium persistant. Le backend de session intégré `memory` ne stocke que des métadonnées telles que l'ID de session, les horodatages, la date d'expiration et l'état. L’état du navigateur reste dans le processus enfant en amont actif, et les artefacts sont toujours contrôlés par `PLAYWRIGHT_MCP_OUTPUT_DIR`.
+Chaque session Streamable HTTP MCP possède son propre environnement d’exécution du pont et son propre processus enfant upstream Playwright MCP. Les sessions HTTP utilisent par défaut des profils isolés, sauf si un profil persistant est configuré. Un profil persistant explicite est verrouillé ; les sessions simultanées nécessitent des répertoires de profil différents. Le backend intégré `memory` ne conserve que les métadonnées : ID de session, horodatages, expiration et état. L’état du navigateur reste dans le processus enfant upstream actif, et les artefacts sont contrôlés par `PLAYWRIGHT_MCP_OUTPUT_DIR`.
 
 Pour la mise à l'échelle horizontale, exécutez plusieurs répliques de serveur derrière un équilibreur de charge avec des sessions persistantes identifiées par l'en-tête `mcp-session-id`. Les futurs backends Redis, Postgres ou SQLite pourront coordonner les métadonnées et les verrous, mais ils ne pourront pas restaurer une session de navigateur en cours après la fermeture du processus qui la détient.
 

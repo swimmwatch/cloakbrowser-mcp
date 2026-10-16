@@ -4,7 +4,7 @@ render_macros: false
 
 # Packet 07 — Real-Browser And Distribution Verification
 
-Status: Paused until the revised Packet 06 upstream-child restart has complete evidence. Resume only through a separate explicit Packet 07 invocation.
+Status: Local verification complete; delivery-stage Docker and native release evidence remain open.
 
 ## Outcome
 

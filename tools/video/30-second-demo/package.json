@@ -11,26 +11,27 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@remotion/animated-emoji": "4.0.512",
-    "@remotion/cli": "4.0.512",
-    "@remotion/effects": "4.0.512",
-    "@remotion/google-fonts": "4.0.512",
-    "@remotion/lottie": "4.0.512",
-    "@remotion/motion-blur": "4.0.512",
-    "@remotion/noise": "4.0.512",
-    "@remotion/shapes": "4.0.512",
-    "@remotion/transitions": "4.0.512",
-    "@types/node": "26.2.0",
-    "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.4",
+    "@remotion/animated-emoji": "4.0.536",
+    "@remotion/cli": "4.0.536",
+    "@remotion/effects": "4.0.536",
+    "@remotion/google-fonts": "4.0.536",
+    "@remotion/lottie": "4.0.536",
+    "@remotion/motion-blur": "4.0.536",
+    "@remotion/noise": "4.0.536",
+    "@remotion/shapes": "4.0.536",
+    "@remotion/transitions": "4.0.536",
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
     "lottie-web": "5.13.0",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "remotion": "4.0.512",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.536",
     "typescript": "7.0.2"
   },
   "overrides": {
-    "fast-uri": "3.1.6",
-    "js-yaml": "4.3.2"
+    "fast-uri": "3.1.8",
+    "js-yaml": "4.3.2",
+    "zod": "4.6.7"
   }
 }

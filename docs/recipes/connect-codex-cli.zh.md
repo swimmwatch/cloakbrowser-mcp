@@ -18,17 +18,24 @@ codex mcp add cloakbrowser -- npx -y cloakbrowser-mcp@latest
 
 ## Streamable HTTP
 
+启动服务器：
+
 ```bash
 npx -y cloakbrowser-mcp@latest --transport streamable-http --http-port 3000
+```
+
+注册已运行的端点：
+
+```bash
 codex mcp add cloakbrowser --url http://127.0.0.1:3000/mcp
 ```
 
 ## 验证
 
-Ask Codex to list the cloakbrowser MCP tools or run a browser navigation tool.
+请让 Codex 列出 `cloakbrowser` 服务器的 MCP 工具，或调用浏览器导航工具。上游 Playwright MCP 浏览器工具应与 `cloakbrowser_binary_info` 和 `cloakbrowser_bridge_info` 一起出现。
 
 ## 相关内容
 
-- [Getting Started](../getting-started.md)
+- [入门指南](../getting-started.md#mcp-client-config)
 - [反向代理后的 Docker Streamable HTTP](docker-streamable-http-reverse-proxy.md)
-- [Tools](../tools.md)
+- [工具](../tools.md)

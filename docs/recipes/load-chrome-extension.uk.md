@@ -37,10 +37,10 @@ docker run --rm -i \
 
 ## Перевірити
 
-Попросіть клієнта MCP відкрити сторінку, на якій має бути активне розширення, а потім перевірте поведінку сторінки або зробіть знімок екрана. Ви також можете зателефонувати `cloakbrowser_bridge_info`, щоб підтвердити, що міст працює з очікуваною версією пакета.
+Попросіть клієнт MCP відкрити сторінку, на якій має працювати розширення, потім перевірте поведінку сторінки або зробіть знімок екрана. Також можна викликати `cloakbrowser_bridge_info`, щоб перевірити очікувану версію пакета мосту.
 
 ## Пов'язані
 
-- [Configuration](../configuration.md)
-- [Docker](../docker.md)
-- [Persistent Login Profile](persistent-login-profile.md)
+- [Налаштування](../configuration.md#chrome-extensions)
+- [Docker](../docker.md#chrome-extensions)
+- [Постійний профіль входу](persistent-login-profile.md)

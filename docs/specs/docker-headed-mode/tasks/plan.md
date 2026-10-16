@@ -4,7 +4,7 @@ render_macros: false
 
 # Docker Headed Mode Implementation Plan
 
-Status: Planned
+Status: Packets 01, 02, and 04 are complete locally. Packet 03 has local acceptance evidence; its required remote CI evidence and the final workstream checklist remain open.
 
 ## Workflow Inputs
 
@@ -46,7 +46,7 @@ with the pinned source version. Stop on stale, unapproved, or unreviewed state.
   isolation remains required, but native X11 focus, clipboard, and display capture are
   not promised as per-session isolation.
 
-### Repository evidence
+### Repository evidence at initial planning
 
 - `Dockerfile:25-123` contains an incomplete S6 Overlay implementation that must be
   removed rather than adapted.

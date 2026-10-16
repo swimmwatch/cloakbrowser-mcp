@@ -4,7 +4,7 @@ render_macros: false
 
 # Packet 04 — Browser Bootstrap And Generation Coordinator
 
-Status: Pending completed Packets 01-03 evidence and an explicit Packet 04 invocation.
+Status: Complete locally; retained execution evidence is recorded in todo.md and handoff.md.
 
 ## Outcome
 

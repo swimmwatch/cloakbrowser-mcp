@@ -1,15 +1,15 @@
 ---
-title: Docker Streamable HTTP Ззаду зваротнага проксі
-description: Запусціце выяву CloakBrowser MCP Docker як лакальны сервер Streamable HTTP для TLS, які спыняе зваротны проксі.
+title: Docker Streamable HTTP за зваротным праксі
+description: Запусціце Docker-вобраз CloakBrowser MCP як лакальны сервер Streamable HTTP для зваротнага проксі, які завяршае TLS-злучэнні.
 icon: material/server-network
 tags:
   - Docker
   - User Guide
 ---
 
-# Docker Streamable HTTP Ззаду зваротнага проксі
+# Docker Streamable HTTP за зваротным праксі
 
-Выкарыстоўвайце гэты шаблон, калі зваротны проксі спыняе TLS і выконвае элементы кіравання доступам, у той час як кантэйнер слухае зваротны ход.
+Выкарыстоўвайце гэты шаблон, калі зваротны проксі завяршае TLS-злучэнні і кантралюе доступ, а кантэйнер слухае толькі на loopback-адрасе.
 
 ## Запусціць сервер
 
@@ -23,7 +23,7 @@ docker run --rm -p 127.0.0.1:3000:3000 \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
 ```
 
-Кантэйнер звязваецца з `0.0.0.0` унутрана, але Docker публікуе яго толькі на зваротным хосце.
+Кантэйнер прывязваецца да `0.0.0.0` унутры, але Docker публікуе яго толькі на loopback-адрасе хоста.
 
 ## Канчатковая кропка проксі
 
@@ -33,7 +33,7 @@ docker run --rm -p 127.0.0.1:3000:3000 \
 http://127.0.0.1:3000/mcp
 ```
 
-Наперад загалоўкі `Authorization` і `mcp-session-id` нязменныя. Трымаеце `/healthz` і `/readyz` даступныя толькі для правераных медыцынскіх аглядаў або патрабуюць таго ж маркера носьбіта.
+Перадавайце загалоўкі `Authorization` і `mcp-session-id` без змен. Дазваляйце доступ да `/healthz` і `/readyz` толькі давераным праверкам працаздольнасці або патрабуйце той жа bearer-токен.
 
 ## Праверыць
 
@@ -50,6 +50,6 @@ https://mcp.example.com/mcp
 
 ## ЗВЯЗАНАЕ
 
-- [Docker](../docker.md)
-- [Configuration](../configuration.md)
-- [Security](../security.md)
+- [Докер](../docker.md#streamable-http)
+- [Канфігурацыя](../configuration.md#https)
+- [Бяспека](../security.md)

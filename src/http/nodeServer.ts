@@ -11,25 +11,22 @@ import {
   type ServerOptions as HttpsServerOptions,
 } from 'node:https';
 import { HTTP_PROTOCOL_HTTPS, type StreamableHttpOptions } from '#src/http/options';
-
 export type StreamableNodeServer = HttpServer | HttpsServer;
-
 export function createStreamableNodeServer(
   options: StreamableHttpOptions,
   requestListener: (req: IncomingMessage, res: ServerResponse) => void,
 ): StreamableNodeServer {
   if (options.protocol === HTTP_PROTOCOL_HTTPS) {
-    return createHttpsServer(readHttpsServerOptions(options), requestListener);
+    const httpsServerOptionsResult = readHttpsServerOptions(options);
+    return createHttpsServer(httpsServerOptionsResult, requestListener);
   }
   // HTTP is an explicit local/reverse-proxy mode; use `https` for direct TLS.
   return createHttpServer(requestListener);
 }
-
 export function formatHost(host: string): string {
   if (host.startsWith('[') && host.endsWith(']')) return host;
   return host.includes(':') ? `[${host}]` : host;
 }
-
 export async function closeHttpServer(server: StreamableNodeServer): Promise<void> {
   if (!server.listening) return;
   await new Promise<void>((resolve, reject) => {
@@ -39,7 +36,6 @@ export async function closeHttpServer(server: StreamableNodeServer): Promise<voi
     });
   });
 }
-
 export async function listenHttpServer(
   server: StreamableNodeServer,
   port: number,
@@ -63,7 +59,6 @@ export async function listenHttpServer(
     server.listen(port, host);
   });
 }
-
 function readHttpsServerOptions(options: StreamableHttpOptions): HttpsServerOptions {
   const { cert, key, pfx, passphrase } = options.tls;
   if (pfx !== undefined) {

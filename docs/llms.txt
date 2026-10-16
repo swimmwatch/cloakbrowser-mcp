@@ -8,12 +8,16 @@ npm package: https://www.npmjs.com/package/cloakbrowser-mcp
 Docker Hub image: https://hub.docker.com/r/swimmwatch/cloakbrowser-mcp
 GHCR image: https://github.com/swimmwatch/cloakbrowser-mcp/pkgs/container/cloakbrowser-mcp
 
-## Current Compatibility
+## Source Checkout Dependencies
 
-- cloakbrowser-mcp: 1.14.1
-- @playwright/mcp: ^0.0.82
-- Playwright MCP Docker base: mcr.microsoft.com/playwright/mcp:v0.0.82
-- CloakBrowser: ^0.5.10
+These values describe the documentation checkout. For published releases, see
+the [version compatibility table](https://swimmwatch.github.io/cloakbrowser-mcp/version-compatibility/).
+
+- cloakbrowser-mcp: 1.15.0
+- @playwright/mcp: ^0.0.83
+- Playwright MCP Docker base: mcr.microsoft.com/playwright/mcp:v0.0.83
+- CloakBrowser: ^0.6.3
+- Tested Node.js majors: 22, 24, 26
 - Transports: stdio and Streamable HTTP
 
 ## Key Pages

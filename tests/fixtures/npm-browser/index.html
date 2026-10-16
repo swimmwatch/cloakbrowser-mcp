@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Release fixture</title>
+    <style>
+      #drop {
+        width: 180px;
+        height: 60px;
+        border: 1px solid;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Release marker</h1>
+    <output id="result">Ready</output>
+    <label>Name <input id="name" /></label>
+    <label>Consent <input id="consent" type="checkbox" /></label>
+    <label
+      >Choice
+      <select id="choice">
+        <option value="a">Alpha</option>
+        <option value="b">Beta</option>
+      </select></label
+    >
+    <label>Date <input id="date" type="date" /></label>
+    <label>Month <input id="month" type="month" /></label>
+    <label>Week <input id="week" type="week" /></label>
+    <label>Time <input id="time" type="time" /></label>
+    <label>Date and time <input id="datetime" type="datetime-local" /></label>
+    <label>Range <input id="range" type="range" min="0" max="10" /></label>
+    <label>Color <input id="color" type="color" /></label>
+    <button id="action">Action</button>
+    <button id="dialog">Dialog</button>
+    <input id="file" type="file" />
+    <button class="duplicate">Duplicate</button><button class="duplicate">Duplicate</button>
+    <div id="hover">Hover target</div>
+    <div id="source" draggable="true">Drag source</div>
+    <div id="drop">Drop target</div>
+    <a id="download" href="/download" download="fixture-download.txt">Download fixture</a>
+    <button id="upload">Upload selected file</button>
+    <button id="state-save">Save profile state</button>
+    <button id="state-read">Read profile state</button>
+    <a id="failure" href="/failure">Controlled failure</a>
+    <iframe title="Fixture frame" src="/frame"></iframe>
+    <script>
+      const result = document.querySelector('#result');
+      document.querySelector('#action').addEventListener('click', (event) => {
+        const shift = String(event.shiftKey);
+        event.currentTarget.dataset.shiftClick = shift;
+        result.textContent = 'Clicked';
+      });
+      document.querySelectorAll('.duplicate').forEach((button, index) => {
+        button.addEventListener('click', () => {
+          const number = index + 1;
+          result.textContent = `Duplicate ${number} clicked`;
+        });
+      });
+      document.querySelector('#dialog').addEventListener('click', () => {
+        alert('Fixture dialog');
+        result.textContent = 'Dialog closed';
+      });
+      document.querySelector('#file').addEventListener('change', (event) => {
+        result.textContent = event.target.files[0].name;
+      });
+      document.querySelector('#hover').addEventListener('mouseover', () => {
+        result.textContent = 'Hovered';
+      });
+      document.querySelector('#source').addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('text/plain', 'dragged');
+      });
+      document.querySelector('#drop').addEventListener('dragover', (event) => {
+        event.preventDefault();
+      });
+      document.querySelector('#drop').addEventListener('drop', (event) => {
+        event.preventDefault();
+        result.textContent = event.dataTransfer.getData('text/plain');
+      });
+      document.querySelector('#upload').addEventListener('click', async () => {
+        const file = document.querySelector('#file').files[0];
+        if (!file) {
+          result.textContent = 'No selected file';
+          return;
+        }
+        const options = { method: 'POST', body: file };
+        const response = await fetch('/upload', options);
+        result.textContent = response.ok ? 'Uploaded' : 'Upload failed';
+      });
+      document.querySelector('#state-save').addEventListener('click', () => {
+        const value = document.querySelector('#name').value;
+        localStorage.setItem('fixture-state', value);
+        const cookieValue = encodeURIComponent(value);
+        document.cookie = `fixture-state=${cookieValue}; Max-Age=3600; Path=/; SameSite=Lax`;
+        result.textContent = 'State saved';
+      });
+      document.querySelector('#state-read').addEventListener('click', () => {
+        const value = localStorage.getItem('fixture-state');
+        result.textContent = value ?? 'No saved state';
+      });
+      console.warn('Fixture console');
+      fetch('/api');
+    </script>
+  </body>
+</html>

@@ -14,7 +14,7 @@ tags:
 
 Die standardmäßige upstream Browser-Tool-Oberfläche soll der fixierten Playwright-MCP-Abhängigkeit entsprechen. Dazu gehören zentrale Browser-Tools wie Navigation, Snapshot, Klicks, Texteingabe, Screenshots, Tabs, Konsolennachrichten, Netzwerkprüfung, Datei-Upload, Dialoge und unsichere Auswertungstools.
 
-Als stabile upstream Referenz siehe den Playwright-MCP-`{{ project.playwright_mcp_package_tag }}`-Capability-Test, der auf den exakten Paket-Commit fixiert ist: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/f1257a5a67aff872f947fae274759f7d54853862/tests/capabilities.spec.ts#L19-L77).
+Als stabile Referenz für Playwright MCP `@playwright/mcp@0.0.83` dient der Fähigkeitstest am Commit dieses Pakets: [Standard-Tools und fähigkeitsabhängige Tools](https://github.com/microsoft/playwright-mcp/blob/f183dad4a52965583e3cc1d59b88cdc279e2e57d/tests/capabilities.spec.ts#L19-L74). Die installierte Abhängigkeit bestimmt die aktuelle Tool-Oberfläche.
 
 Dieses Projekt behandelt upstream Playwright MCP als maßgebliche Quelle und pflegt keine kopierte Schema-Referenz.
 
@@ -25,12 +25,7 @@ weitergeleitet, einschließlich `browser_start_recording` und
 `browser_stop_recording`.
 
 !!! warning "Aufzeichnungseinschränkung mit der öffentlichen CloakBrowser-v146-Binärdatei"
-    Die Aufzeichnungswerkzeuge sind verfügbar, aber die von CloakBrowser 0.5.10
-    verwendete öffentliche, schlüsselfreie Chromium-146-Binärdatei deaktiviert aus
-    Stealth-Gründen absichtlich die Playwright-Verbindung zwischen Seite und Host.
-    Dadurch kann `browser_stop_recording` unvollständigen Code zurückgeben: Die Navigation
-    wird aufgezeichnet, erfolgreiche Eingaben und Klicks werden jedoch ausgelassen.
-    Prüfen Sie erzeugte Aufzeichnungen vor der Wiederverwendung.
+    Die Aufzeichnungswerkzeuge sind verfügbar, aber das öffentliche Chromium-146-Binärprogramm ohne Schlüssel deaktiviert aus Stealth-Gründen absichtlich die Playwright-Verbindung zwischen Seite und Host. Dadurch kann `browser_stop_recording` unvollständigen Code zurückgeben: Die Navigation wird aufgezeichnet, erfolgreiche Eingaben und Klicks werden jedoch ausgelassen. Prüfen Sie erzeugte Aufzeichnungen vor der Wiederverwendung.
 
     Die explizit aktivierbare Kompatibilität wird in [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532) verfolgt.
     Die zugrunde liegende Entscheidung zur Verbindung wird in
@@ -39,9 +34,13 @@ weitergeleitet, einschließlich `browser_start_recording` und
 
 ### Dynamische WebMCP-Tools
 
-Chromium unterstützt WebMCP ab Version 154. Ältere CloakBrowser-Builds ignorieren das feature flag; verwenden Sie einen kompatiblen Browser-Build oder `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright`, wenn WebMCP erforderlich ist.
+Die WebMCP-Unterstützung hängt vom gewählten Browser-Build und den aktivierten Funktionen ab. Das installierte Playwright MCP erwartet `document.modelContext` oder `navigator.modelContext` mit einer Methode `getTools()`. Verwenden Sie einen kompatiblen CloakBrowser-Build oder `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright`, wenn WebMCP erforderlich ist.
 
-Wenn Chromium mit `--enable-features=WebMCP` gestartet wird, können Seiten `webmcp_*`-Tools deklarieren. Die Bridge leitet `notifications/tools/list_changed` weiter, leert den gesamten `tools/list`-Cache und der Client muss die Liste erneut abrufen. Bei Streamable HTTP erhält nur der offene Benachrichtigungsstream der zugehörigen Sitzung das Ereignis; auch ohne Stream ist das nächste `tools/list` aktuell. Name, Beschreibung, Schema, annotations und output sind nicht vertrauenswürdige Seitendaten. Die Bridge aktiviert WebMCP nicht automatisch; `PLAYWRIGHT_MCP_WEBMCP=false` deaktiviert die Erfassung.
+[Die WebMCP-Dokumentation von Chrome](https://developer.chrome.com/docs/ai/webmcp) beschreibt einen Origin Trial ab Chrome 149, ein Flag für lokale Tests und Einschränkungen im Headless-Modus. Eine Chromium-Versionsnummer allein garantiert keine Kompatibilität mit der von Playwright MCP erwarteten API.
+
+Wenn Chromium mit `--enable-features=WebMCP` gestartet wird, kann Playwright MCP während einer geöffneten Seite deren Tools mit Namen wie `webmcp_*` hinzufügen. Diese Tools sind dynamisch: Die Bridge meldet Unterstützung für `tools.listChanged`, invalidiert den gesamten Cache der paginierten Tool-Liste, sobald Upstream `notifications/tools/list_changed` sendet, und leitet die Benachrichtigung an den zugehörigen MCP-Client weiter. Clients sollten diese Benachrichtigung empfangen und `tools/list` erneut aufrufen. Ein Streamable-HTTP-Client erhält sie nur bei geöffnetem Benachrichtigungsstream seiner Sitzung; auch ohne geöffneten Stream liefert der nächste Aufruf von `tools/list` eine aktuelle Liste.
+
+Dynamische Tools gehören ausschließlich zu der MCP-Sitzung und der aktuellen verwalteten CDP-Browsergeneration, die sie entdeckt haben. Namen, Beschreibungen, Schemas, Annotationen und Ausgaben sind nicht vertrauenswürdige Seiteninhalte und werden von der Bridge unverändert weitergeleitet. Prüfen Sie diese Inhalte vor einem Aufruf. Mit `PLAYWRIGHT_MCP_WEBMCP=false` deaktivieren Sie die Erfassung. Die Bridge aktiviert Chromium WebMCP niemals automatisch.
 
 ## Lokale Tools
 
@@ -53,8 +52,13 @@ Gibt strukturierte Informationen über das CloakBrowser-Paket, die aktuelle Plat
 
 Gibt strukturierte Bridge-Metadaten zurück:
 
-Das additive `structuredContent.cdp`-Objekt meldet die verwaltete CDP der aufrufenden Sitzung
-Bundesstaat:
+- Name und Version des MCP-Servers;
+- Laufzeitmodus;
+- Upstream-Playwright-MCP-Paket und Version;
+- Anzahl der Upstream-Tools;
+- Namen lokaler Cloak-spezifischer Tools.
+
+Das zusätzliche Objekt `structuredContent.cdp` meldet den Zustand des verwalteten CDP für die aufrufende Sitzung:
 
 ```json
 { "enabled": false }
@@ -86,12 +90,10 @@ Bundesstaat:
 }
 ```
 
-`generation` steigt und `discoveryUrl` dreht sich nach dem Browserwechsel.
-`activeConnections` zählt akzeptierte proxied WebSocket-Verbindungen, ohne sie offenzulegen
-Client-Identitäten, Ziel-IDs oder Protokollinhalte. Behandeln Sie jede nicht-null Entdeckung URL
-als Referenz.
+Nach dem Browserwechsel steigt `generation`, und `discoveryUrl` wird ersetzt.
+`activeConnections` zählt akzeptierte WebSocket-Verbindungen über den Proxy, ohne Client-Identitäten, Ziel-IDs oder Protokollinhalte offenzulegen. Behandeln Sie jede von null verschiedene Discovery-URL als Zugangsnachweis.
 
-Verwenden Sie die Entdeckung URL mit einem CDP-fähigen Client:
+Verwenden Sie die Discovery-URL mit einem CDP-fähigen Client:
 
 ```ts
 import { chromium } from 'playwright';
@@ -99,20 +101,11 @@ import { chromium } from 'playwright';
 const browser = await chromium.connectOverCDP(discoveryUrl);
 ```
 
-Verwaltetes CDP ist nicht das Playwright Serverprotokoll. Playwright
-`chromium.connect()` und die aktuelle Open WebUI `PLAYWRIGHT_WS_URL`-Integration erwarten
-ein Playwright-Server-Endpunkt und sind mit diesem URL nicht kompatibel.
+Verwaltetes CDP ist nicht das Playwright-Server-Protokoll. Playwrights `chromium.connect()` und die aktuelle Open-WebUI-Integration `PLAYWRIGHT_WS_URL` erwarten einen Playwright-Server-Endpunkt und sind mit dieser URL nicht kompatibel.
 
-- MCP server Name und Version;
-- Laufzeitmodus;
-- upstream Playwright-MCP-Paket und Version;
-- Anzahl der upstream Tools;
-- Namen lokaler Cloak-specific Tools.
+Mit dem festgelegten Playwright-Client wurde verifiziert, dass `browser.close()` auf einem von `connectOverCDP()` zurückgegebenen Browser nur diesen Client trennt und Chromium sowie die aktuelle Generation bereit bleiben. Diese Beobachtung gilt für diesen Client und ist keine Garantie für andere CDP-Bibliotheken. Das direkte Senden des CDP-Befehls `Browser.close` ist destruktiv: Es beendet die gemeinsam genutzte Chromium-Generation, invalidiert den Zugangsnachweis und betrifft MCP-Aufrufer. Koordinieren Sie MCP- und CDP-Operationen, da die Bridge konkurrierende Navigationen, Seitenschließungen, Eingaben oder Speicheränderungen nicht serialisiert.
 
-Die lokale Tool-Oberfläche bleibt auf diese beiden Diagnose-Tools beschränkt.
-`SessionSeats` und `getSessionSeats` werden nicht als MCP-Tool bereitgestellt,
-weil CloakBrowser 0.5.10 diese API nicht über seinen öffentlichen Einstiegspunkt
-exportiert.
+Die lokale Tool-Oberfläche bleibt auf diese beiden Diagnose-Tools beschränkt. `SessionSeats` und `getSessionSeats` werden nicht als MCP-Tool bereitgestellt, weil der unterstützte öffentliche Einstiegspunkt von CloakBrowser diese API nicht exportiert.
 
 ## Parität
 

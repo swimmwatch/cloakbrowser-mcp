@@ -4,7 +4,7 @@ render_macros: false
 
 # Packet 01 — Configuration, Capability, And URL Foundations
 
-Status: Ready for one explicit implementation invocation against the pinned specification.
+Status: Complete locally; retained execution evidence is recorded in todo.md and handoff.md.
 
 ## Outcome
 

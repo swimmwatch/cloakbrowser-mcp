@@ -13,21 +13,23 @@ import { startStreamableHttpBridge } from '#src/http/server';
 import { createBridgeLogger } from '#src/logging/logger';
 import { PROJECT_METADATA } from '#src/project/metadata';
 import { startBridge } from '#src/server';
-
-const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as {
+const uRL = new URL('../package.json', import.meta.url);
+const fileSyncResult = readFileSync(uRL, 'utf8');
+const pkg = JSON.parse(fileSyncResult) as {
   version: string;
 };
-
 async function main(): Promise<void> {
-  const command = createCliCommand(pkg.version, {
+  const createCliCommandOptions: Parameters<typeof createCliCommand>[1] = {
     doctorAction: (options) => {
       const report = createDoctorReport();
-      process.stdout.write(
-        options.json ? `${JSON.stringify(report, null, 2)}\n` : renderDoctorReport(report),
-      );
+      const argumentValue = options.json
+        ? `${JSON.stringify(report, null, 2)}\n`
+        : renderDoctorReport(report);
+      process.stdout.write(argumentValue);
       if (report.status === 'error') process.exitCode = 1;
     },
-  });
+  };
+  const command = createCliCommand(pkg.version, createCliCommandOptions);
   command.action(async () => {
     const options = readCliOptions(command);
     if (options.cdp.allowRemote) {
@@ -44,42 +46,60 @@ async function main(): Promise<void> {
       websiteUrl: PROJECT_METADATA.websiteUrl,
       icons: PROJECT_METADATA.icons,
     };
-
     const running =
       options.transport === BRIDGE_TRANSPORT_STREAMABLE_HTTP
-        ? await startStreamableHttpCliBridge({
-            ...options.http,
-            cdp: options.cdp,
-            serverInfo,
-            releaseChannel,
-            runtimeOptions,
-            ensureDockerDisplay: () => dockerDisplayController.ensureDisplayForHeadedRuntime(false),
-          })
-        : await startStdioBridge(
-            serverInfo,
-            { ...runtimeOptions, releaseChannel },
-            dockerDisplayController,
-            options.cdp,
-          );
-
-    for (const signal of ['SIGINT', 'SIGTERM'] as const) {
-      process.once(signal, () => {
-        dockerHealthResponder.dispose();
-        void running.close().finally(() => process.exit(0));
-      });
+        ? await (() => {
+            const startStreamableHttpCliBridgeOptions: import('#src/http/server').StartStreamableHttpBridgeOptions =
+              {
+                ...options.http,
+                cdp: options.cdp,
+                serverInfo,
+                releaseChannel,
+                runtimeOptions,
+                ensureDockerDisplay: () => dockerDisplayController.ensureDisplayForHeadedRuntime(false),
+              };
+            return startStreamableHttpCliBridge(startStreamableHttpCliBridgeOptions);
+          })()
+        : await (() => {
+            const startStdioBridgeOptions = { ...runtimeOptions, releaseChannel } as const;
+            return startStdioBridge(
+              serverInfo,
+              startStdioBridgeOptions,
+              dockerDisplayController,
+              options.cdp,
+            );
+          })();
+    let closing = false;
+    const shutdown = (): void => {
+      if (closing) return;
+      closing = true;
+      dockerHealthResponder.dispose();
+      void running.close().then(
+        () => process.exit(0),
+        () => {
+          process.stderr.write('fatal: bridge cleanup failed\n');
+          process.exit(1);
+        },
+      );
+    };
+    for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, shutdown);
+    if (options.transport !== BRIDGE_TRANSPORT_STREAMABLE_HTTP) {
+      process.stdin.once('end', shutdown);
+      if (process.stdin.readableEnded) shutdown();
     }
   });
   await command.parseAsync(process.argv);
 }
-
 async function startStdioBridge(
   serverInfo: Partial<Implementation>,
   runtimeOptions: BridgeOptions,
   dockerDisplayController: ReturnType<typeof createDockerDisplayController>,
   cdp: CdpEndpointConfig,
-): Promise<{ close(): Promise<void> }> {
+): Promise<{
+  close(): Promise<void>;
+}> {
   cleanStaleSingletonLocks();
-  const bridge = await startBridge({
+  const startBridgeOptions: import('#src/server').StartBridgeOptions | undefined = {
     beforeConnect: async (runtime) => {
       await dockerDisplayController.ensureDisplayForHeadedRuntime(
         runtime.config.browser?.launchOptions?.headless,
@@ -90,32 +110,36 @@ async function startStdioBridge(
       process.stderr.write('warning: managed CDP cleanup failed\n');
     },
     onCdpSecurityRejections: (summary) => {
-      process.stderr.write(
-        `warning: cdp_security_rejections window_seconds=${String(summary.windowSeconds)} capability=${String(summary.capability)} host=${String(summary.host)} origin=${String(summary.origin)}\n`,
-      );
+      const message2 = `warning: cdp_security_rejections window_seconds=${String(summary.windowSeconds)} capability=${String(summary.capability)} host=${String(summary.host)} origin=${String(summary.origin)}\n`;
+      process.stderr.write(message2);
     },
     serverInfo,
     runtimeOptions,
     cdp,
-  });
+  };
+  const bridge = await startBridge(startBridgeOptions);
   return {
     close: () => bridge.dispose(),
   };
 }
-
 async function startStreamableHttpCliBridge(
   options: Parameters<typeof startStreamableHttpBridge>[0],
-): Promise<{ close(): Promise<void> }> {
-  const logger = createBridgeLogger({ sink: process.stderr });
-  const bridge = await startStreamableHttpBridge({
+): Promise<{
+  close(): Promise<void>;
+}> {
+  const createBridgeLoggerOptions = { sink: process.stderr } as const;
+  const logger = createBridgeLogger(createBridgeLoggerOptions);
+  const startStreamableHttpBridgeOptions = {
     ...options,
     logger,
-  });
-  logger.info({ url: bridge.url }, 'streamable-http listening');
+  } as const;
+  const bridge = await startStreamableHttpBridge(startStreamableHttpBridgeOptions);
+  const infoOptions = { url: bridge.url } as const;
+  logger.info(infoOptions, 'streamable-http listening');
   return bridge;
 }
-
 void main().catch((error: unknown) => {
-  process.stderr.write(`fatal: ${(error as Error).message}\n`);
+  const message3 = `fatal: ${(error as Error).message}\n`;
+  process.stderr.write(message3);
   process.exit(1);
 });

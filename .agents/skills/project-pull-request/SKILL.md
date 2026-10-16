@@ -14,8 +14,11 @@ replace it with a second template.
 - A request to review or prepare a PR does not authorize edits, commits,
   pushes, PR creation/update, readiness changes, merge, or branch deletion.
 - Before each external mutation, confirm that the user explicitly authorized
-  that action. Use the global Prompt MCP for any unresolved material base,
+  that action. Use Codex's standard **Request User Input** tool
+  (`request_user_input`) for any unresolved material base,
   head, assignee, readiness, scope, or execution choice.
+  Follow the tool's exposed schema and host constraints; permission requests
+  use the host's approval process.
 - Never infer push or PR authorization from approval of code, a specification,
   a plan, local checks, or a commit.
 - Preserve unrelated worktree changes and stage only the intended PR scope.

@@ -16,19 +16,21 @@ Der einheitliche `Release`-Workflow löst das Tag einmal auf und übergibt ansch
 Image-Labels, Server-Metadaten, README-Marker und Dokumentationsmarker
 weiter.
 
+Alle Anwendungssuiten, die Abdeckung, Paketinstallation und Prüfung der Abhängigkeitssignaturen laufen vor dem Merge und werden durch `required-ci` verlangt. Der `Release`-Workflow baut und veröffentlicht die getestete Revision mit `package:pack` und `docs:build:site` und validiert Release-Metadaten sowie das Artefaktinventar.
+
 ## Einstellungen für GitHub-Repositorys
 
 Nehmen Sie diese Einstellungen vor der ersten Freigabe vor.
 
-| Area | Required setting |
+| Bereich | Erforderliche Einstellung |
 | --- | --- |
-| Actions | Enable GitHub Actions for the repository. |
-| Actions token | Allow workflows to request the permissions declared in each workflow. |
-| Branch protection | Require `Actionlint`, `CI`, `CodeQL`, and `Dependency Review` before merging to `main`. |
-| Pages | Set `Build and deployment -> Source` to `GitHub Actions`. |
-| Packages | Allow GitHub Actions to publish packages to GitHub Packages. |
-| Environments | Create `npm-production`, `docker-production`, `github-pages`, and `mcp-registry-production`. |
-| Code scanning | Enable code scanning to view CodeQL, Scorecard, and Trivy SARIF results. |
+| Actions | Aktivieren Sie GitHub Actions für das Repository. |
+| Actions-Token | Erlauben Sie Workflows, die jeweils deklarierten Berechtigungen anzufordern. |
+| Branch-Schutz | Verlangen Sie erfolgreiche `Actionlint`, `CI`, `CodeQL` und `Dependency Review` vor dem Merge nach `main`. |
+| Pages | Setzen Sie `Build and deployment -> Source` auf `GitHub Actions`. |
+| Packages | Erlauben Sie GitHub Actions, Pakete in GitHub Packages zu veröffentlichen. |
+| Umgebungen | Erstellen Sie `npm-production`, `docker-production`, `github-pages` und `mcp-registry-production`. |
+| Code-Scanning | Aktivieren Sie Code-Scanning, um SARIF-Ergebnisse von CodeQL, Scorecard und Trivy anzuzeigen. |
 
 Fügen Sie die erforderlichen Prüfer zu `npm-production`, `docker-production` und
 `mcp-registry-production`, falls Releases nach der Veröffentlichung eines
@@ -42,13 +44,13 @@ Actions OIDC. Für die Veröffentlichung wird `NPM_TOKEN` nicht verwendet.
 
 Konfigurieren Sie den vertrauenswürdigen Herausgeber auf npmjs.com mit genau diesen Werten:
 
-| npm Trusted Publisher field | Value |
+| Feld in npm Trusted Publisher | Wert |
 | --- | --- |
-| Provider | GitHub Actions |
+| Anbieter | GitHub Actions |
 | Repository | `swimmwatch/cloakbrowser-mcp` |
-| Workflow filename | `release.yml` |
-| Environment | `npm-production` |
-| Allowed action | `npm publish` |
+| Workflow-Dateiname | `release.yml` |
+| Umgebung | `npm-production` |
+| Zulässige Aktion | `npm publish` |
 
 Der Job `npm` wird auf von GitHub gehosteten Runners ausgeführt, verwendet Node.js 24 und behält
 `id-token: write` bei, damit npm das GitHub-Actions-OIDC-Token gegen eine
@@ -212,18 +214,16 @@ Release-Blockierer, der eine ausdrückliche Entscheidung des Betreuers erfordert
 
 Das Repository nutzt kostenlose Sicherheitstools:
 
-| Workflow | Tool | Trigger | User setup |
+| Workflow | Werkzeug | Auslöser | Einrichtung durch den Benutzer |
 | --- | --- | --- | --- |
-| `CodeQL` | GitHub CodeQL | push, pull request, weekly, manual | Enable code scanning to view SARIF results. |
-| `Dependency Review` | GitHub Dependency Review | pull request | No external account or token. |
-| `OpenSSF Scorecard` | OpenSSF Scorecard | push, weekly, manual | Enable code scanning to view SARIF results. |
-| `Zizmor` | zizmor | workflow changes, manual | No external account or token. |
-| `CI` / `Release` | Trivy | Docker build and release | Enable code scanning to view SARIF results. |
-| `CI` / npm release | `npm audit --omit=dev --audit-level=high` | PR CI and npm publish job | No external account or token. |
+| `CodeQL` | GitHub CodeQL | push, pull request, wöchentlich, manuell | Aktivieren Sie Code-Scanning, um SARIF-Ergebnisse anzuzeigen. |
+| `Dependency Review` | GitHub Dependency Review | pull request | Kein externes Konto und kein Token erforderlich. |
+| `OpenSSF Scorecard` | OpenSSF Scorecard | push, wöchentlich, manuell | Aktivieren Sie Code-Scanning, um SARIF-Ergebnisse anzuzeigen. |
+| `Zizmor` | zizmor | Änderungen an Arbeitsabläufen, manuell | Kein externes Konto und kein Token erforderlich. |
+| `CI` | Trivy | Docker-Build im PR | Aktivieren Sie Code-Scanning, um SARIF-Ergebnisse anzuzeigen. |
+| `CI` | `npm audit --omit=dev --audit-level=high` | PR CI | Kein externes Konto und kein Token erforderlich. |
 
-Die SHA-Fixierung von Aktionen wird als zukünftiger Sicherheitsoptimierungsschritt verfolgt. Aktuelle Workflows verwenden
-versionsverwaltete Aktionsverweise, damit Updates überschaubar bleiben, solange die Release-Infrastruktur
-noch in den Kinderschuhen steckt.
+Externe GitHub Actions sind auf vollständige Commit-SHAs mit lesbaren Versionskommentaren festgelegt. Behalten Sie diese Festlegungen beim Aktualisieren der Workflows bei.
 
 ## Veröffentlichung von Dokumentationen
 
@@ -275,10 +275,10 @@ npm run upstream:check
 
 ## Release-Tags
 
-| Release type | GitHub Release setting | npm dist-tag | Docker tags |
+| Release-Typ | GitHub-Release-Einstellung | npm-dist-tag | Docker-Tags |
 | --- | --- | --- | --- |
-| Stable | Not prerelease | `latest` | `vX.Y.Z`, `X.Y.Z`, `X.Y`, `latest` |
-| Prerelease | Prerelease | `next` | `vX.Y.Z-prerelease`, `X.Y.Z-prerelease` |
+| Stabil | Kein Vorabrelease | `latest` | `vX.Y.Z`, `X.Y.Z`, `X.Y`, `latest` |
+| Vorabrelease | Vorabrelease | `next` | `vX.Y.Z-prerelease`, `X.Y.Z-prerelease` |
 
 ## Checkliste
 

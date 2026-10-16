@@ -39,8 +39,9 @@ Aktuelle Version: {{ project.version_tag }}.
 
 | cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base                 | CloakBrowser | Transport              | Parity         |
 | ---------------- | --------------- | ------------------------------------------ | ------------ | ---------------------- | -------------- |
-| `1.14.1` | `^0.0.81` | `mcr.microsoft.com/playwright/mcp:v0.0.81` | `^0.5.10` | stdio, Streamable HTTP | In CI verglichen |
-| `1.14.0` | `^0.0.81` | `mcr.microsoft.com/playwright/mcp:v0.0.81` | `^0.5.10` | stdio, Streamable HTTP | In CI verglichen |
+| `1.15.0` | `^0.0.83` | `mcr.microsoft.com/playwright/mcp:v0.0.83` | `^0.6.3` | stdio, Streamable HTTP | In CI verglichen |
+| `1.14.1` | `^0.0.82` | `mcr.microsoft.com/playwright/mcp:v0.0.82` | `^0.5.10` | stdio, Streamable HTTP | In CI verglichen |
+| `1.14.0` | `^0.0.82` | `mcr.microsoft.com/playwright/mcp:v0.0.82` | `^0.5.10` | stdio, Streamable HTTP | In CI verglichen |
 | `1.13.0` | `^0.0.80` | `mcr.microsoft.com/playwright/mcp:v0.0.80` | `^0.5.10` | stdio, Streamable HTTP | In CI verglichen |
 | `1.12.0`          | `^0.0.79`       | `mcr.microsoft.com/playwright/mcp:v0.0.79` | `^0.5.7`    | stdio, Streamable HTTP | In CI verglichen |
 | `1.11.0`          | `^0.0.79`       | `mcr.microsoft.com/playwright/mcp:v0.0.79` | `^0.5.6`    | stdio, Streamable HTTP | In CI verglichen |
@@ -112,8 +113,8 @@ Die Verträge des vorgelagerten Playwright-MCP-Tools sind maßgebend. Dieses Pro
 - [Konfiguration](configuration.md) für unterstützte Umgebungsvariablen.
 - [GeoIP-Proxy-Zuordnung](geoip-proxy-matching.md) für regionale Qualitätssicherung, Proxy-Metadaten zur Laufzeit und Streamable-HTTP-Sitzungen an mehreren Standorten.
 - [Humanisiertes Eingabeverhalten](humanized-input-behavior.md) für realistische Interaktion, Einrichtung und Anwendungsfälle.
-- [Tools](tools.md) für Erwartungen an die Tool-Oberfläche und Upstream-Parität.
-- [FAQ](faq.md) zu häufigen Fragen zu Installation, Docker, Kompatibilität und Sicherheit.
+- [Werkzeuge](tools.md) für Erwartungen an die Tool-Oberfläche und Upstream-Parität.
+- [Häufig gestellte Fragen](faq.md) zu häufigen Fragen zu Installation, Docker, Kompatibilität und Sicherheit.
 - [Leitfaden für Mitwirkende](contributor-guide.md) mit Details zu Entwicklung, Tests, Architektur und Veröffentlichungen.
 
 ## Weitere praktische Pfade

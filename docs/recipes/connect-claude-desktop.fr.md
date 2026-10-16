@@ -12,6 +12,8 @@ Utilisez stdio lorsque Claude Desktop doit démarrer le serveur à la demande.
 
 ## Ajouter le serveur
 
+Ajoutez cette entrée à `claude_desktop_config.json`, puis redémarrez Claude Desktop :
+
 ```json
 {
   "mcpServers": {
@@ -41,10 +43,10 @@ Utilisez stdio lorsque Claude Desktop doit démarrer le serveur à la demande.
 
 ## Vérifier
 
-Ask Claude Desktop to open a page with the cloakbrowser server and take a browser snapshot.
+Demandez à Claude Desktop d’utiliser le serveur `cloakbrowser` pour ouvrir une page et obtenir un instantané du navigateur. Les outils navigateur Playwright MCP upstream doivent être disponibles sans modification.
 
 ## Liens associés
 
-- [Getting Started](../getting-started.md)
+- [Pour commencer](../getting-started.md#mcp-client-config)
 - [Profil de connexion persistant](persistent-login-profile.md)
-- [Tools](../tools.md)
+- [Outils](../tools.md)

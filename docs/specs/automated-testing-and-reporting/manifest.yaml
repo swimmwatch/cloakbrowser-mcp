@@ -1,0 +1,45 @@
+schema_version: 1
+depth: standard
+confirmed: true
+rationale:
+  - Preserve Node runtime, native Linux/macOS/Windows and existing Docker checks, Codecov and coverage thresholds.
+  - Add planned reports-only Pages delivery and a PR link using the components explicitly requested and approved on 2026-10-10; keep source documentation publication independent.
+  - All key functional checks remain in scope. At initial planning, implementation, external setup, public activation, commits, and PR creation required separate authorization. Subsequent authorized actions are recorded in tasks/handoff.md.
+profiles:
+  - id: core
+    reason: Existing Vitest test tooling and unchanged browser/transport contracts.
+    state: active
+  - id: operations
+    reason: Local/CI report generation, matrix aggregation, history, retention and separately hosted Pages delivery.
+    state: active
+  - id: security
+    reason: Secret-safe diagnostics, public report sanitization and trusted publication of untrusted PR results.
+    state: active
+  - id: ui
+    reason: Use existing Allure UI; no product UI.
+    state: not_applicable
+  - id: backend
+    reason: No new reporting service or application API.
+    state: not_applicable
+  - id: events
+    reason: No new product event contracts.
+    state: not_applicable
+  - id: data
+    reason: Disposable reports; no application data migration.
+    state: not_applicable
+  - id: cross-surface
+    reason: One testing/reporting tooling outcome.
+    state: not_applicable
+planning_artifacts: []
+extensions:
+  workflow_mcp_receipts:
+    - id: 9ede92f65627791440b3fb12ebd54ba1b5f919e501e9c23b2b8601d5b9efdd2d
+      result:
+        confirmed: true
+        depth: standard
+        next: Load only the confirmed active profile references.
+    - id: 5653c2e878e1c0b3eeca72bb87b5695429d83d13106dcec89702c2ddc1597e65
+      result:
+        confirmed: true
+        depth: standard
+        next: Load only the confirmed active profile references.

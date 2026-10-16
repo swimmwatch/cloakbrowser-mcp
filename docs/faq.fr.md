@@ -15,14 +15,21 @@ CloakBrowser MCP est un serveur [Model Context Protocol](https://modelcontextpro
 
 Le serveur MCP Playwright en amont gère les schémas, les descriptions et les réponses des outils de navigation. Le MCP CloakBrowser conserve ces outils tels quels et n'ajoute que deux outils d'introspection locaux : `cloakbrowser_binary_info` et `cloakbrowser_bridge_info`.
 
+Consultez [`@playwright/mcp` et `cloakbrowser-mcp`](comparison.md) pour une comparaison neutre de la parité des outils, de l’exécution de CloakBrowser, du conditionnement, de Streamable HTTP, des profils, des extensions, des tests régionaux et de la saisie humanisée.
+
 ## Dois-je l'installer via npm ou Docker ?
 
-Utilisez npm si votre client MCP est déjà installé sur votre machine et que Node.js 22.13+ dans la branche 22.x ou Node.js 24+ est disponible. Utilisez Docker si vous souhaitez disposer d'une image Playwright basée sur MCP reproductible, avec le cache CloakBrowser déjà configuré à l'intérieur du conteneur.
+Utilisez npm si votre client MCP fonctionne déjà sur votre machine et que Node.js `{{ project.node_engine_range }}` est disponible. Utilisez Docker si vous souhaitez disposer d'une image Playwright basée sur MCP reproductible, avec le cache CloakBrowser déjà configuré à l'intérieur du conteneur.
 
 ## Quels clients MCP peuvent l'utiliser ?
 
 Tout client MCP prenant en charge les serveurs HTTP stdio ou Streamable peut utiliser CloakBrowser MCP. Le guide [Mise en route](getting-started.md) contient des exemples JSON stdio pour Codex, Claude Desktop, Claude Code, Cursor, les clients de type VS Code/Cline, Continue, Windsurf, Goose et les configurations de type Warp.
 
+Guides pas à pas : [Connecter à Claude Desktop](recipes/connect-claude-desktop.md), [Connecter à Codex CLI](recipes/connect-codex-cli.md).
+
+## Où trouver les exemples pratiques de configuration ?
+
+Pour choisir entre Playwright MCP amont et ce paquet, consultez la [comparaison](comparison.md). Pour des tâches courtes, utilisez les [recettes](recipes/index.md): profil persistant, extensions, reverse proxy, QA régionale, Claude Desktop, Codex CLI et test smoke CI.
 ## Prend-il en charge les mêmes outils de navigateur que Playwright MCP ?
 
 Oui. Les outils du navigateur Playwright MCP en amont sont transmis tels quels. Le projet effectue également une comparaison de parité dans le cadre de l'intégration continue (CI), ce qui permet de vérifier que les modifications apportées au pont sont conformes au comportement officiel de Playwright MCP.
@@ -34,7 +41,3 @@ Docker vous offre un environnement d'exécution plus reproductible et isolé, ma
 ## Ce projet utilise-t-il des outils d'analyse ou de suivi ?
 
 Non. Le site de documentation n'active pas les statistiques par défaut. L'indexation par les moteurs de recherche est gérée via des métadonnées standard, `robots.txt`, la génération d'un plan du site, des balises de vérification du webmaster (facultatives) et des notifications IndexNow (facultatives).
-
-## Parcours pratiques supplémentaires
-
-Pour choisir entre Playwright MCP amont et ce paquet, consultez la [comparaison](comparison.md). Pour des tâches courtes, utilisez les [recettes](recipes/index.md): profil persistant, extensions, reverse proxy, QA régionale, Claude Desktop, Codex CLI et test smoke CI.

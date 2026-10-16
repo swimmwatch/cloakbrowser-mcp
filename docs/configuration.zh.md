@@ -15,69 +15,46 @@ tags:
 
 ## 桥接选项
 
-| Variable | Default | Description |
+| 变量 | 默认值 | 说明 |
 | --- | --- | --- |
-| `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` | Bridge transport: `stdio` or `streamable-http`. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` | Streamable HTTP listener protocol: `http` or `https`. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` | Streamable HTTP bind host. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_PORT` | `3000` | Streamable HTTP bind port. Use `0` for an ephemeral port in tests. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_ENDPOINT` | `/mcp` | Streamable HTTP endpoint path. `/healthz` and `/readyz` are reserved for probes. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` | unset | Optional Bearer token required on Streamable HTTP requests. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_BACKEND` | `memory` | Session metadata backend. Only `memory` is implemented in this release. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_IDLE_TTL_MS` | `3600000` | Idle TTL for Streamable HTTP sessions. Expired sessions dispose their bridge and upstream child process. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` | Maximum active Streamable HTTP sessions in one process. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTPS_CERT` | unset | TLS certificate PEM path for HTTPS Streamable HTTP. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTPS_KEY` | unset | TLS private key PEM path for HTTPS Streamable HTTP. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTPS_PFX` | unset | TLS PFX/PKCS12 path for HTTPS Streamable HTTP. |
-| `CLOAK_PLAYWRIGHT_MCP_HTTPS_PASSPHRASE` | unset | Passphrase for an encrypted HTTPS key or PFX. |
-| `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` | Streamable HTTP operational log level: `trace`, `debug`, `info`, `warn`, `error`, `fatal`, or `silent`. |
-| `PLAYWRIGHT_MCP_PROXY_SERVER` | unset | Upstream Playwright MCP proxy server. Used as the GeoIP source when matching is enabled. |
-| `PLAYWRIGHT_MCP_PROXY_BYPASS` | unset | Upstream proxy bypass list for hosts that should not use `PLAYWRIGHT_MCP_PROXY_SERVER`. |
-| `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | Resolves `PLAYWRIGHT_MCP_PROXY_SERVER` GeoIP and matches CloakBrowser timezone and locale fingerprint flags to that proxy location. |
-| `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | Enables CloakBrowser human-like mouse, keyboard, and scroll behavior. |
-| `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
+| `CLOAK_PLAYWRIGHT_MCP_TRANSPORT` | `stdio` | 桥接器传输方式：`stdio` 或 `streamable-http`。 |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL` | `http` | Streamable HTTP 监听器协议：`http` 或 `https`。 |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_HOST` | `127.0.0.1` | Streamable HTTP 监听器绑定的主机地址。 |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_PORT` | `3000` | Streamable HTTP 监听器绑定的端口。测试中可使用 `0` 分配临时端口。 |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_ENDPOINT` | `/mcp` | Streamable HTTP 端点路径。`/healthz` 和 `/readyz` 保留用于探针。 |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` | unset | 可选的 Bearer 令牌；设置后，Streamable HTTP 请求必须携带该令牌。 |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_BACKEND` | `memory` | 会话元数据后端。此版本仅实现 `memory`。 |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_IDLE_TTL_MS` | `3600000` | Streamable HTTP 会话的空闲有效期。会话过期时会释放其桥接器资源并终止上游子进程。 |
+| `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX` | `32` | 单个进程中允许的最大活跃 Streamable HTTP 会话数。 |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_CERT` | unset | Streamable HTTP 使用 HTTPS 时的 TLS 证书 PEM 文件路径。 |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_KEY` | unset | Streamable HTTP 使用 HTTPS 时的 TLS 私钥 PEM 文件路径。 |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_PFX` | unset | Streamable HTTP 使用 HTTPS 时的 TLS PFX/PKCS12 文件路径。 |
+| `CLOAK_PLAYWRIGHT_MCP_HTTPS_PASSPHRASE` | unset | 加密 HTTPS 私钥或 PFX 文件的密码。 |
+| `CLOAK_PLAYWRIGHT_MCP_LOG_LEVEL` | `info` | Streamable HTTP 运行日志级别：`trace`、`debug`、`info`、`warn`、`error`、`fatal` 或 `silent`。 |
+| `PLAYWRIGHT_MCP_PROXY_SERVER` | unset | 上游 Playwright MCP 使用的代理服务器。启用匹配时，用于确定 GeoIP 信息。 |
+| `PLAYWRIGHT_MCP_PROXY_BYPASS` | unset | 上游代理绕过列表，指定不应使用 `PLAYWRIGHT_MCP_PROXY_SERVER` 的主机。 |
+| `CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH` | `false` | 解析 `PLAYWRIGHT_MCP_PROXY_SERVER` 的 GeoIP 信息，并使 CloakBrowser 的时区和区域设置指纹参数与代理位置匹配。 |
+| `CLOAK_PLAYWRIGHT_MCP_HUMANIZE` | `false` | 启用 CloakBrowser 的类人鼠标、键盘和滚动行为。 |
+| `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser 类人行为预设：`default` 或 `careful`。仅在启用 humanize 时使用。 |
 | `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` | `stable` | CloakBrowser 二进制文件发布通道：`stable` 或仅限 Pro 的 `preview`。 |
 | `CLOAKBROWSER_BINARY_PATH` | unset | 自定义 CloakBrowser 可执行文件的路径。CLI 选项 `--binary-path` 优先。 |
-| `CLOAKBROWSER_VERSION` | unset | 未选择自定义可执行文件时传递给 CloakBrowser 缓存解析器的版本固定。 |
-| `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
-| `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
-| `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
+| `CLOAKBROWSER_VERSION` | unset | 未选择自定义可执行文件时传递给 CloakBrowser 缓存解析器的固定版本。有效的免费方案许可证密钥会忽略固定版本；CloakBrowser 可能复用缓存的二进制文件。 |
+| `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` 使用 CloakBrowser 二进制文件。`playwright` 跳过 Cloak 专用的可执行文件替换。 |
+| `PLAYWRIGHT_MCP_HEADLESS` | `true` | 以无头模式运行 Chromium。 |
+| `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | npm 运行时的产物目录。Docker 将其设置为 `/data`。 |
 | `PLAYWRIGHT_MCP_CODEGEN` | `typescript` | 代码生成目标语言：`typescript`、`python`、`java`、`csharp` 或 `none`。桥接会验证该值，并将 `codegen` 写入生成的 Playwright MCP 配置。 |
 | `PLAYWRIGHT_MCP_SNAPSHOT_BOXES` | `false` | `true` 或 `false`；在快照中以 `[box=x,y,width,height]` 包含每个元素的边界框。桥接会验证该值，并将 `snapshot.boxes` 写入生成的 Playwright MCP 配置。 |
 | `PLAYWRIGHT_MCP_TIMEOUT_SETTLE` | `500` | 操作后等待触发工作稳定的上游时间（毫秒）。直接转发给 Playwright MCP。 |
-| `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | Default action timeout in milliseconds. |
-| `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | Default navigation timeout in milliseconds. |
-| `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | Browser viewport in `WIDTHxHEIGHT` format. |
+| `PLAYWRIGHT_MCP_TIMEOUT_ACTION` | `5000` | 默认操作超时时间，单位为毫秒。 |
+| `PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION` | `60000` | 默认导航超时时间，单位为毫秒。 |
+| `PLAYWRIGHT_MCP_VIEWPORT_SIZE` | upstream default | 浏览器视口大小，格式为 `WIDTHxHEIGHT`。 |
 | `PLAYWRIGHT_MCP_USER_DATA_DIR` | unset | 持久化 Chromium 配置文件目录。桥接器会将其解析为绝对路径，在缺失时创建它，验证其可写，并写入生成的 `browser.userDataDir`。 |
 | `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS` | unset | 包含已验证上下文选项的 JSON 对象。支持的字段列在下方。 |
 | `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` | unset | 现有 Chrome 扩展目录的 JSON 数组或逗号分隔列表。需要 `PLAYWRIGHT_MCP_USER_DATA_DIR`。对于 Windows 路径或包含逗号的路径，请使用 JSON 数组。 |
-| `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | Enables the console message compatibility patch. |
-| `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | Adds CloakBrowser default stealth launch arguments. |
-| `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | Comma-separated or JSON array of extra Chromium arguments. |
-| `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | Adds `--no-sandbox` and disables Chromium sandboxing. |
-
-## CloakBrowser 许可证与 GitHub 登录
-
-许可证设置使用上游 CloakBrowser CLI；`cloakbrowser-mcp` 不会添加登录或退出命令：
-
-```bash
-npx -y cloakbrowser@latest login
-npx -y cloakbrowser@latest info
-npx -y cloakbrowser@latest logout
-```
-
-`login` 可接受付费密钥，也可启动 GitHub 登录以获取免费层密钥。验证后的密钥存储在
-`~/.cloakbrowser/license.key` 中；`logout` 会删除该文件。`info` 会报告当前许可证
-层级；对于 Pro 许可证，还会报告活动会话数。
-
-也可以在 MCP 服务器环境中设置 `CLOAKBROWSER_LICENSE_KEY`。桥接器会将该变量转发给
-上游/浏览器子进程，但不会记录它。当 `CLOAKBROWSER_CACHE_DIR` 指向包含
-`license.key` 的自定义缓存时，CloakBrowser 会解析密钥，而桥接器只会从生成的浏览器
-环境中转发该解析后的密钥。其他生成的环境条目不会被复制。
-
-如果 CloakBrowser 拒绝提供的许可证密钥、无法验证该密钥或无法连接许可证
-服务器，启动会因明确的 CloakBrowser 错误而失败。桥接会保留该错误；它不会
-掩盖错误，也不会静默切换到其他浏览器或许可证级别。
+| `CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK` | `true` | 启用控制台消息兼容性补丁。 |
+| `CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS` | `true` | 添加 CloakBrowser 默认的隐蔽启动参数。 |
+| `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` | unset | 额外的 Chromium 参数，以逗号分隔的列表或 JSON 数组提供。 |
+| `CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX` | `true` | 添加 `--no-sandbox` 并禁用 Chromium 沙箱。 |
 
 ## 已管理 CDP { #managed-cdp }
 
@@ -168,9 +145,32 @@ Playwright 自身的内部 `--remote-debugging-pipe` 仍然保持启用状态，
 [架构](architecture.md#managed-cdp-ownership) 用于发现状态、部署，
 限制和重启行为。
 
+## CloakBrowser 许可证与 GitHub 登录
+
+许可证设置使用上游 CloakBrowser CLI；`cloakbrowser-mcp` 不会添加登录或退出命令：
+
+```bash
+npx -y cloakbrowser@latest login
+npx -y cloakbrowser@latest info
+npx -y cloakbrowser@latest logout
+```
+
+`login` 可接受付费密钥，也可启动 GitHub 登录以获取免费层密钥。验证后的密钥存储在
+`~/.cloakbrowser/license.key` 中；`logout` 会删除该文件。`info` 会报告当前许可证
+层级；对于 Pro 许可证，还会报告活动会话数。
+
+也可以在 MCP 服务器环境中设置 `CLOAKBROWSER_LICENSE_KEY`。桥接器会将该变量转发给
+上游/浏览器子进程，但不会记录它。当 `CLOAKBROWSER_CACHE_DIR` 指向包含
+`license.key` 的自定义缓存时，CloakBrowser 会解析密钥，而桥接器只会从生成的浏览器
+环境中转发该解析后的密钥。其他生成的环境条目不会被复制。
+
+如果 CloakBrowser 拒绝提供的许可证密钥，或无法通过许可证服务器及缓存验证结果验证密钥，启动会因明确的 CloakBrowser 错误而失败。桥接器保留该错误，不会掩盖它或静默切换到其他浏览器或许可证级别。
+
+许可证服务器不可用时，CloakBrowser 可以复用缓存的验证结果。这并不保证离线启动：下载二进制文件或启动浏览器仍可能失败。
+
 ## CloakBrowser 发布通道
 
-`CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` 选择 CloakBrowser 二进制文件的发布通道。默认值为 `stable`。`preview` 请求 Pro 浏览器预览构建，且仅适用于 Pro 许可证。显式固定的 `CLOAKBROWSER_VERSION` 优先。如果平台没有可用的 Preview，CloakBrowser 会回退到 Stable。
+`CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` 选择 CloakBrowser 二进制文件的发布通道，默认值为 `stable`。`preview` 请求 Pro 浏览器预览构建，仅适用于 Pro 许可证。无密钥或付费密钥下载时，显式固定的 `CLOAKBROWSER_VERSION` 优先。有效的免费方案许可证密钥忽略固定版本，并可能复用缓存的二进制文件。如果平台没有可用的 Preview，CloakBrowser 会回退到 Stable。
 
 发布通道在桥接进程启动时选定。它适用于所有 Streamable HTTP 会话，且不能在 initialize 元数据中设置或覆盖。请重启桥接进程以更改它。
 
@@ -192,7 +192,7 @@ npx -y cloakbrowser-mcp@latest --binary-path /opt/cloakbrowser/chrome
 使用。`initialize` 元数据不能选择或覆盖可执行文件路径；需要不同二进制文件的
 会话应运行单独的桥接进程。
 
-当所选二进制文件实现 `document.modelContext` 时，上游 Playwright MCP 可在页面快照后添加 `webmcp_<page-tool>` 形式的工具。它会发送 `tools/list_changed`；桥接会转发该通知和更新后的工具列表。每个动态工具的名称和模式由页面定义。
+如果所选构建提供带有 `getTools()` 方法的 `document.modelContext` 或 `navigator.modelContext`，上游 Playwright MCP 可以在页面快照后添加 `webmcp_<page-tool>` 工具。它发送 `tools/list_changed`，桥接器转发通知和更新后的工具列表。每个动态工具的名称和模式由页面定义。
 
 ## GeoIP 代理匹配
 
@@ -204,9 +204,7 @@ URL 内联身份验证；对于较旧的二进制文件，则保留 Playwright �
 有关配置示例、运行时
 可流式传输的 HTTP 代理元数据、用例、优先级规则和限制，请参阅 [GeoIP 代理匹配](geoip-proxy-matching.md)。
 
-匹配采用 fail-closed 行为：如果 CloakBrowser 无法解析代理出口 IP、GeoIP
-数据库、时区或区域设置，浏览器不会以部分匹配的指纹启动。GeoIP 解析最长为
-20 秒；首次下载离线 GeoIP 数据库独立进行，可能需要更长时间。
+简明操作步骤请参阅[通过代理进行区域 QA](recipes/regional-qa-through-proxy.md)。
 
 ## 拟人化的输入行为
 
@@ -218,7 +216,7 @@ Playwright MCP 的页面初始化钩子应用此设置，因此上游浏览器�
 有关配置示例、
 运行时可流式传输的 HTTP 元数据、用例及限制，请参阅 [人性化输入行为](humanized-input-behavior.md)。
 
-## Chrome 扩展
+## Chrome 扩展 { #chrome-extensions }
 
 Chrome 扩展会在浏览器启动时加载，因此请在启动桥接器之前，或在创建
 Streamable HTTP 会话之前完成配置。扩展必须是已解压的目录，并且需要
@@ -250,11 +248,41 @@ PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
 逗号、传入多个扩展，或使用带盘符的 Windows 路径时，请为
 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` 使用 JSON 数组。
 
-## Playwright Extension 连接模式
+简短的可复制配置示例请参阅[加载 Chrome 扩展](recipes/load-chrome-extension.md)。
 
-此模式通过已安装在 Chrome 或 Edge 配置文件中的官方 Playwright Extension 连接，与通过 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` 加载解压扩展不同。对于 stdio，请设置 `PLAYWRIGHT_MCP_EXTENSION=true`、`PLAYWRIGHT_MCP_EXTENSION_TOKEN`、`PLAYWRIGHT_MCP_USER_DATA_DIR`，并可设置仅含一个相对路径段的 `PLAYWRIGHT_MCP_PROFILE_DIR_NAME`。在 Streamable HTTP 中，`extensionMode`、`profileDirName` 和 `userDataDir` 元数据覆盖进程值，但 token 只能来自进程环境。并行会话必须使用不同的 `userDataDir`；launch、CDP、proxy、GeoIP、humanization、context 和 `extensionPaths` 配置与此模式不兼容。
+## Playwright Extension 连接模式 { #playwright-extension-connection-mode }
 
-## 可流式传输的 HTTP 运行时元数据
+Playwright Extension 连接模式与通过 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` 加载未打包扩展是两种不同的机制。该模式通过 Chrome 或 Edge 配置文件中已经安装的官方 Playwright Extension 建立连接；桥接器不会安装该扩展。
+
+使用 stdio 时，配置进程环境变量：
+
+```bash
+PLAYWRIGHT_MCP_EXTENSION=true \
+  PLAYWRIGHT_MCP_EXTENSION_TOKEN='<secret-from-the-extension>' \
+  PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/playwright-extension" \
+  PLAYWRIGHT_MCP_PROFILE_DIR_NAME='Profile 1' \
+  npx -y cloakbrowser-mcp@latest
+```
+
+使用 Streamable HTTP 时，`initialize` 元数据中的 `extensionMode` 和 `profileDirName` 会覆盖对应的进程级设置。`userDataDir` 也按会话指定。令牌仍只能通过进程环境变量提供：
+
+```json
+{
+  "params": {
+    "_meta": {
+      "io.github.swimmwatch/cloakbrowser-mcp": {
+        "extensionMode": true,
+        "profileDirName": "Profile 1",
+        "userDataDir": "/absolute/path/to/profile"
+      }
+    }
+  }
+}
+```
+
+扩展模式要求非空令牌和持久化配置文件。并发的 HTTP 扩展会话必须使用不同的 `userDataDir`。启动上游子进程前，桥接器会拒绝以下配置：托管或外部 CDP 端点、远程浏览器端点、无头或隔离启动配置、代理和 GeoIP 选项、类人操作、上下文修改、未打包扩展的 `extensionPaths`，以及显式提供的 CloakBrowser 启动选项。成功连接的端到端验证需要手动进行，因为所选浏览器配置文件中必须已经安装官方 Playwright Extension。
+
+## 可流式传输的 HTTP 运行时元数据 { #streamable-http-runtime-metadata }
 
 支持流式传输的 HTTP 客户端可以通过在 `initialize` 请求中添加
 特定于桥接器的元数据，为每个 MCP 会话选择相应的运行时选项：
@@ -268,6 +296,8 @@ PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
         "proxyBypass": ".internal,localhost",
         "geoipProxyMatch": true,
         "headless": false,
+        "extensionMode": false,
+        "profileDirName": "Profile 1",
         "humanize": true,
         "humanPreset": "careful",
         "userDataDir": "/absolute/path/to/profile",
@@ -294,7 +324,9 @@ PLAYWRIGHT_MCP_USER_DATA_DIR="$PWD/.profiles/default" \
 ，但本身不会启用人性化行为。 现有
 会话将保留在 `initialize` 期间捕获的行为。
 
-在 Docker 中，`headless: false` 会按需启动私有虚拟显示器。在镜像外，有头会话仍需要可用的显示环境。
+`headless` 可按会话启用或禁用无头浏览器模式。在 Docker 镜像中，设置 `headless` 为 `false` 会按需启动容器私有的虚拟显示。在镜像之外，有头会话仍需要可用的显示环境。
+
+`extensionMode` 和 `profileDirName` 会覆盖该会话的 `PLAYWRIGHT_MCP_EXTENSION` 和 `PLAYWRIGHT_MCP_PROFILE_DIR_NAME`。元数据绝不接受 `PLAYWRIGHT_MCP_EXTENSION_TOKEN`。
 
 `userDataDir` 为该会话启用持久化 Chromium 配置文件，并覆盖
 `PLAYWRIGHT_MCP_USER_DATA_DIR`。桥接器会将目录解析为平台原生绝对路径，
@@ -326,6 +358,8 @@ Playwright 代理对象作为兼容性回退。
 有关多地点质量保证模式，请参阅 [GeoIP 代理匹配](geoip-proxy-matching.md)。
 有关交互真实性模式，请参阅 [人性化输入行为](humanized-input-behavior.md)。
 
+登录状态复用和扩展配置请参阅[持久化登录配置文件](recipes/persistent-login-profile.md)和[加载 Chrome 扩展](recipes/load-chrome-extension.md)。
+
 ## 上游选项
 
 该桥接器将 `PLAYWRIGHT_MCP_*` 的设置转发给上游的 Playwright MCP。其中包括以下上游选项：
@@ -335,9 +369,13 @@ Playwright 代理对象作为兼容性回退。
 - `PLAYWRIGHT_MCP_ALLOW_UNRESTRICTED_FILE_ACCESS`
 - `PLAYWRIGHT_MCP_CAPS`
 - `PLAYWRIGHT_MCP_CONSOLE_LEVEL`
+- `PLAYWRIGHT_MCP_FILE_PATHS`
+- `PLAYWRIGHT_MCP_IDLE_TIMEOUT`
 - `PLAYWRIGHT_MCP_IMAGE_RESPONSES`
+- `PLAYWRIGHT_MCP_PROFILE_DIR_NAME`
 - `PLAYWRIGHT_MCP_SNAPSHOT_MODE`
 - `PLAYWRIGHT_MCP_STORAGE_STATE`
+- `PLAYWRIGHT_MCP_WEBMCP`
 
 有关完整的上游选项列表，请参阅上游 Playwright MCP 文档。
 
@@ -348,7 +386,7 @@ Playwright 代理对象作为兼容性回退。
 
 可流式传输的 HTTP 模式会将易于人类阅读的启动和请求日志写入 stdout。Stdio 模式不会输出常规操作日志，因此 MCP JSON-RPC 的 stdout 保持协议纯净。命令行界面（CLI）启动时的致命错误仍会写入 stderr。
 
-## HTTPS
+## HTTPS { #https }
 
 Streamable HTTP 默认使用本地 HTTP。若要选择直接 TLS，请使用 `--http-protocol https` 或 `CLOAK_PLAYWRIGHT_MCP_HTTP_PROTOCOL=https` 选择“直接 TLS”模式，然后提供证书/密钥对或 PFX 文件：
 
@@ -363,7 +401,7 @@ cloakbrowser-mcp --transport streamable-http \
 
 ## 可流式传输的 HTTP 会话
 
-每个 Streamable HTTP MCP 会话都拥有自己的桥接运行时和上游 Playwright MCP 子进程。HTTP 会话使用隔离的浏览器配置文件运行上游 Playwright MCP，因此并发用户不会争夺同一个持久性 Chromium 配置文件。 内置的 `memory` 会话后端仅存储会话 ID、时间戳、过期时间和状态等元数据。 浏览器状态仍保留在活跃的上游子进程中，而相关资源仍由 `PLAYWRIGHT_MCP_OUTPUT_DIR` 控制。
+每个 Streamable HTTP MCP 会话都有独立的桥接运行时和上游 Playwright MCP 子进程。未配置持久化配置文件时，HTTP 会话默认使用隔离的浏览器配置文件。显式持久化配置文件会被锁定，并发会话需要不同的配置文件目录。内置 `memory` 后端仅保存会话 ID、时间戳、过期时间和状态等元数据。浏览器状态保留在活动的上游子进程中，产物仍由 `PLAYWRIGHT_MCP_OUTPUT_DIR` 控制。
 
 对于水平扩展，请在负载均衡器后运行多个服务器副本，并使用以 `mcp-session-id` 头为键的粘性会话。 未来的 Redis、Postgres 或 SQLite 后端可以协调元数据和锁，但当拥有该会话的进程退出后，它们无法恢复正在运行的浏览器会话。
 

@@ -1,5 +1,5 @@
 ---
-description: Development workflow for the Playwright MCP bridge.
+description: Playwright MCP ब्रिज के लिए विकास कार्यप्रवाह।
 icon: material/code-braces
 tags:
   - Project Internals
@@ -32,17 +32,16 @@ npm run check
 
 ```text
 src/
-  cli.ts                  CLI entry point
-  server.ts               outer MCP proxy server
-  bridge/
-    config.ts             Playwright MCP config generation
-    env.ts                env parsing helpers
-    paths.ts              upstream package path resolution
-    tools.ts              local Cloak introspection tools
-  runtime/
-    consoleFallback.ts    compatibility patch source strings
-  project/
-    metadata.ts           package and MCP metadata
+  cli.ts, cli/    CLI options and process lifecycle
+  server.ts       upstream MCP proxy
+  bridge/         browser configuration and local introspection
+  cdp/            managed CDP leases, readiness and capability proxy
+  http/           Streamable HTTP sessions and transport
+  docker/         container launcher, display and health checks
+  runtime/        console and humanize compatibility
+  logging/        runtime diagnostics
+  protocol/       shared MCP protocol support
+  project/        package and server metadata
 ```
 
 हटाए गए नेटिव एडाप्टर/टूल-रजिस्ट्री कार्यान्वयन को पुनः शामिल नहीं किया जाना चाहिए। अपस्ट्रीम Playwright MCP ब्राउज़र टूल व्यवहार का मालिक है।
@@ -60,6 +59,7 @@ docker run --rm -i -v "$PWD/artifacts:/data" cloakbrowser-mcp:dev
 ```bash
 npm run docs:install
 npm run docs:assets
+npm run docs:metadata:check
 npm run docs:serve
 npm run docs:build
 ```

@@ -1,12 +1,9 @@
 import { isLoopbackCdpHost, isWildcardCdpHost, validateCdpHost } from '#src/cdp/urls';
-
 export type CdpAdvertisedScheme = 'http' | 'https';
-
 export interface CdpPortRange {
   end: number;
   start: number;
 }
-
 export interface CdpEndpointConfig {
   allowRemote: boolean;
   advertisedHost?: string;
@@ -15,7 +12,6 @@ export interface CdpEndpointConfig {
   portRange?: CdpPortRange;
   processEnabled: boolean;
 }
-
 export interface CreateCdpEndpointConfigOptions {
   allowRemote?: boolean;
   advertisedHost?: string;
@@ -24,14 +20,12 @@ export interface CreateCdpEndpointConfigOptions {
   portRange?: string;
   processEnabled?: boolean;
 }
-
 export interface ResolveCdpSettingOptions<T> {
   cliValue?: string;
   defaultValue: T;
   environmentValue?: string;
   parse: (value: string) => T;
 }
-
 export interface ResolveCdpBooleanSettingOptions {
   defaultValue: boolean;
   environmentValue?: string;
@@ -39,70 +33,64 @@ export interface ResolveCdpBooleanSettingOptions {
   negativeCli?: boolean;
   positiveCli?: boolean;
 }
-
 export class CdpConfigurationError extends Error {}
-
 const defaultBindHost = '127.0.0.1';
 const conflictingRawArguments = [
   '--remote-debugging-port',
   '--remote-debugging-address',
   '--remote-debugging-pipe',
 ] as const;
-
 export function parseCdpPortRange(value: string): CdpPortRange {
   const match = /^(\d+)(?:-(\d+))?$/u.exec(value);
   if (match === null) throw new CdpConfigurationError('CDP port range is invalid');
-
   const start = Number(match[1]);
-  const end = Number(match[2] ?? match[1]);
+  const computedValue = match[2] ?? match[1];
+  const end = Number(computedValue);
   if (!isValidPort(start) || !isValidPort(end) || start > end) {
     throw new CdpConfigurationError('CDP port range must be between 1 and 65535');
   }
   return { end, start };
 }
-
 export function parseCdpAdvertisedScheme(value: string): CdpAdvertisedScheme {
   if (value !== 'http' && value !== 'https') {
     throw new CdpConfigurationError('CDP advertised scheme must be "http" or "https"');
   }
   return value;
 }
-
 export function resolveCdpSetting<T>(options: ResolveCdpSettingOptions<T>): T {
   const selected = options.cliValue ?? options.environmentValue;
   return selected === undefined ? options.defaultValue : options.parse(selected);
 }
-
 export function resolveCdpBooleanSetting(options: ResolveCdpBooleanSettingOptions): boolean {
   if (options.positiveCli === true && options.negativeCli === true) {
-    throw new CdpConfigurationError(`${options.label} cannot use both positive and negative CLI forms`);
+    const message = `${options.label} cannot use both positive and negative CLI forms`;
+    throw new CdpConfigurationError(message);
   }
   if (options.positiveCli === true) return true;
   if (options.negativeCli === true) return false;
   if (options.environmentValue === undefined) return options.defaultValue;
-
   const normalized = options.environmentValue.trim().toLowerCase();
   if (normalized === 'true') return true;
   if (normalized === 'false') return false;
-  throw new CdpConfigurationError(`${options.label} environment value must be "true" or "false"`);
+  const message2 = `${options.label} environment value must be "true" or "false"`;
+  throw new CdpConfigurationError(message2);
 }
-
 export function resolveCdpSessionEnabled(processEnabled: boolean, sessionOverride?: boolean): boolean {
   return sessionOverride ?? processEnabled;
 }
-
 /** Builds and validates the transport-independent managed CDP endpoint settings. */
 export function createCdpEndpointConfig(options: CreateCdpEndpointConfigOptions): CdpEndpointConfig {
   const processEnabled = options.processEnabled ?? false;
-  const bindHost = validateHost(options.bindHost ?? defaultBindHost, 'CDP bind host');
+  const computedValue2 = options.bindHost ?? defaultBindHost;
+  const bindHost = validateHost(computedValue2, 'CDP bind host');
   const allowRemote = options.allowRemote ?? false;
   const advertisedHost =
     options.advertisedHost === undefined
       ? undefined
       : validateHost(options.advertisedHost, 'CDP advertised host');
-  const advertisedScheme = parseCdpAdvertisedScheme(options.advertisedScheme ?? 'http');
+  const computedValue3 = options.advertisedScheme ?? 'http';
+  const advertisedScheme = parseCdpAdvertisedScheme(computedValue3);
   const portRange = options.portRange === undefined ? undefined : parseCdpPortRange(options.portRange);
-
   if (advertisedHost !== undefined && isWildcardCdpHost(advertisedHost)) {
     throw new CdpConfigurationError('CDP advertised host must be concrete');
   }
@@ -115,41 +103,44 @@ export function createCdpEndpointConfig(options: CreateCdpEndpointConfigOptions)
   if (processEnabled && portRange === undefined) {
     throw new CdpConfigurationError('CDP port range is required when managed CDP is enabled');
   }
-
-  return compactEndpointConfig({
+  const compactEndpointConfigOptions = {
     allowRemote,
     advertisedHost,
     advertisedScheme,
     bindHost,
     portRange,
     processEnabled,
-  });
+  } as const;
+  return compactEndpointConfig(compactEndpointConfigOptions);
 }
-
 export function validateManagedCdpLaunchArgs(args: readonly string[], enabled: boolean): void {
   if (!enabled) return;
   for (const argument of args) {
     const conflict = conflictingRawArguments.find(
-      (flag) => argument === flag || argument.startsWith(`${flag}=`),
+      (flag) =>
+        argument === flag ||
+        (() => {
+          const message3 = `${flag}=`;
+          return argument.startsWith(message3);
+        })(),
     );
     if (conflict !== undefined) {
-      throw new CdpConfigurationError(`Managed CDP conflicts with ${conflict}`);
+      const message4 = `Managed CDP conflicts with ${conflict}`;
+      throw new CdpConfigurationError(message4);
     }
   }
 }
-
 function isValidPort(port: number): boolean {
-  return Number.isInteger(port) && port >= 1 && port <= 65_535;
+  return Number.isInteger(port) && port >= 1 && port <= 65535;
 }
-
 function validateHost(host: string, label: string): string {
   try {
     return validateCdpHost(host, label);
   } catch {
-    throw new CdpConfigurationError(`${label} is invalid`);
+    const message5 = `${label} is invalid`;
+    throw new CdpConfigurationError(message5);
   }
 }
-
 function compactEndpointConfig(config: {
   allowRemote: boolean;
   advertisedHost: string | undefined;

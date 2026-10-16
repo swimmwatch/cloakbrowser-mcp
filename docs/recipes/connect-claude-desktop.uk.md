@@ -12,6 +12,8 @@ tags:
 
 ## Додавання сервера
 
+Додайте цей запис до `claude_desktop_config.json`, а потім перезапустіть Claude Desktop:
+
 ```json
 {
   "mcpServers": {
@@ -41,10 +43,10 @@ tags:
 
 ## Перевірка
 
-Ask Claude Desktop to open a page with the cloakbrowser server and take a browser snapshot.
+Попросіть Claude Desktop використати сервер `cloakbrowser`, щоб відкрити сторінку й отримати знімок браузера. Вихідні браузерні інструменти Playwright MCP мають бути доступні без змін.
 
 ## Повʼязані матеріали
 
-- [Getting Started](../getting-started.md)
+- [Початок роботи](../getting-started.md#mcp-client-config)
 - [Постійний профіль входу](persistent-login-profile.md)
-- [Tools](../tools.md)
+- [Інструменти](../tools.md)

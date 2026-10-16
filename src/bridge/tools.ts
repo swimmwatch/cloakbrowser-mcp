@@ -7,16 +7,15 @@ import {
   PLAYWRIGHT_MCP_VERSION,
   PROJECT_METADATA,
 } from '#src/project/metadata';
-
 export const LOCAL_TOOL_BINARY_INFO = 'cloakbrowser_binary_info' as const;
 export const LOCAL_TOOL_BRIDGE_INFO = 'cloakbrowser_bridge_info' as const;
 export const localToolNames = [LOCAL_TOOL_BINARY_INFO, LOCAL_TOOL_BRIDGE_INFO] as const;
 const localToolNameSet = new Set<string>(localToolNames);
-
 export type LocalToolName = (typeof localToolNames)[number];
-
 export type BridgeCdpInfo =
-  | { enabled: false }
+  | {
+      enabled: false;
+    }
   | {
       activeConnections: number;
       advertisedHost: string | null;
@@ -37,13 +36,11 @@ export type BridgeCdpInfo =
       port: number;
       state: 'unavailable';
     };
-
 const emptyInputSchema = {
   type: 'object',
   properties: {},
   additionalProperties: false,
 } as const;
-
 const bridgeInfoOutputSchema: NonNullable<Tool['outputSchema']> = {
   type: 'object',
   properties: {
@@ -86,7 +83,7 @@ const bridgeInfoOutputSchema: NonNullable<Tool['outputSchema']> = {
             state: { const: 'ready' },
             generation: { type: 'integer', minimum: 1 },
             bindHost: { type: 'string' },
-            port: { type: 'integer', minimum: 1, maximum: 65_535 },
+            port: { type: 'integer', minimum: 1, maximum: 65535 },
             advertisedHost: { type: ['string', 'null'] },
             discoveryUrl: { type: 'string' },
             activeConnections: { type: 'integer', minimum: 0 },
@@ -110,7 +107,7 @@ const bridgeInfoOutputSchema: NonNullable<Tool['outputSchema']> = {
             state: { const: 'unavailable' },
             generation: { type: 'integer', minimum: 1 },
             bindHost: { type: 'string' },
-            port: { type: 'integer', minimum: 1, maximum: 65_535 },
+            port: { type: 'integer', minimum: 1, maximum: 65535 },
             advertisedHost: { type: ['string', 'null'] },
             discoveryUrl: { type: 'null' },
             activeConnections: { const: 0 },
@@ -133,7 +130,6 @@ const bridgeInfoOutputSchema: NonNullable<Tool['outputSchema']> = {
   required: ['name', 'title', 'version', 'runtime', 'browserEngine', 'upstream', 'localTools', 'cdp'],
   additionalProperties: false,
 };
-
 const localTools: Tool[] = [
   {
     name: LOCAL_TOOL_BINARY_INFO,
@@ -159,15 +155,12 @@ const localTools: Tool[] = [
     },
   },
 ];
-
 export function createLocalTools(): Tool[] {
   return localTools;
 }
-
 export function isLocalTool(name: string): name is LocalToolName {
   return localToolNameSet.has(name);
 }
-
 export function callLocalTool(
   name: LocalToolName,
   runtime: BridgeRuntime,
@@ -175,15 +168,15 @@ export function callLocalTool(
   cdp: BridgeCdpInfo = { enabled: false },
 ): CallToolResult {
   if (name === LOCAL_TOOL_BINARY_INFO) {
-    return jsonResult({
+    const jsonResultOptions = {
       browserEngine: runtime.browserEngine,
       executablePath: runtime.cloakBinaryPath ?? null,
       outputDir: runtime.outputDir,
       binary: getCurrentCloakBinaryInfo(),
-    });
+    } as const;
+    return jsonResult(jsonResultOptions);
   }
-
-  return jsonResult({
+  const jsonResultOptions2 = {
     name: PROJECT_METADATA.mcpName,
     title: PROJECT_METADATA.title,
     version: PROJECT_METADATA.version,
@@ -199,9 +192,9 @@ export function callLocalTool(
       names: localToolNames,
     },
     cdp,
-  });
+  } as const;
+  return jsonResult(jsonResultOptions2);
 }
-
 function jsonResult(value: Record<string, unknown>): CallToolResult {
   return {
     content: [{ type: 'text', text: JSON.stringify(value, null, 2) }],

@@ -162,3 +162,19 @@ checks.
 - [GeoIP Proxy Matching](geoip-proxy-matching.md) explains region-consistent proxy profiles.
 - [Recipes](recipes/index.md) lists task-focused setup paths.
 - [Tools](tools.md) explains why upstream Playwright MCP browser tools are forwarded unchanged.
+
+## CloakBrowser
+
+The current CloakBrowser dependency is `{{ project.cloakbrowser_dependency }}`. Humanized typing overlaps key holds and varies the gaps between keys. Mouse movement timing depends on distance. Scrolling uses whole wheel notches for the spoofed platform, so small requested deltas can be rounded. Interactions support fixed-position modals and absolute-position elements outside ancestor scroll containers. Selecting an option that navigates the page returns the chosen values instead of a stale-element error.
+
+For CloakBrowser 0.6.2/0.6.3, the bridge navigates to the first segment with `ArrowLeft` before typing into native date/time editors. This prevents an initial click from placing all digits in the year field. Values are entered with the keyboard, without programmatic assignment.
+
+CloakBrowser 0.6.2 restores humanized action visibility checks with Playwright 1.64. The bridge forwards the actual ancestor iframe visibility to both element-state check paths instead of using the unconditional `true` from upstream.
+
+Humanized actions follow Playwright selector semantics, including strict mode. Ambiguous locators and unsupported actions raise errors instead of silently falling back. For example, humanized `fill()` cannot drive `input[type=color]`; disable humanize for a session that needs this operation.
+
+When humanize is enabled, the bridge accepts only verified dependency versions and source hashes. It checks ancestor iframe visibility and keeps weak references to resolved DOM elements so detached elements can be collected. Unsupported versions or modified sources are rejected; use `CLOAK_PLAYWRIGHT_MCP_HUMANIZE=false` until the bridge supports them.
+
+CloakBrowser 0.6.1 runs `inputValue()`, `textContent()`, `innerText()`, `innerHTML()`, `getAttribute()`, and `dispatchEvent()` through the humanize isolated world on `Page`, `Frame`, `Locator`, and `ElementHandle`. Hidden or overlapping `ElementHandle` targets, and event arguments containing a `JSHandle`, use the upstream raw Playwright fallback for reads and event dispatch.
+
+Dropdown selection uses type-ahead and supports repeated selections. On macOS, a label starting with an emoji can be unreachable with human input; the error is forwarded through MCP. If programmatic selection is acceptable, use the upstream `page._original.selectOption()` explicitly.

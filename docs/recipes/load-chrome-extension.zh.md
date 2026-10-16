@@ -37,10 +37,10 @@ docker run --rm -i \
 
 ## 验证
 
-Use the MCP client to open a page where the extension should be active, then inspect behavior or capture a screenshot.
+请让 MCP 客户端打开扩展应生效的页面，再检查页面行为或截屏。也可调用 `cloakbrowser_bridge_info` 确认桥接器使用预期的包版本。
 
 ## 相关内容
 
-- [Configuration](../configuration.md)
-- [Docker](../docker.md)
+- [配置](../configuration.md#chrome-extensions)
+- [Docker](../docker.md#chrome-extensions)
 - [持久登录配置文件](persistent-login-profile.md)

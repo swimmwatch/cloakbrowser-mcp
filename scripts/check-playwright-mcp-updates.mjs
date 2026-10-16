@@ -16,16 +16,18 @@ import {
 } from '#scripts/lib/playwright-mcp-upstream';
 import { latestVersion, toVersionTag } from '#scripts/lib/semver';
 import { renderTemplateFile } from '#scripts/lib/template';
-
 const defaultIssueAssignee = 'swimmwatch';
-const scriptDir = dirname(fileURLToPath(import.meta.url));
+const fileURLToPathResult = fileURLToPath(import.meta.url);
+const scriptDir = dirname(fileURLToPathResult);
 const issueTemplatePath = join(scriptDir, 'templates', 'playwright-mcp-update-issue.md');
-const issueBodyPath = join(tmpdir(), 'cloakbrowser-mcp-playwright-mcp-upstream-update.md');
-
+const tmpdirResult = tmpdir();
+const issueBodyPath = join(tmpdirResult, 'cloakbrowser-mcp-playwright-mcp-upstream-update.md');
 const githubToken = process.env.GITHUB_TOKEN;
 const issueAssignee = process.env.UPSTREAM_MONITOR_ASSIGNEE ?? defaultIssueAssignee;
-const fetchJson = (url) => fetchJsonWithAuth(url, { githubToken });
-
+const fetchJson = (url) => {
+  const fetchJsonWithAuthOptions = { githubToken };
+  return fetchJsonWithAuth(url, fetchJsonWithAuthOptions);
+};
 const current = await readCurrentPlaywrightMcpVersions();
 const latest = {
   npmVersion: await getLatestNpmVersion(fetchJson),
@@ -36,21 +38,18 @@ const updateAvailable =
 const latestKnownVersion = latestVersion(latest.npmVersion, latest.dockerVersion);
 const latestVersionTag = toVersionTag(latestKnownVersion);
 const issueTitle = `Update Playwright MCP upstream to ${latestVersionTag}`;
-
 let releaseCount = 0;
-
 if (updateAvailable) {
   const releases = await getReleaseNotes(fetchJson, current.npmVersion, latestKnownVersion);
   releaseCount = releases.length;
-
-  await writeIssueBody({
+  const writeIssueBodyOptions = {
     current,
     latest,
     latestVersionTag,
     releaseNotesSummary: createReleaseNotesSummary(releases),
-  });
+  };
+  await writeIssueBody(writeIssueBodyOptions);
 }
-
 const result = {
   updateAvailable,
   currentNpmVersion: current.npmVersion,
@@ -63,8 +62,7 @@ const result = {
   issueAssignee,
   releaseCount,
 };
-
-await appendGithubOutput({
+const appendGithubOutputOptions = {
   update_available: String(result.updateAvailable),
   current_npm_version: result.currentNpmVersion,
   latest_npm_version: result.latestNpmVersion,
@@ -75,12 +73,12 @@ await appendGithubOutput({
   issue_body_path: result.issueBodyPath,
   issue_assignee: result.issueAssignee,
   release_count: String(result.releaseCount),
-});
-
-process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-
+};
+await appendGithubOutput(appendGithubOutputOptions);
+const message = `${JSON.stringify(result, null, 2)}\n`;
+process.stdout.write(message);
 async function writeIssueBody({ current, latest, latestVersionTag, releaseNotesSummary }) {
-  const issueBody = await renderTemplateFile(issueTemplatePath, {
+  const renderTemplateFileOptions = {
     currentDockerVersion: current.dockerVersion,
     currentNpmVersion: current.npmVersion,
     dockerRepository: upstreamConfig.dockerRepository,
@@ -93,7 +91,7 @@ async function writeIssueBody({ current, latest, latestVersionTag, releaseNotesS
     npmUpdateNeeded: current.npmVersion !== latest.npmVersion ? 'yes' : 'no',
     releaseNotesSummary,
     upstreamRepository: upstreamConfig.upstreamRepository,
-  });
-
+  };
+  const issueBody = await renderTemplateFile(issueTemplatePath, renderTemplateFileOptions);
   await writeFile(issueBodyPath, issueBody);
 }

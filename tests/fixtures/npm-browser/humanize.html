@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Humanize release fixture</title>
+    <style>
+      #hidden-read {
+        display: none;
+      }
+      #overlapping-container {
+        position: relative;
+        width: 200px;
+        height: 40px;
+      }
+      #overlapping-container > div {
+        position: absolute;
+        inset: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Release marker</h1>
+    <output id="result">Ready</output>
+    <label>Read input <input id="read-input" value="Reader value" /></label>
+    <div id="rich" data-note="Visible note"><strong>Nested marker</strong></div>
+    <div id="hidden-read" data-note="Hidden note"><strong>Hidden marker</strong></div>
+    <div id="overlapping-container">
+      <div id="overlapping-read" data-note="Exact note">Exact marker</div>
+      <div data-note="Other note">Other marker</div>
+    </div>
+    <button id="dispatch">Dispatch target</button>
+    <label
+      >Long choice
+      <select id="long-choice"></select
+    ></label>
+    <label
+      >Edge choice
+      <select id="edge-choice">
+        <option value="start">Start</option>
+        <option value="disabled" disabled>Disabled</option>
+        <option value="hidden" hidden>Hidden</option>
+        <optgroup label="Disabled group" disabled>
+          <option value="disabled-group">Unavailable</option>
+        </optgroup>
+        <option value="accented">Éclair</option>
+        <option value="duplicate-first">Duplicate</option>
+        <option value="duplicate-second">Duplicate</option>
+        <option value="emoji">🌍 World</option>
+      </select></label
+    >
+    <label
+      >Timeout choice
+      <select id="timeout-choice"></select
+    ></label>
+    <iframe title="Fixture frame" src="/frame"></iframe>
+    <script>
+      const longChoice = document.querySelector('#long-choice');
+      for (let index = 0; index < 200; index += 1) {
+        const value = String(index);
+        const suffix = value.padStart(3, '0');
+        const option = new Option(`Item ${suffix}`, value);
+        longChoice.add(option);
+      }
+      const prefix = 'a'.repeat(40);
+      const initial = new Option(`${prefix}one`, 'initial');
+      const target = new Option(`${prefix}two`, 'target');
+      document.querySelector('#timeout-choice').add(initial);
+      document.querySelector('#timeout-choice').add(target);
+      for (const selector of ['#dispatch', '#rich', '#hidden-read', '#overlapping-read']) {
+        document.querySelector(selector).addEventListener('click', (event) => {
+          const element = event.currentTarget;
+          const previous = Number(element.dataset.clicks ?? '0');
+          element.dataset.clicks = String(previous + 1);
+          document.querySelector('#result').textContent = 'Clicked';
+        });
+      }
+      document.querySelector('#dispatch').addEventListener('drop', (event) => {
+        event.preventDefault();
+        document.querySelector('#result').textContent = event.dataTransfer.getData('text/plain');
+      });
+    </script>
+  </body>
+</html>

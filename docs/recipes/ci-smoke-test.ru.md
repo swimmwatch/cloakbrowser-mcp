@@ -48,5 +48,5 @@ docker run --rm \
 ## Связанный
 
 - [Начало работы](../getting-started.md)
-- [Docker](../docker.md)
+- [Docker](../docker.md#build-locally)
 - [Тестирование](../testing.md)

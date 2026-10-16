@@ -9,6 +9,8 @@ tags:
 
 请使用已发布的 npm 包或 Docker 镜像。仅在开发时才需要从源代码安装。
 
+分步操作指南： [连接到 Claude Desktop](recipes/connect-claude-desktop.md), [连接到 Codex CLI](recipes/connect-codex-cli.md), [反向代理后的 Docker Streamable HTTP](recipes/docker-streamable-http-reverse-proxy.md).
+
 如果您的机器上已运行 MCP 客户端且安装了 Node.js，请选择 npm。如果您希望获得一个可重复的运行时环境，其中包含上游 Playwright MCP 基础镜像以及在容器内预先配置好的 CloakBrowser 缓存，请选择 Docker。
 
 如需快速了解常见的设置问题，请参阅[常见问题解答](faq.md)。
@@ -30,7 +32,7 @@ npx -y cloakbrowser-mcp@latest --transport streamable-http --http-protocol https
 npx -y {{ project.npm_pin }}
 ```
 
-该 npm 包需要 Node.js 22.x 系列中的 22.13 或更高版本，或 Node.js 24 或更高版本。CloakBrowser 在首次使用时会下载其 Chromium 二进制文件，除非该文件已被缓存。
+npm 包需要 Node.js `{{ project.node_engine_range }}`。CloakBrowser 在首次使用时会下载其 Chromium 二进制文件，除非该文件已被缓存。
 
 在连接客户端之前，请使用 `doctor` 验证本地 Node.js 运行时、包元数据、实际使用的 upstream Playwright MCP CLI、已解析的 `@playwright/mcp`、`playwright` 和 `playwright-core` 版本及包路径、实际的 core bundle 路径，以及 CloakBrowser 二进制文件元数据。该命令不会启动桥接服务，也不会下载浏览器。
 
@@ -85,7 +87,7 @@ docker run --rm -i \
 
 使用 Docker 可获得可复现的运行时环境。保留 `-i` 以保持 stdio 连接；镜像已包含 Tini，可正确回收浏览器子进程。对于 Streamable HTTP 客户端，请单独启动服务器，并将客户端 URL 配置为 `http://127.0.0.1:3000/mcp` 或 `https://127.0.0.1:3000/mcp`。若设置了 `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` 或 `--http-auth-token`，请向 `/mcp`、`/healthz` 和 `/readyz` 发送同一 Bearer 令牌。
 
-## MCP 客户端配置
+## MCP 客户端配置 { #mcp-client-config }
 
 大多数本地 MCP 客户端与 stdio 和 npm 配合使用效果最佳：
 

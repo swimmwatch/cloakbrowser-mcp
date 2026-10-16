@@ -45,6 +45,6 @@ docker run --rm \
 
 ## 関連
 
-- [Getting Started](../getting-started.md)
-- [Docker](../docker.md)
-- [Testing](../testing.md)
+- [はじめに](../getting-started.md)
+- [Docker](../docker.md#build-locally)
+- [テスト](../testing.md)

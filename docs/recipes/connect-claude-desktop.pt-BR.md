@@ -12,6 +12,8 @@ Use stdio quando o Claude Desktop deve iniciar o servidor sob demanda.
 
 ## Adicionar o servidor
 
+Adicione esta entrada a `claude_desktop_config.json` e reinicie o Claude Desktop:
+
 ```json
 {
   "mcpServers": {
@@ -41,10 +43,10 @@ Use stdio quando o Claude Desktop deve iniciar o servidor sob demanda.
 
 ## Verificar
 
-Ask Claude Desktop to open a page with the cloakbrowser server and take a browser snapshot.
+Peça ao Claude Desktop para usar o servidor `cloakbrowser`, abrir uma página e obter um snapshot do navegador. As ferramentas originais do Playwright MCP devem estar disponíveis sem alterações.
 
 ## Relacionado
 
-- [Getting Started](../getting-started.md)
+- [Introdução](../getting-started.md#mcp-client-config)
 - [Perfil de login persistente](persistent-login-profile.md)
-- [Tools](../tools.md)
+- [Ferramentas](../tools.md)

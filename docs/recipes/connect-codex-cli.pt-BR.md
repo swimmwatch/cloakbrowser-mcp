@@ -18,17 +18,24 @@ codex mcp add cloakbrowser -- npx -y cloakbrowser-mcp@latest
 
 ## Streamable HTTP
 
+Inicie o servidor:
+
 ```bash
 npx -y cloakbrowser-mcp@latest --transport streamable-http --http-port 3000
+```
+
+Registre o endpoint que já está em execução:
+
+```bash
 codex mcp add cloakbrowser --url http://127.0.0.1:3000/mcp
 ```
 
 ## Verificar
 
-Ask Codex to list the cloakbrowser MCP tools or run a browser navigation tool.
+Peça ao Codex para listar as ferramentas MCP do servidor `cloakbrowser` ou usar uma ferramenta de navegação. As ferramentas originais do Playwright MCP devem aparecer junto com `cloakbrowser_binary_info` e `cloakbrowser_bridge_info`.
 
 ## Relacionado
 
-- [Getting Started](../getting-started.md)
+- [Introdução](../getting-started.md#mcp-client-config)
 - [Docker Streamable HTTP atrás de proxy reverso](docker-streamable-http-reverse-proxy.md)
-- [Tools](../tools.md)
+- [Ferramentas](../tools.md)

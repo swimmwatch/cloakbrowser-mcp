@@ -39,8 +39,9 @@ tags:
 
 | cloakbrowser-mcp | @playwright/mcp | Playwright MCP Docker base                 | CloakBrowser | Transport              | Parity         |
 | ---------------- | --------------- | ------------------------------------------ | ------------ | ---------------------- | -------------- |
-| `1.14.1` | `^0.0.81` | `mcr.microsoft.com/playwright/mcp:v0.0.81` | `^0.5.10` | stdio, Streamable HTTP | CI में तुलना किए गए |
-| `1.14.0` | `^0.0.81` | `mcr.microsoft.com/playwright/mcp:v0.0.81` | `^0.5.10` | stdio, Streamable HTTP | CI में तुलना किए गए |
+| `1.15.0` | `^0.0.83` | `mcr.microsoft.com/playwright/mcp:v0.0.83` | `^0.6.3` | stdio, Streamable HTTP | CI में तुलना किए गए |
+| `1.14.1` | `^0.0.82` | `mcr.microsoft.com/playwright/mcp:v0.0.82` | `^0.5.10` | stdio, Streamable HTTP | CI में तुलना किए गए |
+| `1.14.0` | `^0.0.82` | `mcr.microsoft.com/playwright/mcp:v0.0.82` | `^0.5.10` | stdio, Streamable HTTP | CI में तुलना किए गए |
 | `1.13.0` | `^0.0.80` | `mcr.microsoft.com/playwright/mcp:v0.0.80` | `^0.5.10` | stdio, Streamable HTTP | CI में तुलना किए गए |
 | `1.12.0`          | `^0.0.79`       | `mcr.microsoft.com/playwright/mcp:v0.0.79` | `^0.5.7`    | stdio, Streamable HTTP | CI में तुलना की गई |
 | `1.11.0`          | `^0.0.79`       | `mcr.microsoft.com/playwright/mcp:v0.0.79` | `^0.5.6`    | stdio, Streamable HTTP | CI में तुलना की गई |
@@ -106,14 +107,14 @@ tags:
 - `cloakbrowser_binary_info`
 - `cloakbrowser_bridge_info`
 
-अगले कदम
+## अगले कदम
 
 - npm, Docker, और MCP क्लाइंट कॉन्फ़िगरेशन के लिए [शुरुआत करना](getting-started.md).
 - समर्थित पर्यावरण चर के लिए [कॉन्फ़िगरेशन](configuration.md).
 - [GeoIP प्रॉक्सी मिलान](geoip-proxy-matching.md) क्षेत्रीय QA, रनटाइम प्रॉक्सी मेटाडेटा, और बहु-स्थान स्ट्रीम करने योग्य HTTP सत्रों के लिए।
 - [मानवीकृत इनपुट व्यवहार](humanized-input-behavior.md) इंटरैक्शन यथार्थवाद, सेटअप, और उपयोग के मामलों के लिए।
 - [टूल्स](tools.md) टूल-सर्फेस अपेक्षाओं और अपस्ट्रीम समता के लिए।
-- [FAQ](faq.md) सामान्य इंस्टॉलेशन, डॉकर, पेरिटी और सुरक्षा प्रश्नों के लिए।
+- [अक्सर पूछे जाने वाले प्रश्न](faq.md) सामान्य इंस्टॉलेशन, डॉकर, पेरिटी और सुरक्षा प्रश्नों के लिए।
 - [योगदानकर्ता गाइड](contributor-guide.md) विकास, परीक्षण, वास्तुकला, और रिलीज़ विवरण के लिए।
 
 ## अतिरिक्त व्यावहारिक रास्ते

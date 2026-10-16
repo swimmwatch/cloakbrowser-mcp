@@ -47,7 +47,6 @@ export const consoleFallbackInitScript = `(() => {
     };
   }
 })();`;
-
 /**
  * Generates the preload script that bridges captured page console messages into Playwright MCP tools.
  */

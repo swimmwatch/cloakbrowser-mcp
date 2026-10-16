@@ -4,7 +4,7 @@ render_macros: false
 
 # Packet 05 — Initial Session Integration And Discovery
 
-Status: Pending completed Packets 01-04 evidence and an explicit Packet 05 invocation.
+Status: Complete locally; retained execution evidence is recorded in todo.md and handoff.md.
 
 ## Outcome
 

@@ -78,7 +78,7 @@ Le pont crée un fichier de configuration JSON temporaire contenant les options 
 
 Le transport par défaut est stdio. Le protocole HTTP streamable est activé explicitement avec `--transport streamable-http` ou `CLOAK_PLAYWRIGHT_MCP_TRANSPORT=streamable-http`.
 
-Pour stdio, chaque serveur externe gère un processus enfant MCP Playwright en amont et conserve le comportement par défaut du profil du MCP Playwright en amont. Pour Streamable HTTP, chaque session MCP dispose de son propre serveur externe, de son propre processus enfant en amont, d’une configuration générée et d’un état de transport en mémoire. Les sessions HTTP lancent le MCP Playwright en amont avec des profils de navigateur isolés, de sorte que les utilisateurs simultanés ne partagent pas le même profil Chromium persistant et ne se le disputent pas.
+Avec stdio, un serveur externe gère un processus enfant Playwright MCP upstream et conserve son comportement de profil par défaut. Avec Streamable HTTP, chaque session MCP possède son propre serveur externe, processus enfant upstream, configuration générée et état de transport en mémoire. Les sessions HTTP utilisent des profils isolés par défaut. Les profils persistants explicites sont verrouillés ; les sessions simultanées doivent utiliser des répertoires de profil différents.
 
 Le backend de session stocke uniquement des métadonnées. Le backend intégré est `memory` ; les futurs adaptateurs Redis, Postgres ou SQLite pourront coordonner les métadonnées et les verrous, mais ils ne pourront pas restaurer un processus de navigateur en cours d'exécution en amont après la fermeture du processus serveur qui le gère. La mise à l'échelle horizontale doit utiliser des sessions persistantes indexées par `mcp-session-id`.
 

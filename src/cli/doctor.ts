@@ -5,16 +5,13 @@ import process from 'node:process';
 import { getCurrentCloakBinaryInfo } from '#src/bridge/config';
 import { resolvePlaywrightCoreBundlePath, resolvePlaywrightMcpCliPath } from '#src/bridge/paths';
 import { PLAYWRIGHT_MCP_PACKAGE, PLAYWRIGHT_MCP_VERSION, PROJECT_METADATA } from '#src/project/metadata';
-
 export type DoctorStatus = 'ok' | 'warning' | 'error';
-
 export interface DoctorCheck {
   name: string;
   status: DoctorStatus;
   message: string;
   details?: Record<string, unknown>;
 }
-
 export interface DoctorReport {
   status: DoctorStatus;
   project: {
@@ -41,18 +38,15 @@ export interface DoctorReport {
   cloakbrowser: ReturnType<typeof getCurrentCloakBinaryInfo> | null;
   checks: DoctorCheck[];
 }
-
 export interface DoctorPackageResolution {
   version: string | null;
   packagePath: string | null;
 }
-
 interface PackageMetadata {
   engines?: {
     node?: string;
   };
 }
-
 interface PlaywrightCliInspection {
   cliPath: string | null;
   exists: boolean;
@@ -61,21 +55,17 @@ interface PlaywrightCliInspection {
   playwrightCore: DoctorPackageResolution;
   check: DoctorCheck;
 }
-
 interface PlaywrightRuntimeInspection {
   bundlePath: string | null;
   check: DoctorCheck;
 }
-
 interface CloakbrowserInspection {
   info: ReturnType<typeof getCurrentCloakBinaryInfo> | null;
   check: DoctorCheck;
 }
-
-const packageMetadata = JSON.parse(
-  readFileSync(new URL('../../package.json', import.meta.url), 'utf8'),
-) as PackageMetadata;
-
+const uRL = new URL('../../package.json', import.meta.url);
+const fileSyncResult = readFileSync(uRL, 'utf8');
+const packageMetadata = JSON.parse(fileSyncResult) as PackageMetadata;
 const doctorReportTemplate = `CloakBrowser MCP doctor
 Status: {{status}}
 Project: {{project}}
@@ -90,7 +80,6 @@ CloakBrowser: {{cloakbrowser}}
 Checks:
 {{checks}}
 `;
-
 type DoctorReportTemplateValues = Record<
   | 'status'
   | 'project'
@@ -104,7 +93,6 @@ type DoctorReportTemplateValues = Record<
   | 'checks',
   string
 >;
-
 /**
  * Collects environment, upstream CLI, and CloakBrowser binary diagnostics for the doctor command.
  */
@@ -120,7 +108,6 @@ export function createDoctorReport(): DoctorReport {
     playwrightRuntime.check,
     cloakbrowser.check,
   ];
-
   return {
     status: summarizeStatus(checks),
     project: {
@@ -149,7 +136,6 @@ export function createDoctorReport(): DoctorReport {
     checks,
   };
 }
-
 function createNodeCheck(nodeEngine: string, nodeSupported: boolean): DoctorCheck {
   return {
     name: 'node',
@@ -163,29 +149,37 @@ function createNodeCheck(nodeEngine: string, nodeSupported: boolean): DoctorChec
     },
   };
 }
-
 function inspectPlaywrightCli(): PlaywrightCliInspection {
   let cliPath: string | null = null;
-
   try {
     cliPath = resolvePlaywrightMcpCliPath();
     const cliExists = existsSync(cliPath);
     if (!cliExists) {
+      const currentCliPath2 = cliPath;
+      const propertyValue = false;
+      const emptyPackageResolutionResult2 = emptyPackageResolution();
+      const emptyPackageResolutionResult3 = emptyPackageResolution();
+      const emptyPackageResolutionResult4 = emptyPackageResolution();
+      const currentCliPath = cliPath;
+      const emptyPackageResolutionResult = emptyPackageResolution();
+      const playwrightCliCheckResult = createPlaywrightCliCheck(
+        currentCliPath,
+        false,
+        emptyPackageResolutionResult,
+      );
       return {
-        cliPath,
-        exists: false,
-        mcp: emptyPackageResolution(),
-        playwright: emptyPackageResolution(),
-        playwrightCore: emptyPackageResolution(),
-        check: createPlaywrightCliCheck(cliPath, false, emptyPackageResolution()),
+        cliPath: currentCliPath2,
+        exists: propertyValue,
+        mcp: emptyPackageResolutionResult2,
+        playwright: emptyPackageResolutionResult3,
+        playwrightCore: emptyPackageResolutionResult4,
+        check: playwrightCliCheckResult,
       };
     }
-
     const canonicalCliPath = realpathSync.native(cliPath);
     const mcp = findOwningPackage(canonicalCliPath, PLAYWRIGHT_MCP_PACKAGE);
     const playwright = resolvePackageFrom(canonicalCliPath, 'playwright');
     const playwrightCore = resolvePackageFrom(canonicalCliPath, 'playwright-core');
-
     return {
       cliPath,
       exists: true,
@@ -209,7 +203,6 @@ function inspectPlaywrightCli(): PlaywrightCliInspection {
     };
   }
 }
-
 function createPlaywrightCliCheck(
   cliPath: string,
   cliExists: boolean,
@@ -233,10 +226,8 @@ function createPlaywrightCliCheck(
     },
   };
 }
-
 function inspectPlaywrightRuntime(cli: PlaywrightCliInspection): PlaywrightRuntimeInspection {
   let bundlePath: string | null = null;
-
   try {
     bundlePath = resolvePlaywrightCoreBundlePath();
     const resolvedBundlePath = resolveExistingModulePath(bundlePath);
@@ -246,8 +237,8 @@ function inspectPlaywrightRuntime(cli: PlaywrightCliInspection): PlaywrightRunti
         check: createMissingBundleCheck(bundlePath),
       };
     }
-
-    const bundlePackage = findOwningPackage(realpathSync.native(resolvedBundlePath), 'playwright-core');
+    const nativeResult = realpathSync.native(resolvedBundlePath);
+    const bundlePackage = findOwningPackage(nativeResult, 'playwright-core');
     return {
       bundlePath,
       check: createPlaywrightRuntimeCheck(cli, bundlePath, bundlePackage),
@@ -263,7 +254,6 @@ function inspectPlaywrightRuntime(cli: PlaywrightCliInspection): PlaywrightRunti
     };
   }
 }
-
 function createMissingBundleCheck(bundlePath: string): DoctorCheck {
   return {
     name: 'playwright-runtime',
@@ -276,7 +266,6 @@ function createMissingBundleCheck(bundlePath: string): DoctorCheck {
     },
   };
 }
-
 function createPlaywrightRuntimeCheck(
   cli: PlaywrightCliInspection,
   bundlePath: string,
@@ -288,7 +277,6 @@ function createPlaywrightRuntimeCheck(
     coreBundlePath: bundlePath,
     coreBundlePackage: bundlePackage,
   };
-
   if (!cli.exists) {
     return {
       name: 'playwright-runtime',
@@ -297,7 +285,6 @@ function createPlaywrightRuntimeCheck(
       details,
     };
   }
-
   if (
     cli.playwrightCore.version !== null &&
     bundlePackage.version !== null &&
@@ -310,7 +297,6 @@ function createPlaywrightRuntimeCheck(
       details,
     };
   }
-
   if (
     cli.playwright.version === null ||
     cli.playwrightCore.version === null ||
@@ -323,7 +309,6 @@ function createPlaywrightRuntimeCheck(
       details,
     };
   }
-
   return {
     name: 'playwright-runtime',
     status: 'ok',
@@ -331,7 +316,6 @@ function createPlaywrightRuntimeCheck(
     details,
   };
 }
-
 function inspectCloakbrowser(): CloakbrowserInspection {
   try {
     const info = getCurrentCloakBinaryInfo();
@@ -363,9 +347,8 @@ function inspectCloakbrowser(): CloakbrowserInspection {
     };
   }
 }
-
 export function renderDoctorReport(report: DoctorReport): string {
-  return formatDoctorReportTemplate({
+  const formatDoctorReportTemplateOptions: DoctorReportTemplateValues = {
     status: report.status,
     project: `${report.project.packageName} ${report.project.version} (${report.project.mcpName})`,
     node: `${report.node.version} (requires ${report.project.nodeEngine})`,
@@ -376,41 +359,41 @@ export function renderDoctorReport(report: DoctorReport): string {
     coreBundle: report.upstream.playwrightCore.bundlePath ?? 'unresolved',
     cloakbrowser: formatCloakbrowserSummary(report),
     checks: report.checks.map((check) => `- [${check.status}] ${check.name}: ${check.message}`).join('\n'),
-  });
+  };
+  return formatDoctorReportTemplate(formatDoctorReportTemplateOptions);
 }
-
 function emptyPackageResolution(): DoctorPackageResolution {
   return { version: null, packagePath: null };
 }
-
 function resolvePackageFrom(fromPath: string, packageName: string): DoctorPackageResolution {
   try {
-    const packageJsonPath = createRequire(path.resolve(fromPath)).resolve(`${packageName}/package.json`);
+    const resolvedValue = path.resolve(fromPath);
+    const receiver = createRequire(resolvedValue);
+    const message2 = `${packageName}/package.json`;
+    const packageJsonPath = receiver.resolve(message2);
     return readPackageResolution(packageJsonPath, packageName);
   } catch {
     return emptyPackageResolution();
   }
 }
-
 function findOwningPackage(fromPath: string, packageName: string): DoctorPackageResolution {
-  let currentDirectory = path.dirname(path.resolve(fromPath));
-
+  const resolvedValue2 = path.resolve(fromPath);
+  let currentDirectory = path.dirname(resolvedValue2);
   while (true) {
     const packageJsonPath = path.join(currentDirectory, 'package.json');
     if (existsSync(packageJsonPath)) {
       const resolution = readPackageResolution(packageJsonPath, packageName);
       if (resolution.version !== null) return resolution;
     }
-
     const parentDirectory = path.dirname(currentDirectory);
     if (parentDirectory === currentDirectory) return emptyPackageResolution();
     currentDirectory = parentDirectory;
   }
 }
-
 function readPackageResolution(packageJsonPath: string, packageName: string): DoctorPackageResolution {
   try {
-    const metadata = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as {
+    const fileSyncResult2 = readFileSync(packageJsonPath, 'utf8');
+    const metadata = JSON.parse(fileSyncResult2) as {
       name?: unknown;
       version?: unknown;
     };
@@ -425,55 +408,54 @@ function readPackageResolution(packageJsonPath: string, packageName: string): Do
     return emptyPackageResolution();
   }
 }
-
 function resolveExistingModulePath(modulePath: string): string | null {
   if (existsSync(modulePath)) return modulePath;
-  if (existsSync(`${modulePath}.js`)) return `${modulePath}.js`;
+  const message3 = `${modulePath}.js`;
+  if (existsSync(message3)) return `${modulePath}.js`;
   return null;
 }
-
 function formatPackageResolution(resolution: DoctorPackageResolution): string {
   if (!resolution.version && !resolution.packagePath) return 'unresolved';
   return `${resolution.version ?? 'unknown'} (${resolution.packagePath ?? 'path unavailable'})`;
 }
-
 function formatCloakbrowserSummary(report: DoctorReport): string {
   if (!report.cloakbrowser) return 'unavailable';
   const installed = report.cloakbrowser.installed ? 'installed' : 'not installed';
   return `${report.cloakbrowser.version} (${report.cloakbrowser.platform}, ${installed})`;
 }
-
 function formatDoctorReportTemplate(values: DoctorReportTemplateValues): string {
   let output = doctorReportTemplate;
   for (const [key, value] of Object.entries(values)) {
-    output = output.replaceAll(`{{${key}}}`, value);
+    const message4 = `{{${key}}}`;
+    output = output.replaceAll(message4, value);
   }
   return output;
 }
-
 function summarizeStatus(checks: readonly DoctorCheck[]): DoctorStatus {
   if (checks.some((check) => check.status === 'error')) return 'error';
   if (checks.some((check) => check.status === 'warning')) return 'warning';
   return 'ok';
 }
-
 function isNodeVersionSupported(version: string, range: string): boolean {
   const minimum = parseMinimumNodeVersion(range);
   if (!minimum) return true;
-  return compareVersions(parseVersion(version), minimum) >= 0;
+  const parseVersionResult = parseVersion(version);
+  return compareVersions(parseVersionResult, minimum) >= 0;
 }
-
 function parseMinimumNodeVersion(range: string): [number, number, number] | undefined {
   const match = /^>=\s*(\d+)(?:\.(\d+))?(?:\.(\d+))?$/.exec(range);
   if (!match) return undefined;
-  return [Number(match[1]), Number(match[2] ?? 0), Number(match[3] ?? 0)];
+  const numberResult = Number(match[1]);
+  const computedValue = match[2] ?? 0;
+  const numberResult2 = Number(computedValue);
+  const computedValue2 = match[3] ?? 0;
+  const numberResult3 = Number(computedValue2);
+  return [numberResult, numberResult2, numberResult3];
 }
-
 function parseVersion(version: string): [number, number, number] {
   const [major = '0', minor = '0', patch = '0'] = version.replace(/^v/, '').split('.');
   return [Number(major), Number(minor), Number(patch)];
 }
-
 function compareVersions(actual: [number, number, number], expected: [number, number, number]): number {
   for (const index of [0, 1, 2] as const) {
     const difference = actual[index] - expected[index];

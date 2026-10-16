@@ -12,60 +12,51 @@ import {
   resolveSchemaSourceUrl,
   toIsoDate,
 } from '#scripts/lib/mcp-schema-monitor';
-
-const schemaSourceUrl = await resolveSchemaSourceUrl({
+const resolveSchemaSourceUrlOptions = {
   catalogUrl: process.env.MCP_SCHEMA_CATALOG_URL,
   explicitUrl: process.env.MCP_SCHEMA_SOURCE_URL,
-});
+};
+const schemaSourceUrl = await resolveSchemaSourceUrl(resolveSchemaSourceUrlOptions);
 const schemaDir = process.env.MCP_SCHEMA_DIR ?? 'schemas/mcp';
 const checkedAt = process.env.MCP_SCHEMA_CHECKED_AT ?? toIsoDate();
 const writeSnapshots = readBooleanEnv('MCP_SCHEMA_WRITE_SNAPSHOTS', true);
 const latestSchemaPath = join(schemaDir, 'latest.json');
-
 const downloadedSchema = await downloadSchema(schemaSourceUrl);
 const normalizedDownloaded = normalizeJson(downloadedSchema);
 const comparableDownloaded = normalizeSchemaForComparison(downloadedSchema);
-
 const previous = await readPreviousSchema(latestSchemaPath);
-
 if (previous?.comparable === comparableDownloaded) {
-  await appendGithubOutput({
+  const appendGithubOutputOptions = {
     changed: 'false',
     schema_source_url: schemaSourceUrl,
     checked_at: checkedAt,
     latest_schema_path: latestSchemaPath,
     diff_summary: 'No changes detected in normalized schema content.',
     snapshots_written: 'false',
-  });
-
-  process.stdout.write(
-    `${JSON.stringify(
-      {
-        changed: false,
-        schemaSourceUrl,
-        checkedAt,
-        latestSchemaPath,
-        snapshotsWritten: false,
-      },
-      null,
-      2,
-    )}\n`,
-  );
+  };
+  await appendGithubOutput(appendGithubOutputOptions);
+  const stringifyOptions = {
+    changed: false,
+    schemaSourceUrl,
+    checkedAt,
+    latestSchemaPath,
+    snapshotsWritten: false,
+  };
+  const templateValue = JSON.stringify(stringifyOptions, null, 2);
+  const message = `${templateValue}\n`;
+  process.stdout.write(message);
   process.exit(0);
 }
-
 let snapshotPath = '';
-
 if (writeSnapshots) {
-  await mkdir(schemaDir, { recursive: true });
+  const mkdirOptions = { recursive: true };
+  await mkdir(schemaDir, mkdirOptions);
   const snapshotFilename = await allocateSnapshotFilename(schemaDir, checkedAt, comparableDownloaded);
   snapshotPath = join(schemaDir, snapshotFilename);
   await writeFile(snapshotPath, normalizedDownloaded);
   await writeFile(latestSchemaPath, normalizedDownloaded);
 }
-
 const diffSummary = describeTopLevelDiff(previous?.parsed, downloadedSchema);
-
 const result = {
   changed: true,
   schemaSourceUrl,
@@ -76,8 +67,7 @@ const result = {
   diffSummary,
   snapshotsWritten: writeSnapshots,
 };
-
-await appendGithubOutput({
+const appendGithubOutputOptions2 = {
   changed: String(result.changed),
   schema_source_url: result.schemaSourceUrl,
   checked_at: result.checkedAt,
@@ -86,27 +76,27 @@ await appendGithubOutput({
   previous_schema_path: result.previousSchemaPath,
   diff_summary: result.diffSummary,
   snapshots_written: String(result.snapshotsWritten),
-});
-
-process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-
+};
+await appendGithubOutput(appendGithubOutputOptions2);
+const message2 = `${JSON.stringify(result, null, 2)}\n`;
+process.stdout.write(message2);
 async function downloadSchema(url) {
-  const response = await fetch(url, {
+  const fetchOptions = {
     headers: {
       Accept: 'application/schema+json, application/json, text/plain;q=0.8',
       'User-Agent': 'cloakbrowser-mcp-schema-monitor',
     },
-  });
-
+  };
+  const response = await fetch(url, fetchOptions);
   if (!response.ok) {
-    throw new Error(`Failed to download MCP schema from ${url}: ${response.status} ${response.statusText}`);
+    const message3 = `Failed to download MCP schema from ${url}: ${response.status} ${response.statusText}`;
+    throw new Error(message3);
   }
-
   const text = await response.text();
   const contentType = response.headers.get('content-type');
-  return parseSchemaPayload({ text, contentType, sourceUrl: url });
+  const parseSchemaPayloadOptions = { text, contentType, sourceUrl: url };
+  return parseSchemaPayload(parseSchemaPayloadOptions);
 }
-
 async function readPreviousSchema(filePath) {
   try {
     const text = await readFile(filePath, 'utf8');
@@ -120,30 +110,33 @@ async function readPreviousSchema(filePath) {
     if (isMissingFileError(error)) {
       return undefined;
     }
-
     throw error;
   }
 }
-
 async function allocateSnapshotFilename(directoryPath, date, comparableSchema) {
-  const filenames = new Set(await listJsonFiles(directoryPath));
-
+  const listJsonFilesResult = await listJsonFiles(directoryPath);
+  const filenames = new Set(listJsonFilesResult);
   const candidate = `mcp-schema-${date}.json`;
   if (filenames.has(candidate)) {
-    const existingContent = await readFile(join(directoryPath, candidate), 'utf8');
-    if (normalizeSchemaForComparison(JSON.parse(existingContent)) === comparableSchema) {
+    const joinResult = join(directoryPath, candidate);
+    const existingContent = await readFile(joinResult, 'utf8');
+    if (
+      (() => {
+        const parsedValue = JSON.parse(existingContent);
+        return normalizeSchemaForComparison(parsedValue) === comparableSchema;
+      })()
+    ) {
       return candidate;
     }
   }
-
-  return pickSnapshotFilename({ date, existingFilenames: filenames });
+  const pickSnapshotFilenameOptions = { date, existingFilenames: filenames };
+  return pickSnapshotFilename(pickSnapshotFilenameOptions);
 }
-
 async function listJsonFiles(directoryPath) {
-  const entries = await readdir(directoryPath, { withFileTypes: true });
+  const readdirOptions = { withFileTypes: true };
+  const entries = await readdir(directoryPath, readdirOptions);
   return entries.filter((entry) => entry.isFile() && entry.name.endsWith('.json')).map((entry) => entry.name);
 }
-
 function isMissingFileError(error) {
   return (
     typeof error === 'object' &&
@@ -153,20 +146,17 @@ function isMissingFileError(error) {
     error.code === 'ENOENT'
   );
 }
-
 function readBooleanEnv(name, defaultValue) {
   const value = process.env[name]?.trim().toLowerCase();
   if (value === undefined || value === '') {
     return defaultValue;
   }
-
   if (value === 'true') {
     return true;
   }
-
   if (value === 'false') {
     return false;
   }
-
-  throw new Error(`${name} must be true or false.`);
+  const message4 = `${name} must be true or false.`;
+  throw new Error(message4);
 }

@@ -4,7 +4,7 @@ render_macros: false
 
 # Packet 02 — Process-Local Allocator And Typed HTTP Proxy
 
-Status: Pending completed Packet 01 evidence and an explicit Packet 02 invocation.
+Status: Complete locally; retained execution evidence is recorded in todo.md and handoff.md.
 
 ## Outcome
 

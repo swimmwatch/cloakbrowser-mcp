@@ -9,11 +9,13 @@ tags:
 
 प्रकाशित npm पैकेज या Docker इमेज का उपयोग करें। स्रोत से इंस्टॉल करना केवल विकास के लिए आवश्यक है।
 
+चरण-दर-चरण निर्देश: [Claude Desktop से कनेक्ट करें](recipes/connect-claude-desktop.md), [Codex CLI से कनेक्ट करें](recipes/connect-codex-cli.md), [रिवर्स प्रॉक्सी के पीछे Docker Streamable HTTP](recipes/docker-streamable-http-reverse-proxy.md).
+
 जब आपका MCP क्लाइंट पहले से ही आपकी मशीन पर चल रहा हो और Node.js उपलब्ध हो, तो npm चुनें। जब आप एक पुनरावृत्ति योग्य रनटाइम चाहते हों, जिसमें अपस्ट्रीम Playwright MCP बेस इमेज और CloakBrowser कैश कंटेनर के अंदर तैयार हो, तो Docker चुनें।
 
-सामान्य सेटअप प्रश्नों का त्वरित अवलोकन के लिए, [FAQ](faq.md) देखें।
+सामान्य सेटअप प्रश्नों का त्वरित अवलोकन के लिए, [अक्सर पूछे जाने वाले प्रश्न](faq.md) देखें।
 
-एनपीएम
+## npm
 
 ```bash
 npx -y cloakbrowser-mcp@latest --help
@@ -30,11 +32,12 @@ npx -y cloakbrowser-mcp@latest --transport streamable-http --http-protocol https
 npx -y {{ project.npm_pin }}
 ```
 
-इस npm पैकेज के लिए 22.x श्रृंखला में Node.js 22.13+ या Node.js 24+ आवश्यक है। CloakBrowser पहली बार उपयोग करने पर अपना Chromium बाइनरी डाउनलोड करता है, जब तक कि वह पहले से कैश न किया गया हो।
+npm पैकेज के लिए Node.js `{{ project.node_engine_range }}` आवश्यक है। CloakBrowser पहली बार उपयोग करने पर अपना Chromium बाइनरी डाउनलोड करता है, जब तक कि वह पहले से कैश न किया गया हो।
 
 क्लाइंट को कनेक्ट करने से पहले स्थानीय Node.js रनटाइम, पैकेज मेटाडेटा, प्रभावी upstream Playwright MCP CLI, `@playwright/mcp`, `playwright` और `playwright-core` के resolve किए गए version और package path, प्रभावी core bundle path तथा CloakBrowser binary metadata सत्यापित करने के लिए `doctor` का उपयोग करें। यह कमांड ब्रिज शुरू नहीं करता है और न ही ब्राउज़र डाउनलोड करता है।
 
-The default transport is stdio. Use `--transport streamable-http` when your MCP client connects to an HTTP endpoint instead of spawning a stdio process. The HTTP endpoint defaults to `http://127.0.0.1:3000/mcp`, with fixed `GET /healthz` and `GET /readyz` probes on the same host and port. Use `--http-protocol https` with `--https-cert` and `--https-key` or `--https-pfx` when the bridge should terminate TLS directly.
+डिफ़ॉल्ट ट्रांसपोर्ट stdio है। जब MCP क्लाइंट stdio प्रक्रिया शुरू करने के बजाय HTTP एंडपॉइंट से जुड़ता है, तो `--transport streamable-http` उपयोग करें। डिफ़ॉल्ट HTTP एंडपॉइंट `http://127.0.0.1:3000/mcp` है; उसी होस्ट और पोर्ट पर `GET /healthz` तथा `GET /readyz` जांच उपलब्ध हैं। ब्रिज में सीधे TLS समाप्त करने के लिए `--http-protocol https` के साथ `--https-cert` और `--https-key` या `--https-pfx` उपयोग करें।
+
 पूर्ण फ़्लैग सूची और संबंधित पर्यावरण चरों के लिए उत्पन्न [CLI संदर्भ](generated/cli.md) देखें।
 
 ## डॉकर
@@ -85,7 +88,7 @@ docker run --rm -i \
 
 पुनरुत्पाद्य रनटाइम पर्यावरण के लिए Docker का उपयोग करें। stdio को जुड़े रहने देने के लिए `-i` बनाए रखें; इमेज में पहले से Tini है, जो ब्राउज़र child processes को सही ढंग से reaps करता है। Streamable HTTP क्लाइंट के लिए सर्वर को अलग से शुरू करें और क्लाइंट URL को `http://127.0.0.1:3000/mcp` या `https://127.0.0.1:3000/mcp` के रूप में कॉन्फ़िगर करें। यदि `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` या `--http-auth-token` सेट है, तो उसी Bearer token को `/mcp`, `/healthz` और `/readyz` पर भेजें।
 
-## एमसीपी क्लाइंट कॉन्फ़िग
+## एमसीपी क्लाइंट कॉन्फ़िग { #mcp-client-config }
 
 अधिकांश स्थानीय MCP क्लाइंट्स stdio और npm के साथ सबसे अच्छा काम करते हैं:
 
@@ -275,7 +278,7 @@ npx -y cloakbrowser-mcp@latest
     }
     ```
 
-सत्यापित करें
+## सत्यापित करें
 
 MCP क्लाइंट से टूल्स की सूची मांगें। आपको अपस्ट्रीम Playwright MCP ब्राउज़र टूल्स के साथ-साथ निम्नलिखित भी दिखेंगे:
 

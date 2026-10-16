@@ -40,7 +40,6 @@ import {
   websocketSchemeFor,
 } from '#src/cdp/urls';
 import { MCP_SERVER_INSTRUCTIONS, PROJECT_METADATA } from '#src/project/metadata';
-
 export interface StartBridgeOptions {
   beforeConnect?: (runtime: BridgeRuntime) => Promise<void>;
   cdp?: CdpEndpointConfig;
@@ -67,7 +66,6 @@ export interface StartBridgeOptions {
   >;
   transport?: Transport;
 }
-
 export interface BridgeServerOptions extends StartBridgeOptions {
   cdpInfo?: () => BridgeCdpInfo;
   managedCdpSession?: ManagedCdpSession;
@@ -75,14 +73,12 @@ export interface BridgeServerOptions extends StartBridgeOptions {
   subscribeManagedToolListChanges?: (handler: () => Promise<void>) => () => void;
   upstreamClient?: Client;
 }
-
 export interface BridgeServer {
   server: Server;
   runtime: BridgeRuntime;
   start(transport?: Transport): Promise<void>;
   dispose(): Promise<void>;
 }
-
 export async function startBridge(options: StartBridgeOptions = {}): Promise<BridgeServer> {
   if (options.cdp?.processEnabled) {
     const bridge = await startManagedCdpBridge(options, options.cdp, options.cdpAllocator);
@@ -91,11 +87,11 @@ export async function startBridge(options: StartBridgeOptions = {}): Promise<Bri
   }
   const runtime = await prepareBridgeRuntime(options.runtimeOptions);
   await options.beforeConnect?.(runtime);
-  const bridge = await createBridgeServer({ ...options, runtime });
+  const createBridgeServerOptions = { ...options, runtime } as const;
+  const bridge = await createBridgeServer(createBridgeServerOptions);
   await bridge.start(options.transport);
   return bridge;
 }
-
 /**
  * Creates the outer MCP server that forwards upstream Playwright tools and exposes local introspection tools.
  */
@@ -105,12 +101,12 @@ export async function createBridgeServer(options: BridgeServerOptions = {}): Pro
   const localTools = createLocalTools();
   const upstreamToolCache = new Map<string, Promise<ListToolsResult>>();
   let upstreamToolCount = 0;
-
-  const server = new Server(createServerInfo(options.serverInfo), {
+  const serverInfoResult = createServerInfo(options.serverInfo);
+  const serverOptions = {
     capabilities: { tools: { listChanged: true } },
     instructions: MCP_SERVER_INSTRUCTIONS,
-  });
-
+  } as const;
+  const server = new Server(serverInfoResult, serverOptions);
   const handleUpstreamToolListChanged = async (): Promise<void> => {
     upstreamToolCache.clear();
     upstreamToolCount = 0;
@@ -126,7 +122,6 @@ export async function createBridgeServer(options: BridgeServerOptions = {}): Pro
   if (options.managedCdpSession === undefined) {
     upstreamClient.setNotificationHandler(ToolListChangedNotificationSchema, handleUpstreamToolListChanged);
   }
-
   server.setRequestHandler(ListToolsRequestSchema, async (request) => {
     const managedGenerationBeforeList = options.managedCdpSession?.snapshot();
     const upstream = await listUpstreamTools(upstreamToolCache, request.params, async () =>
@@ -136,11 +131,8 @@ export async function createBridgeServer(options: BridgeServerOptions = {}): Pro
             async (owner) => await owner.listTools(request.params),
           )) as ListToolsResult),
     );
-    const visibleUpstream = filterManagedDynamicTools(
-      upstream,
-      managedGenerationBeforeList,
-      options.managedCdpSession?.snapshot(),
-    );
+    const snapshotResult = options.managedCdpSession?.snapshot();
+    const visibleUpstream = filterManagedDynamicTools(upstream, managedGenerationBeforeList, snapshotResult);
     upstreamToolCount = Math.max(upstreamToolCount, visibleUpstream.tools.length);
     if (request.params?.cursor) return visibleUpstream;
     return {
@@ -148,19 +140,24 @@ export async function createBridgeServer(options: BridgeServerOptions = {}): Pro
       tools: [...visibleUpstream.tools, ...localTools],
     };
   });
-
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     if (isLocalTool(request.params.name)) {
       if (request.params.name === LOCAL_TOOL_BRIDGE_INFO && options.managedCdpSession) {
         await options.managedCdpSession.probeGeneration();
       }
-      return callLocalTool(request.params.name, runtime, upstreamToolCount, options.cdpInfo?.());
+      const argumentValue = request.params.name;
+      const currentUpstreamToolCount = upstreamToolCount;
+      const cdpInfoResult = options.cdpInfo?.();
+      return callLocalTool(argumentValue, runtime, currentUpstreamToolCount, cdpInfoResult);
     }
     const managed = options.managedCdpSession;
     let result: CallToolResult;
     if (managed !== undefined) {
-      const callCurrent = async (owner: ManagedCdpUpstreamOwner) =>
-        (await owner.callTool(request.params.name, request.params.arguments ?? {})) as CallToolResult;
+      const callCurrent = async (owner: ManagedCdpUpstreamOwner) => {
+        const argumentValue2 = request.params.name;
+        const computedValue = request.params.arguments ?? {};
+        return (await owner.callTool(argumentValue2, computedValue)) as CallToolResult;
+      };
       try {
         result = (
           isBrowserTool(request.params.name)
@@ -181,12 +178,12 @@ export async function createBridgeServer(options: BridgeServerOptions = {}): Pro
     }
     return result;
   });
-
   return {
     server,
     runtime,
     async start(transport) {
-      await server.connect(transport ?? new StdioServerTransport());
+      const computedValue2 = transport ?? new StdioServerTransport();
+      await server.connect(computedValue2);
     },
     async dispose() {
       unsubscribeManagedToolListChanges?.();
@@ -194,7 +191,8 @@ export async function createBridgeServer(options: BridgeServerOptions = {}): Pro
         upstreamClient.removeNotificationHandler('notifications/tools/list_changed');
       }
       if (options.managedCdpSession) {
-        const results = await Promise.allSettled([options.managedCdpSession.dispose(), server.close()]);
+        const values: [Promise<void>, Promise<void>] = [options.managedCdpSession.dispose(), server.close()];
+        const results = await Promise.allSettled(values);
         const errors = results.flatMap((result) =>
           result.status === 'rejected' ? [new Error('Managed bridge resource cleanup failed')] : [],
         );
@@ -202,13 +200,13 @@ export async function createBridgeServer(options: BridgeServerOptions = {}): Pro
           throw new AggregateError(errors, 'managed bridge cleanup was incomplete');
         }
       } else {
-        await Promise.allSettled([upstreamClient.close(), server.close()]);
+        const values2: [Promise<void>, Promise<void>] = [upstreamClient.close(), server.close()];
+        await Promise.allSettled(values2);
         runtime.dispose();
       }
     },
   };
 }
-
 function safelyReportCdpRecoveryError(callback: StartBridgeOptions['onCdpRecoveryError']): void {
   try {
     callback?.();
@@ -216,7 +214,6 @@ function safelyReportCdpRecoveryError(callback: StartBridgeOptions['onCdpRecover
     // Diagnostic callbacks never alter upstream MCP results.
   }
 }
-
 function safelyReportCdpCleanupError(callback: StartBridgeOptions['onCdpCleanupError']): void {
   try {
     callback?.();
@@ -224,7 +221,6 @@ function safelyReportCdpCleanupError(callback: StartBridgeOptions['onCdpCleanupE
     // Diagnostic callbacks never alter cleanup outcomes.
   }
 }
-
 /** Creates an unconnected bridge server whose browser and CDP proxy share one session owner. */
 export async function startManagedCdpBridge(
   options: StartBridgeOptions,
@@ -232,17 +228,17 @@ export async function startManagedCdpBridge(
   allocator = createCdpAllocator(cdp),
 ): Promise<BridgeServer> {
   let runtime: BridgeRuntime | undefined;
-  const sessionOwner: { current: ManagedCdpSession | undefined } = { current: undefined };
+  const sessionOwner: {
+    current: ManagedCdpSession | undefined;
+  } = { current: undefined };
   let upstreamClient: Client | undefined;
   let toolListChangedHandler: (() => Promise<void>) | undefined;
-
   const notifyToolListChanged = (): void => {
     void toolListChangedHandler?.().catch(() => undefined);
   };
-
-  const session = await startManagedCdpSession({
-    createProxy: async () =>
-      await startCdpHttpProxy({
+  const startManagedCdpSessionOptions: import('#src/cdp/types').ManagedCdpSessionDependencies = {
+    createProxy: async () => {
+      const startCdpHttpProxyOptions: import('#src/cdp/httpProxy').StartCdpHttpProxyOptions = {
         advertisedHost: cdp.advertisedHost,
         advertisedScheme: cdp.advertisedScheme,
         allocator,
@@ -252,13 +248,16 @@ export async function startManagedCdpBridge(
         onActivity: () => options.onCdpActivity?.(),
         onBrowserLoss: () => sessionOwner.current?.invalidateGeneration(),
         onSecurityRejections: options.onCdpSecurityRejections,
-      }),
+      };
+      return await startCdpHttpProxy(startCdpHttpProxyOptions);
+    },
     reserveInternalPort: async () => await reserveInternalCdpPort(),
     prepareRuntime: async ({ internalPort }) => {
-      const prepared = await prepareBridgeRuntime({
+      const prepareBridgeRuntimeOptions = {
         ...options.runtimeOptions,
         managedCdpInternalPort: internalPort,
-      });
+      } as const;
+      const prepared = await prepareBridgeRuntime(prepareBridgeRuntimeOptions);
       try {
         await options.beforeConnect?.(prepared);
       } catch (error) {
@@ -290,16 +289,15 @@ export async function startManagedCdpBridge(
     onStateChange: notifyToolListChanged,
     verifyExternal: async ({ capability, headers, proxy, signal }) =>
       await verifyManagedCdpReadiness(cdp, capability, headers, proxy.port, signal),
-  });
+  };
+  const session = await startManagedCdpSession(startManagedCdpSessionOptions);
   sessionOwner.current = session;
-
   if (!runtime || !upstreamClient) {
     await session.dispose();
     throw new Error('Managed CDP bridge bootstrap did not retain runtime ownership');
   }
-
   try {
-    return await createBridgeServer({
+    const createBridgeServerOptions2: BridgeServerOptions | undefined = {
       ...options,
       cdpInfo: () => createBridgeCdpInfo(cdp, session),
       managedCdpSession: session,
@@ -311,18 +309,17 @@ export async function startManagedCdpBridge(
         };
       },
       upstreamClient,
-    });
+    };
+    return await createBridgeServer(createBridgeServerOptions2);
   } catch (error) {
     await session.dispose();
     throw error;
   }
 }
-
 function createCdpAllocator(cdp: CdpEndpointConfig): CdpPortAllocator {
   if (!cdp.portRange) throw new Error('Managed CDP port range is required');
   return new CdpPortAllocator(cdp.portRange);
 }
-
 function createBridgeCdpInfo(cdp: CdpEndpointConfig, session: ManagedCdpSession): BridgeCdpInfo {
   const snapshot = session.snapshot();
   const shared = {
@@ -346,7 +343,6 @@ function createBridgeCdpInfo(cdp: CdpEndpointConfig, session: ManagedCdpSession)
         state: 'unavailable',
       };
 }
-
 async function verifyManagedCdpReadiness(
   cdp: CdpEndpointConfig,
   capability: string,
@@ -356,36 +352,40 @@ async function verifyManagedCdpReadiness(
 ): Promise<string> {
   const directHost = cdp.bindHost === '0.0.0.0' ? '127.0.0.1' : cdp.bindHost === '::' ? '::1' : cdp.bindHost;
   const advertisedHost = cdp.advertisedHost ?? cdp.bindHost;
-  const payload = await requestManagedCdpDiscovery({
+  const requestManagedCdpDiscoveryOptions = {
     capability,
     connectHost: directHost,
     headers,
     hostHeader: formatCdpAuthority(advertisedHost, port),
     port,
     signal,
-  });
+  } as const;
+  const payload = await requestManagedCdpDiscovery(requestManagedCdpDiscoveryOptions);
   if (typeof payload.webSocketDebuggerUrl !== 'string') {
     throw new Error('Managed CDP external readiness returned no browser WebSocket URL');
   }
   const parsed = new URL(payload.webSocketDebuggerUrl);
-  const discoveryUrl = createCdpDiscoveryUrl({
+  const createCdpDiscoveryUrlOptions = {
     capability,
     host: advertisedHost,
     port,
     scheme: cdp.advertisedScheme,
-  });
+  } as const;
+  const discoveryUrl = createCdpDiscoveryUrl(createCdpDiscoveryUrlOptions);
   const expectedAuthority = new URL(discoveryUrl);
   if (
     parsed.protocol !== `${websocketSchemeFor(cdp.advertisedScheme)}:` ||
     parsed.hostname !== expectedAuthority.hostname ||
     effectiveUrlPort(parsed) !== port ||
-    !parsed.pathname.startsWith(`/cdp/${capability}/devtools/browser/`)
+    (() => {
+      const message = `/cdp/${capability}/devtools/browser/`;
+      return !parsed.pathname.startsWith(message);
+    })()
   ) {
     throw new Error('Managed CDP external readiness returned unusable discovery');
   }
   return discoveryUrl;
 }
-
 async function requestManagedCdpDiscovery(options: {
   capability: string;
   connectHost: string;
@@ -393,43 +393,44 @@ async function requestManagedCdpDiscovery(options: {
   hostHeader: string;
   port: number;
   signal: AbortSignal;
-}): Promise<{ webSocketDebuggerUrl?: unknown }> {
+}): Promise<{
+  webSocketDebuggerUrl?: unknown;
+}> {
   return await new Promise((resolve, reject) => {
-    const request = createHttpRequest(
-      {
-        host: options.connectHost,
-        port: options.port,
-        method: 'GET',
-        path: `/cdp/${options.capability}/json/version/`,
-        headers: { ...options.headers, Host: options.hostHeader },
-        signal: options.signal,
-      },
-      (response) => {
-        const chunks: Buffer[] = [];
-        response.on('data', (chunk: Buffer) => chunks.push(chunk));
-        response.once('error', reject);
-        response.once('end', () => {
-          if (response.statusCode !== 200) {
-            reject(new Error('Managed CDP external readiness failed'));
-            return;
-          }
-          try {
-            resolve(
-              JSON.parse(Buffer.concat(chunks).toString('utf8')) as {
-                webSocketDebuggerUrl?: unknown;
-              },
-            );
-          } catch {
-            reject(new Error('Managed CDP external readiness returned invalid JSON'));
-          }
-        });
-      },
-    );
+    const createHttpRequestOptions = {
+      host: options.connectHost,
+      port: options.port,
+      method: 'GET',
+      path: `/cdp/${options.capability}/json/version/`,
+      headers: { ...options.headers, Host: options.hostHeader },
+      signal: options.signal,
+    } as const;
+    const request = createHttpRequest(createHttpRequestOptions, (response) => {
+      const chunks: Buffer[] = [];
+      response.on('data', (chunk: Buffer) => chunks.push(chunk));
+      response.once('error', reject);
+      response.once('end', () => {
+        if (response.statusCode !== 200) {
+          const error2 = new Error('Managed CDP external readiness failed');
+          reject(error2);
+          return;
+        }
+        try {
+          const toStringResult = Buffer.concat(chunks).toString('utf8');
+          const parsedValue = JSON.parse(toStringResult) as {
+            webSocketDebuggerUrl?: unknown;
+          };
+          resolve(parsedValue);
+        } catch {
+          const error3 = new Error('Managed CDP external readiness returned invalid JSON');
+          reject(error3);
+        }
+      });
+    });
     request.once('error', reject);
     request.end();
   });
 }
-
 function listUpstreamTools(
   cache: Map<string, Promise<ListToolsResult>>,
   params: ListToolsRequest['params'],
@@ -438,7 +439,6 @@ function listUpstreamTools(
   const cacheKey = params?.cursor ?? '';
   const cached = cache.get(cacheKey);
   if (cached) return cached;
-
   const pending = fetchTools().then(
     (result) => result as ListToolsResult,
     (error: unknown) => {
@@ -449,28 +449,29 @@ function listUpstreamTools(
   cache.set(cacheKey, pending);
   return pending;
 }
-
 interface ManagedConnectedUpstream extends ManagedCdpUpstreamOwner {
   readonly client: Client;
   readonly transport: StdioClientTransport;
 }
-
 async function connectManagedUpstream(
   runtime: BridgeRuntime,
   signal: AbortSignal,
   onClose?: () => void,
   onToolListChanged?: (owner: ManagedCdpUpstreamOwner) => Promise<void>,
 ): Promise<ManagedConnectedUpstream> {
-  const transport = new StdioClientTransport({
-    command: process.execPath,
-    args: [resolvePlaywrightMcpCliPath(), '--config', runtime.configPath],
-    env: runtime.childEnv,
-    stderr: 'inherit',
-  });
-  const client = new Client({
+  const stdioClientTransportOptions: import('@modelcontextprotocol/sdk/client/stdio.js').StdioServerParameters =
+    {
+      command: process.execPath,
+      args: [resolvePlaywrightMcpCliPath(), '--config', runtime.configPath],
+      env: runtime.childEnv,
+      stderr: 'inherit',
+    };
+  const transport = new StdioClientTransport(stdioClientTransportOptions);
+  const clientOptions = {
     name: `${PROJECT_METADATA.mcpName}-upstream-client`,
     version: PROJECT_METADATA.version,
-  });
+  } as const;
+  const client = new Client(clientOptions);
   let closePromise: Promise<void> | undefined;
   const close = (): Promise<void> => {
     closePromise ??= closeManagedUpstream(client, transport);
@@ -479,10 +480,12 @@ async function connectManagedUpstream(
   const onAbort = (): void => {
     void close().catch(() => undefined);
   };
-  signal.addEventListener('abort', onAbort, { once: true });
+  const addEventListenerOptions = { once: true } as const;
+  signal.addEventListener('abort', onAbort, addEventListenerOptions);
   try {
     if (signal.aborted) throw new Error('Managed CDP upstream connection cancelled');
-    await client.connect(transport, { signal });
+    const connectOptions = { signal } as const;
+    await client.connect(transport, connectOptions);
     const clientOnClose = transport.onclose;
     transport.onclose = () => {
       clientOnClose?.();
@@ -496,17 +499,21 @@ async function connectManagedUpstream(
     try {
       await close();
     } catch (cleanupError) {
-      throw new AggregateError([error, cleanupError], 'Managed upstream connection cleanup failed', {
+      const values3: Iterable<unknown> = [error, cleanupError];
+      const aggregateErrorOptions = {
         cause: cleanupError,
-      });
+      } as const;
+      throw new AggregateError(values3, 'Managed upstream connection cleanup failed', aggregateErrorOptions);
     }
     throw error;
   } finally {
     signal.removeEventListener('abort', onAbort);
   }
   const owner: ManagedConnectedUpstream = {
-    callTool: async (name: string, arguments_: Record<string, unknown>) =>
-      await client.callTool({ name, arguments: arguments_ }),
+    callTool: async (name: string, arguments_: Record<string, unknown>) => {
+      const callToolOptions = { name, arguments: arguments_ } as const;
+      return await client.callTool(callToolOptions);
+    },
     client,
     dispose: close,
     listTools: async (params?: unknown) => await client.listTools(params as ListToolsRequest['params']),
@@ -521,11 +528,9 @@ async function connectManagedUpstream(
   });
   return owner;
 }
-
 function isBrowserTool(name: string): boolean {
   return name.startsWith('browser_') || name.startsWith('webmcp_');
 }
-
 function filterManagedDynamicTools(
   result: ListToolsResult,
   before: ReturnType<ManagedCdpSession['snapshot']> | undefined,
@@ -543,7 +548,6 @@ function filterManagedDynamicTools(
     tools: result.tools.filter((tool) => !tool.name.startsWith('webmcp_')),
   };
 }
-
 async function closeManagedUpstream(client: Client, transport: StdioClientTransport): Promise<void> {
   try {
     await client.close();
@@ -551,28 +555,31 @@ async function closeManagedUpstream(client: Client, transport: StdioClientTransp
     try {
       await transport.close();
     } catch (transportError) {
-      throw new AggregateError([clientError, transportError], 'Managed upstream transport cleanup failed', {
+      const values4: Iterable<unknown> = [clientError, transportError];
+      const aggregateErrorOptions2 = {
         cause: transportError,
-      });
+      } as const;
+      throw new AggregateError(values4, 'Managed upstream transport cleanup failed', aggregateErrorOptions2);
     }
   }
 }
-
 async function connectUpstream(runtime: BridgeRuntime): Promise<Client> {
-  const transport = new StdioClientTransport({
-    command: process.execPath,
-    args: [resolvePlaywrightMcpCliPath(), '--config', runtime.configPath],
-    env: runtime.childEnv,
-    stderr: 'inherit',
-  });
-  const client = new Client({
+  const stdioClientTransportOptions2: import('@modelcontextprotocol/sdk/client/stdio.js').StdioServerParameters =
+    {
+      command: process.execPath,
+      args: [resolvePlaywrightMcpCliPath(), '--config', runtime.configPath],
+      env: runtime.childEnv,
+      stderr: 'inherit',
+    };
+  const transport = new StdioClientTransport(stdioClientTransportOptions2);
+  const clientOptions2 = {
     name: `${PROJECT_METADATA.mcpName}-upstream-client`,
     version: PROJECT_METADATA.version,
-  });
+  } as const;
+  const client = new Client(clientOptions2);
   await client.connect(transport);
   return client;
 }
-
 function createServerInfo(serverInfo?: Partial<Implementation>): Implementation {
   return {
     name: PROJECT_METADATA.mcpName,

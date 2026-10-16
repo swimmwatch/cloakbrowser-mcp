@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <head>
+    <title>WebMCP echo</title>
+  </head>
+  <body>
+    <h1>WebMCP echo</h1>
+    <script>
+      const modelContext = document.modelContext || navigator.modelContext;
+      const registerToolOptions = {
+        name: 'echo',
+        description: 'Echoes text',
+        inputSchema: {
+          type: 'object',
+          properties: { value: { type: 'string' } },
+          required: ['value'],
+        },
+        async execute(input) {
+          return { content: [{ type: 'text', text: input.value }] };
+        },
+      };
+      modelContext.registerTool(registerToolOptions);
+    </script>
+  </body>
+</html>

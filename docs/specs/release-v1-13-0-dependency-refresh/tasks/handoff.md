@@ -58,7 +58,7 @@ Packet 02 verification:
 Current worktree exception: preserve the user's untracked `.trackerignore`
 without inspection, staging, deletion, or modification.
 
-Release confirmation: Prompt MCP confirmed `v1.13.0`, stable, and local
+Release confirmation: the user confirmed `v1.13.0`, stable, and local
 release preparation only. No authorization exists for commit, push, PR
 creation, GitHub cleanup, merge, tag, or publication.
 

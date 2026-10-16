@@ -1,64 +1,63 @@
 import { spawn, spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-
 export const dockerImageTag = process.env.CLOAKBROWSER_MCP_DOCKER_IMAGE ?? 'cloakbrowser-mcp:dev';
-
-const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
+const uRL = new URL('../..', import.meta.url);
+const repoRoot = fileURLToPath(uRL);
 const fakeUpstreamContainerDir = '/opt/cloakbrowser-mcp/tests/fixtures';
 const fakeUpstreamContainerPath = `${fakeUpstreamContainerDir}/fake-upstream-mcp.mjs`;
 const fakeUpstreamFixtureDir = path.join(repoRoot, 'tests', 'fixtures');
 const containerNames: string[] = [];
-
 export interface DockerCommandResult {
   readonly status: number | null;
   readonly stderr: string;
   readonly stdout: string;
 }
-
 export function cleanupDockerE2e(): void {
   for (const containerName of containerNames.splice(0)) {
-    runDocker(['rm', '--force', containerName], { allowFailure: true });
+    const values: string[] = ['rm', '--force', containerName];
+    const runDockerOptions = { allowFailure: true } as const;
+    runDocker(values, runDockerOptions);
   }
 }
-
 export function trackDockerContainer(containerName: string): void {
   containerNames.push(containerName);
 }
-
 export function dockerExec(containerName: string, args: string[]): DockerCommandResult {
-  return runDocker(['exec', containerName, ...args]);
+  const values2: string[] = ['exec', containerName, ...args];
+  return runDocker(values2);
 }
-
 export async function dockerExecAsync(containerName: string, args: string[]): Promise<DockerCommandResult> {
-  return await runDockerAsync(['exec', containerName, ...args]);
+  const values3: string[] = ['exec', containerName, ...args];
+  return await runDockerAsync(values3);
 }
-
 export function dockerExecAllowFailure(containerName: string, args: string[]): DockerCommandResult {
-  return runDocker(['exec', containerName, ...args], { allowFailure: true });
+  const values4: string[] = ['exec', containerName, ...args];
+  const runDockerOptions2 = { allowFailure: true } as const;
+  return runDocker(values4, runDockerOptions2);
 }
-
 export function dockerExecAsRoot(containerName: string, args: string[]): DockerCommandResult {
-  return runDocker(['exec', '--user', '0', containerName, ...args]);
+  const values5: string[] = ['exec', '--user', '0', containerName, ...args];
+  return runDocker(values5);
 }
-
 export function dockerLogs(containerName: string): DockerCommandResult {
-  return runDocker(['logs', containerName], { allowFailure: true });
+  const values6: string[] = ['logs', containerName];
+  const runDockerOptions3 = { allowFailure: true } as const;
+  return runDocker(values6, runDockerOptions3);
 }
-
 export function stopDockerContainer(containerName: string): DockerCommandResult {
-  return runDocker(['stop', '--time', '10', containerName]);
+  const values7: string[] = ['stop', '--time', '10', containerName];
+  return runDocker(values7);
 }
-
 export function dockerHealthStatus(containerName: string): string {
-  return runDocker([
+  const values8: string[] = [
     'inspect',
     '--format',
     '{{if .State.Health}}{{.State.Health.Status}}{{end}}',
     containerName,
-  ]).stdout.trim();
+  ];
+  return runDocker(values8).stdout.trim();
 }
-
 export function inspectDockerImage(): {
   Config?: {
     Cmd?: string[];
@@ -72,7 +71,9 @@ export function inspectDockerImage(): {
     };
   };
 } {
-  const [image] = JSON.parse(runDocker(['image', 'inspect', dockerImageTag]).stdout) as Array<{
+  const values9: string[] = ['image', 'inspect', dockerImageTag];
+  const argumentValue = runDocker(values9).stdout;
+  const [image] = JSON.parse(argumentValue) as Array<{
     Config?: {
       Cmd?: string[];
       Entrypoint?: string[];
@@ -85,14 +86,16 @@ export function inspectDockerImage(): {
       };
     };
   }>;
-  if (!image) throw new Error(`Docker image inspection returned no image: ${dockerImageTag}`);
+  if (!image) {
+    const message = `Docker image inspection returned no image: ${dockerImageTag}`;
+    throw new Error(message);
+  }
   return image;
 }
-
 export function startFakeUpstreamDockerContainer(): string {
   const containerName = `cloakbrowser-mcp-e2e-${process.pid}-${Date.now()}`;
   containerNames.push(containerName);
-  runDocker([
+  const values10: string[] = [
     'run',
     '--detach',
     '--rm',
@@ -113,24 +116,33 @@ export function startFakeUpstreamDockerContainer(): string {
     '--env',
     'CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK=false',
     dockerImageTag,
-  ]);
+  ];
+  runDocker(values10);
   return containerName;
 }
-
-export function startFakeUpstreamHttpDockerContainer(): { containerName: string; url: string } {
-  return startHttpDockerContainer({ fakeUpstream: true });
+export function startFakeUpstreamHttpDockerContainer(): {
+  containerName: string;
+  url: string;
+} {
+  const startHttpDockerContainerOptions = { fakeUpstream: true } as const;
+  return startHttpDockerContainer(startHttpDockerContainerOptions);
 }
-
 export function startHttpDockerContainer(
   options: {
     authToken?: string;
     browserEngine?: 'cloak' | 'playwright';
-    cdp?: { enabled: boolean; port: number };
+    cdp?: {
+      enabled: boolean;
+      port: number;
+    };
     fakeUpstream?: boolean;
     headless?: boolean;
     sessionMax?: number;
   } = {},
-): { containerName: string; url: string } {
+): {
+  containerName: string;
+  url: string;
+} {
   const containerName = `cloakbrowser-mcp-http-e2e-${process.pid}-${Date.now()}`;
   containerNames.push(containerName);
   const args = [
@@ -153,31 +165,26 @@ export function startHttpDockerContainer(
     '--env',
     'CLOAK_PLAYWRIGHT_MCP_CONSOLE_FALLBACK=false',
   ];
-
   if (options.fakeUpstream) {
-    args.push(
-      '--mount',
-      `type=bind,source=${fakeUpstreamFixtureDir},target=${fakeUpstreamContainerDir},readonly`,
-      '--env',
-      `PLAYWRIGHT_MCP_CLI_PATH=${fakeUpstreamContainerPath}`,
-      '--env',
-      'PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright',
-    );
+    const message2 = `type=bind,source=${fakeUpstreamFixtureDir},target=${fakeUpstreamContainerDir},readonly`;
+    const message3 = `PLAYWRIGHT_MCP_CLI_PATH=${fakeUpstreamContainerPath}`;
+    args.push('--mount', message2, '--env', message3, '--env', 'PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright');
   }
-
   if (options.browserEngine !== undefined && !options.fakeUpstream) {
-    args.push('--env', `PLAYWRIGHT_MCP_BROWSER_ENGINE=${options.browserEngine}`);
+    const message4 = `PLAYWRIGHT_MCP_BROWSER_ENGINE=${options.browserEngine}`;
+    args.push('--env', message4);
     if (options.browserEngine === 'playwright') {
       args.push('--env', 'CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS=--no-sandbox');
     }
   }
-
   if (options.cdp !== undefined) {
+    const message5 = `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED=${String(options.cdp.enabled)}`;
+    const message6 = `CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE=${String(options.cdp.port)}`;
     args.push(
       '--env',
-      `CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED=${String(options.cdp.enabled)}`,
+      message5,
       '--env',
-      `CLOAK_PLAYWRIGHT_MCP_CDP_PORT_RANGE=${String(options.cdp.port)}`,
+      message6,
       '--env',
       'CLOAK_PLAYWRIGHT_MCP_CDP_HOST=0.0.0.0',
       '--env',
@@ -186,19 +193,18 @@ export function startHttpDockerContainer(
       'CLOAK_PLAYWRIGHT_MCP_CDP_ADVERTISED_HOST=127.0.0.1',
     );
   }
-
   if (options.headless !== undefined) {
-    args.push('--env', `PLAYWRIGHT_MCP_HEADLESS=${String(options.headless)}`);
+    const message7 = `PLAYWRIGHT_MCP_HEADLESS=${String(options.headless)}`;
+    args.push('--env', message7);
   }
-
   if (options.authToken !== undefined) {
-    args.push('--env', `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN=${options.authToken}`);
+    const message8 = `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN=${options.authToken}`;
+    args.push('--env', message8);
   }
-
   if (options.sessionMax !== undefined) {
-    args.push('--env', `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX=${String(options.sessionMax)}`);
+    const message9 = `CLOAK_PLAYWRIGHT_MCP_HTTP_SESSION_MAX=${String(options.sessionMax)}`;
+    args.push('--env', message9);
   }
-
   args.push(
     dockerImageTag,
     '--transport',
@@ -209,16 +215,19 @@ export function startHttpDockerContainer(
     '3000',
   );
   runDocker(args);
-  const port = runDocker(['port', containerName, '3000/tcp']).stdout.trim();
+  const values11: string[] = ['port', containerName, '3000/tcp'];
+  const port = runDocker(values11).stdout.trim();
   const match = /:(\d+)$/u.exec(port);
-  if (match?.[1] === undefined) throw new Error(`Could not resolve Docker HTTP port: ${port}`);
+  if (match?.[1] === undefined) {
+    const message10 = `Could not resolve Docker HTTP port: ${port}`;
+    throw new Error(message10);
+  }
   return { containerName, url: `http://127.0.0.1:${match[1]}/mcp` };
 }
-
 export async function waitForDockerExec(
   containerName: string,
   args: string[],
-  timeoutMs = 10_000,
+  timeoutMs = 10000,
 ): Promise<DockerCommandResult> {
   const deadline = Date.now() + timeoutMs;
   let lastError: Error | undefined;
@@ -226,25 +235,42 @@ export async function waitForDockerExec(
     try {
       return dockerExec(containerName, args);
     } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
+      lastError =
+        error instanceof Error
+          ? error
+          : (() => {
+              const stringResult = String(error);
+              return new Error(stringResult);
+            })();
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
-  throw lastError ?? new Error(`Timed out waiting for Docker command: ${args.join(' ')}`);
+  throw (
+    lastError ??
+    (() => {
+      const message11 = `Timed out waiting for Docker command: ${args.join(' ')}`;
+      return new Error(message11);
+    })()
+  );
 }
-
-export async function waitForDockerExit(containerName: string, timeoutMs = 10_000): Promise<void> {
+export async function waitForDockerExit(containerName: string, timeoutMs = 10000): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    if (dockerExecAllowFailure(containerName, ['true']).status !== 0) return;
+    if (
+      (() => {
+        const values12: string[] = ['true'];
+        return dockerExecAllowFailure(containerName, values12).status !== 0;
+      })()
+    )
+      return;
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  throw new Error(`Docker container did not exit: ${containerName}`);
+  const message12 = `Docker container did not exit: ${containerName}`;
+  throw new Error(message12);
 }
-
 export async function waitForDockerHttp(
   url: string,
-  timeoutMs = 10_000,
+  timeoutMs = 10000,
   authorization?: string,
 ): Promise<void> {
   const healthUrl = new URL('/healthz', url);
@@ -252,56 +278,77 @@ export async function waitForDockerHttp(
   let lastError: Error | undefined;
   while (Date.now() < deadline) {
     try {
-      const response = await fetch(healthUrl, {
+      const fetchOptions = {
         headers: authorization === undefined ? {} : { authorization },
-      });
+      } as const;
+      const response = await fetch(healthUrl, fetchOptions);
       if (response.status === 200) return;
-      lastError = new Error(`Docker HTTP health probe returned ${String(response.status)}`);
+      const message13 = `Docker HTTP health probe returned ${String(response.status)}`;
+      lastError = new Error(message13);
     } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
+      lastError =
+        error instanceof Error
+          ? error
+          : (() => {
+              const stringResult2 = String(error);
+              return new Error(stringResult2);
+            })();
     }
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  throw lastError ?? new Error(`Timed out waiting for Docker HTTP endpoint: ${url}`);
+  throw (
+    lastError ??
+    (() => {
+      const message14 = `Timed out waiting for Docker HTTP endpoint: ${url}`;
+      return new Error(message14);
+    })()
+  );
 }
-
 export async function waitForDockerHealth(
   containerName: string,
   expected: 'healthy' | 'unhealthy',
-  timeoutMs = 12_000,
+  timeoutMs = 12000,
 ): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     if (dockerHealthStatus(containerName) === expected) return;
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  throw new Error(`Docker health did not become ${expected}`);
+  const message15 = `Docker health did not become ${expected}`;
+  throw new Error(message15);
 }
-
-function runDocker(args: string[], options: { allowFailure?: boolean } = {}): DockerCommandResult {
-  const result = spawnSync('docker', args, {
+function runDocker(
+  args: string[],
+  options: {
+    allowFailure?: boolean;
+  } = {},
+): DockerCommandResult {
+  const spawnSyncOptions: import('node:child_process').SpawnSyncOptionsWithStringEncoding = {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  };
+  const result = spawnSync('docker', args, spawnSyncOptions);
   if (!options.allowFailure && result.status !== 0) {
-    throw new Error(
-      [
-        `Docker command failed: docker ${args.join(' ')}`,
-        `status: ${String(result.status)}`,
-        `stdout:\n${result.stdout}`,
-        `stderr:\n${result.stderr}`,
-      ].join('\n'),
-    );
+    const joinedPath = [
+      `Docker command failed: docker ${args.join(' ')}`,
+      `status: ${String(result.status)}`,
+      `stdout:\n${result.stdout}`,
+      `stderr:\n${result.stderr}`,
+    ].join('\n');
+    throw new Error(joinedPath);
   }
   return { status: result.status, stderr: result.stderr, stdout: result.stdout };
 }
-
 async function runDockerAsync(args: string[]): Promise<DockerCommandResult> {
   return await new Promise<DockerCommandResult>((resolve, reject) => {
-    const child = spawn('docker', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    const spawnOptions: import('node:child_process').SpawnOptionsWithStdioTuple<
+      import('node:child_process').StdioNull,
+      import('node:child_process').StdioPipe,
+      import('node:child_process').StdioPipe
+    > = { stdio: ['ignore', 'pipe', 'pipe'] };
+    const child = spawn('docker', args, spawnOptions);
     let stderr = '';
     let stdout = '';
-
     child.stdout.setEncoding('utf8');
     child.stderr.setEncoding('utf8');
     child.stdout.on('data', (chunk: string) => {
@@ -313,20 +360,18 @@ async function runDockerAsync(args: string[]): Promise<DockerCommandResult> {
     child.once('error', reject);
     child.once('close', (status) => {
       if (status === 0) {
-        resolve({ status, stderr, stdout });
+        const resolveOptions = { status, stderr, stdout } as const;
+        resolve(resolveOptions);
         return;
       }
-
-      reject(
-        new Error(
-          [
-            `Docker command failed: docker ${args.join(' ')}`,
-            `status: ${String(status)}`,
-            `stdout:\n${stdout}`,
-            `stderr:\n${stderr}`,
-          ].join('\n'),
-        ),
-      );
+      const joinedPath2 = [
+        `Docker command failed: docker ${args.join(' ')}`,
+        `status: ${String(status)}`,
+        `stdout:\n${stdout}`,
+        `stderr:\n${stderr}`,
+      ].join('\n');
+      const error2 = new Error(joinedPath2);
+      reject(error2);
     });
   });
 }

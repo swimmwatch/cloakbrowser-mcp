@@ -6,7 +6,13 @@ render_macros: false
 
 ## Current State
 
-Packets 01, 02, and 04 are complete locally. Packet 03 local acceptance is complete; its remote `linux/amd64` and `linux/arm64` CI evidence remains pending. The workstream final checklist remains open. No commit, push, pull request, release, or publication was performed.
+Packets 01, 02, and 04 are complete locally. Packet 03 local acceptance is complete;
+its remote `linux/amd64` and `linux/arm64` evidence still requires reconciliation
+with the workstream checklist. The final checklist remains open. Delivery is
+consolidated into `release/v1.15.0` and
+[PR 169](https://github.com/swimmwatch/cloakbrowser-mcp/pull/169). The original local
+invocation performed no commit, push, pull request, release, or publication;
+that statement describes the retained execution evidence below.
 
 ## Packet 03 Local Acceptance
 

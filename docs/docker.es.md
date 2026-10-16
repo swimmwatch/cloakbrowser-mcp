@@ -10,6 +10,8 @@ tags:
 
 La imagen publicada muestra el entorno de ejecución recomendado para un uso repetible de MCP.
 
+Use la [receta de Docker Streamable HTTP con proxy inverso](recipes/docker-streamable-http-reverse-proxy.md) para desplegar de forma breve un servidor HTTP ya en ejecución detrás de TLS y autenticación.
+
 ## Correr
 
 ```bash
@@ -22,13 +24,32 @@ Los artefactos se guardan en `/data` dentro del contenedor. Monta esa ruta para 
 
 La imagen ya ejecuta Tini como PID 1 y subreaper, por lo que los comandos normales no necesitan un proceso init adicional de Docker.
 
-## Sesiones headed, health check y runtime restringido
-
-Con headless: false, el contenedor inicia Xvfb privado bajo demanda y lo conserva hasta que el contenedor termina. No es un escritorio visible ni un servicio de VNC, noVNC, RDP, host X11 o captura de pantalla. Los contextos, páginas, perfiles y artefactos de Playwright están aislados, pero el focus, clipboard y la captura de pantalla nativos de X11 no son límites de aislamiento entre tenants. El health check de Docker usa un Unix socket privado para comprobar el event loop de MCP CLI y, si Xvfb se inició, su disponibilidad; no envía tráfico por MCP stdio ni sustituye /healthz o /readyz. Para un read-only root filesystem, monte /data y proporcione tmpfs writable para /tmp y /tmp/.X11-unix si son posibles las sesiones headed.
-
 Las mismas etiquetas de versión se publican en Docker Hub como `swimmwatch/cloakbrowser-mcp` y en GHCR como `ghcr.io/swimmwatch/cloakbrowser-mcp`.
 
-## Perfiles persistentes
+## Sesiones con interfaz gráfica y pantalla virtual { #headed-sessions-and-virtual-display }
+
+La imagen usa `PLAYWRIGHT_MCP_HEADLESS=true` de forma predeterminada; las sesiones sin interfaz gráfica no inician Xvfb. Cuando una sesión solicita `headless: false`, el lanzador inicia bajo demanda una única pantalla Xvfb privada del contenedor, espera a que esté disponible y la conserva hasta que el contenedor termina. Las sesiones HTTP simultáneas con interfaz gráfica comparten esa pantalla, mientras sus contextos de navegador Playwright, páginas, perfiles y artefactos permanecen aislados.
+
+Para una sesión stdio con interfaz gráfica, configure la variable estándar de Playwright MCP:
+
+```bash
+docker run --rm -i \
+  -e PLAYWRIGHT_MCP_HEADLESS=false \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Esto no es un escritorio visible ni un servicio de transmisión de interfaz gráfica: la imagen no proporciona VNC, noVNC, RDP, acceso al X11 del host ni captura de pantalla. No considere el foco nativo de X11, el portapapeles ni la captura de pantalla como límites de aislamiento entre inquilinos. El lanzador detiene la pantalla durante el apagado; un fallo de inicio o la finalización de MCP CLI apaga el contenedor en lugar de dejar un puente utilizable.
+
+Fuera de esta imagen, un navegador con interfaz gráfica sigue necesitando un entorno de pantalla utilizable. Establezca `PLAYWRIGHT_MCP_HEADLESS=true` cuando no haya una pantalla disponible.
+
+## Estado del contenedor y entorno de ejecución restringido { #container-health-and-restricted-runtime }
+
+El `HEALTHCHECK` de Docker usa un socket Unix privado y comprueba activamente que el bucle de eventos de MCP CLI responda. Si se ha iniciado Xvfb, también comprueba la pantalla X11; un contenedor sin interfaz gráfica cuya pantalla nunca se solicitó sigue en estado healthy. El inicio, el apagado o el fallo de la pantalla implica el estado unhealthy. La comprobación de respuesta X11 está limitada a 1 segundo, la respuesta de CLI a 750 milisegundos, la solicitud privada de estado a 2,5 segundos, y Docker termina cada comando de comprobación tras 3 segundos. Con un intervalo de Docker de 2 segundos y dos reintentos, las transiciones de estado dependen de la planificación de Docker y no constituyen un objetivo de nivel de servicio de disponibilidad. Esta comprobación es independiente de los endpoints HTTP públicos `/healthz` y `/readyz` y nunca envía tráfico por MCP stdio. No demuestra que un navegador, una sesión MCP o un sitio remoto sean utilizables; un orquestador externo se encarga del reinicio y la recuperación.
+
+El lanzador concede a cada proceso hijo hasta 8 segundos para terminar tras `SIGTERM` y luego hasta 2 segundos tras `SIGKILL`; el tiempo límite de parada de Docker debe permitir el apagado secuencial de CLI y Xvfb. La imagen se ejecuta como el usuario no privilegiado `node` y admite un sistema de archivos raíz de solo lectura. Mantenga `/data` montado para los artefactos y proporcione montajes temporales con permiso de escritura para `/tmp` y `/tmp/.X11-unix` cuando sean posibles las sesiones con interfaz gráfica. El socket de estado solo es accesible para su propietario (`0600`). El socket X11 local del contenedor se comparte entre el proceso `node` y Xvfb, por lo que no es un límite de aislamiento entre inquilinos. No monte ninguno de los sockets desde el host ni los comparta entre contenedores.
+
+## Perfiles persistentes { #persistent-profiles }
 
 Docker no habilita un perfil de navegador persistente de forma predeterminada.
 Usa el volumen existente `/data` como raíz de persistencia cuando quieras que las
@@ -83,7 +104,7 @@ Monte un ejecutable de navegador compatible en el contenedor y pase su ruta dent
 del contenedor mediante `--binary-path` (o `CLOAKBROWSER_BINARY_PATH`):
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/custom-chrome:/browser/chrome:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -95,7 +116,7 @@ CPU de la imagen y sus bibliotecas deben estar disponibles en el contenedor. La 
 se aplica a todas las sesiones Streamable HTTP del contenedor; ejecute contenedores
 separados para binarios de navegador distintos.
 
-## Extensiones de Chrome
+## Extensiones de Chrome { #chrome-extensions }
 
 Las extensiones de Chrome requieren un perfil persistente y deben montarse por
 separado. Usa rutas del contenedor en las variables de entorno, no rutas del
@@ -116,7 +137,7 @@ contenedor después de cambiar archivos o rutas de extensiones.
 
 El modo de conexión Playwright Extension es distinto del montaje de una extensión desempaquetada mostrado arriba. Requiere la extensión oficial en un persistent Chrome/Edge profile y `PLAYWRIGHT_MCP_EXTENSION_TOKEN`. Monta cada profile en un writable path separado, inyecta el token con un secret manager y no combines `PLAYWRIGHT_MCP_EXTENSION=true` con `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`.
 
-## HTTP con transmisión continua
+## HTTP con transmisión continua { #streamable-http }
 
 Para el uso local de Streamable HTTP, publica el puerto del contenedor en el bucle de retorno:
 
@@ -128,6 +149,16 @@ docker run --rm -p 127.0.0.1:3000:3000 \
 
 curl http://127.0.0.1:3000/healthz
 curl http://127.0.0.1:3000/readyz
+```
+
+Para sesiones HTTP con interfaz gráfica, configure `PLAYWRIGHT_MCP_HEADLESS=false` en el contenedor. Las solicitudes initialize individuales aún pueden seleccionar el modo sin interfaz gráfica mediante los metadatos MCP compatibles.
+
+```bash
+docker run --rm -p 127.0.0.1:3000:3000 \
+  -e PLAYWRIGHT_MCP_HEADLESS=false \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http --http-host 0.0.0.0 --http-port 3000
 ```
 
 Para acceder directamente a HTTPS desde el contenedor, monta los archivos de tu certificado y selecciona HTTPS:
@@ -201,7 +232,7 @@ ocupa el mismo puerto anunciado en el espacio de nombres de la red externa, cons
 `Host`/`Origin`, y reenvía uno a uno al oyente del puente de texto plano. El
 El puente a Chromium hop también mantiene el tráfico de bucle invertido en texto plano.
 
-## Coincidencia de proxies GeoIP
+## Coincidencia de proxies GeoIP { #geoip-proxy-matching }
 
 Docker utiliza las mismas variables de entorno de proxy y GeoIP que npm. Activa
 la coincidencia de proxy GeoIP cuando el control de calidad regional necesite que CloakBrowser utilice las huellas de zona horaria, idioma y
@@ -272,7 +303,7 @@ casos de uso multirregión y limitaciones.
 }
 ```
 
-## Compilar localmente
+## Compilar localmente { #build-locally }
 
 ```bash
 npm run docker:build

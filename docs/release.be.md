@@ -13,19 +13,21 @@ tags:
 Адзіны `Release` працоўны працэс развязвае тэг адзін раз, а затым перадае вытворны `version`,
 `version_tag`, і тэгі вобраза, бяспечныя для Docker, праз npm-пакаванне, аргументы Docker build, тэгі вобраза, метаданыя сервера, маркіроўкі README і маркіроўкі дакументацыі.
 
+Усе тэставыя наборы праграмы, пакрыццё, усталяванне пакета і праверка подпісаў залежнасцей выконваюцца да зліцця і кантралююцца `required-ci`. Workflow `Release` збірае і публікуе правераную версію кода праз `package:pack` і `docs:build:site`, правяраючы метаданыя выпуску і склад артэфактаў.
+
 ## Налады рэпазіторыя GitHub
 
 Наладзьце гэтыя налады перад першым выпускам.
 
-| Area | Required setting |
+| Вобласць | Неабходная налада |
 | --- | --- |
-| Actions | Enable GitHub Actions for the repository. |
-| Actions token | Allow workflows to request the permissions declared in each workflow. |
-| Branch protection | Require `Actionlint`, `CI`, `CodeQL`, and `Dependency Review` before merging to `main`. |
-| Pages | Set `Build and deployment -> Source` to `GitHub Actions`. |
-| Packages | Allow GitHub Actions to publish packages to GitHub Packages. |
-| Environments | Create `npm-production`, `docker-production`, `github-pages`, and `mcp-registry-production`. |
-| Code scanning | Enable code scanning to view CodeQL, Scorecard, and Trivy SARIF results. |
+| Actions | Уключыце GitHub Actions для рэпазіторыя. |
+| Токен Actions | Дазвольце працоўным працэсам запытваць правы, абвешчаныя ў кожным працэсе. |
+| Абарона галіны | Патрабуйце паспяховых `Actionlint`, `CI`, `CodeQL` і `Dependency Review` перад зліццём у `main`. |
+| Pages | Усталюйце `Build and deployment -> Source` у `GitHub Actions`. |
+| Packages | Дазвольце GitHub Actions публікаваць пакеты ў GitHub Packages. |
+| Асяроддзі | Стварыце `npm-production`, `docker-production`, `github-pages` і `mcp-registry-production`. |
+| Сканаванне кода | Уключыце сканаванне кода для прагляду вынікаў CodeQL, Scorecard і Trivy ў фармаце SARIF. |
 
 Дадайце неабходных рэцэнзентаў у `npm-production`, `docker-production`, і
 `mcp-registry-production` для таго, каб выпускі патрабавалі ручнога зацвярджэння пасля публікацыі выпуску ў GitHub. Асяроддзе `github-pages` выкарыстоўваецца задачай разгортвання
@@ -37,13 +39,13 @@ tags:
 
 Наладзьце давераны выдавец на npmjs.com з гэтымі дакладнымі значэннямі:
 
-| npm Trusted Publisher field | Value |
+| Поле npm Trusted Publisher | Значэнне |
 | --- | --- |
-| Provider | GitHub Actions |
-| Repository | `swimmwatch/cloakbrowser-mcp` |
-| Workflow filename | `release.yml` |
-| Environment | `npm-production` |
-| Allowed action | `npm publish` |
+| Правайдар | GitHub Actions |
+| Рэпазіторый | `swimmwatch/cloakbrowser-mcp` |
+| Імя файла працоўнага працэсу | `release.yml` |
+| Асяроддзе | `npm-production` |
+| Дазволенае дзеянне | `npm publish` |
 
 Задача `npm` запускаецца на выканаўцах, размешчаных на GitHub, выкарыстоўвае Node.js 24 і захоўвае
 `id-token: write`, каб npm мог абмяняць токен OIDC GitHub Actions на кароткатэрміновую крэдэнцыял для публікацыі. npm Trusted Publishing патрабуе npm CLI
@@ -174,16 +176,16 @@ registry:check:strict` толькі пасля таго, як бачнасць �
 
 Рэпазіторый выкарыстоўвае бясплатныя інструменты бяспекі:
 
-| Workflow | Tool | Trigger | User setup |
+| Працоўны працэс | Інструмент | Умова запуску | Налада карыстальнікам |
 | --- | --- | --- | --- |
-| `CodeQL` | GitHub CodeQL | push, pull request, weekly, manual | Enable code scanning to view SARIF results. |
-| `Dependency Review` | GitHub Dependency Review | pull request | No external account or token. |
-| `OpenSSF Scorecard` | OpenSSF Scorecard | push, weekly, manual | Enable code scanning to view SARIF results. |
-| `Zizmor` | zizmor | workflow changes, manual | No external account or token. |
-| `CI` / `Release` | Trivy | Docker build and release | Enable code scanning to view SARIF results. |
-| `CI` / npm release | `npm audit --omit=dev --audit-level=high` | PR CI and npm publish job | No external account or token. |
+| `CodeQL` | GitHub CodeQL | push, pull request, штотыдзень, уручную | Уключыце сканаванне кода для прагляду вынікаў SARIF. |
+| `Dependency Review` | GitHub Dependency Review | pull request | Знешні ўліковы запіс або токен не патрэбныя. |
+| `OpenSSF Scorecard` | OpenSSF Scorecard | push, штотыдзень, уручную | Уключыце сканаванне кода для прагляду вынікаў SARIF. |
+| `Zizmor` | zizmor | змены працоўных працэсаў, уручную | Знешні ўліковы запіс або токен не патрэбныя. |
+| `CI` | Trivy | Зборка Docker у PR | Уключыце сканаванне кода для прагляду вынікаў SARIF. |
+| `CI` | `npm audit --omit=dev --audit-level=high` | PR CI | Знешні ўліковы запіс або токен не патрэбныя. |
 
-Пінінг SHA-функцый адсочваецца як будучы этап узмацнення бяспекі. У цяперашні час працоўныя працэсы выкарыстоўваюць версіённыя спасылкі на функцыі, каб абнаўленні заставаліся кіраванымі, пакуль інфраструктура рэлізаў яшчэ маладая.
+Знешнія GitHub Actions замацаваны поўнымі SHA камітаў з чытэльнымі каментарыямі версій. Захоўвайце гэтыя замацаванні пры абнаўленні працоўных працэсаў.
 
 ## Публікацыя дакументацыі
 
@@ -228,10 +230,10 @@ npm run upstream:check
 
 ## Тэгі рэлізу
 
-| Release type | GitHub Release setting | npm dist-tag | Docker tags |
+| Тып выпуску | Налада GitHub Release | Тэг npm dist-tag | Тэгі Docker |
 | --- | --- | --- | --- |
-| Stable | Not prerelease | `latest` | `vX.Y.Z`, `X.Y.Z`, `X.Y`, `latest` |
-| Prerelease | Prerelease | `next` | `vX.Y.Z-prerelease`, `X.Y.Z-prerelease` |
+| Стабільны | Не папярэдні выпуск | `latest` | `vX.Y.Z`, `X.Y.Z`, `X.Y`, `latest` |
+| Папярэдні выпуск | Папярэдні выпуск | `next` | `vX.Y.Z-prerelease`, `X.Y.Z-prerelease` |
 
 ## Пералік
 

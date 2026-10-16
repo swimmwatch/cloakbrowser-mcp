@@ -22,6 +22,7 @@ import {
 } from '#src/http/sessionStore';
 import { HttpStatus, JsonRpcErrorCode } from '#src/http/status';
 import type { BridgeLogger } from '#src/logging/logger';
+import { ManagedCdpBootstrapToolError } from '#src/cdp/session';
 import { MCP_SESSION_ID_HEADER } from '#src/protocol/constants';
 import { type BridgeServer, createBridgeServer, startManagedCdpBridge } from '#src/server';
 import {
@@ -52,9 +53,7 @@ import {
   type ReleaseChannel,
   resolveEffectiveHeadless,
 } from '#src/bridge/config';
-
 const allowedMethods = 'GET, POST, DELETE';
-
 export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions {
   cdp?: CdpEndpointConfig;
   cdpAllocator?: CdpPortAllocator;
@@ -79,41 +78,35 @@ export interface StartStreamableHttpBridgeOptions extends StreamableHttpOptions 
   logger?: BridgeLogger;
   startManagedCdpBridge?: typeof startManagedCdpBridge;
 }
-
 export interface StreamableHttpBridgeServer {
   url: string;
   address: AddressInfo;
   close(): Promise<void>;
 }
-
 interface ActiveHttpSession {
   id: string;
   bridge: BridgeServer;
   transport: StreamableHTTPServerTransport;
-  termination: { accepted: boolean };
+  termination: {
+    accepted: boolean;
+  };
 }
-
 export async function startStreamableHttpBridge(
   options: StartStreamableHttpBridgeOptions,
 ): Promise<StreamableHttpBridgeServer> {
   const controller = new StreamableHttpBridgeController(options);
   return controller.start();
 }
-
 export function isAuthorizedRequest(req: IncomingMessage, authToken: string | undefined): boolean {
   if (authToken === undefined) return true;
   const authorization = getSingleHeader(req, 'authorization');
   if (!authorization) return false;
-
   const parts = authorization.trim().split(/\s+/);
   if (parts.length !== 2) return false;
-
   const [scheme, token] = parts;
   return scheme.toLowerCase() === 'bearer' && timingSafeStringEqual(token, authToken);
 }
-
 export { isEndpointRequest } from '#src/http/requests';
-
 class StreamableHttpBridgeController {
   readonly #cdpAllocator: CdpPortAllocator | undefined;
   readonly #options: StartStreamableHttpBridgeOptions;
@@ -124,7 +117,6 @@ class StreamableHttpBridgeController {
   readonly #cleanupTimer: NodeJS.Timeout;
   readonly #startedAt = Date.now();
   #pendingSessionInitializations = 0;
-
   constructor(options: StartStreamableHttpBridgeOptions) {
     this.#options = options;
     this.#cdpAllocator =
@@ -135,15 +127,12 @@ class StreamableHttpBridgeController {
       void this.#handleRequest(req, res);
     };
     this.#httpServer = createStreamableNodeServer(options, requestListener);
-    this.#cleanupTimer = setInterval(
-      () => {
-        void this.#closeExpiredSessions();
-      },
-      Math.min(options.sessionIdleTtlMs, 60_000),
-    );
+    const minResult = Math.min(options.sessionIdleTtlMs, 60000);
+    this.#cleanupTimer = setInterval(() => {
+      void this.#closeExpiredSessions();
+    }, minResult);
     this.#cleanupTimer.unref();
   }
-
   async start(): Promise<StreamableHttpBridgeServer> {
     await listenHttpServer(this.#httpServer, this.#options.port, this.#options.host);
     this.#warnIfUnsafeHttpExposure();
@@ -156,27 +145,24 @@ class StreamableHttpBridgeController {
       url: `${this.#options.protocol}://${formatHost(address.address)}:${address.port}${this.#options.endpoint}`,
       close: async () => {
         clearInterval(this.#cleanupTimer);
-        await Promise.allSettled([...this.#sessions.keys()].map((id) => this.#closeSession(id)));
+        const mappedValues = [...this.#sessions.keys()].map((id) => this.#closeSession(id));
+        await Promise.allSettled(mappedValues);
         await closeHttpServer(this.#httpServer);
         await this.#store.clear();
       },
     };
   }
-
   #warnIfUnsafeHttpExposure(): void {
     if (this.#options.protocol !== HTTP_PROTOCOL_HTTP) return;
     if (this.#options.authToken !== undefined) return;
     if (isLoopbackHost(this.#options.host)) return;
-    this.#options.logger?.warn(
-      {
-        endpoint: this.#options.endpoint,
-        host: this.#options.host,
-        protocol: this.#options.protocol,
-      },
-      'streamable-http bound to non-loopback host without auth or TLS',
-    );
+    const warnOptions = {
+      endpoint: this.#options.endpoint,
+      host: this.#options.host,
+      protocol: this.#options.protocol,
+    } as const;
+    this.#options.logger?.warn(warnOptions, 'streamable-http bound to non-loopback host without auth or TLS');
   }
-
   async #handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const startedAt = Date.now();
     this.#logRequestOnFinish(req, res, startedAt);
@@ -185,45 +171,46 @@ class StreamableHttpBridgeController {
         this.#handleHealthProbe(req, res);
         return;
       }
-
       if (isEndpointRequest(req, READYZ_PATH, this.#options.host, this.#options.protocol)) {
         await this.#handleReadinessProbe(req, res);
         return;
       }
-
       if (!isEndpointRequest(req, this.#options.endpoint, this.#options.host, this.#options.protocol)) {
         writeJsonRpcError(res, HttpStatus.NotFound, JsonRpcErrorCode.ServerError, 'Not found');
         return;
       }
-
       if (!isAuthorizedRequest(req, this.#options.authToken)) {
-        writeJsonRpcError(res, HttpStatus.Unauthorized, JsonRpcErrorCode.ServerError, 'Unauthorized', {
+        const writeJsonRpcErrorOptions = {
           'WWW-Authenticate': 'Bearer',
-        });
+        } as const;
+        writeJsonRpcError(
+          res,
+          HttpStatus.Unauthorized,
+          JsonRpcErrorCode.ServerError,
+          'Unauthorized',
+          writeJsonRpcErrorOptions,
+        );
         return;
       }
-
       await this.#closeExpiredSessions();
-
       const method = req.method ?? '';
       if (method !== 'GET' && method !== 'POST' && method !== 'DELETE') {
+        const writeJsonRpcErrorOptions2 = {
+          Allow: allowedMethods,
+        } as const;
         writeJsonRpcError(
           res,
           HttpStatus.MethodNotAllowed,
           JsonRpcErrorCode.ServerError,
           'Method not allowed.',
-          {
-            Allow: allowedMethods,
-          },
+          writeJsonRpcErrorOptions2,
         );
         return;
       }
-
       if (method === 'POST') {
         await this.#handlePostRequest(req, res);
         return;
       }
-
       await this.#handleSessionRequest(req, res);
     } catch {
       if (!res.headersSent) {
@@ -238,7 +225,6 @@ class StreamableHttpBridgeController {
       }
     }
   }
-
   async #handlePostRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (!hasJsonContentType(req)) {
       writeJsonRpcError(
@@ -249,7 +235,6 @@ class StreamableHttpBridgeController {
       );
       return;
     }
-
     let parsedBody: unknown;
     try {
       parsedBody = await readJsonBody(req, this.#options.bodyLimitBytes);
@@ -271,13 +256,11 @@ class StreamableHttpBridgeController {
       }
       return;
     }
-
     const sessionId = getSingleHeader(req, MCP_SESSION_ID_HEADER);
     if (sessionId) {
       await this.#handleSessionRequest(req, res, parsedBody);
       return;
     }
-
     if (!containsInitializeRequest(parsedBody)) {
       writeJsonRpcError(
         res,
@@ -287,10 +270,8 @@ class StreamableHttpBridgeController {
       );
       return;
     }
-
     await this.#handleInitializeRequest(req, res, parsedBody);
   }
-
   async #handleInitializeRequest(
     req: IncomingMessage,
     res: ServerResponse,
@@ -298,80 +279,111 @@ class StreamableHttpBridgeController {
   ): Promise<void> {
     const sessionRuntimeOptions = this.#readSessionRuntimeOptions(res, parsedBody);
     if (sessionRuntimeOptions === undefined) return;
-
     if (!this.#reserveSessionSlot(res)) return;
-
     const sessionId = randomUUID();
-    const record = this.#createSessionRecord(sessionId, Date.now());
+    const nowResult = Date.now();
+    const record = this.#createSessionRecord(sessionId, nowResult);
     const termination = { accepted: false };
     const transport = this.#createSessionTransport(sessionId, record, termination);
     const runtimeOptions = this.#createRuntimeOptionsForSession(sessionRuntimeOptions);
     let runtime: BridgeRuntime | undefined;
-
+    let bridge: BridgeServer | undefined;
+    let sessionRegistered = false;
+    let clientDisconnected = req.aborted || res.destroyed;
+    const handleClientDisconnect = (): void => {
+      clientDisconnected = true;
+      void this.#closeSession(sessionId);
+    };
+    const handleResponseClose = (): void => {
+      if (!res.writableFinished) handleClientDisconnect();
+    };
+    req.once('aborted', handleClientDisconnect);
+    res.once('close', handleResponseClose);
     try {
-      const cdpEnabled = resolveCdpSessionEnabled(
-        this.#options.cdp?.processEnabled ?? false,
-        sessionRuntimeOptions.cdpEnabled,
-      );
-      let bridge: BridgeServer;
+      const computedValue = this.#options.cdp?.processEnabled ?? false;
+      const cdpEnabled = resolveCdpSessionEnabled(computedValue, sessionRuntimeOptions.cdpEnabled);
       if (cdpEnabled) {
         if (!this.#options.cdp || !this.#cdpAllocator) {
           throw new BridgeRuntimeConfigurationError('Managed CDP requires a configured CDP port range');
         }
         const startManaged = this.#options.startManagedCdpBridge ?? startManagedCdpBridge;
-        bridge = await startManaged(
-          {
+        bridge = await (() => {
+          const startManagedOptions: import('#src/server').StartBridgeOptions = {
             beforeConnect: async (prepared) => {
               await this.#prepareRuntimeEnvironment(prepared, runtimeOptions);
             },
             onCdpActivity: () => {
-              void this.#store.touch(sessionId, Date.now(), this.#options.sessionIdleTtlMs);
+              void (() => {
+                const nowResult2 = Date.now();
+                return this.#store.touch(sessionId, nowResult2, this.#options.sessionIdleTtlMs);
+              })();
             },
             onCdpCleanupError: () => {
-              this.#options.logger?.warn({}, 'managed CDP cleanup failed');
+              const warnOptions2 = {} as const;
+              this.#options.logger?.warn(warnOptions2, 'managed CDP cleanup failed');
             },
             onCdpRecoveryError: () => {
-              this.#options.logger?.warn({}, 'managed CDP recovery failed');
+              const warnOptions3 = {} as const;
+              this.#options.logger?.warn(warnOptions3, 'managed CDP recovery failed');
             },
             onCdpSecurityRejections: (summary) => {
-              this.#options.logger?.warn(
-                {
-                  capability: summary.capability,
-                  host: summary.host,
-                  origin: summary.origin,
-                  window_seconds: summary.windowSeconds,
-                },
-                'cdp_security_rejections',
-              );
+              const warnOptions4 = {
+                capability: summary.capability,
+                host: summary.host,
+                origin: summary.origin,
+                window_seconds: summary.windowSeconds,
+              } as const;
+              this.#options.logger?.warn(warnOptions4, 'cdp_security_rejections');
             },
             runtimeOptions,
             serverInfo: this.#options.serverInfo,
-          },
-          this.#options.cdp,
-          this.#cdpAllocator,
-        );
+          };
+          return startManaged(startManagedOptions, this.#options.cdp, this.#cdpAllocator);
+        })();
       } else {
         runtime = await prepareBridgeRuntime(runtimeOptions);
         await this.#prepareRuntimeEnvironment(runtime, runtimeOptions);
-        bridge = await createBridgeServer({
-          serverInfo: this.#options.serverInfo,
-          runtime,
-        });
+        if (clientDisconnected) return;
+        bridge = await (() => {
+          const createBridgeServerOptions = {
+            serverInfo: this.#options.serverInfo,
+            runtime,
+          } as const;
+          return createBridgeServer(createBridgeServerOptions);
+        })();
         runtime = undefined;
       }
-      this.#sessions.set(sessionId, { id: sessionId, bridge, transport, termination });
+      if (clientDisconnected) {
+        await bridge.dispose();
+        bridge = undefined;
+        return;
+      }
+      const setOptions = { id: sessionId, bridge, transport, termination } as const;
+      this.#sessions.set(sessionId, setOptions);
+      sessionRegistered = true;
       await bridge.start(transport);
+      if (clientDisconnected) {
+        await this.#closeSession(sessionId);
+        return;
+      }
       await transport.handleRequest(req, res, parsedBody);
     } catch (error) {
-      await this.#closeSession(sessionId);
+      if (sessionRegistered) await this.#closeSession(sessionId);
+      else await bridge?.dispose();
+      if (clientDisconnected) return;
+      if (error instanceof ManagedCdpBootstrapToolError) {
+        const fields = { stage: 'managed-cdp-bootstrap', reason: error.message };
+        this.#options.logger?.warn(fields, 'http session initialization failed');
+      }
       if (this.#handleInitializeError(res, error)) return;
       throw error;
     } finally {
+      req.off('aborted', handleClientDisconnect);
+      res.off('close', handleResponseClose);
       runtime?.dispose();
       this.#pendingSessionInitializations -= 1;
     }
   }
-
   async #prepareRuntimeEnvironment(
     runtime: BridgeRuntime,
     runtimeOptions: PrepareBridgeRuntimeOptions,
@@ -381,7 +393,6 @@ class StreamableHttpBridgeController {
     }
     if (process.env.DISPLAY !== undefined) runtime.childEnv.DISPLAY = process.env.DISPLAY;
   }
-
   #readSessionRuntimeOptions(
     res: ServerResponse,
     parsedBody: unknown,
@@ -396,13 +407,11 @@ class StreamableHttpBridgeController {
       throw error;
     }
   }
-
   #reserveSessionSlot(res: ServerResponse): boolean {
     if (this.#sessions.size + this.#pendingSessionInitializations < this.#options.sessionMax) {
       this.#pendingSessionInitializations += 1;
       return true;
     }
-
     writeJsonRpcError(
       res,
       HttpStatus.ServiceUnavailable,
@@ -411,7 +420,6 @@ class StreamableHttpBridgeController {
     );
     return false;
   }
-
   #createSessionRecord(sessionId: string, now: number): HttpSessionRecord {
     return {
       id: sessionId,
@@ -421,29 +429,34 @@ class StreamableHttpBridgeController {
       status: HTTP_SESSION_STATUS_ACTIVE,
     };
   }
-
   #createSessionTransport(
     sessionId: string,
     record: HttpSessionRecord,
-    termination: { accepted: boolean },
+    termination: {
+      accepted: boolean;
+    },
   ): StreamableHTTPServerTransport {
-    return new StreamableHTTPServerTransport({
+    const streamableHTTPServerTransportOptions:
+      | import('@modelcontextprotocol/sdk/server/webStandardStreamableHttp').WebStandardStreamableHTTPServerTransportOptions
+      | undefined = {
       sessionIdGenerator: () => sessionId,
       onsessioninitialized: async (initializedSessionId) => {
         if (initializedSessionId !== sessionId) {
-          throw new Error(`Unexpected HTTP session ID "${initializedSessionId}"`);
+          const message2 = `Unexpected HTTP session ID "${initializedSessionId}"`;
+          throw new Error(message2);
         }
         await this.#store.create(record);
       },
       onsessionclosed: async (closedSessionId) => {
         if (closedSessionId) {
           termination.accepted = true;
-          await this.#store.markClosed(closedSessionId, Date.now());
+          const nowResult3 = Date.now();
+          await this.#store.markClosed(closedSessionId, nowResult3);
         }
       },
-    });
+    };
+    return new StreamableHTTPServerTransport(streamableHTTPServerTransportOptions);
   }
-
   #createRuntimeOptionsForSession(
     sessionRuntimeOptions: BridgeInitializeRuntimeOptions,
   ): PrepareBridgeRuntimeOptions {
@@ -465,7 +478,6 @@ class StreamableHttpBridgeController {
       profileDirName: preferSessionOption(sessionRuntimeOptions.profileDirName, defaults?.profileDirName),
     };
   }
-
   #handleInitializeError(res: ServerResponse, error: unknown): boolean {
     if (error instanceof BridgeRuntimeConfigurationError) {
       writeJsonRpcError(res, HttpStatus.BadRequest, JsonRpcErrorCode.ServerError, error.message);
@@ -482,7 +494,6 @@ class StreamableHttpBridgeController {
     }
     return false;
   }
-
   async #handleSessionRequest(
     req: IncomingMessage,
     res: ServerResponse,
@@ -498,21 +509,19 @@ class StreamableHttpBridgeController {
       );
       return;
     }
-
     const session = await this.#getActiveSession(sessionId);
     if (!session) {
       writeJsonRpcError(res, HttpStatus.NotFound, JsonRpcErrorCode.SessionNotFound, 'Session not found');
       return;
     }
-
-    await this.#store.touch(sessionId, Date.now(), this.#options.sessionIdleTtlMs);
+    const nowResult4 = Date.now();
+    await this.#store.touch(sessionId, nowResult4, this.#options.sessionIdleTtlMs);
     try {
       await session.transport.handleRequest(req, res, parsedBody);
     } finally {
       if (req.method === 'DELETE' && session.termination.accepted) await this.#closeSession(sessionId);
     }
   }
-
   async #getActiveSession(sessionId: string): Promise<ActiveHttpSession | undefined> {
     const record = await this.#store.get(sessionId);
     const session = this.#sessions.get(sessionId);
@@ -525,60 +534,73 @@ class StreamableHttpBridgeController {
     }
     return session;
   }
-
   async #closeExpiredSessions(): Promise<void> {
-    const expired = await this.#store.listExpired(Date.now());
-    await Promise.allSettled(expired.map((record) => this.#closeSession(record.id)));
+    const nowResult5 = Date.now();
+    const expired = await this.#store.listExpired(nowResult5);
+    const mappedValues2 = expired.map((record) => this.#closeSession(record.id));
+    await Promise.allSettled(mappedValues2);
   }
-
   async #closeSession(sessionId: string): Promise<void> {
     const pending = this.#closing.get(sessionId);
     if (pending) return pending;
-
     const closing = this.#disposeSession(sessionId).finally(() => {
       this.#closing.delete(sessionId);
     });
     this.#closing.set(sessionId, closing);
     return closing;
   }
-
   async #disposeSession(sessionId: string): Promise<void> {
     const session = this.#sessions.get(sessionId);
     this.#sessions.delete(sessionId);
-    await this.#store.markClosed(sessionId, Date.now());
+    const nowResult6 = Date.now();
+    await this.#store.markClosed(sessionId, nowResult6);
     if (!session) return;
     await session.bridge.dispose();
   }
-
   #handleHealthProbe(req: IncomingMessage, res: ServerResponse): void {
     if (!this.#authorizeProbeRequest(req, res)) return;
     if (req.method !== 'GET') {
-      writeJsonResponse(res, HttpStatus.MethodNotAllowed, { status: 'method_not_allowed' }, { Allow: 'GET' });
+      const writeJsonResponseOptions = { status: 'method_not_allowed' } as const;
+      const writeJsonResponseOptions2 = { Allow: 'GET' } as const;
+      writeJsonResponse(
+        res,
+        HttpStatus.MethodNotAllowed,
+        writeJsonResponseOptions,
+        writeJsonResponseOptions2,
+      );
       return;
     }
-
-    writeJsonResponse(res, HttpStatus.Ok, {
+    const argumentValue = HttpStatus.Ok;
+    const writeJsonResponseOptions3 = {
       status: 'ok',
       version: this.#options.serverInfo?.version ?? 'unknown',
       transport: BRIDGE_TRANSPORT_STREAMABLE_HTTP,
       uptimeMs: this.#uptimeMs(),
-    });
+    } as const;
+    writeJsonResponse(res, argumentValue, writeJsonResponseOptions3);
   }
-
   async #handleReadinessProbe(req: IncomingMessage, res: ServerResponse): Promise<void> {
     if (!this.#authorizeProbeRequest(req, res)) return;
     if (req.method !== 'GET') {
-      writeJsonResponse(res, HttpStatus.MethodNotAllowed, { status: 'method_not_allowed' }, { Allow: 'GET' });
+      const writeJsonResponseOptions4 = { status: 'method_not_allowed' } as const;
+      const writeJsonResponseOptions5 = { Allow: 'GET' } as const;
+      writeJsonResponse(
+        res,
+        HttpStatus.MethodNotAllowed,
+        writeJsonResponseOptions4,
+        writeJsonResponseOptions5,
+      );
       return;
     }
-
     await this.#closeExpiredSessions();
     const active = this.#sessions.size;
     const pending = this.#pendingSessionInitializations;
     const max = this.#options.sessionMax;
-    const available = Math.max(max - active - pending, 0);
+    const computedValue2 = max - active - pending;
+    const available = Math.max(computedValue2, 0);
     const ready = available > 0;
-    writeJsonResponse(res, ready ? HttpStatus.Ok : HttpStatus.ServiceUnavailable, {
+    const argumentValue2 = ready ? HttpStatus.Ok : HttpStatus.ServiceUnavailable;
+    const writeJsonResponseOptions6 = {
       status: ready ? 'ready' : 'not_ready',
       version: this.#options.serverInfo?.version ?? 'unknown',
       transport: BRIDGE_TRANSPORT_STREAMABLE_HTTP,
@@ -589,51 +611,44 @@ class StreamableHttpBridgeController {
         max,
         available,
       },
-    });
+    } as const;
+    writeJsonResponse(res, argumentValue2, writeJsonResponseOptions6);
   }
-
   #authorizeProbeRequest(req: IncomingMessage, res: ServerResponse): boolean {
     if (isAuthorizedRequest(req, this.#options.authToken)) return true;
-    writeJsonResponse(
-      res,
-      HttpStatus.Unauthorized,
-      { status: 'unauthorized' },
-      { 'WWW-Authenticate': 'Bearer' },
-    );
+    const writeJsonResponseOptions7 = { status: 'unauthorized' } as const;
+    const writeJsonResponseOptions8 = { 'WWW-Authenticate': 'Bearer' } as const;
+    writeJsonResponse(res, HttpStatus.Unauthorized, writeJsonResponseOptions7, writeJsonResponseOptions8);
     return false;
   }
-
   #uptimeMs(): number {
-    return Math.max(Date.now() - this.#startedAt, 0);
+    const computedValue3 = Date.now() - this.#startedAt;
+    return Math.max(computedValue3, 0);
   }
-
   #logRequestOnFinish(req: IncomingMessage, res: ServerResponse, startedAt: number): void {
     const logger = this.#options.logger;
     if (!logger) return;
     res.once('finish', () => {
       const method = req.method ?? 'UNKNOWN';
       const pathName = requestPathName(req, this.#options.host, this.#options.protocol);
-      const durationMs = Math.max(Date.now() - startedAt, 0);
-      logger.info(
-        {
-          duration_ms: durationMs,
-          method,
-          path: pathName,
-          status: res.statusCode,
-        },
-        'http request',
-      );
+      const computedValue4 = Date.now() - startedAt;
+      const durationMs = Math.max(computedValue4, 0);
+      const infoOptions = {
+        duration_ms: durationMs,
+        method,
+        path: pathName,
+        status: res.statusCode,
+      } as const;
+      logger.info(infoOptions, 'http request');
     });
   }
 }
-
 function isLoopbackHost(host: string): boolean {
   const normalized = host.trim().toLowerCase();
   const unwrapped =
     normalized.startsWith('[') && normalized.endsWith(']') ? normalized.slice(1, -1) : normalized;
   return unwrapped === 'localhost' || unwrapped === '::1' || /^127(?:\.\d{1,3}){3}$/u.test(unwrapped);
 }
-
 function mergeContextOptions(
   envContextOptions: PrepareBridgeRuntimeOptions['contextOptions'],
   sessionContextOptions: PrepareBridgeRuntimeOptions['contextOptions'],
@@ -642,15 +657,12 @@ function mergeContextOptions(
   if (sessionContextOptions === undefined) return envContextOptions;
   return { ...envContextOptions, ...sessionContextOptions };
 }
-
 function preferSessionOption<T>(sessionValue: T | undefined, defaultValue: T | undefined): T | undefined {
   return sessionValue ?? defaultValue;
 }
-
 function timingSafeStringEqual(actual: string, expected: string): boolean {
   const actualBuffer = Buffer.from(actual);
   const expectedBuffer = Buffer.from(expected);
   return actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer);
 }
-
 export type { HttpSessionBackend };

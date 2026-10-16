@@ -157,8 +157,24 @@ betrachtet werden.
 
 - [Konfiguration](configuration.md) listet alle Bridge- und Upstream-Umgebungsvariablen auf.
 - [GeoIP-Proxy-Zuordnung](geoip-proxy-matching.md) erläutert regionenkonsistente Proxy-Profile.
-- [Tools](tools.md) erläutert, warum Upstream-Browser-Tools von Playwright MCP unverändert weitergeleitet werden.
+- [Werkzeuge](tools.md) erläutert, warum Upstream-Browser-Tools von Playwright MCP unverändert weitergeleitet werden.
 
 ## Weitere praktische Pfade
 
 Für die Entscheidung zwischen upstream Playwright MCP und diesem Paket nutzen Sie den [Vergleich](comparison.md). Für kurze Aufgaben nutzen Sie die [Rezepte](recipes/index.md): persistentes Profil, Erweiterungen, reverse proxy, regionale QA, Claude Desktop, Codex CLI und CI-Smoke-Test.
+
+## CloakBrowser
+
+Die aktuelle CloakBrowser-Abhängigkeit ist `{{ project.cloakbrowser_dependency }}`. Bei humanisierter Eingabe überlappen sich Tastendrücke und die Abstände zwischen den Tasten variieren. Die Dauer einer Mausbewegung hängt von der Entfernung ab. Das Scrollen verwendet ganze Mausradrasten für die simulierte Plattform; kleine angeforderte Bewegungen können daher gerundet werden. Interaktionen unterstützen Modaldialoge mit fester Position sowie absolut positionierte Elemente außerhalb übergeordneter Scrollcontainer. Die Auswahl einer Option, die eine Navigation auslöst, liefert die ausgewählten Werte statt eines Fehlers wegen eines veralteten Elements zurück.
+
+Für CloakBrowser 0.6.2/0.6.3 navigiert die Bridge vor der Eingabe in native Datums- und Uhrzeiteditoren mit `ArrowLeft` zum ersten Segment. So landen nach dem ersten Klick nicht alle Ziffern im Jahresfeld. Die Werte werden per Tastatur eingegeben, ohne programmatische Zuweisung.
+
+CloakBrowser 0.6.2 korrigiert die Sichtbarkeitsprüfungen humanisierter Aktionen mit Playwright 1.64. Die Bridge übergibt die tatsächliche Sichtbarkeit übergeordneter iframe an beide Prüfpfade für den Elementzustand statt des bedingungslosen `true` aus Upstream.
+
+Humanisierte Aktionen folgen der Playwright-Selektorsemantik einschließlich des strikten Modus. Mehrdeutige Locators und nicht unterstützte Aktionen lösen Fehler aus, statt still auf normale Aktionen zurückzufallen. Beispielsweise kann humanisiertes `fill()` kein `input[type=color]` bedienen; deaktivieren Sie humanize für eine Sitzung, die diesen Vorgang benötigt.
+
+Bei aktiviertem humanize akzeptiert die Bridge nur geprüfte Abhängigkeitsversionen und Quellcode-Hashes. Sie prüft die Sichtbarkeit übergeordneter iframe und hält schwache Referenzen auf gefundene DOM-Elemente, damit entfernte Elemente freigegeben werden können. Nicht unterstützte Versionen oder veränderte Quellen werden abgelehnt; verwenden Sie bis zur Unterstützung `CLOAK_PLAYWRIGHT_MCP_HUMANIZE=false`.
+
+CloakBrowser 0.6.1 führt `inputValue()`, `textContent()`, `innerText()`, `innerHTML()`, `getAttribute()` und `dispatchEvent()` für `Page`, `Frame`, `Locator` und `ElementHandle` im isolierten Kontext von humanize aus. Bei verborgenen oder überlappenden `ElementHandle`-Elementen sowie Ereignisargumenten mit einem `JSHandle` verwendet die Upstream-Implementierung für Lesezugriffe und Ereignisse den ursprünglichen Playwright-Aufruf als Rückfalllösung.
+
+Die Auswahl in Dropdowns verwendet die Suche über eingegebene Präfixe und unterstützt wiederholte Auswahlvorgänge. Unter macOS kann ein Eintrag, dessen Beschriftung mit einem Emoji beginnt, durch humanisierte Eingabe unerreichbar sein; der Fehler wird über MCP weitergegeben. Wenn eine programmatische Auswahl zulässig ist, verwenden Sie ausdrücklich die Upstream-Methode `page._original.selectOption()`.

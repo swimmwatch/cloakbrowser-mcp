@@ -12,13 +12,13 @@ import {
   expectedDefaultTools,
   localToolNames,
   normalizeToolResponseText,
+  supportsFindFilename,
 } from '#scripts/lib/playwright-mcp-parity';
-
-const { image, reportPath } = parseArgs(process.argv.slice(2));
+const sliceResult = process.argv.slice(2);
+const { image, reportPath } = parseArgs(sliceResult);
 const baselineImage =
   process.env.PLAYWRIGHT_MCP_BASELINE_IMAGE ??
-  'mcr.microsoft.com/playwright/mcp:v0.0.82@sha256:77dccc5ce9e94cb8ae7ebea87ddbb6cd54b05760c4d63c54e16accf2726b8734';
-
+  'mcr.microsoft.com/playwright/mcp:v0.0.83@sha256:690763cbb437ee7233f538a953bb5390bf03791eb5c965b471e59d17a6132fcb';
 const fixtureServer = await startFixtureServer();
 const baseline = await startMcpContainer('playwright', baselineImage, false);
 const cloak = await startMcpContainer('cloak', image, true);
@@ -49,7 +49,6 @@ const bridgeWebmcpDisabled = await startMcpContainer(
   true,
   false,
 );
-
 try {
   const baselineRun = await runScenario(baseline, fixtureServer.url);
   const cloakRun = await runScenario(cloak, fixtureServer.url);
@@ -64,10 +63,14 @@ try {
   compareWebmcpRuns(baselineWebmcpRun, bridgeWebmcpRun);
   await assertWebmcpDisabled(bridgeWebmcpDisabled, fixtureServer.url);
   if (reportPath) {
-    writeReport(
-      reportPath,
-      createReport(baselineRun, cloakRun, humanizationRun, baselineDevtoolsRun, baselineWebmcpRun),
+    const reportResult = createReport(
+      baselineRun,
+      cloakRun,
+      humanizationRun,
+      baselineDevtoolsRun,
+      baselineWebmcpRun,
     );
+    writeReport(reportPath, reportResult);
   }
   printSummary(baselineRun, cloakRun, humanizationRun, baselineDevtoolsRun, baselineWebmcpRun);
 } finally {
@@ -81,13 +84,11 @@ try {
   await bridgeWebmcpDisabled.close();
   await fixtureServer.close();
 }
-
 function parseArgs(args) {
   const parsed = {
     image: 'cloakbrowser-mcp:dev',
     reportPath: undefined,
   };
-
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (arg === '--report') {
@@ -103,14 +104,13 @@ function parseArgs(args) {
       continue;
     }
     if (arg.startsWith('-')) {
-      throw new Error(`unknown option: ${arg}`);
+      const message2 = `unknown option: ${arg}`;
+      throw new Error(message2);
     }
     parsed.image = arg;
   }
-
   return parsed;
 }
-
 async function startMcpContainer(
   mode,
   containerImage,
@@ -120,26 +120,35 @@ async function startMcpContainer(
   webmcp = false,
   webmcpEnabled = true,
 ) {
-  const dataDir = mkdtempSync(path.join(tmpdir(), `pwmcp-${mode}-`));
+  const tmpdirResult = tmpdir();
+  const message3 = `pwmcp-${mode}-`;
+  const joinedPath = path.join(tmpdirResult, message3);
+  const dataDir = mkdtempSync(joinedPath);
   chmodSync(dataDir, 0o777);
-  writeFileSync(path.join(dataDir, 'upload.txt'), `upload from ${mode}\n`);
+  const joinedPath2 = path.join(dataDir, 'upload.txt');
+  const message4 = `upload from ${mode}\n`;
+  writeFileSync(joinedPath2, message4);
   if (webmcp && !useCloakWrapper) {
-    writeFileSync(
-      path.join(dataDir, 'webmcp.config.json'),
-      `${JSON.stringify({ browser: { launchOptions: { args: ['--enable-features=WebMCP'] } } })}\n`,
-    );
+    const joinedPath3 = path.join(dataDir, 'webmcp.config.json');
+    const stringifyOptions = { browser: { launchOptions: { args: ['--enable-features=WebMCP'] } } };
+    const templateValue = JSON.stringify(stringifyOptions);
+    const message5 = `${templateValue}\n`;
+    writeFileSync(joinedPath3, message5);
   }
-
   const dockerArgs = ['run', '--rm', '--init', '-i', '--network', 'host', '-v', `${dataDir}:/data`];
-  if (caps) dockerArgs.push('-e', `PLAYWRIGHT_MCP_CAPS=${caps}`);
+  if (caps) {
+    const message6 = `PLAYWRIGHT_MCP_CAPS=${caps}`;
+    dockerArgs.push('-e', message6);
+  }
   if (useCloakWrapper) {
+    const joinedPath4 = ['PLAYWRIGHT_MCP_CODEGEN', 'python'].join('=');
     dockerArgs.push(
       '-e',
       'PLAYWRIGHT_MCP_HEADLESS=true',
       '-e',
       'PLAYWRIGHT_MCP_OUTPUT_DIR=/data',
       '-e',
-      ['PLAYWRIGHT_MCP_CODEGEN', 'python'].join('='),
+      joinedPath4,
       '-e',
       'PLAYWRIGHT_MCP_SNAPSHOT_BOXES=true',
       '-e',
@@ -180,162 +189,228 @@ async function startMcpContainer(
     );
     if (webmcp) dockerArgs.push('--config', '/data/webmcp.config.json');
   }
-
-  const client = new Client({ name: `compare-${mode}`, version: '1.0.0' });
-  const transport = new StdioClientTransport({
+  const clientOptions = { name: `compare-${mode}`, version: '1.0.0' };
+  const client = new Client(clientOptions);
+  const stdioClientTransportOptions = {
     command: 'docker',
     args: dockerArgs,
     stderr: 'pipe',
+  };
+  const transport = new StdioClientTransport(stdioClientTransportOptions);
+  transport.stderr?.on('data', (chunk) => {
+    const message7 = `[${mode}] ${chunk}`;
+    return process.stderr.write(message7);
   });
-  transport.stderr?.on('data', (chunk) => process.stderr.write(`[${mode}] ${chunk}`));
   await client.connect(transport);
-
   return {
     mode,
     client,
+    findOutputPath: path.join(dataDir, 'find-results.md'),
     uploadPath: '/data/upload.txt',
     async close() {
       await client.close().catch(() => undefined);
-      rmSync(dataDir, { recursive: true, force: true });
+      const rmSyncOptions = { recursive: true, force: true };
+      rmSync(dataDir, rmSyncOptions);
     },
   };
 }
-
 async function runScenario(target, fixtureUrl) {
   const { tools } = await target.client.listTools();
   const toolNames = tools.map((tool) => tool.name).sort();
-  const upstreamToolNames = toolNames.filter((name) => !localToolNames.includes(name));
+  const upstreamTools = tools.filter((tool) => !localToolNames.includes(tool.name));
+  const upstreamToolNames = upstreamTools.map((tool) => tool.name).sort();
   const screenshotSchema = assertScreenshotSchemaSupportsWebp(tools, target.mode);
+  const findFilenameSupported = supportsFindFilename(tools);
   const calls = [];
-
-  assertEqual(upstreamToolNames, expectedDefaultTools, `${target.mode} upstream tool list`);
+  const message9 = `${target.mode} upstream tool list`;
+  assertEqual(upstreamToolNames, expectedDefaultTools, message9);
   for (const name of localToolNames) {
     if (target.mode === 'cloak' && !toolNames.includes(name)) {
-      throw new Error(`cloak tool list is missing ${name}`);
+      const message10 = `cloak tool list is missing ${name}`;
+      throw new Error(message10);
     }
   }
-
   const call = async (name, args = {}) => {
     if (process.env.PLAYWRIGHT_MCP_COMPARE_TRACE === '1') {
-      process.stderr.write(`[${target.mode}] call ${name}\n`);
+      const message11 = `[${target.mode}] call ${name}\n`;
+      process.stderr.write(message11);
     }
     const started = Date.now();
     try {
-      const result = await target.client.callTool({ name, arguments: args });
+      const callToolOptions = { name, arguments: args };
+      const result = await target.client.callTool(callToolOptions);
       const text =
         result.content?.map((item) => (item.type === 'text' ? item.text : `[${item.type}]`)).join('\n') ?? '';
-      calls.push({
+      const pushOptions = {
         name,
         ok: !result.isError,
         ms: Date.now() - started,
         text: normalizeToolResponseText(text),
-      });
-      if (result.isError) throw new Error(`${name} returned an MCP error: ${text}`);
+      };
+      calls.push(pushOptions);
+      if (result.isError) {
+        const message12 = `${name} returned an MCP error: ${text}`;
+        throw new Error(message12);
+      }
       return result;
     } catch (error) {
-      calls.push({
+      const pushOptions2 = {
         name,
         ok: false,
         ms: Date.now() - started,
         text: normalizeToolResponseText(error.message),
-      });
+      };
+      calls.push(pushOptions2);
       throw error;
     }
   };
-
-  await call('browser_resize', { width: 1280, height: 720 });
-  await call('browser_navigate', { url: fixtureUrl });
-  await call('browser_emulate_media', {
+  const callOptions = { width: 1280, height: 720 };
+  await call('browser_resize', callOptions);
+  const callOptions2 = { url: fixtureUrl };
+  await call('browser_navigate', callOptions2);
+  const callOptions3 = {
     colorScheme: 'dark',
     media: 'screen',
     reducedMotion: 'reduce',
-  });
+  };
+  await call('browser_emulate_media', callOptions3);
   const snapshot = await call('browser_snapshot');
   assertSnapshotIncludesBoxes(snapshot, target.mode);
-  await call('browser_find', { text: 'Cloak MCP fixture' });
-  await call('browser_wait_for', { text: 'Cloak MCP fixture' });
-  await call('browser_evaluate', { function: '() => document.title' });
-  await call('browser_fill_form', {
+  const callOptions4 = { text: 'Cloak MCP fixture' };
+  await call('browser_find', callOptions4);
+  if (findFilenameSupported) {
+    const callOptions5 = { text: 'Cloak MCP fixture', filename: '/data/find-results.md' };
+    await call('browser_find', callOptions5);
+    if (!readFileSync(target.findOutputPath, 'utf8').includes('Cloak MCP fixture')) {
+      const message13 = `${target.mode} browser_find did not save the expected result`;
+      throw new Error(message13);
+    }
+  }
+  const callOptions6 = { text: 'Cloak MCP fixture' };
+  await call('browser_wait_for', callOptions6);
+  const callOptions7 = { function: '() => document.title' };
+  await call('browser_evaluate', callOptions7);
+  const callOptions8 = {
     fields: [
       { name: 'Name', type: 'textbox', target: '#name', value: 'Ada' },
       { name: 'Agree', type: 'checkbox', target: '#agree', value: 'true' },
     ],
-  });
-  await call('browser_type', { target: '#notes', text: 'typed text' });
-  await call('browser_select_option', { target: '#role', values: ['admin'] });
-  await call('browser_press_key', { key: 'Tab' });
-  await call('browser_hover', { target: '#login' });
-  await call('browser_click', { target: '#login' });
-  await call('browser_drag', { startTarget: '#drag-source', endTarget: '#drop-target' });
-  await call('browser_drop', { target: '#drop-target', data: { 'text/plain': 'dropped payload' } });
-  await call('browser_click', { target: '#file-input' });
-  await call('browser_file_upload', { paths: [target.uploadPath] });
-  await call('browser_click', { target: '#file-input' });
-  await call('browser_file_upload', { paths: [target.uploadPath] });
-  await call('browser_take_screenshot', { type: 'webp', filename: 'page.webp' });
-  await call('browser_network_requests', { static: false });
-  await call('browser_network_request', { index: 1, part: 'response-body' });
-  await call('browser_run_code_unsafe', { code: 'async (page) => await page.title()' });
-  await call('browser_tabs', { action: 'list' });
-  await call('browser_tabs', { action: 'new', url: `${fixtureUrl}?tab=2` });
-  await call('browser_tabs', { action: 'select', index: 0 });
-  await call('browser_tabs', { action: 'close', index: 1 });
-  await call('browser_navigate', { url: `${fixtureUrl}?page=2` });
+  };
+  await call('browser_fill_form', callOptions8);
+  const callOptions9 = { target: '#notes', text: 'typed text' };
+  await call('browser_type', callOptions9);
+  const callOptions10 = { target: '#role', values: ['admin'] };
+  await call('browser_select_option', callOptions10);
+  const callOptions11 = { key: 'Tab' };
+  await call('browser_press_key', callOptions11);
+  const callOptions12 = { target: '#login' };
+  await call('browser_hover', callOptions12);
+  const callOptions13 = { target: '#login' };
+  await call('browser_click', callOptions13);
+  const callOptions14 = { startTarget: '#drag-source', endTarget: '#drop-target' };
+  await call('browser_drag', callOptions14);
+  const callOptions15 = { target: '#drop-target', data: { 'text/plain': 'dropped payload' } };
+  await call('browser_drop', callOptions15);
+  const callOptions16 = { target: '#file-input' };
+  await call('browser_click', callOptions16);
+  const callOptions17 = { paths: [target.uploadPath] };
+  await call('browser_file_upload', callOptions17);
+  const callOptions18 = { target: '#file-input' };
+  await call('browser_click', callOptions18);
+  const callOptions19 = { paths: [target.uploadPath] };
+  await call('browser_file_upload', callOptions19);
+  const callOptions20 = { type: 'webp', filename: 'page.webp' };
+  await call('browser_take_screenshot', callOptions20);
+  const callOptions21 = { static: false };
+  await call('browser_network_requests', callOptions21);
+  const callOptions22 = { index: 1, part: 'response-body' };
+  await call('browser_network_request', callOptions22);
+  const callOptions23 = { code: 'async (page) => await page.title()' };
+  await call('browser_run_code_unsafe', callOptions23);
+  const callOptions24 = { action: 'list' };
+  await call('browser_tabs', callOptions24);
+  const callOptions25 = { action: 'new', url: `${fixtureUrl}?tab=2` };
+  await call('browser_tabs', callOptions25);
+  const callOptions26 = { action: 'select', index: 0 };
+  await call('browser_tabs', callOptions26);
+  const callOptions27 = { action: 'close', index: 1 };
+  await call('browser_tabs', callOptions27);
+  const callOptions28 = { url: `${fixtureUrl}?page=2` };
+  await call('browser_navigate', callOptions28);
   await call('browser_navigate_back');
-  await call('browser_click', { target: '#dialog-button' });
-  await call('browser_handle_dialog', { accept: true, promptText: 'accepted' });
-  const consoleMessages = await call('browser_console_messages', { level: 'debug', all: true });
+  const callOptions29 = { target: '#dialog-button' };
+  await call('browser_click', callOptions29);
+  const callOptions30 = { accept: true, promptText: 'accepted' };
+  await call('browser_handle_dialog', callOptions30);
+  const callOptions31 = { level: 'debug', all: true };
+  const consoleMessages = await call('browser_console_messages', callOptions31);
   assertConsoleMethods(consoleMessages, target.mode);
-  await call('browser_evaluate', { function: '() => document.body.dataset.consoleProbe' });
+  const callOptions32 = { function: '() => document.body.dataset.consoleProbe' };
+  await call('browser_evaluate', callOptions32);
   await call('browser_close');
-
-  const covered = [...new Set(calls.map((entry) => entry.name))].sort();
-  assertEqual(covered, expectedDefaultTools, `${target.mode} covered tools`);
-
-  return { mode: target.mode, tools: upstreamToolNames, screenshotSchema, calls };
+  const mappedValues = calls.map((entry) => entry.name);
+  const argumentValue = [...new Set(mappedValues)];
+  const covered = [...argumentValue].sort();
+  const message14 = `${target.mode} covered tools`;
+  assertEqual(covered, expectedDefaultTools, message14);
+  return {
+    mode: target.mode,
+    tools: upstreamToolNames,
+    toolSchemas: upstreamTools,
+    screenshotSchema,
+    findFilenameSupported,
+    calls,
+  };
 }
-
 async function runHumanizationScenario(target, fixtureUrl) {
   const { tools } = await target.client.listTools();
   const upstreamToolNames = tools
     .map((tool) => tool.name)
     .filter((name) => !localToolNames.includes(name))
     .sort();
-  assertEqual(upstreamToolNames, expectedDefaultTools, `${target.mode} upstream tool list`);
-
+  const message15 = `${target.mode} upstream tool list`;
+  assertEqual(upstreamToolNames, expectedDefaultTools, message15);
   const calls = [];
   const call = async (name, args = {}) => {
     const started = Date.now();
-    const result = await target.client.callTool({ name, arguments: args });
+    const callToolOptions2 = { name, arguments: args };
+    const result = await target.client.callTool(callToolOptions2);
     const text =
       result.content?.map((item) => (item.type === 'text' ? item.text : `[${item.type}]`)).join('\n') ?? '';
-    calls.push({
+    const pushOptions3 = {
       name,
       ok: !result.isError,
       ms: Date.now() - started,
       text: normalizeToolResponseText(text),
-    });
-    if (result.isError) throw new Error(`${name} returned an MCP error: ${text}`);
+    };
+    calls.push(pushOptions3);
+    if (result.isError) {
+      const message16 = `${name} returned an MCP error: ${text}`;
+      throw new Error(message16);
+    }
     return result;
   };
-
-  await call('browser_resize', { width: 1280, height: 720 });
-  await call('browser_navigate', { url: fixtureUrl });
-  await call('browser_select_option', { target: '#role', values: ['admin'] });
-  await call('browser_click', { target: '#login' });
-  const nestedKeyPress = await call('browser_run_code_unsafe', { code: nestedDelayedKeyPressCode() });
-  const nestedKeyPressText = normalizeToolResponseText(
+  const callOptions33 = { width: 1280, height: 720 };
+  await call('browser_resize', callOptions33);
+  const callOptions34 = { url: fixtureUrl };
+  await call('browser_navigate', callOptions34);
+  const callOptions35 = { target: '#role', values: ['admin'] };
+  await call('browser_select_option', callOptions35);
+  const callOptions36 = { target: '#login' };
+  await call('browser_click', callOptions36);
+  const callOptions37 = { code: nestedDelayedKeyPressCode() };
+  const nestedKeyPress = await call('browser_run_code_unsafe', callOptions37);
+  const computedValue =
     nestedKeyPress.content?.map((item) => (item.type === 'text' ? item.text : `[${item.type}]`)).join('\n') ??
-      '',
-  );
+    '';
+  const nestedKeyPressText = normalizeToolResponseText(computedValue);
   if (!nestedKeyPressText.includes('nested delayed key press preserved')) {
-    throw new Error(`nested delayed key press result was unexpected: ${nestedKeyPressText}`);
+    const message17 = `nested delayed key press result was unexpected: ${nestedKeyPressText}`;
+    throw new Error(message17);
   }
   await call('browser_close');
-
   return { calls };
 }
-
 async function runWebmcpScenario(target, fixtureUrl) {
   const dynamicNames = async () =>
     (await target.client.listTools()).tools
@@ -343,14 +418,14 @@ async function runWebmcpScenario(target, fixtureUrl) {
       .filter((name) => name.startsWith('webmcp_'))
       .sort();
   const expectDynamicNames = async (expected, label) => {
-    const deadline = Date.now() + 2_000;
+    const deadline = Date.now() + 2000;
     let actual = await dynamicNames();
     while (JSON.stringify(actual) !== JSON.stringify(expected) && Date.now() < deadline) {
       await new Promise((resolve) => setTimeout(resolve, 25));
       actual = await dynamicNames();
     }
     if (actual.length === 0 && expected.length > 0) {
-      const diagnostic = await target.client.callTool({
+      const callToolOptions3 = {
         name: 'browser_run_code_unsafe',
         arguments: {
           code: `async (page) => ({
@@ -358,88 +433,112 @@ async function runWebmcpScenario(target, fixtureUrl) {
             hasModelContext: await page.evaluate(() => Boolean(document.modelContext || navigator.modelContext))
           })`,
         },
-      });
-      throw new Error(
-        `${label} mismatch; browser diagnostic: ${normalizeToolResponseText(toolResultText(diagnostic))}`,
-      );
+      };
+      const diagnostic = await target.client.callTool(callToolOptions3);
+      const templateValue2 = label;
+      const toolResultTextResult = toolResultText(diagnostic);
+      const templateValue3 = normalizeToolResponseText(toolResultTextResult);
+      const message18 = `${templateValue2} mismatch; browser diagnostic: ${templateValue3}`;
+      throw new Error(message18);
     }
     assertEqual(actual, expected, label);
   };
-
-  await expectDynamicNames([], `${target.mode} initial WebMCP tools`);
-  await target.client.callTool({
+  const values2 = [];
+  const message19 = `${target.mode} initial WebMCP tools`;
+  await expectDynamicNames(values2, message19);
+  const callToolOptions4 = {
     name: 'browser_navigate',
     arguments: { url: new URL('webmcp', fixtureUrl).href },
-  });
-  await expectDynamicNames(['webmcp_add'], `${target.mode} first-tab WebMCP tools`);
-
+  };
+  await target.client.callTool(callToolOptions4);
+  const values3 = ['webmcp_add'];
+  const message20 = `${target.mode} first-tab WebMCP tools`;
+  await expectDynamicNames(values3, message20);
   const addTool = (await target.client.listTools()).tools.find((tool) => tool.name === 'webmcp_add');
   if (addTool?.inputSchema?.properties?.a?.type !== 'number') {
-    throw new Error(`${target.mode} webmcp_add schema was not forwarded`);
+    const message21 = `${target.mode} webmcp_add schema was not forwarded`;
+    throw new Error(message21);
   }
   if (addTool.annotations?.readOnlyHint !== true) {
-    throw new Error(`${target.mode} webmcp_add annotations were not forwarded`);
+    const message22 = `${target.mode} webmcp_add annotations were not forwarded`;
+    throw new Error(message22);
   }
-  const addResult = await target.client.callTool({
+  const callToolOptions5 = {
     name: 'webmcp_add',
     arguments: { a: 2, b: 40 },
-  });
+  };
+  const addResult = await target.client.callTool(callToolOptions5);
   if (addResult.isError || !toolResultText(addResult).includes('42')) {
-    throw new Error(`${target.mode} webmcp_add did not return 42`);
+    const message23 = `${target.mode} webmcp_add did not return 42`;
+    throw new Error(message23);
   }
-
-  await target.client.callTool({
+  const callToolOptions6 = {
     name: 'browser_tabs',
     arguments: { action: 'new', url: new URL('webmcp-second', fixtureUrl).href },
-  });
-  await expectDynamicNames(['webmcp_echo'], `${target.mode} second-tab WebMCP tools`);
-  await target.client.callTool({ name: 'browser_tabs', arguments: { action: 'select', index: 0 } });
-  await expectDynamicNames(['webmcp_add'], `${target.mode} restored first-tab WebMCP tools`);
-
-  await target.client.callTool({
+  };
+  await target.client.callTool(callToolOptions6);
+  const values4 = ['webmcp_echo'];
+  const message24 = `${target.mode} second-tab WebMCP tools`;
+  await expectDynamicNames(values4, message24);
+  const callToolOptions7 = { name: 'browser_tabs', arguments: { action: 'select', index: 0 } };
+  await target.client.callTool(callToolOptions7);
+  const values5 = ['webmcp_add'];
+  const message25 = `${target.mode} restored first-tab WebMCP tools`;
+  await expectDynamicNames(values5, message25);
+  const callToolOptions8 = {
     name: 'browser_navigate',
     arguments: { url: new URL('plain', fixtureUrl).href },
-  });
-  await expectDynamicNames([], `${target.mode} removed WebMCP tools`);
-  const removedResult = await target.client.callTool({
+  };
+  await target.client.callTool(callToolOptions8);
+  const values6 = [];
+  const message26 = `${target.mode} removed WebMCP tools`;
+  await expectDynamicNames(values6, message26);
+  const callToolOptions9 = {
     name: 'webmcp_add',
     arguments: { a: 1, b: 1 },
-  });
+  };
+  const removedResult = await target.client.callTool(callToolOptions9);
   if (removedResult.isError !== true) {
-    throw new Error(`${target.mode} removed WebMCP tool remained callable`);
+    const message27 = `${target.mode} removed WebMCP tool remained callable`;
+    throw new Error(message27);
   }
-  await target.client.callTool({ name: 'browser_close', arguments: {} });
+  const callToolOptions10 = { name: 'browser_close', arguments: {} };
+  await target.client.callTool(callToolOptions10);
+  const propertyValue = addTool.inputSchema;
+  const propertyValue2 = addTool.annotations;
+  const toolResultTextResult2 = toolResultText(addResult);
+  const normalizeToolResponseTextResult = normalizeToolResponseText(toolResultTextResult2);
   return {
-    addSchema: addTool.inputSchema,
-    addAnnotations: addTool.annotations,
-    addResponse: normalizeToolResponseText(toolResultText(addResult)),
+    addSchema: propertyValue,
+    addAnnotations: propertyValue2,
+    addResponse: normalizeToolResponseTextResult,
   };
 }
-
 function compareWebmcpRuns(baselineRun, cloakRun) {
   assertEqual(cloakRun, baselineRun, 'WebMCP dynamic tool parity');
 }
-
 async function assertWebmcpDisabled(target, fixtureUrl) {
-  await target.client.callTool({
+  const callToolOptions11 = {
     name: 'browser_navigate',
     arguments: { url: new URL('webmcp', fixtureUrl).href },
-  });
-  const deadline = Date.now() + 2_000;
+  };
+  await target.client.callTool(callToolOptions11);
+  const deadline = Date.now() + 2000;
   do {
     const dynamicTools = (await target.client.listTools()).tools.filter((tool) =>
       tool.name.startsWith('webmcp_'),
     );
-    assertEqual(dynamicTools, [], `${target.mode} disabled WebMCP tools`);
+    const values7 = [];
+    const message28 = `${target.mode} disabled WebMCP tools`;
+    assertEqual(dynamicTools, values7, message28);
     await new Promise((resolve) => setTimeout(resolve, 25));
   } while (Date.now() < deadline);
-  await target.client.callTool({ name: 'browser_close', arguments: {} });
+  const callToolOptions12 = { name: 'browser_close', arguments: {} };
+  await target.client.callTool(callToolOptions12);
 }
-
 function toolResultText(result) {
   return result.content.map((item) => (item.type === 'text' ? item.text : `[${item.type}]`)).join('\n');
 }
-
 async function runDevtoolsSchemaScenario(target) {
   const { tools } = await target.client.listTools();
   const upstreamTools = tools
@@ -447,20 +546,17 @@ async function runDevtoolsSchemaScenario(target) {
     .map((tool) => ({ name: tool.name, inputSchema: tool.inputSchema }))
     .sort((left, right) => left.name.localeCompare(right.name));
   const recordingToolNames = ['browser_start_recording', 'browser_stop_recording'];
-
   for (const name of recordingToolNames) {
     if (!upstreamTools.some((tool) => tool.name === name)) {
-      throw new Error(`${target.mode} devtools tool list is missing ${name}`);
+      const message29 = `${target.mode} devtools tool list is missing ${name}`;
+      throw new Error(message29);
     }
   }
-
   return { tools: upstreamTools };
 }
-
 function compareDevtoolsSchemaRuns(baselineRun, cloakRun) {
   assertEqual(cloakRun.tools, baselineRun.tools, 'devtools upstream tool schema parity');
 }
-
 function nestedDelayedKeyPressCode() {
   return `async (page) => {
   const frame = page.frames().find((candidate) => candidate.url().endsWith('/nested-inner'));
@@ -492,16 +588,15 @@ function nestedDelayedKeyPressCode() {
   return 'nested delayed key press preserved';
 }`;
 }
-
 function assertScreenshotSchemaSupportsWebp(tools, mode) {
   const screenshotTool = tools.find((tool) => tool.name === 'browser_take_screenshot');
   const typeSchema = screenshotTool?.inputSchema?.properties?.type;
   if (!Array.isArray(typeSchema?.enum) || !typeSchema.enum.includes('webp')) {
-    throw new Error(`${mode} browser_take_screenshot schema does not support WebP`);
+    const message30 = `${mode} browser_take_screenshot schema does not support WebP`;
+    throw new Error(message30);
   }
   return screenshotTool.inputSchema;
 }
-
 function assertSnapshotIncludesBoxes(result, mode) {
   const text =
     result.content
@@ -509,10 +604,10 @@ function assertSnapshotIncludesBoxes(result, mode) {
       .map((item) => item.text)
       .join('\n') ?? '';
   if (!text.includes('[box=')) {
-    throw new Error(`${mode} browser_snapshot response does not include bounding boxes`);
+    const message31 = `${mode} browser_snapshot response does not include bounding boxes`;
+    throw new Error(message31);
   }
 }
-
 function assertConsoleMethods(result, mode) {
   const text =
     result.content
@@ -520,74 +615,81 @@ function assertConsoleMethods(result, mode) {
       .map((item) => item.text)
       .join('\n') ?? '';
   for (const method of ['log', 'warn', 'error', 'info', 'debug']) {
-    if (!text.includes(`console-probe-${method}`)) {
-      throw new Error(`${mode} console probe is missing console.${method}`);
+    if (
+      (() => {
+        const message32 = `console-probe-${method}`;
+        return !text.includes(message32);
+      })()
+    ) {
+      const message33 = `${mode} console probe is missing console.${method}`;
+      throw new Error(message33);
     }
   }
 }
-
 function compareRuns(baselineRun, cloakRun) {
   assertEqual(cloakRun.tools, baselineRun.tools, 'upstream tool list parity');
+  assertEqual(cloakRun.toolSchemas, baselineRun.toolSchemas, 'upstream tool schema parity');
   assertEqual(cloakRun.screenshotSchema, baselineRun.screenshotSchema, 'screenshot schema parity');
-  assertEqual(
-    cloakRun.calls.map((call) => call.name),
-    baselineRun.calls.map((call) => call.name),
-    'tool call sequence parity',
-  );
-
+  const mappedValues2 = cloakRun.calls.map((call) => call.name);
+  const mappedValues3 = baselineRun.calls.map((call) => call.name);
+  assertEqual(mappedValues2, mappedValues3, 'tool call sequence parity');
   for (const [index, call] of cloakRun.calls.entries()) {
     const baseline = baselineRun.calls[index];
-    if (baseline.ok !== call.ok) throw new Error(`${call.name} success mismatch at call ${index + 1}`);
+    if (baseline.ok !== call.ok)
+      throw (() => {
+        const message34 = `${call.name} success mismatch at call ${index + 1}`;
+        return new Error(message34);
+      })();
     // Console history differs by browser engine; assertConsoleMethods validates the current page output.
     if (call.name === 'browser_console_messages') continue;
     if (baseline.text !== call.text) {
-      throw new Error(
+      const computedValue2 =
         `${call.name} response mismatch at call ${index + 1}\n` +
-          `baseline: ${baseline.text}\n` +
-          `cloak: ${call.text}`,
-      );
+        `baseline: ${baseline.text}\n` +
+        `cloak: ${call.text}`;
+      throw new Error(computedValue2);
     }
   }
 }
-
 async function assertLocalTools(target) {
   for (const name of localToolNames) {
-    const result = await target.client.callTool({ name, arguments: {} });
-    if (result.isError) throw new Error(`${name} returned an error`);
-    if (!result.structuredContent) throw new Error(`${name} did not return structured content`);
+    const callToolOptions13 = { name, arguments: {} };
+    const result = await target.client.callTool(callToolOptions13);
+    if (result.isError)
+      throw (() => {
+        const message35 = `${name} returned an error`;
+        return new Error(message35);
+      })();
+    if (!result.structuredContent)
+      throw (() => {
+        const message36 = `${name} did not return structured content`;
+        return new Error(message36);
+      })();
   }
 }
-
 function printSummary(baselineRun, cloakRun, humanizationRun, devtoolsRun, webmcpRun) {
-  const width = Math.max(...baselineRun.calls.map((call) => call.name.length));
-  process.stdout.write(
-    `Compared ${baselineRun.tools.length} upstream Playwright MCP tools\nBaseline image: ${baselineImage}\nCloak image: ${image}\n`,
-  );
-  process.stdout.write(`${'Tool'.padEnd(width)}  baseline   cloak\n`);
+  const spreadValues = [...baselineRun.calls.map((call) => call.name.length)];
+  const width = Math.max(...spreadValues);
+  const message37 = `Compared ${baselineRun.tools.length} upstream Playwright MCP tools\nBaseline image: ${baselineImage}\nCloak image: ${image}\n`;
+  process.stdout.write(message37);
+  const message38 = `${'Tool'.padEnd(width)}  baseline   cloak\n`;
+  process.stdout.write(message38);
   for (const [index, call] of baselineRun.calls.entries()) {
     const cloakCall = cloakRun.calls[index];
-    process.stdout.write(
-      `${call.name.padEnd(width)}  ${call.ok ? 'ok' : 'fail'} ${String(call.ms).padStart(5)}ms  ${
-        cloakCall.ok ? 'ok' : 'fail'
-      } ${String(cloakCall.ms).padStart(5)}ms\n`,
-    );
+    const message39 = `${call.name.padEnd(width)}  ${call.ok ? 'ok' : 'fail'} ${String(call.ms).padStart(5)}ms  ${cloakCall.ok ? 'ok' : 'fail'} ${String(cloakCall.ms).padStart(5)}ms\n`;
+    process.stdout.write(message39);
   }
-  process.stdout.write(
-    `Humanization: nested delayed key press verified (${
-      humanizationRun.calls.find((call) => call.name === 'browser_run_code_unsafe')?.ms
-    }ms)\n`,
-  );
-  process.stdout.write(
-    `Devtools schemas: matched ${devtoolsRun.tools.length} upstream tools including browser_start_recording and browser_stop_recording\n`,
-  );
-  process.stdout.write(
-    `WebMCP: dynamic add/call/remove and tab switching verified (${webmcpRun.addResponse})\n`,
-  );
+  const message40 = `Humanization: nested delayed key press verified (${humanizationRun.calls.find((call) => call.name === 'browser_run_code_unsafe')?.ms}ms)\n`;
+  process.stdout.write(message40);
+  const message41 = `Devtools schemas: matched ${devtoolsRun.tools.length} upstream tools including browser_start_recording and browser_stop_recording\n`;
+  process.stdout.write(message41);
+  const message42 = `WebMCP: dynamic add/call/remove and tab switching verified (${webmcpRun.addResponse})\n`;
+  process.stdout.write(message42);
   if (reportPath) {
-    process.stdout.write(`Parity report: ${reportPath}\n`);
+    const message43 = `Parity report: ${reportPath}\n`;
+    process.stdout.write(message43);
   }
 }
-
 function createReport(baselineRun, cloakRun, humanizationRun, devtoolsRun, webmcpRun) {
   return {
     schemaVersion: 1,
@@ -600,6 +702,7 @@ function createReport(baselineRun, cloakRun, humanizationRun, devtoolsRun, webmc
     result: {
       matched: true,
       comparedCalls: baselineRun.calls.length,
+      findFilenameSupported: baselineRun.findFilenameSupported,
     },
     humanization: {
       actionAfterNavigation: true,
@@ -637,128 +740,90 @@ function createReport(baselineRun, cloakRun, humanizationRun, devtoolsRun, webmc
     }),
   };
 }
-
 function writeReport(filePath, report) {
-  mkdirSync(path.dirname(path.resolve(filePath)), { recursive: true });
-  writeFileSync(filePath, `${JSON.stringify(report, null, 2)}\n`);
+  const resolvedValue = path.resolve(filePath);
+  const dirnameResult = path.dirname(resolvedValue);
+  const mkdirSyncOptions = { recursive: true };
+  mkdirSync(dirnameResult, mkdirSyncOptions);
+  const message44 = `${JSON.stringify(report, null, 2)}\n`;
+  writeFileSync(filePath, message44);
 }
-
 async function startFixtureServer() {
-  const server = createServer(readFixtureTlsOptions(), (request, response) => {
-    const url = new URL(request.url ?? '/', 'https://127.0.0.1');
+  const fixtureTlsOptionsResult = readFixtureTlsOptions();
+  const server = createServer(fixtureTlsOptionsResult, (request, response) => {
+    const computedValue3 = request.url ?? '/';
+    const url = new URL(computedValue3, 'https://127.0.0.1');
     if (url.pathname === '/api/data') {
-      response.writeHead(200, { 'content-type': 'application/json' });
-      response.end(JSON.stringify({ ok: true, path: url.pathname }));
+      const writeHeadOptions = { 'content-type': 'application/json' };
+      response.writeHead(200, writeHeadOptions);
+      const stringifyOptions2 = { ok: true, path: url.pathname };
+      const serializedValue = JSON.stringify(stringifyOptions2);
+      response.end(serializedValue);
       return;
     }
     if (url.pathname === '/nested-outer') {
-      response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-      response.end(nestedOuterFixtureHtml());
+      const writeHeadOptions2 = { 'content-type': 'text/html; charset=utf-8' };
+      response.writeHead(200, writeHeadOptions2);
+      const nestedOuterFixtureHtmlResult = nestedOuterFixtureHtml();
+      response.end(nestedOuterFixtureHtmlResult);
       return;
     }
     if (url.pathname === '/nested-inner') {
-      response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-      response.end(nestedInnerFixtureHtml());
+      const writeHeadOptions3 = { 'content-type': 'text/html; charset=utf-8' };
+      response.writeHead(200, writeHeadOptions3);
+      const nestedInnerFixtureHtmlResult = nestedInnerFixtureHtml();
+      response.end(nestedInnerFixtureHtmlResult);
       return;
     }
     if (url.pathname === '/webmcp') {
-      response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-      response.end(webmcpFixtureHtml('add'));
+      const writeHeadOptions4 = { 'content-type': 'text/html; charset=utf-8' };
+      response.writeHead(200, writeHeadOptions4);
+      const webmcpFixtureHtmlResult = webmcpFixtureHtml('add');
+      response.end(webmcpFixtureHtmlResult);
       return;
     }
     if (url.pathname === '/webmcp-second') {
-      response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-      response.end(webmcpFixtureHtml('echo'));
+      const writeHeadOptions5 = { 'content-type': 'text/html; charset=utf-8' };
+      response.writeHead(200, writeHeadOptions5);
+      const webmcpFixtureHtmlResult2 = webmcpFixtureHtml('echo');
+      response.end(webmcpFixtureHtmlResult2);
       return;
     }
     if (url.pathname === '/plain') {
-      response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+      const writeHeadOptions6 = { 'content-type': 'text/html; charset=utf-8' };
+      response.writeHead(200, writeHeadOptions6);
       response.end('<!doctype html><title>Plain page</title><h1>No WebMCP tools</h1>');
       return;
     }
-    response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-    response.end(fixtureHtml());
+    const writeHeadOptions7 = { 'content-type': 'text/html; charset=utf-8' };
+    response.writeHead(200, writeHeadOptions7);
+    const fixtureHtmlResult = fixtureHtml();
+    response.end(fixtureHtmlResult);
   });
-
   await new Promise((resolve, reject) => {
     server.once('error', reject);
     server.listen(0, '127.0.0.1', resolve);
   });
-
   const address = server.address();
   return {
     url: `https://127.0.0.1:${address.port}/`,
     close: () => new Promise((resolve) => server.close(resolve)),
   };
 }
-
 function readFixtureTlsOptions() {
+  const uRL = new URL('../tests/fixtures/tls/localhost-cert.pem', import.meta.url);
+  const fileSyncResult = readFileSync(uRL);
+  const uRL2 = new URL('../tests/fixtures/tls/localhost-key.pem', import.meta.url);
+  const fileSyncResult2 = readFileSync(uRL2);
   return {
-    cert: readFileSync(new URL('../tests/fixtures/tls/localhost-cert.pem', import.meta.url)),
-    key: readFileSync(new URL('../tests/fixtures/tls/localhost-key.pem', import.meta.url)),
+    cert: fileSyncResult,
+    key: fileSyncResult2,
   };
 }
-
 function fixtureHtml() {
-  return `<!doctype html>
-<html>
-  <head>
-    <title>Cloak MCP fixture</title>
-    <style>
-      body { font-family: sans-serif; padding: 24px; }
-      #drop-target { border: 2px dashed #0f766e; height: 96px; margin-top: 12px; padding: 12px; }
-    </style>
-  </head>
-  <body>
-    <h1>Cloak MCP fixture</h1>
-    <form>
-      <label>Name <input id="name" name="name" /></label>
-      <label>Agree <input id="agree" type="checkbox" /></label>
-      <label>Notes <textarea id="notes"></textarea></label>
-      <label>Role
-        <select id="role"><option value="user">User</option><option value="admin">Admin</option></select>
-      </label>
-      <input id="file-input" type="file" />
-    </form>
-    <button id="login" type="button">Login</button>
-    <button id="dialog-button" type="button">Dialog</button>
-    <div id="drag-source" draggable="true">Drag source</div>
-    <div id="drop-target">Drop target</div>
-    <iframe id="nested-outer" src="/nested-outer" title="Nested fixture"></iframe>
-    <pre id="status">ready</pre>
-    <script>
-    console.log('console-probe-log');
-    console.warn('console-probe-warn');
-    console.error('console-probe-error');
-    console.info('console-probe-info');
-    console.debug('console-probe-debug');
-    document.body.dataset.consoleProbe = 'complete';
-      fetch('/api/data').then(r => r.json()).then(data => {
-        document.querySelector('#status').textContent = 'api:' + data.ok;
-      });
-      document.querySelector('#login').addEventListener('click', () => {
-        document.body.dataset.clicked = 'true';
-      });
-      document.querySelector('#dialog-button').addEventListener('click', () => {
-        prompt('Dialog question', 'default');
-      });
-      document.querySelector('#file-input').addEventListener('change', event => {
-        document.body.dataset.file = event.target.files[0]?.name || '';
-      });
-      document.querySelector('#drag-source').addEventListener('dragstart', event => {
-        event.dataTransfer.setData('text/plain', 'dragged');
-      });
-      document.querySelector('#drop-target').addEventListener('dragover', event => event.preventDefault());
-      document.querySelector('#drop-target').addEventListener('drop', event => {
-        event.preventDefault();
-        document.querySelector('#drop-target').textContent =
-          event.dataTransfer.getData('text/plain') || 'dropped';
-      });
-    </script>
-  </body>
-</html>`;
+  const uRL3 = new URL('../tests/fixtures/bridge-comparison/index.html', import.meta.url);
+  return readFileSync(uRL3, 'utf8');
 }
-
 function nestedOuterFixtureHtml() {
   return `<!doctype html>
 <html>
@@ -767,7 +832,6 @@ function nestedOuterFixtureHtml() {
   </body>
 </html>`;
 }
-
 function nestedInnerFixtureHtml() {
   return `<!doctype html>
 <html>
@@ -776,44 +840,8 @@ function nestedInnerFixtureHtml() {
   </body>
 </html>`;
 }
-
 function webmcpFixtureHtml(tool) {
-  const registration =
-    tool === 'add'
-      ? `modelContext.registerTool({
-          name: 'add',
-          description: 'Adds two numbers',
-          inputSchema: {
-            type: 'object',
-            properties: { a: { type: 'number' }, b: { type: 'number' } },
-            required: ['a', 'b']
-          },
-          annotations: { readOnlyHint: true },
-          async execute(input) {
-            return { content: [{ type: 'text', text: String(input.a + input.b) }] };
-          }
-        });`
-      : `modelContext.registerTool({
-          name: 'echo',
-          description: 'Echoes text',
-          inputSchema: {
-            type: 'object',
-            properties: { value: { type: 'string' } },
-            required: ['value']
-          },
-          async execute(input) {
-            return { content: [{ type: 'text', text: input.value }] };
-          }
-        });`;
-  return `<!doctype html>
-<html>
-  <head><title>WebMCP ${tool}</title></head>
-  <body>
-    <h1>WebMCP ${tool}</h1>
-    <script>
-      const modelContext = document.modelContext || navigator.modelContext;
-      ${registration}
-    </script>
-  </body>
-</html>`;
+  const message45 = `../tests/fixtures/bridge-comparison/webmcp-${tool}.html`;
+  const uRL4 = new URL(message45, import.meta.url);
+  return readFileSync(uRL4, 'utf8');
 }

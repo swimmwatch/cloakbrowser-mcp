@@ -34,6 +34,8 @@ docker run --rm -i \
 
 ## Streamable HTTP セッションメタデータ
 
+1 つの Streamable HTTP サーバーで、MCP セッションごとに異なるプロキシ設定を受け付けられます：
+
 ```json
 {
   "params": {
@@ -48,10 +50,14 @@ docker run --rm -i \
 }
 ```
 
-既存セッションは initialize 時の proxy を保持します。地域を変えるには新しいセッションを作ります。
+既存のセッションは `initialize` 時に設定されたプロキシを維持します。地域を切り替えるには新しいセッションを開始してください。
+
+## 確認
+
+MCP クライアントに IP またはローカライズのテストページを開かせ、観測された地域、言語、タイムゾーンをプロキシプロバイダーの想定する所在地と比較してください。
 
 ## 関連
 
-- [GeoIP Proxy Matching](../geoip-proxy-matching.md)
-- [Configuration](../configuration.md)
-- [Docker](../docker.md)
+- [GeoIPプロキシの照合](../geoip-proxy-matching.md)
+- [設定](../configuration.md#streamable-http-runtime-metadata)
+- [Docker](../docker.md#geoip-proxy-matching)

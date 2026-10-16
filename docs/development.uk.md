@@ -32,17 +32,16 @@ npm run check
 
 ```text
 src/
-  cli.ts                  CLI entry point
-  server.ts               outer MCP proxy server
-  bridge/
-    config.ts             Playwright MCP config generation
-    env.ts                env parsing helpers
-    paths.ts              upstream package path resolution
-    tools.ts              local Cloak introspection tools
-  runtime/
-    consoleFallback.ts    compatibility patch source strings
-  project/
-    metadata.ts           package and MCP metadata
+  cli.ts, cli/    CLI options and process lifecycle
+  server.ts       upstream MCP proxy
+  bridge/         browser configuration and local introspection
+  cdp/            managed CDP leases, readiness and capability proxy
+  http/           Streamable HTTP sessions and transport
+  docker/         container launcher, display and health checks
+  runtime/        console and humanize compatibility
+  logging/        runtime diagnostics
+  protocol/       shared MCP protocol support
+  project/        package and server metadata
 ```
 
 Вилучену реалізацію вбудованого адаптера/реєстру інструментів не слід повертати. Відповідальність за поведінку інструментів браузера покладається на розробників основного проекту Playwright MCP.
@@ -60,6 +59,7 @@ docker run --rm -i -v "$PWD/artifacts:/data" cloakbrowser-mcp:dev
 ```bash
 npm run docs:install
 npm run docs:assets
+npm run docs:metadata:check
 npm run docs:serve
 npm run docs:build
 ```

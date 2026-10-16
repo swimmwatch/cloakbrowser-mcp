@@ -17,11 +17,9 @@ import {
   READYZ_PATH,
   type StreamableHttpTlsOptions,
 } from '#src/http/options';
-
 export const cliDescription = 'Playwright MCP bridge backed by CloakBrowser.';
 export const cdpRemoteWarning =
   'warning: managed CDP enables an unencrypted privileged browser-control surface; use a secured TLS reverse proxy or an isolated network.\n';
-
 interface CommanderCliOptions {
   transport: BridgeTransportMode;
   binaryPath?: string;
@@ -48,17 +46,13 @@ interface CommanderCliOptions {
   cdpAdvertisedHost?: string;
   cdpAdvertisedScheme: string;
 }
-
 interface DoctorCliOptions {
   json?: boolean;
 }
-
 interface CreateCliCommandOptions {
   doctorAction?: (options: DoctorCliOptions) => Promise<void> | void;
 }
-
 type CliOptionValue = string | number | boolean;
-
 interface CliOptionDefinition {
   name: keyof CommanderCliOptions;
   flags: string;
@@ -69,7 +63,6 @@ interface CliOptionDefinition {
   choices?: readonly string[];
   parser?: (value: string) => CliOptionValue;
 }
-
 export const cliOptionDefinitions: readonly CliOptionDefinition[] = [
   {
     name: 'transport',
@@ -147,7 +140,7 @@ export const cliOptionDefinitions: readonly CliOptionDefinition[] = [
     env: 'CLOAK_PLAYWRIGHT_MCP_HTTP_PORT',
     group: 'Streamable HTTP',
     defaultValue: defaultStreamableHttpOptions.port,
-    parser: parseIntegerInRange('HTTP port', 0, 65_535),
+    parser: parseIntegerInRange('HTTP port', 0, 65535),
   },
   {
     name: 'httpEndpoint',
@@ -279,7 +272,6 @@ export const cliOptionDefinitions: readonly CliOptionDefinition[] = [
     choices: ['http', 'https'],
   },
 ];
-
 export function createCliCommand(version: string, options: CreateCliCommandOptions = {}): Command {
   const command = new Command()
     .name('cloakbrowser-mcp')
@@ -289,33 +281,33 @@ export function createCliCommand(version: string, options: CreateCliCommandOptio
     .showSuggestionAfterError()
     .allowExcessArguments(false)
     .action(() => undefined);
-
   for (const definition of cliOptionDefinitions) {
-    command.addOption(createCommanderOption(definition));
+    const commanderOptionResult = createCommanderOption(definition);
+    command.addOption(commanderOptionResult);
   }
-
-  command.addCommand(createDoctorCommand(options.doctorAction));
-
+  const doctorCommandResult = createDoctorCommand(options.doctorAction);
+  command.addCommand(doctorCommandResult);
   return command;
 }
-
 export function parseCliOptions(args: readonly string[]): CliOptions {
   validateCdpBooleanFlagConflicts(args);
   const command = createCliCommand('0.0.0');
   command.exitOverride();
-  command.configureOutput({
+  const configureOutputOptions: import('commander').OutputConfiguration = {
     writeOut: () => undefined,
     writeErr: () => undefined,
-  });
-  command.parse(args, { from: 'user' });
-  return toCliOptions(command.opts<CommanderCliOptions>(), command, args);
+  };
+  command.configureOutput(configureOutputOptions);
+  const parseOptions = { from: 'user' } as const;
+  command.parse(args, parseOptions);
+  const optsResult = command.opts<CommanderCliOptions>();
+  return toCliOptions(optsResult, command, args);
 }
-
 export function readCliOptions(command: Command): CliOptions {
   validateCdpBooleanFlagConflicts(process.argv);
-  return toCliOptions(command.opts<CommanderCliOptions>(), command, process.argv);
+  const optsResult2 = command.opts<CommanderCliOptions>();
+  return toCliOptions(optsResult2, command, process.argv);
 }
-
 export function renderCliReferenceMarkdown(version: string): string {
   const command = createCliCommand(version);
   return `${renderCliReferenceFrontMatter()}# CLI Reference
@@ -341,26 +333,21 @@ ${createDoctorCommand().helpInformation().trimEnd()}
 ${renderOptionsTable()}
 `;
 }
-
 function createDoctorCommand(action?: (options: DoctorCliOptions) => Promise<void> | void): Command {
   const command = new Command('doctor')
     .description('Run local diagnostics without starting the MCP bridge.')
     .option('--json', 'Output diagnostics as JSON.');
-
   if (action) {
     command.action(async (options: DoctorCliOptions) => {
       await action(options);
     });
   }
-
   return command;
 }
-
 function createCommanderOption(definition: CliOptionDefinition): Option {
   const option = new Option(definition.flags, definition.description)
     .env(definition.env)
     .helpGroup(definition.group);
-
   const parser = definition.parser;
   if (parser) {
     option.argParser((value: string) => parser(value));
@@ -369,12 +356,12 @@ function createCommanderOption(definition: CliOptionDefinition): Option {
     option.choices(definition.choices);
   }
   if (definition.defaultValue !== undefined) {
-    option.default(definition.defaultValue, String(definition.defaultValue));
+    const argumentValue = definition.defaultValue;
+    const stringResult = String(definition.defaultValue);
+    option.default(argumentValue, stringResult);
   }
-
   return option;
 }
-
 function toCliOptions(
   options: CommanderCliOptions,
   command: Command,
@@ -382,53 +369,63 @@ function toCliOptions(
 ): CliOptions {
   const tls = normalizeTlsOptions(options);
   validateHttpProtocolOptions(options.httpProtocol, tls);
+  const propertyValue3 = options.transport;
+  const optionalStringResult = optionalString(options.binaryPath);
+  const argumentValue2 = options.geoipProxyMatch;
+  const rawBooleanEnvResult = readRawBooleanEnv(command, 'geoipProxyMatch');
+  const normalizeBooleanResult = normalizeBoolean(argumentValue2, rawBooleanEnvResult);
+  const argumentValue3 = options.humanize;
+  const rawBooleanEnvResult2 = readRawBooleanEnv(command, 'humanize');
+  const normalizeBooleanResult2 = normalizeBoolean(argumentValue3, rawBooleanEnvResult2);
+  const propertyValue = options.humanPreset;
+  const propertyValue2 = options.releaseChannel;
+  const options2 = {
+    binaryPath: optionalStringResult,
+    geoipProxyMatch: normalizeBooleanResult,
+    humanize: normalizeBooleanResult2,
+    humanPreset: propertyValue,
+    releaseChannel: propertyValue2,
+  } as const;
+  const createCdpEndpointConfigOptions = {
+    processEnabled: resolveCliBooleanSetting(
+      rawArgs,
+      '--cdp-enabled',
+      '--no-cdp-enabled',
+      process.env.CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED,
+      'CDP enabled',
+    ),
+    portRange: optionalString(options.cdpPortRange),
+    bindHost: options.cdpHost,
+    allowRemote: resolveCliBooleanSetting(
+      rawArgs,
+      '--cdp-allow-remote',
+      '--no-cdp-allow-remote',
+      process.env.CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE,
+      'CDP allow remote',
+    ),
+    advertisedHost: optionalString(options.cdpAdvertisedHost),
+    advertisedScheme: options.cdpAdvertisedScheme,
+  } as const;
+  const cdpEndpointConfigResult = createCdpEndpointConfig(createCdpEndpointConfigOptions);
+  const options3 = {
+    protocol: options.httpProtocol,
+    host: options.httpHost,
+    port: options.httpPort,
+    endpoint: options.httpEndpoint,
+    authToken: optionalString(options.httpAuthToken),
+    tls,
+    sessionBackend: options.httpSessionBackend,
+    sessionIdleTtlMs: options.httpSessionIdleTtlMs,
+    sessionMax: options.httpSessionMax,
+    bodyLimitBytes: defaultStreamableHttpOptions.bodyLimitBytes,
+  } as const;
   return {
-    transport: options.transport,
-    bridge: {
-      binaryPath: optionalString(options.binaryPath),
-      geoipProxyMatch: normalizeBoolean(
-        options.geoipProxyMatch,
-        readRawBooleanEnv(command, 'geoipProxyMatch'),
-      ),
-      humanize: normalizeBoolean(options.humanize, readRawBooleanEnv(command, 'humanize')),
-      humanPreset: options.humanPreset,
-      releaseChannel: options.releaseChannel,
-    },
-    cdp: createCdpEndpointConfig({
-      processEnabled: resolveCliBooleanSetting(
-        rawArgs,
-        '--cdp-enabled',
-        '--no-cdp-enabled',
-        process.env.CLOAK_PLAYWRIGHT_MCP_CDP_ENABLED,
-        'CDP enabled',
-      ),
-      portRange: optionalString(options.cdpPortRange),
-      bindHost: options.cdpHost,
-      allowRemote: resolveCliBooleanSetting(
-        rawArgs,
-        '--cdp-allow-remote',
-        '--no-cdp-allow-remote',
-        process.env.CLOAK_PLAYWRIGHT_MCP_CDP_ALLOW_REMOTE,
-        'CDP allow remote',
-      ),
-      advertisedHost: optionalString(options.cdpAdvertisedHost),
-      advertisedScheme: options.cdpAdvertisedScheme,
-    }),
-    http: {
-      protocol: options.httpProtocol,
-      host: options.httpHost,
-      port: options.httpPort,
-      endpoint: options.httpEndpoint,
-      authToken: optionalString(options.httpAuthToken),
-      tls,
-      sessionBackend: options.httpSessionBackend,
-      sessionIdleTtlMs: options.httpSessionIdleTtlMs,
-      sessionMax: options.httpSessionMax,
-      bodyLimitBytes: defaultStreamableHttpOptions.bodyLimitBytes,
-    },
+    transport: propertyValue3,
+    bridge: options2,
+    cdp: cdpEndpointConfigResult,
+    http: options3,
   };
 }
-
 function resolveCliBooleanSetting(
   args: readonly string[],
   positiveFlag: string,
@@ -436,15 +433,15 @@ function resolveCliBooleanSetting(
   environmentValue: string | undefined,
   label: string,
 ): boolean {
-  return resolveCdpBooleanSetting({
+  const resolveCdpBooleanSettingOptions = {
     defaultValue: false,
     environmentValue,
     label,
     positiveCli: args.includes(positiveFlag),
     negativeCli: args.includes(negativeFlag),
-  });
+  } as const;
+  return resolveCdpBooleanSetting(resolveCdpBooleanSettingOptions);
 }
-
 function validateCdpBooleanFlagConflicts(args: readonly string[]): void {
   if (args.includes('--cdp-enabled') && args.includes('--no-cdp-enabled')) {
     throw new InvalidArgumentError('CDP enabled CLI flags conflict');
@@ -453,27 +450,24 @@ function validateCdpBooleanFlagConflicts(args: readonly string[]): void {
     throw new InvalidArgumentError('CDP allow remote CLI flags conflict');
   }
 }
-
 function readRawBooleanEnv(command: Command, name: keyof CommanderCliOptions): string | undefined {
   if (command.getOptionValueSource(name) !== 'env') return undefined;
   const definition = cliOptionDefinitions.find((option) => option.name === name);
   return definition === undefined ? undefined : process.env[definition.env];
 }
-
 function normalizeBoolean(value: boolean | string | undefined, rawEnvValue?: string): boolean {
   if (rawEnvValue !== undefined) return parseBooleanEnvValue(rawEnvValue);
   if (typeof value === 'boolean') return value;
   if (value === undefined) return false;
   return parseBooleanEnvValue(value);
 }
-
 function parseBooleanEnvValue(value: string): boolean {
   const normalized = value.trim().toLowerCase();
   if (normalized === 'true') return true;
   if (normalized === 'false') return false;
-  throw new InvalidArgumentError(`Boolean environment values must be "true" or "false", got "${value}"`);
+  const message2 = `Boolean environment values must be "true" or "false", got "${value}"`;
+  throw new InvalidArgumentError(message2);
 }
-
 function normalizeTlsOptions(options: CommanderCliOptions): StreamableHttpTlsOptions {
   return {
     cert: optionalString(options.httpsCert),
@@ -482,21 +476,18 @@ function normalizeTlsOptions(options: CommanderCliOptions): StreamableHttpTlsOpt
     passphrase: optionalString(options.httpsPassphrase),
   };
 }
-
 function validateHttpProtocolOptions(protocol: HttpProtocol, tls: StreamableHttpTlsOptions): void {
   const hasCert = tls.cert !== undefined;
   const hasKey = tls.key !== undefined;
   const hasPfx = tls.pfx !== undefined;
   const hasPassphrase = tls.passphrase !== undefined;
   const hasAnyTlsOption = hasCert || hasKey || hasPfx || hasPassphrase;
-
   if (protocol === HTTP_PROTOCOL_HTTP) {
     if (hasAnyTlsOption) {
       throw new InvalidArgumentError('HTTPS certificate options require --http-protocol https');
     }
     return;
   }
-
   if (hasPfx && (hasCert || hasKey)) {
     throw new InvalidArgumentError('HTTPS must use either --https-pfx or --https-cert with --https-key');
   }
@@ -504,7 +495,6 @@ function validateHttpProtocolOptions(protocol: HttpProtocol, tls: StreamableHttp
   if (hasCert && hasKey) return;
   throw new InvalidArgumentError('HTTPS requires either --https-cert and --https-key, or --https-pfx');
 }
-
 function renderCliReferenceFrontMatter(): string {
   return `---
 description: Generated CLI reference for cloakbrowser-mcp.
@@ -516,18 +506,21 @@ tags:
 
 `;
 }
-
 function renderOptionsTable(): string {
   const rows = cliOptionDefinitions.map((definition) =>
     [
       code(definition.flags),
       code(definition.env),
-      definition.defaultValue === undefined ? 'unset' : code(String(definition.defaultValue)),
+      definition.defaultValue === undefined
+        ? 'unset'
+        : (() => {
+            const stringResult2 = String(definition.defaultValue);
+            return code(stringResult2);
+          })(),
       definition.choices ? definition.choices.map((choice) => code(choice)).join(', ') : '',
       definition.description,
     ].join(' | '),
   );
-
   return [
     ['Option', 'Environment', 'Default', 'Values', 'Description'].join(' | '),
     ['---', '---', '---', '---', '---'].join(' | '),
@@ -536,38 +529,38 @@ function renderOptionsTable(): string {
     .map((line) => `| ${line} |`)
     .join('\n');
 }
-
 function parseIntegerInRange(label: string, min: number, max: number): (value: string) => number {
   return (value: string): number => {
     const parsed = parseInteger(label, value);
     if (parsed < min || parsed > max) {
-      throw new InvalidArgumentError(`${label} must be an integer between ${min} and ${max}`);
+      const message3 = `${label} must be an integer between ${min} and ${max}`;
+      throw new InvalidArgumentError(message3);
     }
     return parsed;
   };
 }
-
 function parsePositiveInteger(label: string): (value: string) => number {
   return (value: string): number => {
     const parsed = parseInteger(label, value);
     if (parsed <= 0) {
-      throw new InvalidArgumentError(`${label} must be greater than 0`);
+      const message4 = `${label} must be greater than 0`;
+      throw new InvalidArgumentError(message4);
     }
     return parsed;
   };
 }
-
 function parseInteger(label: string, value: string): number {
   if (!/^-?\d+$/.test(value)) {
-    throw new InvalidArgumentError(`${label} must be an integer`);
+    const message5 = `${label} must be an integer`;
+    throw new InvalidArgumentError(message5);
   }
   const parsed = Number(value);
   if (!Number.isSafeInteger(parsed)) {
-    throw new InvalidArgumentError(`${label} must be a safe integer`);
+    const message6 = `${label} must be a safe integer`;
+    throw new InvalidArgumentError(message6);
   }
   return parsed;
 }
-
 function parseHttpEndpoint(value: string): string {
   if (!value.startsWith('/') || value.includes('?') || value.includes('#')) {
     throw new InvalidArgumentError('HTTP endpoint must be an absolute path such as "/mcp"');
@@ -580,18 +573,15 @@ function parseHttpEndpoint(value: string): string {
   }
   return value;
 }
-
 function parseNonEmptyString(message: string): (value: string) => string {
   return (value: string): string => {
     if (!value.trim()) throw new InvalidArgumentError(message);
     return value;
   };
 }
-
 function optionalString(value: string | undefined): string | undefined {
   return value === undefined || value === '' ? undefined : value;
 }
-
 function code(value: string): string {
   return `\`${value.replaceAll('`', '\\`')}\``;
 }

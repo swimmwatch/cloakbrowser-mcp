@@ -34,6 +34,8 @@ docker run --rm -i \
 
 ## Метадані сесії Streamable HTTP
 
+Один сервер Streamable HTTP може приймати різні налаштування проксі для кожного сеансу MCP:
+
 ```json
 {
   "params": {
@@ -48,10 +50,14 @@ docker run --rm -i \
 }
 ```
 
-Існуючі сесії зберігають proxy, захоплений під час initialize; для зміни регіону створіть нову сесію.
+Існуючі сеанси зберігають проксі, визначений під час `initialize`; створіть новий сеанс, щоб змінити регіон.
+
+## Перевірка
+
+Попросіть клієнт MCP відкрити сторінку перевірки IP або локалізації та порівняти спостережуваний регіон, мову й часовий пояс з очікуваним місцезнаходженням провайдера проксі.
 
 ## Повʼязані матеріали
 
-- [GeoIP Proxy Matching](../geoip-proxy-matching.md)
-- [Configuration](../configuration.md)
-- [Docker](../docker.md)
+- [Збіг проксі-серверів за GeoIP](../geoip-proxy-matching.md)
+- [Налаштування](../configuration.md#streamable-http-runtime-metadata)
+- [Docker](../docker.md#geoip-proxy-matching)

@@ -32,10 +32,10 @@ codex mcp add cloakbrowser --url http://127.0.0.1:3000/mcp
 
 ## Праверыць
 
-Папытаеце Кодэкс пералічыць інструменты MCP для `cloakbrowser` або выкарыстоўваць інструмент навігацыі браўзэра. Верхнія інструменты браўзэра Playwright MCP павінны з 'яўляцца разам з `cloakbrowser_binary_info` і `cloakbrowser_bridge_info`.
+Папрасіце Codex паказаць інструменты MCP сервера `cloakbrowser` або выканаць браўзерную навігацыю. Зыходныя браўзерныя інструменты Playwright MCP павінны адлюстроўвацца разам з `cloakbrowser_binary_info` і `cloakbrowser_bridge_info`.
 
 ## ЗВЯЗАНАЕ
 
-- [Getting Started](../getting-started.md)
-- [Docker Streamable HTTP Behind Reverse Proxy](docker-streamable-http-reverse-proxy.md)
-- [Tools](../tools.md)
+- [Пачатак працы](../getting-started.md#mcp-client-config)
+- [Docker Streamable HTTP за зваротным праксі](docker-streamable-http-reverse-proxy.md)
+- [Інструменты](../tools.md)

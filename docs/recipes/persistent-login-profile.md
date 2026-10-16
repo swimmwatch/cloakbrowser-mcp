@@ -44,3 +44,7 @@ Use container paths in environment variables. The host path is only used in the 
 - [Configuration](../configuration.md#streamable-http-runtime-metadata)
 - [Docker](../docker.md#persistent-profiles)
 - [Load Chrome Extension](load-chrome-extension.md)
+
+## CloakBrowser 0.6.0
+
+With CloakBrowser stealth enabled, an explicitly configured persistent profile retains its fingerprint seed in `.cloakbrowser-seed`. The first launch after upgrading assigns a seed if the file is absent. An explicit `--fingerprint`, including `--fingerprint=off`, takes precedence and leaves the file unchanged. No seed file is changed when stealth is disabled. Corrupt seed files are regenerated with a warning; file access failures stop startup.

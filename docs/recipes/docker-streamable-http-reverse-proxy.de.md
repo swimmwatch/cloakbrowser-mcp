@@ -27,11 +27,13 @@ Der Container lauscht intern auf 0.0.0.0, aber Docker veröffentlicht den Port n
 
 ## Endpoint proxyn
 
+Konfigurieren Sie Ihren Reverse Proxy so, dass er authentifizierten HTTPS-Verkehr an folgende Adresse weiterleitet:
+
 ```text
 http://127.0.0.1:3000/mcp
 ```
 
-Leiten Sie Authorization und mcp-session-id unverändert weiter. health probes sollten auth verwenden oder nur im vertrauenswürdigen Netzwerk erreichbar sein.
+Leiten Sie die Header `Authorization` und `mcp-session-id` unverändert weiter. Machen Sie `/healthz` und `/readyz` nur vertrauenswürdigen Zustandsprüfungen zugänglich oder verlangen Sie denselben Bearer-Token.
 
 ## Prüfen
 
@@ -40,8 +42,14 @@ curl -H "Authorization: Bearer $MCP_AUTH_TOKEN" http://127.0.0.1:3000/healthz
 curl -H "Authorization: Bearer $MCP_AUTH_TOKEN" http://127.0.0.1:3000/readyz
 ```
 
+Konfigurieren Sie anschließend den MCP-Client mit der öffentlichen HTTPS-URL, zum Beispiel:
+
+```text
+https://mcp.example.com/mcp
+```
+
 ## Verwandt
 
-- [Docker](../docker.md)
-- [Configuration](../configuration.md)
-- [Security](../security.md)
+- [Docker](../docker.md#streamable-http)
+- [Konfiguration](../configuration.md#https)
+- [Sicherheit](../security.md)

@@ -1,0 +1,2161 @@
+schema_version: 1
+spec_slug: automated-testing-and-reporting
+decisions:
+  - id: scope.manifest
+    category: scope
+    state: needs_user
+    provenance: user
+    question:
+      text: Confirm this exact scope proposal, or request a correction.
+      kind: single_choice
+      options:
+        - id: confirm
+          label: Confirm this proposal
+        - id: change
+          label: Change the proposal
+    answer: null
+    status: prepared
+    scope:
+      schema_version: 1
+      depth: standard
+      confirmed: false
+      rationale:
+        - Preserve Node ^22.13.0 or >=24, Linux/macOS/Windows; validate Docker Linux amd64/arm64 in existing jobs.
+        - Keep fast PR checks, Codecov and thresholds; real-browser scenarios remain heavy jobs or scheduled checks.
+        - User authorized research, specification, implementation and validation; no public report hosting, commits or PRs.
+      profiles:
+        - id: core
+          reason: Existing Vitest CLI and test configuration, browser and transport contracts.
+          state: active
+        - id: operations
+          reason: Private CI artifacts, parallel result aggregation, schedules and local report lifecycle.
+          state: active
+        - id: security
+          reason: Sanitization of diagnostic attachments and secrets; untrusted PR artifact handling.
+          state: active
+        - id: ui
+          reason: Use the existing Allure report UI; no product UI.
+          state: not_applicable
+        - id: backend
+          reason: No new deployed reporting service or application API.
+          state: not_applicable
+        - id: events
+          reason: No new event contracts.
+          state: not_applicable
+        - id: data
+          reason: Reports are disposable test artifacts; no application data migration.
+          state: not_applicable
+        - id: cross-surface
+          reason: Testing and reporting are one tooling outcome without application surface evolution.
+          state: not_applicable
+      planning_artifacts: []
+    revision: 1
+    supersedes_revision: null
+    question_origin:
+      id: scope.manifest
+      revision: 1
+  - id: scope.manifest
+    category: scope
+    state: answered
+    provenance: user
+    question:
+      text: Confirm this exact scope proposal, or request a correction.
+      kind: single_choice
+      options:
+        - id: confirm
+          label: Confirm this proposal
+        - id: change
+          label: Change the proposal
+    answer:
+      text: Подтверждаю
+      selected_ids:
+        - confirm
+    status: answered
+    scope:
+      schema_version: 1
+      depth: standard
+      confirmed: false
+      rationale:
+        - Preserve Node ^22.13.0 or >=24, Linux/macOS/Windows; validate Docker Linux amd64/arm64 in existing jobs.
+        - Keep fast PR checks, Codecov and thresholds; real-browser scenarios remain heavy jobs or scheduled checks.
+        - User authorized research, specification, implementation and validation; no public report hosting, commits or PRs.
+      profiles:
+        - id: core
+          reason: Existing Vitest CLI and test configuration, browser and transport contracts.
+          state: active
+        - id: operations
+          reason: Private CI artifacts, parallel result aggregation, schedules and local report lifecycle.
+          state: active
+        - id: security
+          reason: Sanitization of diagnostic attachments and secrets; untrusted PR artifact handling.
+          state: active
+        - id: ui
+          reason: Use the existing Allure report UI; no product UI.
+          state: not_applicable
+        - id: backend
+          reason: No new deployed reporting service or application API.
+          state: not_applicable
+        - id: events
+          reason: No new event contracts.
+          state: not_applicable
+        - id: data
+          reason: Reports are disposable test artifacts; no application data migration.
+          state: not_applicable
+        - id: cross-surface
+          reason: Testing and reporting are one tooling outcome without application surface evolution.
+          state: not_applicable
+      planning_artifacts: []
+    revision: 2
+    supersedes_revision: 1
+    question_origin:
+      id: scope.manifest
+      revision: 1
+    answer_source: 'User answer to request_user_input_async: Подтверждаю'
+    answered_question:
+      id: scope.manifest
+      revision: 1
+  - category: task-scope
+    state: instructed
+    provenance: user
+    instruction:
+      text: Expand automated testing in CloakBrowser MCP. Research architecture and existing unit/integration/E2E and CI; count the testing pyramid and distinguish mocks/fake upstream from real Chromium; map functional coverage, missing scenarios, duplicates and flakes. Specify prioritized test backlog and fast PR/heavy E2E/periodic strategy. Prefer Allure Report 3 with Vitest after current compatibility comparison. Report all levels with status, duration, errors, stack traces, retries/history, feature/environment grouping, screenshot/log attachments, local HTML viewing, GitHub Actions artifacts, parallel-job merge and Job Summary. Preserve Codecov and thresholds, upstream MCP contracts and architectural constraints; protect secrets; no unnecessary public report hosting. Implement prioritized missing real Chromium local-fixture tests with deterministic isolation/cleanup, reuse helpers; preserve cross-platform Node and Linux/macOS/Windows/Docker verification without heavy new required PR jobs. Update developer documentation. Validate typecheck, lint, unit/integration/E2E, coverage, report success/failure and npm run check; present final pyramid, matrix/gaps, tests, actual coverage and commands. Work autonomously beyond specification; no commits or PRs.
+      source: 'User request in this chat, 2026-10-09: automated testing and reporting'
+      kind: initial_request
+    related_decisions: []
+    requirement_ids: []
+    question: null
+    answer: null
+    id: ec512932-4a32-43f1-a8df-747e3c570c2c
+    revision: 1
+    supersedes_revision: null
+  - category: reporting-compatibility
+    state: observed
+    provenance: repository
+    fact: Installed Vitest is 5.0.1. Official allure-vitest 3.13.0 advertises Vitest>=1.3.0 but its onTestRunEnd reads test.task, absent from Vitest 5 public TestModule; isolated passing/failing/skipped probe executed assertions and produced zero result files. @vitest/runner 5.0.1 is not published (latest4.1.11). Keep Vitest5 and evaluate Allure3 via public reporter API instead of downgrading the runner.
+    evidence:
+      - 'package-lock.json: vitest5.0.1'
+      - Official npm metadata allure-vitest3.13.0 and @vitest/runner4.1.11 checked2026-10-09
+      - Isolated /tmp probe2026-10-09:1passed1failed1skipped,0resultfiles
+      - https://github.com/allure-framework/allure-js/blob/main/packages/allure-vitest/src/reporter.ts
+    question: null
+    answer: null
+    id: 7834c4b6-a3f2-40cd-b3ab-167d654a23bb
+    revision: 1
+    supersedes_revision: null
+  - category: reporting-compatibility
+    state: observed
+    provenance: repository
+    fact: Installed Vitest is 5.0.1. Official allure-vitest 3.13.0 advertises Vitest>=1.3.0 but its onTestRunEnd reads test.task, absent from Vitest 5 public TestModule; isolated passing/failing/skipped probe executed assertions and produced zero result files. @vitest/runner 5.0.1 is not published (latest4.1.11). Keep Vitest5 and evaluate Allure3 via public reporter API instead of downgrading the runner.
+    evidence:
+      - 'package-lock.json: vitest5.0.1'
+      - Official npm metadata allure-vitest3.13.0 and @vitest/runner4.1.11 checked2026-10-09
+      - Isolated /tmp probe2026-10-09:1passed1failed1skipped,0resultfiles
+      - https://github.com/allure-framework/allure-js/blob/main/packages/allure-vitest/src/reporter.ts
+    question: null
+    answer: null
+    id: 7834c4b6-a3f2-40cd-b3ab-167d654a23bb
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - TEST-006
+  - category: task-scope
+    state: instructed
+    provenance: user
+    instruction:
+      text: Expand automated testing in CloakBrowser MCP. Research architecture and existing unit/integration/E2E and CI; count the testing pyramid and distinguish mocks/fake upstream from real Chromium; map functional coverage, missing scenarios, duplicates and flakes. Specify prioritized test backlog and fast PR/heavy E2E/periodic strategy. Prefer Allure Report 3 with Vitest after current compatibility comparison. Report all levels with status, duration, errors, stack traces, retries/history, feature/environment grouping, screenshot/log attachments, local HTML viewing, GitHub Actions artifacts, parallel-job merge and Job Summary. Preserve Codecov and thresholds, upstream MCP contracts and architectural constraints; protect secrets; no unnecessary public report hosting. Implement prioritized missing real Chromium local-fixture tests with deterministic isolation/cleanup, reuse helpers; preserve cross-platform Node and Linux/macOS/Windows/Docker verification without heavy new required PR jobs. Update developer documentation. Validate typecheck, lint, unit/integration/E2E, coverage, report success/failure and npm run check; present final pyramid, matrix/gaps, tests, actual coverage and commands. Work autonomously beyond specification; no commits or PRs.
+      source: 'User request in this chat, 2026-10-09: automated testing and reporting'
+      kind: initial_request
+    related_decisions: []
+    requirement_ids:
+      - TEST-001
+      - TEST-002
+      - TEST-003
+      - TEST-004
+      - TEST-005
+      - TEST-006
+      - TEST-007
+      - TEST-008
+      - TEST-009
+      - TEST-010
+    question: null
+    answer: null
+    id: ec512932-4a32-43f1-a8df-747e3c570c2c
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+  - category: scope-boundary
+    state: instructed
+    provenance: user
+    instruction:
+      text: нужно по всему функционалу ключевому добавить проверки. зафиксируй это пожалуйста в спецификации.
+      source: User follow-up in the current chat
+      kind: user_edit
+    related_decisions:
+      - id: ec512932-4a32-43f1-a8df-747e3c570c2c
+        revision: 2
+    requirement_ids:
+      - TEST-001
+      - TEST-010
+      - TEST-011
+    question: null
+    answer: null
+    id: 52679f4d-b6b9-4b8b-9a85-38997332f874
+    revision: 1
+    supersedes_revision: null
+  - category: implementation-boundary
+    state: instructed
+    provenance: user
+    instruction:
+      text: Нет, это ошибка. Удали код лишний, который ты сделал. Текущая работа ограничена изменением спецификации; реализацию не возобновлять без нового явного указания.
+      source: User correction and current specification-only request in this chat
+      kind: user_edit
+    related_decisions:
+      - id: ec512932-4a32-43f1-a8df-747e3c570c2c
+        revision: 2
+    requirement_ids:
+      - TEST-001
+      - TEST-011
+    question: null
+    answer: null
+    id: a507d589-056f-453b-b41e-c57fae039c0b
+    revision: 1
+    supersedes_revision: null
+  - category: report_delivery
+    state: instructed
+    provenance: user
+    instruction:
+      text: Давай тогда это заложим в плане. The user requests planning public Allure HTML delivery through a separate report repository with its own GitHub Pages and a link from the pull request, preserving the project's existing documentation site. This authorizes a plan amendment only; creating the repository, granting credentials, writing PR comments or publishing reports still requires separate explicit authorization.
+      source: Human user, this conversation, 2026-10-10; approval of the separate-report-repository proposal.
+      kind: follow_up
+    related_decisions: []
+    requirement_ids:
+      - TEST-007
+      - TEST-008
+      - TEST-009
+    question: null
+    answer: null
+    id: 301e19f0-2621-412e-b6b4-dc23d3666ddd
+    revision: 1
+    supersedes_revision: null
+  - category: report-delivery-amendment
+    state: instructed
+    provenance: user
+    instruction:
+      text: "The user requested explicit Action/project/repository choices in the plan and approved specification reconciliation: 'Я согласую, давай.' Retain Allure Report 3; select peaceiris/actions-gh-pages for publication to a separate reports-only GitHub Pages repository and allure-framework/allure-action for report statistics and deployed links in PRs. Proposed destination swimmwatch/cloakbrowser-mcp-reports still needs exact external setup authorization. Keep one merged matrix report with environment variants, immutable PR/run/attempt/SHA URLs, 14-day retention, trusted publication and one updated bot-owned comment plus Job Summary. Preserve the existing documentation site. This approval authorizes specification reconciliation only, not implementation, repository creation, credentials, public activation, comments, commits, pushes or PR creation."
+      source: 'User messages on 2026-10-10: explicit request to name selected components in the plan, followed by approval to reconcile the specification.'
+      kind: follow_up
+    related_decisions:
+      - id: 301e19f0-2621-412e-b6b4-dc23d3666ddd
+        revision: 1
+    requirement_ids:
+      - TEST-007
+      - TEST-008
+      - TEST-009
+    question: null
+    answer: null
+    id: 95e828ec-3581-4edc-abd2-8808a24ecc0d
+    revision: 1
+    supersedes_revision: null
+  - id: scope.manifest
+    category: scope
+    state: needs_user
+    provenance: user
+    question:
+      text: Confirm this exact scope proposal, or request a correction.
+      kind: single_choice
+      options:
+        - id: confirm
+          label: Confirm this proposal
+        - id: change
+          label: Change the proposal
+    answer: null
+    status: prepared
+    scope:
+      schema_version: 1
+      depth: standard
+      confirmed: false
+      rationale:
+        - Preserve Node runtime, native Linux/macOS/Windows and existing Docker checks, Codecov and coverage thresholds.
+        - Add planned reports-only Pages delivery and a PR link using the components explicitly requested and approved on 2026-10-10; keep source documentation publication independent.
+        - All key functional checks remain in scope. Implementation and external setup/public activation require separate authorization; no commits or PR creation.
+      profiles:
+        - id: core
+          reason: Existing Vitest test tooling and unchanged browser/transport contracts.
+          state: active
+        - id: operations
+          reason: Local/CI report generation, matrix aggregation, history, retention and separately hosted Pages delivery.
+          state: active
+        - id: security
+          reason: Secret-safe diagnostics, public report sanitization and trusted publication of untrusted PR results.
+          state: active
+        - id: ui
+          reason: Use existing Allure UI; no product UI.
+          state: not_applicable
+        - id: backend
+          reason: No new reporting service or application API.
+          state: not_applicable
+        - id: events
+          reason: No new product event contracts.
+          state: not_applicable
+        - id: data
+          reason: Disposable reports; no application data migration.
+          state: not_applicable
+        - id: cross-surface
+          reason: One testing/reporting tooling outcome.
+          state: not_applicable
+      planning_artifacts: []
+    revision: 3
+    supersedes_revision: 2
+    question_origin:
+      id: scope.manifest
+      revision: 3
+  - id: scope.manifest
+    category: scope
+    state: answered
+    provenance: user
+    question:
+      text: Confirm this exact scope proposal, or request a correction.
+      kind: single_choice
+      options:
+        - id: confirm
+          label: Confirm this proposal
+        - id: change
+          label: Change the proposal
+    answer:
+      text: Я согласую, давай. This confirms the previously presented reports-only Pages/PR-link amendment while preserving Standard depth, core/operations/security and separate implementation/external-action gates.
+      selected_ids:
+        - confirm
+    status: answered
+    scope:
+      schema_version: 1
+      depth: standard
+      confirmed: false
+      rationale:
+        - Preserve Node runtime, native Linux/macOS/Windows and existing Docker checks, Codecov and coverage thresholds.
+        - Add planned reports-only Pages delivery and a PR link using the components explicitly requested and approved on 2026-10-10; keep source documentation publication independent.
+        - All key functional checks remain in scope. Implementation and external setup/public activation require separate authorization; no commits or PR creation.
+      profiles:
+        - id: core
+          reason: Existing Vitest test tooling and unchanged browser/transport contracts.
+          state: active
+        - id: operations
+          reason: Local/CI report generation, matrix aggregation, history, retention and separately hosted Pages delivery.
+          state: active
+        - id: security
+          reason: Secret-safe diagnostics, public report sanitization and trusted publication of untrusted PR results.
+          state: active
+        - id: ui
+          reason: Use existing Allure UI; no product UI.
+          state: not_applicable
+        - id: backend
+          reason: No new reporting service or application API.
+          state: not_applicable
+        - id: events
+          reason: No new product event contracts.
+          state: not_applicable
+        - id: data
+          reason: Disposable reports; no application data migration.
+          state: not_applicable
+        - id: cross-surface
+          reason: One testing/reporting tooling outcome.
+          state: not_applicable
+      planning_artifacts: []
+    revision: 4
+    supersedes_revision: 3
+    question_origin:
+      id: scope.manifest
+      revision: 3
+    answer_source: Direct user reply on 2026-10-10 to the immediately preceding plan and specification-reconciliation summary; no new interview or inferred silence.
+    answered_question:
+      id: scope.manifest
+      revision: 3
+  - category: report_delivery
+    state: instructed
+    provenance: user
+    instruction:
+      text: Наш обработчик (Recommended)
+      source: 'Human user selected this exact option in Request User Input in this conversation, 2026-10-10. The shown option says: Keep Allure 3 and peaceiris; implement author/SHA/run-freshness verified comments in project-owned code after specification amendment. This replaces only mandatory allure-framework/allure-action comment/statistics delivery; all other report safety and external activation gates remain.'
+      kind: follow_up
+    related_decisions:
+      - id: 301e19f0-2621-412e-b6b4-dc23d3666ddd
+        revision: 1
+    requirement_ids:
+      - TEST-009
+    question: null
+    answer: null
+    id: 4f47ba22-bd13-49e3-a54f-5690e27eb4a7
+    revision: 1
+    supersedes_revision: null
+  - category: implementation_scope
+    state: instructed
+    provenance: user
+    instruction:
+      text: Ok
+      source: Human user's reply in this conversation, 2026-10-10, to the pending Request User Input question permitting eslint.config.js scope and only the technical default-project-file limit 44 to 45 while preserving all ESLint rules.
+      kind: follow_up
+    related_decisions: []
+    requirement_ids: []
+    question: null
+    answer: null
+    id: 7acdf21f-948a-4eb9-8299-6e84aab5ff17
+    revision: 1
+    supersedes_revision: null
+  - category: implementation_scope
+    state: instructed
+    provenance: user
+    instruction:
+      text: Ok
+      source: Human user's reply in this conversation, 2026-10-10, to the pending Request User Input question permitting eslint.config.js scope and only the technical default-project-file limit 44 to 45 while preserving all ESLint rules.
+      kind: follow_up
+    related_decisions: []
+    requirement_ids: []
+    question: null
+    answer: null
+    id: 7acdf21f-948a-4eb9-8299-6e84aab5ff17
+    revision: 2
+    supersedes_revision: 1
+    context_reason: Exact implementation-file scope permission and technical ESLint project-service capacity, not a product behavior, public interface, or relaxation of lint/security/coverage rules.
+extensions:
+  workflow_mcp_receipts:
+    - id: b416d53d54979e69fc9a0f9de853cadfffe59173d0910130685afd8b86355ffb
+      result:
+        question_ref:
+          id: scope.manifest
+          revision: 1
+        question:
+          text: Confirm this exact scope proposal, or request a correction.
+          kind: single_choice
+          options:
+            - id: confirm
+              label: Confirm this proposal
+            - id: change
+              label: Change the proposal
+        proposal:
+          schema_version: 1
+          depth: standard
+          confirmed: false
+          rationale:
+            - Preserve Node ^22.13.0 or >=24, Linux/macOS/Windows; validate Docker Linux amd64/arm64 in existing jobs.
+            - Keep fast PR checks, Codecov and thresholds; real-browser scenarios remain heavy jobs or scheduled checks.
+            - User authorized research, specification, implementation and validation; no public report hosting, commits or PRs.
+          profiles:
+            - id: core
+              reason: Existing Vitest CLI and test configuration, browser and transport contracts.
+              state: active
+            - id: operations
+              reason: Private CI artifacts, parallel result aggregation, schedules and local report lifecycle.
+              state: active
+            - id: security
+              reason: Sanitization of diagnostic attachments and secrets; untrusted PR artifact handling.
+              state: active
+            - id: ui
+              reason: Use the existing Allure report UI; no product UI.
+              state: not_applicable
+            - id: backend
+              reason: No new deployed reporting service or application API.
+              state: not_applicable
+            - id: events
+              reason: No new event contracts.
+              state: not_applicable
+            - id: data
+              reason: Reports are disposable test artifacts; no application data migration.
+              state: not_applicable
+            - id: cross-surface
+              reason: Testing and reporting are one tooling outcome without application surface evolution.
+              state: not_applicable
+          planning_artifacts: []
+        next: Ask this saved question with the host-native question tool; then record the actual answer.
+    - id: f92f301b65f8cee1728d805696c8b7252328bd645cf541f0d30afafe61caf7c8
+      result:
+        decision_ref:
+          id: scope.manifest
+          revision: 2
+        state: answered
+    - id: cea32330a2f5cd3f1c777c9a8f80a173d6bcf574b5926abd17adb7fb827825c7
+      result:
+        decision_ref:
+          id: ec512932-4a32-43f1-a8df-747e3c570c2c
+          revision: 1
+        state: instructed
+    - id: a4707eaf66a6a7482caff98e3fcbe2240c33f809e90e47830c0a38ad88c4963c
+      result:
+        decision_ref:
+          id: 7834c4b6-a3f2-40cd-b3ab-167d654a23bb
+          revision: 1
+        state: observed
+    - id: 707c5451194fb8d23b06abc7b0a75cda33ab7c9290e79d3a70e7e6de90b48a2b
+      result:
+        items:
+          - decision_ref:
+              id: 7834c4b6-a3f2-40cd-b3ab-167d654a23bb
+              revision: 2
+            previous_requirement_ids: []
+            added:
+              - TEST-006
+            removed: []
+            requirement_ids:
+              - TEST-006
+            operation_applied: true
+          - decision_ref:
+              id: ec512932-4a32-43f1-a8df-747e3c570c2c
+              revision: 2
+            previous_requirement_ids: []
+            added:
+              - TEST-001
+              - TEST-002
+              - TEST-003
+              - TEST-004
+              - TEST-005
+              - TEST-006
+              - TEST-007
+              - TEST-008
+              - TEST-009
+              - TEST-010
+            removed: []
+            requirement_ids:
+              - TEST-001
+              - TEST-002
+              - TEST-003
+              - TEST-004
+              - TEST-005
+              - TEST-006
+              - TEST-007
+              - TEST-008
+              - TEST-009
+              - TEST-010
+            operation_applied: true
+        operation_applied: true
+    - id: 686a7442a69e0e2656249d1985d82156ff1b5f543043cff8f9b1f36cacd464d7
+      result:
+        review_ref: c197dfaf-c1d9-444b-a2cb-63fe892a6035
+        source_version: d593619084ca5eeee09f082654b08b7d4f7cbbe56bc2d5f7c23dab5f2128672e
+        total_items: 17
+        recorded_items: 0
+        consistency_required: true
+        mechanical_status: pass
+        mechanical_issues: []
+        total_mechanical_issues: 0
+        next: Use a separate context to read every item completely and record an evidence-based verdict.
+    - id: 9bdfd8cdb49cf994d234b20c44215c0c0c0d340482c047ed97a6b816aa3be9b5
+      result:
+        review_ref: c197dfaf-c1d9-444b-a2cb-63fe892a6035
+        items:
+          - item_index: 0
+            item_key: source:scope.manifest
+            verdict: covered
+          - item_index: 1
+            item_key: source:ec512932-4a32-43f1-a8df-747e3c570c2c
+            verdict: gap
+          - item_index: 2
+            item_key: source:7834c4b6-a3f2-40cd-b3ab-167d654a23bb
+            verdict: gap
+          - item_index: 3
+            item_key: requirement:TEST-001
+            verdict: covered
+          - item_index: 4
+            item_key: requirement:TEST-002
+            verdict: covered
+          - item_index: 5
+            item_key: requirement:TEST-003
+            verdict: covered
+          - item_index: 6
+            item_key: requirement:TEST-004
+            verdict: covered
+          - item_index: 7
+            item_key: requirement:TEST-005
+            verdict: covered
+          - item_index: 8
+            item_key: requirement:TEST-006
+            verdict: covered
+          - item_index: 9
+            item_key: requirement:TEST-007
+            verdict: covered
+          - item_index: 10
+            item_key: requirement:TEST-008
+            verdict: covered
+          - item_index: 11
+            item_key: requirement:TEST-009
+            verdict: covered
+          - item_index: 12
+            item_key: requirement:TEST-010
+            verdict: covered
+          - item_index: 13
+            item_key: profile:core
+            verdict: covered
+          - item_index: 14
+            item_key: profile:operations
+            verdict: covered
+          - item_index: 15
+            item_key: profile:security
+            verdict: covered
+        batch_size: 16
+        recorded_items: 16
+    - id: e88b3a7004250937f6ccca8c7cb8d16ff695f6cd8e17fad65759ef80505760a7
+      result:
+        review_ref: c197dfaf-c1d9-444b-a2cb-63fe892a6035
+        consistency_status: gap
+    - id: 3797142586dad39da4b14c7245c8cc33fa81aa7a5e26683a07622e31937063c1
+      result:
+        review_ref: c197dfaf-c1d9-444b-a2cb-63fe892a6035
+        coverage_status: gaps
+        source_version: d593619084ca5eeee09f082654b08b7d4f7cbbe56bc2d5f7c23dab5f2128672e
+        semantic_correctness_proven: false
+        reviewer_independence_authenticated: false
+        approved_by_tool: false
+    - id: 677104d1d6079f4a444be820cfba42b0168b4b6fe4dfe7f637365a33532c6046
+      result:
+        review_ref: 21014d15-65a0-4e3b-811b-9f896570384c
+        source_version: 606642e97967f38b0b11cfe1477e88dfcadfdafcab04f29c8a951316d66164d7
+        total_items: 17
+        recorded_items: 0
+        consistency_required: true
+        mechanical_status: pass
+        mechanical_issues: []
+        total_mechanical_issues: 0
+        next: Use a separate context to read every item completely and record an evidence-based verdict.
+    - id: ad0d550226db70243c93c0b761b739843f251afca455e68535bea00c3a796d6b
+      result:
+        review_ref: 21014d15-65a0-4e3b-811b-9f896570384c
+        items:
+          - item_index: 0
+            item_key: source:scope.manifest
+            verdict: covered
+          - item_index: 1
+            item_key: source:ec512932-4a32-43f1-a8df-747e3c570c2c
+            verdict: covered
+          - item_index: 2
+            item_key: source:7834c4b6-a3f2-40cd-b3ab-167d654a23bb
+            verdict: covered
+        batch_size: 3
+        recorded_items: 3
+    - id: f8c8ab6e9b664174fad89450122c4460b5d9f3f7c30a481e74eb5d1936e8ff6c
+      result:
+        review_ref: 21014d15-65a0-4e3b-811b-9f896570384c
+        items:
+          - item_index: 3
+            item_key: requirement:TEST-001
+            verdict: covered
+          - item_index: 4
+            item_key: requirement:TEST-002
+            verdict: covered
+          - item_index: 5
+            item_key: requirement:TEST-003
+            verdict: covered
+          - item_index: 6
+            item_key: requirement:TEST-004
+            verdict: covered
+          - item_index: 7
+            item_key: requirement:TEST-005
+            verdict: covered
+        batch_size: 5
+        recorded_items: 8
+    - id: 2bb37ddfb646363b82a019882002b4fe0a3b5300239878a34645a6521236eb36
+      result:
+        review_ref: 21014d15-65a0-4e3b-811b-9f896570384c
+        items:
+          - item_index: 8
+            item_key: requirement:TEST-006
+            verdict: covered
+          - item_index: 9
+            item_key: requirement:TEST-007
+            verdict: covered
+          - item_index: 10
+            item_key: requirement:TEST-008
+            verdict: covered
+          - item_index: 11
+            item_key: requirement:TEST-009
+            verdict: covered
+          - item_index: 12
+            item_key: requirement:TEST-010
+            verdict: covered
+        batch_size: 5
+        recorded_items: 13
+    - id: 7693c5b6ca111d73780c23d01406c174bd40c7ee967a2031950cfa84bcb3690f
+      result:
+        review_ref: 21014d15-65a0-4e3b-811b-9f896570384c
+        items:
+          - item_index: 13
+            item_key: profile:core
+            verdict: covered
+          - item_index: 14
+            item_key: profile:operations
+            verdict: covered
+          - item_index: 15
+            item_key: profile:security
+            verdict: covered
+        batch_size: 3
+        recorded_items: 16
+    - id: 80616ed4a26aab5d9a9150f1913ac50fa94eadaae4483b3bc9d5e627399bf71e
+      result:
+        review_ref: 21014d15-65a0-4e3b-811b-9f896570384c
+        consistency_status: consistent
+    - id: cbaa12fdc60f33d91fbaf65ccc9b0c6c27ca287e3997914dfc1ff15015a88481
+      result:
+        review_ref: 21014d15-65a0-4e3b-811b-9f896570384c
+        coverage_status: reviewed
+        source_version: 606642e97967f38b0b11cfe1477e88dfcadfdafcab04f29c8a951316d66164d7
+        semantic_correctness_proven: false
+        reviewer_independence_authenticated: false
+        approved_by_tool: false
+    - id: 70c592a542d96a1c08590901c153e0c716c75851a6c6ce243edf662b25521cde
+      result:
+        review_ref: 21014d15-65a0-4e3b-811b-9f896570384c
+        approval_observed: true
+    - id: 82d988b7878303d0331f63bbb38a9c88fb49339facb9de501aceb3a5ca3fdc02
+      result:
+        decision_ref:
+          id: 52679f4d-b6b9-4b8b-9a85-38997332f874
+          revision: 1
+        state: instructed
+    - id: ce633a0d2f48a54af694d1cedd64dd05c6f16b91111d53d95d3021689921998c
+      result:
+        decision_ref:
+          id: a507d589-056f-453b-b41e-c57fae039c0b
+          revision: 1
+        state: instructed
+    - id: e351839be44e7d4502e2029be7e95f7940559cb527f7c52f7257e575cef965e3
+      result:
+        review_ref: 1cbb440a-b102-4da9-8bb7-e7516de3095b
+        source_version: 0b8ebdce529c4f195e5c7fe0854816a64abf030054f9245a49e87352fe085936
+        total_items: 20
+        recorded_items: 0
+        consistency_required: true
+        mechanical_status: pass
+        mechanical_issues: []
+        total_mechanical_issues: 0
+        next: Use a separate context to read every item completely and record an evidence-based verdict.
+    - id: 12d878b8b0ab09e4f45388d25fac9f3c2f3a46fa22c4557f9e67225bc95cc78d
+      result:
+        review_ref: 1cbb440a-b102-4da9-8bb7-e7516de3095b
+        items:
+          - item_index: 0
+            item_key: source:scope.manifest
+            verdict: covered
+          - item_index: 1
+            item_key: source:ec512932-4a32-43f1-a8df-747e3c570c2c
+            verdict: covered
+          - item_index: 2
+            item_key: source:7834c4b6-a3f2-40cd-b3ab-167d654a23bb
+            verdict: covered
+          - item_index: 3
+            item_key: source:52679f4d-b6b9-4b8b-9a85-38997332f874
+            verdict: covered
+          - item_index: 4
+            item_key: source:a507d589-056f-453b-b41e-c57fae039c0b
+            verdict: covered
+        batch_size: 5
+        recorded_items: 5
+    - id: a4274a8baaac4a1a37e2e28069db140196e6311e6030a7e46be9a3dc6dbd382a
+      result:
+        review_ref: 1cbb440a-b102-4da9-8bb7-e7516de3095b
+        items:
+          - item_index: 5
+            item_key: requirement:TEST-001
+            verdict: covered
+          - item_index: 6
+            item_key: requirement:TEST-002
+            verdict: covered
+          - item_index: 7
+            item_key: requirement:TEST-003
+            verdict: covered
+          - item_index: 8
+            item_key: requirement:TEST-004
+            verdict: covered
+          - item_index: 9
+            item_key: requirement:TEST-005
+            verdict: covered
+          - item_index: 10
+            item_key: requirement:TEST-006
+            verdict: covered
+        batch_size: 6
+        recorded_items: 11
+    - id: bd35bf3bc4a42dacc9c436d1c89aa7ea2e840987dbdb90d960427fa69bd4d8c0
+      result:
+        review_ref: 1cbb440a-b102-4da9-8bb7-e7516de3095b
+        items:
+          - item_index: 11
+            item_key: requirement:TEST-007
+            verdict: covered
+          - item_index: 12
+            item_key: requirement:TEST-008
+            verdict: covered
+          - item_index: 13
+            item_key: requirement:TEST-009
+            verdict: covered
+          - item_index: 14
+            item_key: requirement:TEST-010
+            verdict: covered
+          - item_index: 15
+            item_key: requirement:TEST-011
+            verdict: covered
+        batch_size: 5
+        recorded_items: 16
+    - id: 245ce9514acfdf90d3ae71005f081cc32ba7cad8626a800974d4a59bc435ac48
+      result:
+        review_ref: 1cbb440a-b102-4da9-8bb7-e7516de3095b
+        items:
+          - item_index: 16
+            item_key: profile:core
+            verdict: covered
+          - item_index: 17
+            item_key: profile:operations
+            verdict: covered
+          - item_index: 18
+            item_key: profile:security
+            verdict: covered
+        batch_size: 3
+        recorded_items: 19
+    - id: df80037a54d284832a2d07957103a6dfc549dac4aa98a40da141ba62b4d7b722
+      result:
+        review_ref: 1cbb440a-b102-4da9-8bb7-e7516de3095b
+        consistency_status: consistent
+    - id: 6bf0850c34eb7eeaef0f053a51be07bd23c2911e7af609d4add0b55d00c7e5e3
+      result:
+        review_ref: 1cbb440a-b102-4da9-8bb7-e7516de3095b
+        coverage_status: reviewed
+        source_version: 0b8ebdce529c4f195e5c7fe0854816a64abf030054f9245a49e87352fe085936
+        semantic_correctness_proven: false
+        reviewer_independence_authenticated: false
+        approved_by_tool: false
+    - id: e380be2c1d4dd406db12effa72c0df298cd71b1c0d0e45afcc8c0a19cee5bb34
+      result:
+        review_ref: 1cbb440a-b102-4da9-8bb7-e7516de3095b
+        approval_observed: true
+    - id: 3eb0bd526a5c32ecf81c420923bd5c505644eb809c410cb439e8075dffcfc88c
+      result:
+        decision_ref:
+          id: 301e19f0-2621-412e-b6b4-dc23d3666ddd
+          revision: 1
+        state: instructed
+    - id: f06c0759f4c1bebf5b51a33b9da8b04cfa41a6ec46a9fb2edfabc24f99c6b955
+      result:
+        decision_ref:
+          id: 95e828ec-3581-4edc-abd2-8808a24ecc0d
+          revision: 1
+        state: instructed
+    - id: a0cb0d7b6c393cbf8d24ac457886e39a95e3b41f09812829dc8be35e13e142d9
+      result:
+        question_ref:
+          id: scope.manifest
+          revision: 3
+        question:
+          text: Confirm this exact scope proposal, or request a correction.
+          kind: single_choice
+          options:
+            - id: confirm
+              label: Confirm this proposal
+            - id: change
+              label: Change the proposal
+        proposal:
+          schema_version: 1
+          depth: standard
+          confirmed: false
+          rationale:
+            - Preserve Node runtime, native Linux/macOS/Windows and existing Docker checks, Codecov and coverage thresholds.
+            - Add planned reports-only Pages delivery and a PR link using the components explicitly requested and approved on 2026-10-10; keep source documentation publication independent.
+            - All key functional checks remain in scope. Implementation and external setup/public activation require separate authorization; no commits or PR creation.
+          profiles:
+            - id: core
+              reason: Existing Vitest test tooling and unchanged browser/transport contracts.
+              state: active
+            - id: operations
+              reason: Local/CI report generation, matrix aggregation, history, retention and separately hosted Pages delivery.
+              state: active
+            - id: security
+              reason: Secret-safe diagnostics, public report sanitization and trusted publication of untrusted PR results.
+              state: active
+            - id: ui
+              reason: Use existing Allure UI; no product UI.
+              state: not_applicable
+            - id: backend
+              reason: No new reporting service or application API.
+              state: not_applicable
+            - id: events
+              reason: No new product event contracts.
+              state: not_applicable
+            - id: data
+              reason: Disposable reports; no application data migration.
+              state: not_applicable
+            - id: cross-surface
+              reason: One testing/reporting tooling outcome.
+              state: not_applicable
+          planning_artifacts: []
+        next: Ask this saved question with the host-native question tool; then record the actual answer.
+    - id: fc110a636af869cb71ab59009b5e502b13cc35eccb1427aede94050b17057ff8
+      result:
+        decision_ref:
+          id: scope.manifest
+          revision: 4
+        state: answered
+    - id: fd9dd80c0a13c9dfd63322035bb1e08f97610699eb015fa4d9ff8e09648e9709
+      result:
+        review_ref: 28b4daa7-1f0e-4286-ace1-eace5f685e70
+        source_version: 785424ba80d8dbf709c51901135a288276377b0a5aa08958d25c7d6ba2988a83
+        total_items: 22
+        recorded_items: 0
+        consistency_required: true
+        mechanical_status: pass
+        mechanical_issues: []
+        total_mechanical_issues: 0
+        next: Use a separate context to read every item completely and record an evidence-based verdict.
+    - id: e993bcfe2a4050700a3ba020e534a70bed1e1700fc94d72ba66187080d4a674a
+      result:
+        review_ref: 28b4daa7-1f0e-4286-ace1-eace5f685e70
+        items:
+          - item_index: 0
+            item_key: source:scope.manifest
+            verdict: covered
+          - item_index: 1
+            item_key: source:ec512932-4a32-43f1-a8df-747e3c570c2c
+            verdict: covered
+          - item_index: 2
+            item_key: source:7834c4b6-a3f2-40cd-b3ab-167d654a23bb
+            verdict: covered
+          - item_index: 3
+            item_key: source:52679f4d-b6b9-4b8b-9a85-38997332f874
+            verdict: covered
+          - item_index: 4
+            item_key: source:a507d589-056f-453b-b41e-c57fae039c0b
+            verdict: covered
+        batch_size: 5
+        recorded_items: 5
+    - id: 02400aad239e3df2542368f19b9aafba903f08359cf423c6a6086d45933ca4e5
+      result:
+        review_ref: 28b4daa7-1f0e-4286-ace1-eace5f685e70
+        items:
+          - item_index: 5
+            item_key: source:301e19f0-2621-412e-b6b4-dc23d3666ddd
+            verdict: covered
+          - item_index: 6
+            item_key: source:95e828ec-3581-4edc-abd2-8808a24ecc0d
+            verdict: covered
+          - item_index: 7
+            item_key: requirement:TEST-001
+            verdict: covered
+          - item_index: 8
+            item_key: requirement:TEST-002
+            verdict: covered
+          - item_index: 9
+            item_key: requirement:TEST-003
+            verdict: covered
+        batch_size: 5
+        recorded_items: 10
+    - id: 7735625b9cef2dca455457d68cb44ce364cbd2536be12876c0bd3b46d0195890
+      result:
+        review_ref: 28b4daa7-1f0e-4286-ace1-eace5f685e70
+        items:
+          - item_index: 10
+            item_key: requirement:TEST-004
+            verdict: covered
+          - item_index: 11
+            item_key: requirement:TEST-005
+            verdict: covered
+          - item_index: 12
+            item_key: requirement:TEST-006
+            verdict: covered
+          - item_index: 13
+            item_key: requirement:TEST-007
+            verdict: covered
+          - item_index: 14
+            item_key: requirement:TEST-008
+            verdict: covered
+        batch_size: 5
+        recorded_items: 15
+    - id: a27a8d4da5ba43c0a0d3c6fc17a840de7883bc73f01d1d30055d345c2a6ec342
+      result:
+        review_ref: 28b4daa7-1f0e-4286-ace1-eace5f685e70
+        items:
+          - item_index: 15
+            item_key: requirement:TEST-009
+            verdict: covered
+          - item_index: 16
+            item_key: requirement:TEST-010
+            verdict: covered
+          - item_index: 17
+            item_key: requirement:TEST-011
+            verdict: covered
+        batch_size: 3
+        recorded_items: 18
+    - id: 70c42dc2355808135c7ae9afb8dbe29fc24754fe69dc78ceed5cec4a4e74e05a
+      result:
+        review_ref: 28b4daa7-1f0e-4286-ace1-eace5f685e70
+        items:
+          - item_index: 18
+            item_key: profile:core
+            verdict: covered
+          - item_index: 19
+            item_key: profile:operations
+            verdict: covered
+          - item_index: 20
+            item_key: profile:security
+            verdict: covered
+        batch_size: 3
+        recorded_items: 21
+    - id: d4cd98073ef82dcc0730553367e29c720a08c2a645179ffbd56bd59645d707c7
+      result:
+        review_ref: 28b4daa7-1f0e-4286-ace1-eace5f685e70
+        consistency_status: consistent
+    - id: 1cd6f56878e2ec9dfdd07f821989c7e7383b256440e1449d57cb3f9f821f27dc
+      result:
+        review_ref: 28b4daa7-1f0e-4286-ace1-eace5f685e70
+        coverage_status: reviewed
+        source_version: 785424ba80d8dbf709c51901135a288276377b0a5aa08958d25c7d6ba2988a83
+        semantic_correctness_proven: false
+        reviewer_independence_authenticated: false
+        approved_by_tool: false
+    - id: dfe4cdaf30ba0c722dd9936b8807b4c06032875866aa8d8bac0acc134090ac74
+      result:
+        review_ref: 28b4daa7-1f0e-4286-ace1-eace5f685e70
+        approval_observed: true
+    - id: a580b8ab1d74130c55b443b8e4e43f02905984d3e7b79b66c06028102503ac27
+      result:
+        decision_ref:
+          id: 4f47ba22-bd13-49e3-a54f-5690e27eb4a7
+          revision: 1
+        state: instructed
+    - id: bb7f6fc991e89e8d8e1bd5fabdd995f42e7692bf03ce11ca034efdf42dcb7d97
+      result:
+        decision_ref:
+          id: 7acdf21f-948a-4eb9-8299-6e84aab5ff17
+          revision: 1
+        state: instructed
+    - id: 84d06c37f8aa00bb13e92df90c2df93c5b3346b859fe99fab5b140f48e38441b
+      result:
+        decision_ref:
+          id: 7acdf21f-948a-4eb9-8299-6e84aab5ff17
+          revision: 2
+        classification: context
+    - id: 9a09f7b33190fde5d0e4b8fb7e66b14fec38d27ac1da26a76649b51de802d870
+      result:
+        review_ref: 10107cff-c8d4-488d-9294-ccb07412a357
+        source_version: b5768150e20c92ec9131fc4c767229b1f076ed86e089fc5f9829e737eb09f9ba
+        total_items: 24
+        recorded_items: 0
+        consistency_required: true
+        mechanical_status: pass
+        mechanical_issues: []
+        total_mechanical_issues: 0
+        next: Use a separate context to read every item completely and record an evidence-based verdict.
+    - id: 59c60ca54b84db879975910963cf4a39e7cc7cb4535ded00b91b1e137091f488
+      result:
+        review_ref: 10107cff-c8d4-488d-9294-ccb07412a357
+        items:
+          - item_index: 0
+            item_key: source:scope.manifest
+            verdict: covered
+          - item_index: 1
+            item_key: source:ec512932-4a32-43f1-a8df-747e3c570c2c
+            verdict: covered
+          - item_index: 2
+            item_key: source:7834c4b6-a3f2-40cd-b3ab-167d654a23bb
+            verdict: covered
+          - item_index: 3
+            item_key: source:52679f4d-b6b9-4b8b-9a85-38997332f874
+            verdict: covered
+          - item_index: 4
+            item_key: source:a507d589-056f-453b-b41e-c57fae039c0b
+            verdict: covered
+          - item_index: 5
+            item_key: source:301e19f0-2621-412e-b6b4-dc23d3666ddd
+            verdict: covered
+          - item_index: 6
+            item_key: source:95e828ec-3581-4edc-abd2-8808a24ecc0d
+            verdict: covered
+          - item_index: 7
+            item_key: source:4f47ba22-bd13-49e3-a54f-5690e27eb4a7
+            verdict: covered
+          - item_index: 8
+            item_key: source:7acdf21f-948a-4eb9-8299-6e84aab5ff17
+            verdict: not_applicable
+          - item_index: 9
+            item_key: requirement:TEST-001
+            verdict: covered
+          - item_index: 10
+            item_key: requirement:TEST-002
+            verdict: covered
+          - item_index: 11
+            item_key: requirement:TEST-003
+            verdict: covered
+        batch_size: 12
+        recorded_items: 12
+    - id: 575dbb517fce10ca1967e524963c24bb2eae2879a3bac5d5e67f831d3d916689
+      result:
+        review_ref: 10107cff-c8d4-488d-9294-ccb07412a357
+        items:
+          - item_index: 12
+            item_key: requirement:TEST-004
+            verdict: covered
+          - item_index: 13
+            item_key: requirement:TEST-005
+            verdict: covered
+          - item_index: 14
+            item_key: requirement:TEST-006
+            verdict: covered
+          - item_index: 15
+            item_key: requirement:TEST-007
+            verdict: covered
+          - item_index: 16
+            item_key: requirement:TEST-008
+            verdict: covered
+          - item_index: 17
+            item_key: requirement:TEST-009
+            verdict: covered
+          - item_index: 18
+            item_key: requirement:TEST-010
+            verdict: covered
+          - item_index: 19
+            item_key: requirement:TEST-011
+            verdict: covered
+          - item_index: 20
+            item_key: profile:core
+            verdict: covered
+          - item_index: 21
+            item_key: profile:operations
+            verdict: covered
+          - item_index: 22
+            item_key: profile:security
+            verdict: covered
+        batch_size: 11
+        recorded_items: 23
+    - id: e5dc93475ce2a18b536c297d82ff8e58fbb916f321224dedde4fd1e30539784e
+      result:
+        review_ref: 10107cff-c8d4-488d-9294-ccb07412a357
+        consistency_status: consistent
+    - id: 1378d89075894e759157016d4091f50f63cfe23a49c40044c3c725888485aa62
+      result:
+        review_ref: 10107cff-c8d4-488d-9294-ccb07412a357
+        coverage_status: reviewed
+        source_version: b5768150e20c92ec9131fc4c767229b1f076ed86e089fc5f9829e737eb09f9ba
+        semantic_correctness_proven: false
+        reviewer_independence_authenticated: false
+        approved_by_tool: false
+    - id: 4ea29f81af550ad6dc7146dcc1f6498ce41a354cec6ca03a1f1b080205e88f3a
+      result:
+        review_ref: 10107cff-c8d4-488d-9294-ccb07412a357
+        approval_observed: true
+specification_reviews:
+  version: 1
+  runs:
+    - id: c197dfaf-c1d9-444b-a2cb-63fe892a6035
+      source_version: d593619084ca5eeee09f082654b08b7d4f7cbbe56bc2d5f7c23dab5f2128672e
+      specification_version: ed16116a08c8032dafe3e675e4c53470ff9824a58168d77c2282f0892fba2867
+      status_at_start: Draft
+      created_at: 2026-10-09T19:51:10.930Z
+      completed: true
+      outcome: gaps
+      results:
+        [
+          {
+            item_index: 0,
+            item_key: source:scope.manifest,
+            verdict: covered,
+            explanation: 'Confirmed Standard scope retains the fast PR/heavy scheduled boundary (TEST-002), private sanitized artifacts and trusted lanes without public hosting (TEST-009), Node/Linux/macOS/Windows and Docker amd64/arm64 constraints (TEST-010). The manifest activates only core, operations and security; inactive application profiles match the tooling scope.',
+            requirement_ids: [TEST-002, TEST-009, TEST-010],
+            source_refs: [],
+          },
+          {
+            item_index: 1,
+            item_key: source:ec512932-4a32-43f1-a8df-747e3c570c2c,
+            verdict: gap,
+            explanation: The original instruction requires mapping duplicates and flakes and a prioritized test backlog. TEST-001 requires a risk backlog and remaining gaps but neither duplicate/flake assessment of the existing suite nor explicit prioritization. TEST-006 records retries/flaky status for emitted executions; this does not require investigating the existing test suite for redundant or unstable coverage.,
+            counterexample: 'An inventory reports level counts, fake-vs-real cases and remaining gaps, supplies an unordered list of risks, and never identifies existing duplicate scenarios or suspected flaky tests. Every stated TEST-001 criterion and TEST-006 retry field can pass, while the requested duplicate/flake analysis and prioritized backlog are absent.',
+            requirement_ids: [TEST-001, TEST-006],
+            source_refs: [],
+          },
+          {
+            item_index: 2,
+            item_key: source:7834c4b6-a3f2-40cd-b3ab-167d654a23bb,
+            verdict: gap,
+            explanation: "The compatibility source explicitly retains Vitest 5 and evaluates Allure 3 through the public reporter API instead of downgrading the runner. TEST-006 preserves report evidence and detects empty output, but has no runner-preservation condition. TEST-010 follows the installed Vitest's supported Node versions without retaining the existing Vitest major.",
+            counterexample: "Downgrade the project's Vitest dependency to version 4 to make allure-vitest emit valid results; retain the application's Node contract and produce all pass/fail/skip/history evidence. TEST-006 and TEST-010 still pass, but the compatibility source's instruction to keep Vitest 5 is violated.",
+            requirement_ids: [TEST-006, TEST-010],
+            source_refs: [],
+          },
+          {
+            item_index: 3,
+            item_key: requirement:TEST-001,
+            verdict: covered,
+            explanation: "TEST-001 implements the user's testing-pyramid, functional matrix, honest mocked-vs-real distinction and actual-run evidence. Its present obligations are directly supported by the original request; missing duplicate/flake and priority conditions are recorded separately on source item 1.",
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 4,
+            item_key: requirement:TEST-002,
+            verdict: covered,
+            explanation: "TEST-002 retains the user's typecheck/lint/unit/integration/coverage and Codecov boundaries, keeps existing browser/Docker gates, and places newly added heavy scenarios in explicit or periodic/manual execution with failure exit status.",
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 5,
+            item_key: requirement:TEST-003,
+            verdict: covered,
+            explanation: TEST-003 turns the authorized missing real-browser coverage and deterministic isolation/cleanup into observable profile persistence and second-profile absence checks. The installed-package/local-origin path distinguishes real runtime evidence from fake upstream.,
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 6,
+            item_key: requirement:TEST-004,
+            verdict: covered,
+            explanation: 'TEST-004 makes the authorized real-browser E2E outcome observable as exact local download filename and bytes, retains existing interactions and rejects a mere MCP success response as evidence.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 7,
+            item_key: requirement:TEST-005,
+            verdict: covered,
+            explanation: 'TEST-005 implements the authorized missing real Chromium and negative/recovery coverage with a local proxy fixture, an observed routed request, unavailable-proxy error, clean recovery and closed sockets.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 8,
+            item_key: requirement:TEST-006,
+            verdict: covered,
+            explanation: 'TEST-006 implements the requested statuses, durations, failures/stacks, skipped/collection errors, environment/feature grouping, retries and launch history, and prevents the observed zero-result reporter failure from appearing successful. The absent Vitest-major preservation condition is recorded on source item 2.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 7834c4b6-a3f2-40cd-b3ab-167d654a23bb, revision: 2 },
+              ],
+          },
+          {
+            item_index: 9,
+            item_key: requirement:TEST-007,
+            verdict: covered,
+            explanation: "TEST-007 refines the user's secret protection and local-fixture/cleanup requirements into redaction before persistence and generation, constrained screenshots, unsafe path/symlink rejection and synthetic-secret absence in published evidence.",
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 10,
+            item_key: requirement:TEST-008,
+            verdict: covered,
+            explanation: 'TEST-008 supplies the requested documented local collection/generation/viewing workflow, excludes generated artifacts from Git/package distribution, separates runs and protects intentional history from duplicate attempts.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 11,
+            item_key: requirement:TEST-009,
+            verdict: covered,
+            explanation: 'TEST-009 implements the requested Actions artifacts on pass/fail, collision-safe parallel aggregation, Job Summary, Codecov preservation and no unnecessary public hosting; trusted-history separation is justified by the untrusted PR artifact boundary.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 12,
+            item_key: requirement:TEST-010,
+            verdict: covered,
+            explanation: "TEST-010 implements the user's Node/Linux/macOS/Windows/Docker preservation and deterministic lifecycle constraints with portable paths, loopback fixtures, cleanup, no unrelated process termination and explicit unverified-platform outcomes.",
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 13,
+            item_key: profile:core,
+            verdict: covered,
+            explanation: 'Core is applicable to developer test/report commands and existing Vitest/runtime compatibility. TEST-002/006/008 specify command outcomes, failure exit status, empty/import-error evidence, local viewing, separate runs and repeat/history behavior; TEST-003/005/010 cover real runtime isolation, recovery, portable supported targets and cleanup. The source-specific Vitest preservation gap is already recorded. No separate machine contract is needed for this bounded existing tooling surface.',
+            requirement_ids: [TEST-002, TEST-003, TEST-005, TEST-006, TEST-008, TEST-010],
+            source_refs: [],
+          },
+          {
+            item_index: 14,
+            item_key: profile:operations,
+            verdict: covered,
+            explanation: 'Operations applies to parallel CI results and disposable local artifacts rather than a hosted service. TEST-006/009 require observable collection/runner failures and missing producers, preserve test failures during reporting and retain private bounded artifacts; TEST-002 defines periodic/manual lanes, TEST-008 defines rerun/history behavior, and TEST-003/005/010 define resource cleanup and runtime recovery. Service availability/SLO or backup architecture is not material to this scope.',
+            requirement_ids: [TEST-002, TEST-003, TEST-005, TEST-006, TEST-008, TEST-009, TEST-010],
+            source_refs: [],
+          },
+          {
+            item_index: 15,
+            item_key: profile:security,
+            verdict: covered,
+            explanation: 'Security applies to secret-bearing diagnostic attachments and untrusted fork artifacts. TEST-007 gives protected data, allowed controlled screenshots, redaction at two persistence boundaries and path/symlink/binary denial with observable synthetic-secret absence; TEST-009 limits permissions, upload data and trust-lane history, and TEST-010 forbids unrelated process/license credential use. Hosted authentication or application permission changes are outside the confirmed tooling scope.',
+            requirement_ids: [TEST-007, TEST-009, TEST-010],
+            source_refs: [],
+          },
+          {
+            item_index: 16,
+            item_key: context:specification,
+            verdict: gap,
+            explanation: 'The whole specification retains the architectural/privacy/platform obligations, independently observable browser outcomes, false-success rejection, parallel trust-lane isolation and lifecycle ordering. Its narrative explicitly supplies P0/P1 backlog ordering and a no-downgrade decision, so the unordered-backlog and Vitest-downgrade portions of earlier detailed counterexamples are excluded by the whole contract and should be understood as missing explicit TEST-* linkage, not absent narrative policy. The remaining material lost source condition is a required assessment and final reporting of existing duplicate scenarios and suspected flaky tests: the matrix gives a few overlap/infrastructure cautions, but TEST-001/006 and final validation never require that audit outcome (including no findings or unresolved evidence) to be reported.',
+            counterexample: "Complete all current TEST-* criteria, retain the stated P0/P1 priorities and Vitest 5/public API approach, produce current pyramid/matrix/run counts and coverage, and report new tests and remaining browser gaps. Preserve existing overlapping suites and add retry/flaky fields only for emitted runs, without assessing or stating which existing scenarios duplicate the same risk or show flake evidence. This remains compliant with the stated acceptance yet omits the user's requested duplicate/flake analysis.",
+            requirement_ids: [],
+            source_refs: [],
+          },
+        ]
+      consistency_required: true
+      input_snapshot: 2cf5001c03874d4a814e7a3f25fa0935b32886e72974b0f60e441c37455f3935
+      consistency:
+        verdict: gap
+        explanation: 'The whole specification retains the architectural/privacy/platform obligations, independently observable browser outcomes, false-success rejection, parallel trust-lane isolation and lifecycle ordering. Its narrative explicitly supplies P0/P1 backlog ordering and a no-downgrade decision, so the unordered-backlog and Vitest-downgrade portions of earlier detailed counterexamples are excluded by the whole contract and should be understood as missing explicit TEST-* linkage, not absent narrative policy. The remaining material lost source condition is a required assessment and final reporting of existing duplicate scenarios and suspected flaky tests: the matrix gives a few overlap/infrastructure cautions, but TEST-001/006 and final validation never require that audit outcome (including no findings or unresolved evidence) to be reported.'
+        counterexample: Complete all current TEST-* criteria, retain the stated P0/P1 priorities and Vitest 5/public API approach, produce current pyramid/matrix/run counts and coverage, and report new tests and remaining browser gaps. Preserve existing overlapping suites and add retry/flaky fields only for emitted runs, without assessing or stating which existing scenarios duplicate the same risk or show flake evidence. This remains compliant with the stated acceptance yet omits the user's requested duplicate/flake analysis.
+    - id: 21014d15-65a0-4e3b-811b-9f896570384c
+      source_version: 606642e97967f38b0b11cfe1477e88dfcadfdafcab04f29c8a951316d66164d7
+      specification_version: 4cf786b81f889630ef70aaf554385d167068fa039b7799fce1a4e1338fa4b3a6
+      status_at_start: Draft
+      created_at: 2026-10-09T20:01:09.221Z
+      completed: true
+      outcome: reviewed
+      results:
+        [
+          {
+            item_index: 0,
+            item_key: source:scope.manifest,
+            verdict: covered,
+            explanation: 'The exact confirmed Standard proposal is retained: fast PR checks and separately scheduled/manual heavy scenarios in TEST-002, private sanitized reporting and no public hosting in TEST-009, and supported Node/OS/Docker targets in TEST-010. The active core/operations/security profiles correspond to the developer tooling, artifact lifecycle and untrusted/secret-bearing evidence boundaries; inactive application profiles do not exclude any requested behavior.',
+            requirement_ids: [TEST-002, TEST-009, TEST-010],
+            source_refs: [],
+          },
+          {
+            item_index: 1,
+            item_key: source:ec512932-4a32-43f1-a8df-747e3c570c2c,
+            verdict: covered,
+            explanation: 'TEST-001 now explicitly preserves inventory counts, fake-vs-real evidence, duplicate/potential-flake assessment, retained-overlap reasoning and regression-risk prioritization. TEST-002 retains fast PR/periodic-heavy, required checks, coverage and Codecov. TEST-003/004/005 provide observable prioritized local real-browser persistence/isolation, download bytes and proxy failure/recovery with cleanup. TEST-006 covers status/duration/errors/stacks, skips/import failures, feature/environment grouping, retries/history and empty-output rejection. TEST-007 protects attachments and secrets; TEST-008 documents local collection/HTML viewing and run/history behavior; TEST-009 covers private pass/fail artifacts, parallel merge, Job Summary and trust-lane history; TEST-010 preserves installed runner/platform/lifecycle constraints. The broader specification retains upstream/architecture restrictions, chooses Allure after compatibility comparison and states final validation/documentation duties. The previously lost duplicate/flake and priority obligations are now explicit.',
+            requirement_ids:
+              [
+                TEST-001,
+                TEST-002,
+                TEST-003,
+                TEST-004,
+                TEST-005,
+                TEST-006,
+                TEST-007,
+                TEST-008,
+                TEST-009,
+                TEST-010,
+              ],
+            source_refs: [],
+          },
+          {
+            item_index: 2,
+            item_key: source:7834c4b6-a3f2-40cd-b3ab-167d654a23bb,
+            verdict: covered,
+            explanation: "TEST-006 requires controlled pass/fail/skip/retry, import-error and repeated-history evidence and declares incompatible/zero-result reporting a failure, covering the observed adapter failure. TEST-010 now explicitly keeps Vitest 5 and forbids downgrade or private adapter patches; together with the specification's selected public Vitest Reporter API/standard Allure-results approach this preserves the compatibility source's complete behavioral constraint.",
+            requirement_ids: [TEST-006, TEST-010],
+            source_refs: [],
+          },
+          {
+            item_index: 3,
+            item_key: requirement:TEST-001,
+            verdict: covered,
+            explanation: 'TEST-001 faithfully requires the user-requested pyramid/matrix/actual-run evidence, fake-vs-real distinction and unchanged thresholds, and now explicitly covers existing duplicate/potential-flake assessment, retained overlap and missing-scenario prioritization by regression risk.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 4,
+            item_key: requirement:TEST-002,
+            verdict: covered,
+            explanation: "TEST-002 faithfully preserves the user's fast PR checks, coverage and Codecov and existing required real-browser/Docker gates while scheduling new heavy scenarios separately, requiring reports across suites and nonzero failed-test status.",
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 5,
+            item_key: requirement:TEST-003,
+            verdict: covered,
+            explanation: 'TEST-003 refines the authorized prioritized missing real Chromium coverage into observable cookie/localStorage restart restoration, independent-profile absence, stable seed and cleanup on all paths through the installed package/local origin.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 6,
+            item_key: requirement:TEST-004,
+            verdict: covered,
+            explanation: TEST-004 faithfully implements real-browser local download verification with exact controlled bytes/filename and preserves existing interaction/navigation/find evidence. It correctly excludes MCP-call success as proof of downloaded content.,
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 7,
+            item_key: requirement:TEST-005,
+            verdict: covered,
+            explanation: 'TEST-005 refines the authorized browser-proxy coverage and deterministic local isolation into a fixture-observed routed request, expected unavailable-proxy error, clean successful recovery and closed sockets without public proxy reliance.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 8,
+            item_key: requirement:TEST-006,
+            verdict: covered,
+            explanation: 'TEST-006 faithfully captures requested result status, durations, failures/stacks, all levels, skips/import/unhandled failures, feature/environment dimensions, stable identities, retry/flaky evidence and previous launch history. Controlled fixture and empty-result rejection directly address the observed incompatible adapter and prevent false reporting success.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 7834c4b6-a3f2-40cd-b3ab-167d654a23bb, revision: 2 },
+              ],
+          },
+          {
+            item_index: 9,
+            item_key: requirement:TEST-007,
+            verdict: covered,
+            explanation: "TEST-007 is supported by the user's secret protection/local-fixture constraints and the secret-bearing attachment boundary: it limits screenshot provenance and persistence, redacts protected fields before both persistence and generation, rejects unsafe paths/symlinks/binaries and requires observable synthetic-secret absence with useful bounded diagnostics.",
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 10,
+            item_key: requirement:TEST-008,
+            verdict: covered,
+            explanation: 'TEST-008 implements the requested documented local collection/HTML viewing without external hosting, separates normal run namespaces, preserves intentional reruns/history without invented attempts and excludes generated artifacts from Git/npm.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 11,
+            item_key: requirement:TEST-009,
+            verdict: covered,
+            explanation: 'TEST-009 implements requested pass/fail Actions artifacts, read-only permissions, bounded retention, non-overwriting parallel result/attachment aggregation and environment identity, summaries and Codecov preservation. Trusted-lane history and fork-poisoning prevention directly address untrusted producer inputs rather than introduce a hosted service.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 12,
+            item_key: requirement:TEST-010,
+            verdict: covered,
+            explanation: "TEST-010 faithfully preserves the user's application Node/OS/Docker and cleanup boundaries and the compatibility source's Vitest 5/no-downgrade/public API constraint. Portable fixtures, unrelated-process/credential prohibitions and explicit unverified platform outcomes distinguish configured support from actual execution evidence.",
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 7834c4b6-a3f2-40cd-b3ab-167d654a23bb, revision: 2 },
+              ],
+          },
+          {
+            item_index: 13,
+            item_key: profile:core,
+            verdict: covered,
+            explanation: 'Core applies to existing test/report developer tooling and supported runner/runtime boundaries. TEST-001/006 define trustworthy evidence and identities; TEST-002 retains invocation lane/check/exit-status semantics; TEST-008 defines collection/generation/viewing and repeat/history outcomes; TEST-003/005/010 cover isolation, failure/recovery, portable targets and lifecycle cleanup while keeping the installed Vitest major. No new product CLI protocol/schema or separately versioned consumer makes an additional contract artifact necessary.',
+            requirement_ids: [TEST-001, TEST-002, TEST-003, TEST-005, TEST-006, TEST-008, TEST-010],
+            source_refs: [],
+          },
+          {
+            item_index: 14,
+            item_key: profile:operations,
+            verdict: covered,
+            explanation: 'Operations applies to disposable local report artifacts and parallel CI producers. TEST-006/009 specify visible runner/import/missing-job outcomes and failure-preserving sanitized aggregation; TEST-002 separates periodic/manual heavy execution, TEST-008 preserves local regeneration/history and TEST-003/005/010 define resources, shutdown/recovery and honest platform evidence. The scope has no hosted reporting service, irreversible rollout or stateful application backup obligation that would warrant additional SLO/restore contracts.',
+            requirement_ids: [TEST-002, TEST-003, TEST-005, TEST-006, TEST-008, TEST-009, TEST-010],
+            source_refs: [],
+          },
+          {
+            item_index: 15,
+            item_key: profile:security,
+            verdict: covered,
+            explanation: 'Security applies to credentials/capability URLs in diagnostics and untrusted fork results crossing artifact/history boundaries. TEST-007 gives allowed controlled screenshots, redaction before persistence and generation, denial of unsafe attachment paths/symlinks/binaries and observable synthetic-secret absence. TEST-009 constrains data uploads, retention, permissions and trust-lane history; TEST-010 constrains fixtures and unrelated-process/license credentials. Application authentication, privilege changes and public hosting are outside the confirmed tooling scope, with no relevant new material gap.',
+            requirement_ids: [TEST-007, TEST-009, TEST-010],
+            source_refs: [],
+          },
+          {
+            item_index: 16,
+            item_key: context:specification,
+            verdict: covered,
+            explanation: "The exact full specification and all 16 fresh detailed outcomes are consistent. TEST-001 now preserves duplicate/potential-flake audit, retained overlap and regression-risk prioritization; the P0/P1 table provides the delivery ordering without removing P2/existing behavior. TEST-010's explicit Vitest 5/no-downgrade/private-patch prohibition agrees with the selected public Reporter API and standard Allure result contract. Real-browser outcomes are required through local installed-package fixtures with observable success/absence/failure/recovery and cleanup; line coverage remains separate from functional evidence. Reporting failures cannot become empty success, retries/history cannot conflate environment variants, redaction precedes persistence/upload and fork data cannot poison trusted history. Required existing checks/Codecov/platform/runtime/upstream boundaries are retained, with heavy new work outside the PR aggregate. The corrected baseline expressly leaves statement percentage uncollected instead of claiming an unsupported number. Documented collection/viewing and full validation duties are compatible with the confirmed private tooling scope; no material promise, permission, negative obligation or lifecycle ordering conflicts with the addressed requirements.",
+            requirement_ids: [],
+            source_refs: [],
+          },
+        ]
+      consistency_required: true
+      input_snapshot: 9d096997de0eea27ececc61b4e6e69a3358a06e49fb4576da8a0f29edfc4402d
+      consistency:
+        verdict: consistent
+        explanation: The exact full specification and all 16 fresh detailed outcomes are consistent. TEST-001 now preserves duplicate/potential-flake audit, retained overlap and regression-risk prioritization; the P0/P1 table provides the delivery ordering without removing P2/existing behavior. TEST-010's explicit Vitest 5/no-downgrade/private-patch prohibition agrees with the selected public Reporter API and standard Allure result contract. Real-browser outcomes are required through local installed-package fixtures with observable success/absence/failure/recovery and cleanup; line coverage remains separate from functional evidence. Reporting failures cannot become empty success, retries/history cannot conflate environment variants, redaction precedes persistence/upload and fork data cannot poison trusted history. Required existing checks/Codecov/platform/runtime/upstream boundaries are retained, with heavy new work outside the PR aggregate. The corrected baseline expressly leaves statement percentage uncollected instead of claiming an unsupported number. Documented collection/viewing and full validation duties are compatible with the confirmed private tooling scope; no material promise, permission, negative obligation or lifecycle ordering conflicts with the addressed requirements.
+      approval_observed: true
+    - id: 1cbb440a-b102-4da9-8bb7-e7516de3095b
+      source_version: 0b8ebdce529c4f195e5c7fe0854816a64abf030054f9245a49e87352fe085936
+      specification_version: 3c2758bded5e3d4aa014f5961741cf56979822cd7cc636a6719d33eb2c5f2411
+      status_at_start: Draft
+      created_at: 2026-10-09T20:19:43.724Z
+      completed: true
+      outcome: reviewed
+      results:
+        [
+          {
+            item_index: 0,
+            item_key: source:scope.manifest,
+            verdict: covered,
+            explanation: "The confirmed Standard technical scope and core/operations/security profiles remain applicable. TEST-002 preserves fast PR versus heavy scheduled/manual checks, TEST-009 preserves private reporting, TEST-010/011 preserve and require actual supported-platform evidence. The proposal's original implementation permission is historical and is superseded by the later exact implementation-boundary user instruction; it does not authorize implementation in this amendment.",
+            requirement_ids: [TEST-002, TEST-009, TEST-010, TEST-011],
+            source_refs: [{ id: a507d589-056f-453b-b41e-c57fae039c0b, revision: 1 }],
+          },
+          {
+            item_index: 1,
+            item_key: source:ec512932-4a32-43f1-a8df-747e3c570c2c,
+            verdict: covered,
+            explanation: 'The retained testing/reporting requirements cover the original pyramid/matrix/duplicate-flake/risk inventory (TEST-001), fast PR and periodic-heavy gates/Codecov (TEST-002), real browser local state/download/proxy outcomes and cleanup (TEST-003/004/005), statuses/errors/stacks/durations/skips/retries/history and environment grouping (TEST-006), safe attachments (TEST-007), documented local HTML/reruns (TEST-008), sanitized CI artifacts/parallel merge/summary/trusted history (TEST-009), and runner/platform/lifecycle compatibility (TEST-010). TEST-011 extends actual key-feature checks without dropping any previous safeguards or confusing fake evidence with real browser outcomes. The later user boundary supersedes autonomous implementation permission while preserving these prospective product obligations.',
+            requirement_ids:
+              [
+                TEST-001,
+                TEST-002,
+                TEST-003,
+                TEST-004,
+                TEST-005,
+                TEST-006,
+                TEST-007,
+                TEST-008,
+                TEST-009,
+                TEST-010,
+                TEST-011,
+              ],
+            source_refs: [],
+          },
+          {
+            item_index: 2,
+            item_key: source:7834c4b6-a3f2-40cd-b3ab-167d654a23bb,
+            verdict: covered,
+            explanation: 'TEST-006 turns the observed empty-result adapter failure into an explicit incompatible/zero-result failure and controlled pass/fail/skip/retry/import/history probes. TEST-010 preserves Vitest 5 and prohibits downgrade/private adapter patches, agreeing with the selected public Reporter API/standard Allure approach. The broader key-coverage amendment does not remove these reporting constraints.',
+            requirement_ids: [TEST-006, TEST-010],
+            source_refs: [],
+          },
+          {
+            item_index: 3,
+            item_key: source:52679f4d-b6b9-4b8b-9a85-38997332f874,
+            verdict: covered,
+            explanation: "The user's explicit all-key-functionality amendment is preserved by TEST-011's executable-check matrix for CLI/config, every standard/local MCP tool, browser automation, profiles/session state, transports/CDP, proxy, extensions, humanization, GeoIP, concurrency/resources and actual supported distributions/platforms. Valid/error/lifecycle observations, local real Chromium fixtures and test/environment/result traceability are mandatory. TEST-001 forbids silently assigning key omissions to P2; TEST-011 leaves unavailable checks as evidenced blockers and requires an explicit user decision to defer them. This adds required key coverage without requiring redundant tests where existing evidence is sufficient.",
+            requirement_ids: [TEST-001, TEST-010, TEST-011],
+            source_refs: [],
+          },
+          {
+            item_index: 4,
+            item_key: source:a507d589-056f-453b-b41e-c57fae039c0b,
+            verdict: covered,
+            explanation: The latest explicit user correction limits current work to specification changes and supersedes the initial implementation permission. TEST-001/011 record the future executable coverage obligation without asserting it is already implemented. This review is specification-only and does not execute or authorize implementation; the exact user directive is the controlling boundary. Historical code-removal execution is outside specification completeness evidence and is not certified by this verdict; the final full-text check separately verifies the normative no-resume boundary.,
+            requirement_ids: [TEST-001, TEST-011],
+            source_refs: [{ id: a507d589-056f-453b-b41e-c57fae039c0b, revision: 1 }],
+          },
+          {
+            item_index: 5,
+            item_key: requirement:TEST-001,
+            verdict: covered,
+            explanation: 'TEST-001 faithfully retains the original honest counts, pyramid/matrix, fake-vs-real distinction, duplicate/flake assessment and risk prioritization, and implements the later broad key-coverage instruction through TEST-011 traceability and an explicit prohibition on silently deferring missing key checks as P2.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 52679f4d-b6b9-4b8b-9a85-38997332f874, revision: 1 },
+              ],
+          },
+          {
+            item_index: 6,
+            item_key: requirement:TEST-002,
+            verdict: covered,
+            explanation: 'TEST-002 faithfully retains original fast PR/periodic-heavy separation, unchanged required check dependencies/thresholds, Codecov and failed-test exit status. A key scenario remains mandatory under TEST-011 even when execution belongs to a manual/scheduled heavy lane; scheduling is not a coverage deferral.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 7,
+            item_key: requirement:TEST-003,
+            verdict: covered,
+            explanation: 'TEST-003 faithfully implements the authorized real-browser profile persistence/isolation gap: both cookie/localStorage restoration after restart, their absence in a second profile, unchanged seed and cleanup on all paths through installed npm/local-origin fixtures. TEST-011 expands surrounding state checks without replacing these outcomes.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 8,
+            item_key: requirement:TEST-004,
+            verdict: covered,
+            explanation: TEST-004 faithfully requires downloaded filename and exact controlled bytes through installed npm/real Chromium while preserving existing interactions/navigation/find evidence and excluding mere MCP response success as proof.,
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 9,
+            item_key: requirement:TEST-005,
+            verdict: covered,
+            explanation: 'TEST-005 faithfully implements local proxy request observation, visible content, unavailable-proxy expected error, clean recovery and closed sockets. TEST-011 broadens supported-mode/credential/bypass coverage while preserving this concrete real-browser routing requirement.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 10,
+            item_key: requirement:TEST-006,
+            verdict: covered,
+            explanation: 'TEST-006 faithfully covers the original all-level status/duration/errors/stacks, skips/import/runner failures, feature/environment grouping, stable identities, retries/flaky status and launch history. Its controlled fixture and explicit zero/incompatible-result failure address the compatibility source rather than hide unsuccessful test execution.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 7834c4b6-a3f2-40cd-b3ab-167d654a23bb, revision: 2 },
+              ],
+          },
+          {
+            item_index: 11,
+            item_key: requirement:TEST-007,
+            verdict: covered,
+            explanation: "TEST-007 faithfully retains the user's secret-protection and controlled-fixture obligations, making screenshots, diagnostic size/provenance, redaction-before-persistence/generation, unsafe-path/symlink/binary rejection and synthetic-secret absence observable without exporting arbitrary profiles or remote-page content.",
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 12,
+            item_key: requirement:TEST-008,
+            verdict: covered,
+            explanation: 'TEST-008 faithfully retains documented collection/HTML generation/local viewing, separate normal result namespaces, supported reruns/history and no invented attempts, while excluding generated artifacts from Git and npm distribution.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 13,
+            item_key: requirement:TEST-009,
+            verdict: covered,
+            explanation: 'TEST-009 faithfully retains sanitized success/failure CI artifacts, bounded retention/read-only permissions, non-overwriting parallel cases/attachments/environment variants, summary/missing-producer evidence and failure exit status. It preserves Codecov and forbids public hosting/external publishing or untrusted-fork poisoning of trusted history.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 14,
+            item_key: requirement:TEST-010,
+            verdict: covered,
+            explanation: TEST-010 faithfully retains Node/OS/Docker/runtime ownership constraints and Vitest 5/no-downgrade/private-API prohibition. Its explicit unverified-platform reporting agrees with the later TEST-011 requirement that unexecuted key scenarios remain blockers rather than passed or implicitly deferred.,
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 7834c4b6-a3f2-40cd-b3ab-167d654a23bb, revision: 2 },
+                { id: 52679f4d-b6b9-4b8b-9a85-38997332f874, revision: 1 },
+              ],
+          },
+          {
+            item_index: 15,
+            item_key: requirement:TEST-011,
+            verdict: covered,
+            explanation: 'TEST-011 faithfully realizes the new explicit all-key-functionality instruction through test/level/environment/result traceability and an executable observable scenario contract for CLI/config, every standard/local tool, browser actions, profiles/session state, transports/CDP security/lifecycle, supported proxy behavior, real extension attachment/token rejection/recovery, both humanization presets, controlled GeoIP lookup/matching/overrides/fallback, concurrency/download/locks/resources and supported distribution/platform versions. Existing sufficient tests are retained, browser-facing observations require real local Chromium, negative state and owned-resource cleanup are required, and environment/capability blockers cannot silently turn into scope deferral or success. These are prospective specification obligations; they do not authorize current implementation.',
+            requirement_ids: [],
+            source_refs: [{ id: 52679f4d-b6b9-4b8b-9a85-38997332f874, revision: 1 }],
+          },
+          {
+            item_index: 16,
+            item_key: profile:core,
+            verdict: covered,
+            explanation: 'Core applies to existing developer test/report tooling and public runtime/CLI/config contracts. TEST-011 now explicitly covers help/version/doctor, precedence/invalid configuration/startup errors, unchanged tool schemas and valid/applicable error effects, stdio/HTTP/CDP session/cancellation/lifecycle behavior and supported distribution/platform observations. TEST-001/006/008 retain deterministic traceability/result identities/repeat-history semantics; TEST-002/010 retain failure status and runner/platform compatibility. Existing contract references supply unchanged details; no new externally consumed schema requires a separate planning artifact.',
+            requirement_ids: [TEST-001, TEST-002, TEST-003, TEST-005, TEST-006, TEST-008, TEST-010, TEST-011],
+            source_refs: [],
+          },
+          {
+            item_index: 17,
+            item_key: profile:operations,
+            verdict: covered,
+            explanation: 'Operations applies to private local/CI artifacts and actual supported-runtime evidence. TEST-006/009 retain visible import/runner/missing-job/report failures, bounded redacted diagnostics, producer aggregation and failure status; TEST-002 retains scheduled/manual heavy lanes. TEST-011 explicitly adds startup/shutdown/cancellation/upstream failures, concurrency/cold-cache/lock contention, owned-resource cleanup and evidence-backed environment/capability blockers rather than configured-job claims. The artifact scope has no hosted service SLO, irreversible production rollout or application backup state needing another contract.',
+            requirement_ids: [TEST-002, TEST-003, TEST-005, TEST-006, TEST-008, TEST-009, TEST-010, TEST-011],
+            source_refs: [],
+          },
+          {
+            item_index: 18,
+            item_key: profile:security,
+            verdict: covered,
+            explanation: 'Security applies to secrets/capability URLs in report evidence, untrusted fork history and browser/CDP/extension isolation boundaries. TEST-007/009 retain observable two-stage redaction, unsafe attachment denial, limited permissions/retention and trusted-lane history; TEST-010 preserves owned-process/credential restrictions. TEST-011 now requires existing CDP authentication/capability/origin/TLS behavior, extension token/pairing rejection, supported proxy credential/redaction behavior, concurrent isolation and failure/cleanup outcomes. These use existing authorization contracts rather than invent new security policy, with no further material missing safeguard.',
+            requirement_ids: [TEST-007, TEST-009, TEST-010, TEST-011],
+            source_refs: [],
+          },
+          {
+            item_index: 19,
+            item_key: context:specification,
+            verdict: covered,
+            explanation: "The complete fresh specification and all 19 detailed outcomes preserve the exact amendment without a material contradiction. The top boundary explicitly makes this revision specification-only, pauses implementation and requires a new explicit user instruction; therefore historical initial/manifest implementation permission does not control current work. TEST-001/011 make every key scenario mandatory with executable test/environment/result traceability, real local Chromium observations for browser-facing behavior, applicable negative outcomes and owned-resource cleanup. The matrix and P0/P1 backlog consistently require extensions, GeoIP and actual supported-platform/package/container evidence; P2 is only supplemental long-duration/non-key depth and cannot defer key features or bounded resource-leak checks. TEST-010's unverified-platform wording does not permit completion because TEST-011 and Validation explicitly leave unavailable/unexecuted key checks as evidenced blockers until scope is explicitly changed. TEST-002's periodic/manual heavy lane determines execution placement rather than remove required coverage or add heavy required PR jobs. Existing upstream/runtime/tool/platform contracts, Vitest 5/public API reporting, failure-preserving complete evidence, secret redaction before persistence/upload, trusted-lane history and private artifact boundaries remain coherent. The planned validation clauses describe future delivery obligations and do not override the current no-resume instruction. No material lost condition, cross-section conflict or unauthorized scope exclusion remains.",
+            requirement_ids: [],
+            source_refs: [],
+          },
+        ]
+      consistency_required: true
+      input_snapshot: b0e767f7745a4b053ecfd65c59320070294bfb67c4021d89d0d0032e8e08ad06
+      consistency:
+        verdict: consistent
+        explanation: The complete fresh specification and all 19 detailed outcomes preserve the exact amendment without a material contradiction. The top boundary explicitly makes this revision specification-only, pauses implementation and requires a new explicit user instruction; therefore historical initial/manifest implementation permission does not control current work. TEST-001/011 make every key scenario mandatory with executable test/environment/result traceability, real local Chromium observations for browser-facing behavior, applicable negative outcomes and owned-resource cleanup. The matrix and P0/P1 backlog consistently require extensions, GeoIP and actual supported-platform/package/container evidence; P2 is only supplemental long-duration/non-key depth and cannot defer key features or bounded resource-leak checks. TEST-010's unverified-platform wording does not permit completion because TEST-011 and Validation explicitly leave unavailable/unexecuted key checks as evidenced blockers until scope is explicitly changed. TEST-002's periodic/manual heavy lane determines execution placement rather than remove required coverage or add heavy required PR jobs. Existing upstream/runtime/tool/platform contracts, Vitest 5/public API reporting, failure-preserving complete evidence, secret redaction before persistence/upload, trusted-lane history and private artifact boundaries remain coherent. The planned validation clauses describe future delivery obligations and do not override the current no-resume instruction. No material lost condition, cross-section conflict or unauthorized scope exclusion remains.
+      approval_observed: true
+    - id: 28b4daa7-1f0e-4286-ace1-eace5f685e70
+      source_version: 785424ba80d8dbf709c51901135a288276377b0a5aa08958d25c7d6ba2988a83
+      specification_version: 9eb3ca847f6421bd03834981a659066362922abcffcd79605c63d04cd9e30a7e
+      status_at_start: Draft
+      created_at: 2026-10-09T21:22:33.865Z
+      completed: true
+      outcome: reviewed
+      results:
+        [
+          {
+            item_index: 0,
+            item_key: source:scope.manifest,
+            verdict: covered,
+            explanation: "The current confirmed scope preserves Standard depth and core/operations/security. Its Pages amendment retains the independent documentation site, all key checks, and separate implementation/external activation gates. The source proposal's confirmed:false is historical proposal metadata, not a competing current scope flag. Scope limits are also retained in the full-specification consistency review.",
+            requirement_ids: [],
+            source_refs: [{ id: scope.manifest, revision: 4 }],
+          },
+          {
+            item_index: 1,
+            item_key: source:ec512932-4a32-43f1-a8df-747e3c570c2c,
+            verdict: covered,
+            explanation: 'TEST-001 covers inventory, pyramid, functional matrix, duplicates/flakes and risk priorities; TEST-002 preserves fast PR/heavy periodic boundaries, Codecov and thresholds; TEST-003/004/005 specify observable real-browser persistence/download/proxy checks and cleanup. TEST-006/007/008/009 cover statuses, failure/skip/retry/history, grouping, safe attachments, local HTML, merged artifacts and summaries. TEST-010 preserves platforms and runner constraints. The later TEST-011 expands rather than narrows functional coverage; current implementation gates supersede the initial autonomous implementation authorization.',
+            requirement_ids:
+              [
+                TEST-001,
+                TEST-002,
+                TEST-003,
+                TEST-004,
+                TEST-005,
+                TEST-006,
+                TEST-007,
+                TEST-008,
+                TEST-009,
+                TEST-010,
+              ],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 2,
+            item_key: source:7834c4b6-a3f2-40cd-b3ab-167d654a23bb,
+            verdict: covered,
+            explanation: 'TEST-006 requires a public-compatible reporting path to produce controlled pass/fail/skip/retry and import-failure evidence, and treats zero results/incompatibility as failure. TEST-010 preserves Vitest 5 and forbids downgrade or private adapter patches. This preserves the observed failed official adapter probe without claiming it succeeded.',
+            requirement_ids: [TEST-006, TEST-010],
+            source_refs: [{ id: 7834c4b6-a3f2-40cd-b3ab-167d654a23bb, revision: 2 }],
+          },
+          {
+            item_index: 3,
+            item_key: source:52679f4d-b6b9-4b8b-9a85-38997332f874,
+            verdict: covered,
+            explanation: 'TEST-001 and TEST-011 require executable, observed assertions for every applicable key scenario, distinguish fake upstream from real browsers, keep missing scenarios as incomplete work, and require explicit user decision to defer. TEST-010 preserves platform evidence and explicitly labels unavailable execution.',
+            requirement_ids: [TEST-001, TEST-010, TEST-011],
+            source_refs: [{ id: 52679f4d-b6b9-4b8b-9a85-38997332f874, revision: 1 }],
+          },
+          {
+            item_index: 4,
+            item_key: source:a507d589-056f-453b-b41e-c57fae039c0b,
+            verdict: covered,
+            explanation: The implementation-boundary instruction supersedes autonomous implementation while retaining the specification's intended test behavior through TEST-001 and TEST-011. It is reflected as a current-stage gate in the full specification; no requirement authorizes renewed implementation now.,
+            requirement_ids: [TEST-001, TEST-011],
+            source_refs: [{ id: a507d589-056f-453b-b41e-c57fae039c0b, revision: 1 }],
+          },
+          {
+            item_index: 5,
+            item_key: source:301e19f0-2621-412e-b6b4-dc23d3666ddd,
+            verdict: covered,
+            explanation: 'TEST-007 extends sanitization and untrusted-artifact safeguards to public HTML and PR comments. TEST-008 confines generated public Git history to the dedicated reports repository after activation. TEST-009 requires independent reports Pages, preserves source documentation, merges matrix environments and verifies the deployed URL before one current PR link, with separate external authorization.',
+            requirement_ids: [TEST-007, TEST-008, TEST-009],
+            source_refs: [{ id: 301e19f0-2621-412e-b6b4-dc23d3666ddd, revision: 1 }],
+          },
+          {
+            item_index: 6,
+            item_key: source:95e828ec-3581-4edc-abd2-8808a24ecc0d,
+            verdict: covered,
+            explanation: 'TEST-009 explicitly selects Allure Report 3, peaceiris/actions-gh-pages and allure-framework/allure-action, and requires SHA pin verification before use. It retains the separately confirmed destination, immutable PR/run/attempt/SHA path, 14-day owned retention, trusted publication, single bot-owned comment and summary, and independent documentation site. TEST-007/008 retain safe regeneration and repository boundaries.',
+            requirement_ids: [TEST-007, TEST-008, TEST-009],
+            source_refs: [{ id: 95e828ec-3581-4edc-abd2-8808a24ecc0d, revision: 1 }],
+          },
+          {
+            item_index: 7,
+            item_key: requirement:TEST-001,
+            verdict: covered,
+            explanation: 'TEST-001 faithfully translates the initial inventory/pyramid/matrix/backlog request and the all-key-functionality amendment. Counts, skips, environment limits, overlap/flakes and risk priorities are explicit; missing key checks remain incomplete rather than silently deferred. The implementation restriction affects execution authority, not intended coverage.',
+            requirement_ids: [TEST-001],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 52679f4d-b6b9-4b8b-9a85-38997332f874, revision: 1 },
+                { id: a507d589-056f-453b-b41e-c57fae039c0b, revision: 1 },
+              ],
+          },
+          {
+            item_index: 8,
+            item_key: requirement:TEST-002,
+            verdict: covered,
+            explanation: "TEST-002 is justified by the original requirement to preserve fast PR checks, Codecov/thresholds and existing gates while placing new heavy scenarios in explicit periodic/manual lanes. It preserves all suites' report generation and test failure exit status.",
+            requirement_ids: [TEST-002],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 9,
+            item_key: requirement:TEST-003,
+            verdict: covered,
+            explanation: 'TEST-003 is a concrete observable instance of the authorized missing real-Chromium/local-fixture backlog: cookie/localStorage persistence across bridge restart, independent profile absence and stable seed. All paths require owned-resource cleanup; no mock is claimed to prove browser persistence.',
+            requirement_ids: [TEST-003],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 10,
+            item_key: requirement:TEST-004,
+            verdict: covered,
+            explanation: 'TEST-004 preserves the requested meaningful real-browser functional coverage and existing interactions, requiring installed-package download with exact controlled bytes/filename. A successful MCP response alone cannot satisfy acceptance.',
+            requirement_ids: [TEST-004],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 11,
+            item_key: requirement:TEST-005,
+            verdict: covered,
+            explanation: 'TEST-005 makes proxy coverage observable through controlled local requests, unavailable-proxy error and clean-runtime recovery, with socket cleanup. This is faithful to the real-browser deterministic-fixture and lifecycle constraints.',
+            requirement_ids: [TEST-005],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 12,
+            item_key: requirement:TEST-006,
+            verdict: covered,
+            explanation: "TEST-006 faithfully covers every level's status/duration/errors/stacks, skip/import/unhandled errors, feature/environment grouping, stable identities, retry/flakiness/history, and explicitly failed zero-results compatibility. It does not treat the observed failed official adapter as working.",
+            requirement_ids: [TEST-006],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 7834c4b6-a3f2-40cd-b3ab-167d654a23bb, revision: 2 },
+              ],
+          },
+          {
+            item_index: 13,
+            item_key: requirement:TEST-007,
+            verdict: covered,
+            explanation: 'TEST-007 operationalizes secret protection for private/public evidence and the approved reports-delivery boundary. Controlled screenshots, pre-persistence and pre-generation redaction, bounded diagnostics, path/symlink rejection and trusted-only regeneration prohibit unsafe public artifact execution or assets. Acceptance tests secret absence and malicious inputs.',
+            requirement_ids: [TEST-007],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 301e19f0-2621-412e-b6b4-dc23d3666ddd, revision: 1 },
+                { id: 95e828ec-3581-4edc-abd2-8808a24ecc0d, revision: 1 },
+              ],
+          },
+          {
+            item_index: 14,
+            item_key: requirement:TEST-008,
+            verdict: covered,
+            explanation: TEST-008 preserves the requested local HTML workflow and history without introducing an external service or Java. Separate result namespaces prevent accidental repeat attempts. Its sole generated-Git exception is the independently authorized reports repository; source Git/npm remain excluded.,
+            requirement_ids: [TEST-008],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 301e19f0-2621-412e-b6b4-dc23d3666ddd, revision: 1 },
+                { id: 95e828ec-3581-4edc-abd2-8808a24ecc0d, revision: 1 },
+              ],
+          },
+          {
+            item_index: 15,
+            item_key: requirement:TEST-009,
+            verdict: covered,
+            explanation: 'TEST-009 faithfully preserves initial artifact/summary/merge/history/Codecov reporting and the authorized separate Pages amendment. It specifies requested components, matrix variants, immutable identity, owned 14-day cleanup, trusted regeneration and least privilege, fresh single-comment links only after verified deployment, truthful failure/unavailable evidence, independent documentation and rollback to artifact access. External setup and activation remain explicitly gated.',
+            requirement_ids: [TEST-009],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 301e19f0-2621-412e-b6b4-dc23d3666ddd, revision: 1 },
+                { id: 95e828ec-3581-4edc-abd2-8808a24ecc0d, revision: 1 },
+              ],
+          },
+          {
+            item_index: 16,
+            item_key: requirement:TEST-010,
+            verdict: covered,
+            explanation: 'TEST-010 is grounded in the preserved Node/platform/Docker constraints and all-key-functionality request, with the observed Vitest adapter incompatibility corroborating the prohibition on downgrade/private API patches. Portable loopback fixtures, owned cleanup and explicit unverified platforms preserve honest evidence without weakening acceptance.',
+            requirement_ids: [TEST-010],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 52679f4d-b6b9-4b8b-9a85-38997332f874, revision: 1 },
+              ],
+          },
+          {
+            item_index: 17,
+            item_key: requirement:TEST-011,
+            verdict: covered,
+            explanation: 'TEST-011 implements the direct all-key-functionality instruction without narrowing it to the initial three missing browser scenarios. It enumerates executable observed checks for CLI/MCP/browser/profile/transports/CDP/proxy/extensions/humanization/GeoIP/resources/distribution. Existing contracts are referenced, and applicable scenarios may be deferred only by explicit user decision; current implementation authorization stays separately gated.',
+            requirement_ids: [TEST-011],
+            source_refs:
+              [
+                { id: 52679f4d-b6b9-4b8b-9a85-38997332f874, revision: 1 },
+                { id: a507d589-056f-453b-b41e-c57fae039c0b, revision: 1 },
+              ],
+          },
+          {
+            item_index: 18,
+            item_key: profile:core,
+            verdict: covered,
+            explanation: 'Core is relevant to existing Vitest/developer CLI tooling. TEST-006 defines observable runner output, errors/skip/retry identities and compatibility failure; TEST-008 defines local collect/generate/open, isolated repeat runs, history and distribution exclusions; TEST-002/010/011 preserve existing CLI/transports, exit status, platform/cancellation/cleanup contracts. The scope uses existing Allure UI, not a new independently versioned service/schema; no additional contract artifact or product configuration is established as necessary.',
+            requirement_ids: [TEST-002, TEST-006, TEST-008, TEST-010, TEST-011],
+            source_refs: [],
+          },
+          {
+            item_index: 19,
+            item_key: profile:operations,
+            verdict: covered,
+            explanation: 'Operations is relevant to matrix aggregation and report lifecycle. TEST-006/009 distinguish test/runner/missing-producer/publication failures with counts/duration, retain failure status and sanitized fallback artifacts, isolate trusted history, serialize writes/cleanup and deduplicate events. TEST-009 gives concrete deployment verification, freshness, 14-day owned retention and disable-publisher recovery while preserving documentation. TEST-010/011 cover startup/shutdown and resource cleanup on supported platforms. No reporting-service SLO or application backup is warranted by disposable static reports.',
+            requirement_ids: [TEST-006, TEST-009, TEST-010, TEST-011],
+            source_refs: [],
+          },
+          {
+            item_index: 20,
+            item_key: profile:security,
+            verdict: covered,
+            explanation: 'Security is relevant to secret-bearing diagnostics and public handling of untrusted PR results. TEST-007 prohibits secret persistence, arbitrary profiles/screenshots, unsafe paths/symlinks/binaries and PR code/assets; requires trusted pinned regeneration and synthetic-secret/malicious-input acceptance. TEST-009 derives identity through GitHub API, uses short-lived limited credentials, gates external activation, prevents trusted-history poisoning/stale replacement/replay and protects live/unrelated paths during retention. Failures yield unavailable/incomplete state rather than unsafe public output; report rollback retains sanitized artifacts.',
+            requirement_ids: [TEST-007, TEST-008, TEST-009, TEST-010],
+            source_refs: [],
+          },
+          {
+            item_index: 21,
+            item_key: context:specification,
+            verdict: covered,
+            explanation: 'The complete Draft specification preserves all retained initial conditions and later explicit amendments. Its boundary keeps implementation paused, excludes commits/PR creation, and separately gates repository identity/setup, credentials, activation and comments. TEST-007/008/009 consistently extend private sanitized reporting to independently hosted public reports without changing documentation deployment, source Git/npm exclusions or source write permissions. Selected Actions remain subject to pinned trusted generation and freshness safeguards; failed/missing reporting never turns failing tests into success. TEST-001/010/011 and the priority table consistently require all applicable key scenarios, actual platform/browser assertions and explicit blockers, with P2 limited to supplemental depth. Historical baseline counts and rejected adapter evidence are dated and distinguished from future validation. The validation section preserves tests, coverage, documentation checks and workflow checks, while historical scope proposals are correctly distinct from the current confirmed manifest. No material unsupported promise, lost source condition, or cross-section conflict was found.',
+            requirement_ids: [],
+            source_refs: [],
+          },
+        ]
+      consistency_required: true
+      input_snapshot: 706f7234051ce4ae1e14c752f7b8b785a1875b228892cb094990f16fdc0ff155
+      consistency:
+        verdict: consistent
+        explanation: The complete Draft specification preserves all retained initial conditions and later explicit amendments. Its boundary keeps implementation paused, excludes commits/PR creation, and separately gates repository identity/setup, credentials, activation and comments. TEST-007/008/009 consistently extend private sanitized reporting to independently hosted public reports without changing documentation deployment, source Git/npm exclusions or source write permissions. Selected Actions remain subject to pinned trusted generation and freshness safeguards; failed/missing reporting never turns failing tests into success. TEST-001/010/011 and the priority table consistently require all applicable key scenarios, actual platform/browser assertions and explicit blockers, with P2 limited to supplemental depth. Historical baseline counts and rejected adapter evidence are dated and distinguished from future validation. The validation section preserves tests, coverage, documentation checks and workflow checks, while historical scope proposals are correctly distinct from the current confirmed manifest. No material unsupported promise, lost source condition, or cross-section conflict was found.
+      approval_observed: true
+    - id: 10107cff-c8d4-488d-9294-ccb07412a357
+      source_version: b5768150e20c92ec9131fc4c767229b1f076ed86e089fc5f9829e737eb09f9ba
+      specification_version: bce84e8b28612a6db2d677395921717b37003dab1f993d0ec867dee1dc2b7627
+      status_at_start: Draft
+      created_at: 2026-10-10T14:36:37.247Z
+      completed: true
+      outcome: reviewed
+      results:
+        [
+          {
+            item_index: 0,
+            item_key: source:scope.manifest,
+            verdict: covered,
+            explanation: Confirmed Standard core/operations/security scope is faithfully preserved by TEST-002/010 platform and fast/heavy contracts and TEST-007/008/009 reporting delivery; Outcome and boundary explicitly pauses implementation and excludes unauthorized external activation. Earlier no-public-hosting scope is narrowly amended by later confirmed reports-only delivery.,
+            requirement_ids: [TEST-002, TEST-007, TEST-008, TEST-009, TEST-010],
+            source_refs: [],
+          },
+          {
+            item_index: 1,
+            item_key: source:ec512932-4a32-43f1-a8df-747e3c570c2c,
+            verdict: covered,
+            explanation: 'TEST-001 preserves pyramid, runner-derived counts, gaps, duplicates/flakes and risk ordering; TEST-002 retains fast checks, Codecov and nonzero failures; TEST-003/004/005 require real local persistence/download/proxy evidence; TEST-006/007/008/009 cover all requested report fields, diagnostics, local HTML/history and CI merge; TEST-010/011 preserve platform/cleanup/upstream contracts and every key function. Outcome boundary reflects later specification-only correction.',
+            requirement_ids:
+              [
+                TEST-001,
+                TEST-002,
+                TEST-003,
+                TEST-004,
+                TEST-005,
+                TEST-006,
+                TEST-007,
+                TEST-008,
+                TEST-009,
+                TEST-010,
+              ],
+            source_refs: [],
+          },
+          {
+            item_index: 2,
+            item_key: source:7834c4b6-a3f2-40cd-b3ab-167d654a23bb,
+            verdict: covered,
+            explanation: TEST-006 makes zero-result/incompatible reporters fail explicitly and defines pass/fail/skip/retry/import/history validation; TEST-010 and Reporting alternatives preserve Vitest 5 and require public APIs without private task patches or downgrading.,
+            requirement_ids: [TEST-006],
+            source_refs: [],
+          },
+          {
+            item_index: 3,
+            item_key: source:52679f4d-b6b9-4b8b-9a85-38997332f874,
+            verdict: covered,
+            explanation: TEST-001 prohibits removing key checks by P2 priority; TEST-011 explicitly enumerates all key functionality and requires executable observable checks with real browsers where applicable; TEST-010 retains supported platforms and records unexecuted scenarios as unverified.,
+            requirement_ids: [TEST-001, TEST-010, TEST-011],
+            source_refs: [],
+          },
+          {
+            item_index: 4,
+            item_key: source:a507d589-056f-453b-b41e-c57fae039c0b,
+            verdict: covered,
+            explanation: 'Outcome and boundary explicitly makes this revision specification-only, pauses implementation until new instruction and excludes commits/PR creation; TEST-001/011 preserve functional goals without authorizing execution. The removal instruction concerns the previous unauthorized implementation and does not create a new product behavior.',
+            requirement_ids: [TEST-001, TEST-011],
+            source_refs: [],
+          },
+          {
+            item_index: 5,
+            item_key: source:301e19f0-2621-412e-b6b4-dc23d3666ddd,
+            verdict: covered,
+            explanation: 'TEST-007 applies public redaction and trusted regeneration; TEST-008 allows generated HTML only in the separate reports repository; TEST-009 preserves documentation site, separate repository, immutable verified URLs, retention, API-derived identity and separate external setup/activation authorization. Outcome boundary retains planning-only permission.',
+            requirement_ids: [TEST-007, TEST-008, TEST-009],
+            source_refs: [],
+          },
+          {
+            item_index: 6,
+            item_key: source:95e828ec-3581-4edc-abd2-8808a24ecc0d,
+            verdict: covered,
+            explanation: 'TEST-009 retains Allure 3, peaceiris, independent proposed destination requiring exact confirmation, merged environment variants, immutable PR/run/attempt/SHA URLs, 14-day retention, trusted publication, one owned comment and summary. Its project-owned comment replacement is specifically authorized by later source 4f47ba22-bd13-49e3-a54f-5690e27eb4a7; all unrelated safety and activation gates remain.',
+            requirement_ids: [TEST-007, TEST-008, TEST-009],
+            source_refs: [],
+          },
+          {
+            item_index: 7,
+            item_key: source:4f47ba22-bd13-49e3-a54f-5690e27eb4a7,
+            verdict: covered,
+            explanation: 'TEST-009 explicitly selects project-owned trusted code for author/SHA/run-verified comment/statistics and Job Summary, retains Allure 3 and peaceiris and excludes mandatory allure-action; permission, safety and external activation guards remain.',
+            requirement_ids: [TEST-009],
+            source_refs: [],
+          },
+          {
+            item_index: 8,
+            item_key: source:7acdf21f-948a-4eb9-8299-6e84aab5ff17,
+            verdict: not_applicable,
+            explanation: Explicitly classified implementation-file permission and ESLint project-service capacity is non-product context; it neither changes observable behavior nor authorizes weakening lint/security/coverage contracts.,
+            requirement_ids: [],
+            source_refs: [],
+          },
+          {
+            item_index: 9,
+            item_key: requirement:TEST-001,
+            verdict: covered,
+            explanation: 'TEST-001 is justified by the original inventory/reporting instruction and subsequent all-key-function scope expansion: runner-derived evidence, duplicates/flakes, prioritized gaps and explicit scenario traceability are faithful without narrowing key scope.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 52679f4d-b6b9-4b8b-9a85-38997332f874, revision: 1 },
+                { id: a507d589-056f-453b-b41e-c57fae039c0b, revision: 1 },
+              ],
+          },
+          {
+            item_index: 10,
+            item_key: requirement:TEST-002,
+            verdict: covered,
+            explanation: 'TEST-002 faithfully retains original fast PR checks, Codecov/thresholds and existing required gates while placing new heavy scenarios in explicit periodic/manual runs; report generation cannot turn failing tests into success.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 11,
+            item_key: requirement:TEST-003,
+            verdict: covered,
+            explanation: 'TEST-003 implements the requested missing real Chromium local-fixture regression coverage through restart persistence, isolated profiles and seed stability with cleanup; the broader key-function instruction reinforces these observable outcomes.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 12,
+            item_key: requirement:TEST-004,
+            verdict: covered,
+            explanation: 'TEST-004 faithfully makes local-fixture real-browser downloading observable through exact filename/bytes, preserves existing functional checks and rejects tool-response-only evidence, as required by the original request.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 13,
+            item_key: requirement:TEST-005,
+            verdict: covered,
+            explanation: 'TEST-005 faithfully implements missing real proxy routing with a controlled fixture, explicit failure, fresh-runtime recovery and socket cleanup, matching real Chromium/isolation requirements without public dependencies.',
+            requirement_ids: [],
+            source_refs: [{ id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 }],
+          },
+          {
+            item_index: 14,
+            item_key: requirement:TEST-006,
+            verdict: covered,
+            explanation: 'TEST-006 preserves all requested statuses/timings/errors/stack traces, feature/environment dimensions, stable identities, retry/flaky history and adds observable zero-result/import-failure checks justified by the recorded adapter incompatibility.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 7834c4b6-a3f2-40cd-b3ab-167d654a23bb, revision: 2 },
+              ],
+          },
+          {
+            item_index: 15,
+            item_key: requirement:TEST-007,
+            verdict: covered,
+            explanation: 'TEST-007 faithfully applies original secret-safe diagnostic requirements and later public-delivery safeguards to persistence, artifacts, HTML, summaries and comments; trusted regeneration and malicious-artifact tests preserve the newly material public trust boundary.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 301e19f0-2621-412e-b6b4-dc23d3666ddd, revision: 1 },
+                { id: 95e828ec-3581-4edc-abd2-8808a24ecc0d, revision: 1 },
+              ],
+          },
+          {
+            item_index: 16,
+            item_key: requirement:TEST-008,
+            verdict: covered,
+            explanation: TEST-008 preserves documented local collection/generation/opening and distinguishable repeats/history; the separately authorized public reports repository exception faithfully reflects later delivery amendments without polluting source Git/npm distribution.,
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 301e19f0-2621-412e-b6b4-dc23d3666ddd, revision: 1 },
+                { id: 95e828ec-3581-4edc-abd2-8808a24ecc0d, revision: 1 },
+              ],
+          },
+          {
+            item_index: 17,
+            item_key: requirement:TEST-009,
+            verdict: covered,
+            explanation: 'TEST-009 combines original safe CI artifacts/merge/summary with subsequent authorized separate-site delivery, selected Allure3/peaceiris, fixed retention, exact immutable run identity, freshness/ownership controls and project-owned comments authorized by the final source. External activation remains gated and documentation site preserved.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 301e19f0-2621-412e-b6b4-dc23d3666ddd, revision: 1 },
+                { id: 95e828ec-3581-4edc-abd2-8808a24ecc0d, revision: 1 },
+                { id: 4f47ba22-bd13-49e3-a54f-5690e27eb4a7, revision: 1 },
+              ],
+          },
+          {
+            item_index: 18,
+            item_key: requirement:TEST-010,
+            verdict: covered,
+            explanation: 'TEST-010 preserves original Node/platform/Docker constraints, portable owned-resource cleanup and truthful unexecuted evidence; Vitest5/public-API limitation is also grounded in observed incompatibility source read at item2.',
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: ec512932-4a32-43f1-a8df-747e3c570c2c, revision: 2 },
+                { id: 52679f4d-b6b9-4b8b-9a85-38997332f874, revision: 1 },
+              ],
+          },
+          {
+            item_index: 19,
+            item_key: requirement:TEST-011,
+            verdict: covered,
+            explanation: "TEST-011 faithfully operationalizes user's all-key-function amendment with observable checks, real browsers where material, local fixtures, errors/recovery, resource ownership and exact scenario evidence; priorities and unavailable environments cannot silently narrow scope.",
+            requirement_ids: [],
+            source_refs:
+              [
+                { id: 52679f4d-b6b9-4b8b-9a85-38997332f874, revision: 1 },
+                { id: a507d589-056f-453b-b41e-c57fae039c0b, revision: 1 },
+              ],
+          },
+          {
+            item_index: 20,
+            item_key: profile:core,
+            verdict: covered,
+            explanation: 'Core profile is covered by TEST-002/006/008/010/011: consumers are local developers and CI, inputs/results/identities and invalid/zero/collection failures are observable, repeated generation/history and environment identity are defined, failing exit status and existing MCP/CLI contracts are preserved. Existing command contracts are referenced; this is reporting/test tooling, with no new product protocol schema requiring another artifact.',
+            requirement_ids: [TEST-002, TEST-006, TEST-007, TEST-008, TEST-009, TEST-010, TEST-011],
+            source_refs: [],
+          },
+          {
+            item_index: 21,
+            item_key: profile:operations,
+            verdict: covered,
+            explanation: 'Operations profile is covered by TEST-002/006/008/009/010/011: local repeat generation/history, missing-producer and publication failure evidence, matrix aggregation, serialization/idempotence, deployment URL validation, 14-day owned-path retention, publisher-only disabling and artifact fallback define recovery and rollout. External setup/activation is explicitly gated; no service availability SLO is warranted for disposable static test reports.',
+            requirement_ids: [TEST-002, TEST-006, TEST-007, TEST-008, TEST-009, TEST-010, TEST-011],
+            source_refs: [],
+          },
+          {
+            item_index: 22,
+            item_key: profile:security,
+            verdict: covered,
+            explanation: 'Security profile is covered by TEST-007/009/010/011: assets are secrets, trusted history, public output, source documentation and bot comments; untrusted PR artifacts are validated and regenerated by trusted pinned code, producers read-only, scoped short-lived credentials, bot-author ownership, API-derived run/PR identity and freshness checks restrict writes. Synthetic-secret, malicious-artifact, duplicate/stale events and retention tests provide observable denials and safe recovery without leaking evidence.',
+            requirement_ids: [TEST-002, TEST-006, TEST-007, TEST-008, TEST-009, TEST-010, TEST-011],
+            source_refs: [],
+          },
+          {
+            item_index: 23,
+            item_key: context:specification,
+            verdict: covered,
+            explanation: "Read the entire exact specification, confirmed manifest and all 23 saved detailed outcomes. Outcome/boundary preserves specification-only work and separate implementation/external-activation permissions; TEST-001/010/011 and backlog preserve all key functions independent of priority, with unexecuted environments blocking rather than passing. TEST-002's preserved existing gates and separate new heavy lanes are compatible. TEST-006's result/history identities and failure semantics remain consistent across local generation and TEST-009 matrix aggregation. TEST-007/008/009 safely distinguish source Git exclusion from authorized generated report storage, trusted regeneration from untrusted PR artifacts, artifact fallback from public delivery, immutable runs from mutable verified bot links, and PR history from trusted default-branch history. The later exact project-owned-handler decision replaces only mandatory allure-action; Allure3/peaceiris, destination confirmation, 14-day retention, documentation preservation, ownership and SHA/run freshness survive. Baseline prose is dated observational context; all material normative promises are covered by the requirements or explicit work/authorization boundary. No additional missing obligation or cross-section contradiction found.",
+            requirement_ids: [],
+            source_refs: [],
+          },
+        ]
+      consistency_required: true
+      input_snapshot: 40f9d367502332d03364ce7349ee89a19c9104f2731ec36b5d0f3478bfff9c1c
+      consistency:
+        verdict: consistent
+        explanation: Read the entire exact specification, confirmed manifest and all 23 saved detailed outcomes. Outcome/boundary preserves specification-only work and separate implementation/external-activation permissions; TEST-001/010/011 and backlog preserve all key functions independent of priority, with unexecuted environments blocking rather than passing. TEST-002's preserved existing gates and separate new heavy lanes are compatible. TEST-006's result/history identities and failure semantics remain consistent across local generation and TEST-009 matrix aggregation. TEST-007/008/009 safely distinguish source Git exclusion from authorized generated report storage, trusted regeneration from untrusted PR artifacts, artifact fallback from public delivery, immutable runs from mutable verified bot links, and PR history from trusted default-branch history. The later exact project-owned-handler decision replaces only mandatory allure-action; Allure3/peaceiris, destination confirmation, 14-day retention, documentation preservation, ownership and SHA/run freshness survive. Baseline prose is dated observational context; all material normative promises are covered by the requirements or explicit work/authorization boundary. No additional missing obligation or cross-section contradiction found.
+      approval_observed: true

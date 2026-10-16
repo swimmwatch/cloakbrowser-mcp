@@ -1,3 +1,4 @@
+import { systemErrorCodes } from '#src/runtime/systemErrorCodes';
 /**
  * Clean stale Chromium `SingletonLock` files left behind by killed browser
  * processes. Chromium uses these locks to prevent concurrent profile access —
@@ -27,12 +28,10 @@ import { existsSync, readdirSync, readFileSync, readlinkSync, unlinkSync } from 
 import { homedir } from 'node:os';
 import { join as joinPosix } from 'node:path/posix';
 import { join as joinWin32 } from 'node:path/win32';
-
 const SINGLETON_LOCK_FILES = ['SingletonLock', 'SingletonCookie', 'SingletonSocket'] as const;
 const PROFILE_DIR_PREFIX = 'mcp-chromium-';
 const CACHE_DIR_NAME = 'ms-playwright-mcp';
 const PID_REGEX = /\d+$/;
-
 /**
  * Resolves the platform-specific Playwright MCP cache directory.
  * Exported for testability — the win32 branch uses env vars that
@@ -54,9 +53,9 @@ export function getCacheDir(platform: NodeJS.Platform): string {
     // path matches what the Windows Chromium process will resolve later.
     return joinWin32(base, CACHE_DIR_NAME);
   }
-  return joinPosix(homedir(), '.cache', CACHE_DIR_NAME);
+  const homedirResult = homedir();
+  return joinPosix(homedirResult, '.cache', CACHE_DIR_NAME);
 }
-
 /**
  * Reads the owning PID from a `SingletonLock` entry, handling both POSIX
  * symlink targets and Windows plain-file content. Returns `null` when the
@@ -87,29 +86,27 @@ export function readLockPid(lockPath: string, platform: NodeJS.Platform): number
   const pid = Number(match[0]);
   return Number.isSafeInteger(pid) && pid > 0 ? pid : null;
 }
-
 function isProcessDead(pid: number): boolean {
   try {
     process.kill(pid, 0);
     return false; // alive
   } catch (error) {
     const code = (error as NodeJS.ErrnoException | undefined)?.code;
-    if (code === 'ESRCH') return true; // dead
+    if (code === systemErrorCodes.ESRCH) return true; // dead
     return false; // EPERM, EACCES, or other — keep the lock
   }
 }
-
 function removeSingletonFiles(profileDir: string, platform: NodeJS.Platform): void {
   const joinPath = platform === 'win32' ? joinWin32 : joinPosix;
   for (const name of SINGLETON_LOCK_FILES) {
     try {
-      unlinkSync(joinPath(profileDir, name));
+      const joinPathResult = joinPath(profileDir, name);
+      unlinkSync(joinPathResult);
     } catch {
       // File may not exist; cleanup is best-effort.
     }
   }
 }
-
 /** Options accepted by {@link cleanStaleSingletonLocks}. */
 export interface CleanStaleSingletonLocksOptions {
   /** Override the cache directory (used by tests). */
@@ -117,7 +114,6 @@ export interface CleanStaleSingletonLocksOptions {
   /** Override the platform identifier (used by tests). */
   readonly platform?: NodeJS.Platform;
 }
-
 /**
  * Iterates every `mcp-chromium-*` profile directory under the platform cache
  * directory and removes the `SingletonLock` / `SingletonCookie` /
@@ -134,25 +130,20 @@ export function cleanStaleSingletonLocks(options: CleanStaleSingletonLocksOption
   const platform = options.platform ?? process.platform;
   const cacheDir = options.cacheDir ?? getCacheDir(platform);
   if (!existsSync(cacheDir)) return;
-
   let entries: string[];
   try {
     entries = readdirSync(cacheDir);
   } catch {
     return;
   }
-
   const joinPath = platform === 'win32' ? joinWin32 : joinPosix;
-
   for (const entry of entries) {
     if (!entry.startsWith(PROFILE_DIR_PREFIX)) continue;
     const profileDir = joinPath(cacheDir, entry);
     const lockPath = joinPath(profileDir, 'SingletonLock');
-
     const pid = readLockPid(lockPath, platform);
     if (pid === null) continue;
     if (!isProcessDead(pid)) continue;
-
     removeSingletonFiles(profileDir, platform);
   }
 }

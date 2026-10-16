@@ -1,0 +1,11 @@
+<button>Frame action</button>
+<label>Frame input <input id="frame-input" value="Frame value" /></label>
+<script>
+  const button = document.querySelector('button');
+  button.addEventListener('click', () => {
+    const computedValue = button.dataset.clicks || '0';
+    const computedValue2 = Number(computedValue) + 1;
+    button.dataset.clicks = String(computedValue2);
+    button.textContent = 'Frame clicked';
+  });
+</script>

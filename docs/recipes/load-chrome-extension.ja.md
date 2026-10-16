@@ -37,10 +37,10 @@ docker run --rm -i \
 
 ## 確認
 
-Use the MCP client to open a page where the extension should be active, then inspect behavior or capture a screenshot.
+MCP クライアントに拡張機能が動作するページを開かせ、動作を確認するかスクリーンショットを撮ってください。`cloakbrowser_bridge_info` でブリッジのパッケージが期待するバージョンか確認することもできます。
 
 ## 関連
 
-- [Configuration](../configuration.md)
-- [Docker](../docker.md)
+- [設定](../configuration.md#chrome-extensions)
+- [Docker](../docker.md#chrome-extensions)
 - [永続ログインプロファイル](persistent-login-profile.md)

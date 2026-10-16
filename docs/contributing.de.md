@@ -14,6 +14,16 @@ npm install
 npm run check
 ```
 
+## Testberichte
+
+Lokale Berichte, die mit `test:report:generate` erzeugt werden, bleiben eigenständige HTML-Dateien. Zusammengeführte CI-Berichte verwenden getrennte HTML-, JavaScript- und Datendateien, um das Dateigrößenlimit von GitHub einzuhalten. Lade das gesamte Artefakt `combined-test-report` herunter, entpacke es und öffne dessen Verzeichnis:
+
+```bash
+npm run test:report:open -- --report /path/to/extracted-report
+```
+
+Bei einem Bericht aus mehreren Dateien startet dieser Befehl den installierten Allure-Viewer. Lass ihn während der Anzeige laufen; mit `Ctrl+C` beendest du ihn. Die Veröffentlichung auf GitHub Pages erhält die Berichtsressourcen im separaten Berichtsrepository.
+
 ## Checkliste für Pull-Anfragen
 
 - [ ] `npm run check` besteht den Test.

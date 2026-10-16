@@ -10,6 +10,8 @@ tags:
 
 所发布的图片展示了可重复使用 MCP 的推荐运行时。
 
+如需为已运行的 HTTP 服务器配置 TLS 和身份验证的简短部署步骤，请参阅[Docker Streamable HTTP 反向代理示例](recipes/docker-streamable-http-reverse-proxy.md)。
+
 ## 运行
 
 ```bash
@@ -22,13 +24,32 @@ docker run --rm -i \
 
 镜像已将 Tini 作为 PID 1 和子进程收割器运行，因此常规命令不需要额外的 Docker init 进程。
 
-## 有头会话、健康检查和受限运行时
-
-使用 headless: false 时，容器会按需启动私有 Xvfb，并一直保留到容器退出。这不是可见桌面，也不提供 VNC、noVNC、RDP、host X11 或屏幕捕获服务。Playwright 的上下文、页面、配置文件和工件相互隔离，但原生 X11 的 focus、clipboard 和屏幕捕获不是租户隔离边界。Docker 健康检查通过私有 Unix socket 检查 MCP CLI event loop；若已启动 Xvfb，还会检查其可用性。它不会通过 MCP stdio 发送流量，也不能替代 /healthz 或 /readyz。对于 read-only root filesystem，请挂载 /data，并在可能使用有头会话时为 /tmp 和 /tmp/.X11-unix 提供 writable tmpfs。
-
 相同的发布标签已发布到 Docker Hub，标签为 `swimmwatch/cloakbrowser-mcp`，并在 GHCR 上发布为 `ghcr.io/swimmwatch/cloakbrowser-mcp`。
 
-## 持久化配置文件
+## 有头会话与虚拟显示 { #headed-sessions-and-virtual-display }
+
+镜像默认设置 `PLAYWRIGHT_MCP_HEADLESS=true`，无头会话不会启动 Xvfb。当会话请求 `headless: false` 时，启动器会按需启动一个容器私有的 Xvfb 显示，等待它可用，并保持运行直至容器退出。并发的有头 HTTP 会话共用该显示，但各自的 Playwright 浏览器上下文、页面、配置文件和产物仍保持隔离。
+
+有头 stdio 会话使用标准 Playwright MCP 环境变量：
+
+```bash
+docker run --rm -i \
+  -e PLAYWRIGHT_MCP_HEADLESS=false \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+这不是可见桌面或图形界面流式传输服务：镜像不提供 VNC、noVNC、RDP、主机 X11 访问或显示捕获。不要将原生 X11 焦点、剪贴板或显示捕获视为租户隔离边界。启动器会在关闭期间停止显示；启动失败或 MCP CLI 退出会导致容器关闭，不会留下仍可使用的桥接器。
+
+在此镜像之外，有头浏览器仍需要可用的显示环境。没有显示环境时，请设置 `PLAYWRIGHT_MCP_HEADLESS=true`。
+
+## 容器健康检查与受限运行时 { #container-health-and-restricted-runtime }
+
+Docker `HEALTHCHECK` 通过私有 Unix 套接字主动确认 MCP CLI 事件循环能够响应。如果 Xvfb 已启动，也会检查 X11 显示；从未请求过显示的无头容器仍可处于健康状态。显示正在启动、正在关闭或发生故障时，健康检查失败。X11 响应探测最多等待 1 秒，CLI 响应最多等待 750 毫秒，私有健康请求最多等待 2.5 秒；Docker 会在 3 秒后终止一次健康检查命令。Docker 使用 2 秒的检查间隔和两次重试，因此状态转换取决于 Docker 的调度，不能作为可用性服务等级目标。此检查独立于公共 HTTP `/healthz` 和 `/readyz` 端点，绝不会通过 MCP stdio 发送流量。它不证明浏览器、MCP 会话或远程站点可用；重启和恢复由外部编排器负责。
+
+启动器向每个子进程发送 `SIGTERM` 后最多等待 8 秒，再发送 `SIGKILL` 后最多等待 2 秒。Docker 停止超时必须允许 CLI 和 Xvfb 按顺序关闭。镜像以非 root 的 `node` 用户运行，并支持只读根文件系统。保留 `/data` 挂载以保存产物；如果可能运行有头会话，还需为 `/tmp` 和 `/tmp/.X11-unix` 提供可写的临时挂载。健康检查套接字仅允许所有者访问（`0600`）。容器内的 X11 套接字由 `node` 进程和 Xvfb 共用，因此不是租户隔离边界。不要从主机挂载这两个套接字，也不要在容器之间共享它们。
+
+## 持久化配置文件 { #persistent-profiles }
 
 Docker 默认不会启用持久化浏览器配置文件。当你希望 cookie、本地存储、缓存或扩展状态在
 容器重启后保留时，请使用现有的 `/data` 卷作为持久化根目录：
@@ -75,7 +96,7 @@ docker run --rm -i \
 `CLOAKBROWSER_BINARY_PATH`）传递其容器内路径：
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/custom-chrome:/browser/chrome:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -86,7 +107,7 @@ docker run --rm --init -i \
 可用。该路径适用于容器中的所有 Streamable HTTP 会话；需要不同浏览器二进制文件
 时，请运行单独的容器。
 
-## Chrome 扩展
+## Chrome 扩展 { #chrome-extensions }
 
 Chrome 扩展需要持久化配置文件，并且必须单独挂载。请在环境变量中使用容器路径，
 而不是主机路径。扩展挂载可以是只读的：
@@ -106,7 +127,7 @@ docker run --rm -i \
 
 Playwright Extension 连接模式与上面的解压扩展挂载不同。它需要在 persistent Chrome/Edge profile 中安装官方扩展，并提供 `PLAYWRIGHT_MCP_EXTENSION_TOKEN`。请将每个 profile 挂载到独立的 writable path，通过 secret manager 注入 token，不要同时使用 `PLAYWRIGHT_MCP_EXTENSION=true` 和 `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`。
 
-## 可流式传输的 HTTP
+## 可流式传输的 HTTP { #streamable-http }
 
 若要在本地使用 Streamable HTTP，请将容器端口发布到回环地址：
 
@@ -118,6 +139,16 @@ docker run --rm -p 127.0.0.1:3000:3000 \
 
 curl http://127.0.0.1:3000/healthz
 curl http://127.0.0.1:3000/readyz
+```
+
+要运行有头 HTTP 会话，请在容器中设置 `PLAYWRIGHT_MCP_HEADLESS=false`。单个 `initialize` 请求仍可通过受支持的 MCP 元数据选择无头模式。
+
+```bash
+docker run --rm -p 127.0.0.1:3000:3000 \
+  -e PLAYWRIGHT_MCP_HEADLESS=false \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http --http-host 0.0.0.0 --http-port 3000
 ```
 
 若要从容器直接访问 HTTPS，请挂载您的证书文件并选择 HTTPS：
@@ -191,7 +222,7 @@ docker run --rm \
 `Host`/`Origin`，并一对一转发到明文桥接监听器。该
 bridge-to-Chromium 跳转也保持明文回环流量。
 
-## GeoIP 代理匹配
+## GeoIP 代理匹配 { #geoip-proxy-matching }
 
 Docker 使用与 npm 相同的代理和 GeoIP 环境变量。当区域 QA 需要 CloakBrowser 的时区、语言和
 区域设置指纹以遵循配置的代理位置时，请启用
@@ -260,7 +291,7 @@ docker run --rm -i \
 }
 ```
 
-## 本地构建
+## 本地构建 { #build-locally }
 
 ```bash
 npm run docker:build

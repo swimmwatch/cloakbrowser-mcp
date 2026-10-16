@@ -158,3 +158,19 @@ docker run --rm -p 127.0.0.1:3000:3000 \
 ## 追加の実用パス
 
 upstream Playwright MCP とこのパッケージのどちらを使うかは[比較](comparison.md)を参照してください。短い作業手順には[レシピ](recipes/index.md)を使います: 永続プロファイル、拡張機能、reverse proxy、リージョン QA、Claude Desktop、Codex CLI、CI スモークテスト。
+
+## CloakBrowser
+
+現在の CloakBrowser 依存関係は `{{ project.cloakbrowser_dependency }}` です。人間らしい入力ではキーを押している時間が重なり、キー間の間隔が変化します。マウスの移動時間は距離に応じて変わります。スクロールは偽装対象のプラットフォームに対応する整数のホイール刻みを使うため、小さな要求移動量は丸められることがあります。固定位置のモーダルや、祖先のスクロールコンテナー外にある絶対位置の要素にも操作できます。ページ遷移を起こす選択肢を選ぶと、古い要素のエラーではなく選択値が返されます。
+
+CloakBrowser 0.6.2/0.6.3 では、ブリッジはネイティブの日付・時刻エディターに入力する前に、`ArrowLeft` で最初のセグメントに移動します。これにより、最初のクリック後にすべての数字が年のフィールドに入力されることを防ぎます。値はキーボードで入力し、プログラムによる代入は行いません。
+
+CloakBrowser 0.6.2 は、Playwright 1.64 での humanize 操作の可視性チェックを修正します。ブリッジは、上流の無条件の `true` の代わりに、祖先 iframe の実際の可視性を両方の要素状態チェック経路に渡します。
+
+人間らしい操作は、厳密モードを含む Playwright のセレクターの意味に従います。曖昧なロケーターや未対応の操作は、通常の操作に暗黙に切り替わらず、エラーになります。例えば、人間らしい `fill()` は `input[type=color]` を操作できません。この操作が必要なセッションでは humanize を無効にしてください。
+
+humanize が有効な場合、ブリッジは検証済みの依存関係バージョンとソースハッシュのみを受け入れます。祖先 iframe の可視性を確認し、見つかった DOM 要素への弱参照を保持するため、切り離された要素を回収できます。未対応のバージョンや変更されたソースは拒否されます。対応するまでは `CLOAK_PLAYWRIGHT_MCP_HUMANIZE=false` を使用してください。
+
+CloakBrowser 0.6.1 は、`Page`、`Frame`、`Locator`、`ElementHandle` の `inputValue()`、`textContent()`、`innerText()`、`innerHTML()`、`getAttribute()`、`dispatchEvent()` を humanize の隔離コンテキストで実行します。非表示または重なった `ElementHandle` 要素と、`JSHandle` を含むイベント引数については、上流の実装が humanize を使わない Playwright にフォールバックして読み取りとイベント送信を行います。
+
+ドロップダウンの選択は入力した接頭辞で検索し、繰り返しの選択にも対応します。macOS では、emoji で始まるラベルを人間らしい入力で選択できない場合があり、そのエラーは MCP 経由で転送されます。プログラムによる選択が許容される場合は、上流の `page._original.selectOption()` を明示的に使用してください。

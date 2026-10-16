@@ -1,3 +1,4 @@
+import { systemErrorCodes } from '#src/runtime/systemErrorCodes';
 import {
   accessSync,
   closeSync,
@@ -12,6 +13,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from 'node:fs';
+import { isIP } from 'node:net';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,18 +28,21 @@ import {
   quoteNodeOptionValue,
 } from '#src/bridge/env';
 import { resolvePlaywrightCoreBundlePath } from '#src/bridge/paths';
+import { readOrCreateProfileSeed } from '#src/bridge/profile-seed';
 import { consoleFallbackInitScript, consoleFallbackPreloadScript } from '#src/runtime/consoleFallback';
-
 export type BrowserEngine = 'cloak' | 'playwright';
 export const humanPresets = ['default', 'careful'] as const;
 export type HumanPreset = (typeof humanPresets)[number];
 export const releaseChannels = ['stable', 'preview'] as const;
 export type ReleaseChannel = (typeof releaseChannels)[number];
 const codegenLanguages = ['typescript', 'python', 'java', 'csharp', 'none'] as const;
+const fingerprintWebrtcIpFlag = '--fingerprint-webrtc-ip';
 type CodegenLanguage = (typeof codegenLanguages)[number];
 type CloakBuildLaunchOptions = typeof buildLaunchOptions;
 type CloakLaunchOptions = NonNullable<Parameters<CloakBuildLaunchOptions>[0]>;
-type CloakLaunchOptionsWithExtensions = CloakLaunchOptions & { extensionPaths?: string[] };
+type CloakLaunchOptionsWithExtensions = CloakLaunchOptions & {
+  extensionPaths?: string[];
+};
 type CloakLaunchOptionsForBridge = CloakLaunchOptionsWithExtensions & {
   viewport?: BridgeContextOptions['viewport'];
 };
@@ -53,10 +58,12 @@ type ResolvedCloakLaunchOptions = {
   proxy: PlaywrightProxyOption | undefined;
   licenseKey: string | undefined;
 };
-
 export type BridgeContextOptions = {
   userAgent?: string;
-  viewport?: { width: number; height: number } | null;
+  viewport?: {
+    width: number;
+    height: number;
+  } | null;
   locale?: string;
   timezoneId?: string;
   colorScheme?: 'dark' | 'light' | 'no-preference';
@@ -79,12 +86,10 @@ export type BridgeContextOptions = {
   isMobile?: boolean;
   hasTouch?: boolean;
 };
-
 export interface BridgeRuntimeProxy {
   server: string;
   bypass?: string;
 }
-
 export interface BridgeRuntime {
   browserEngine: BrowserEngine;
   configPath: string;
@@ -95,7 +100,6 @@ export interface BridgeRuntime {
   config: PlaywrightMcpBridgeConfig;
   dispose(): void;
 }
-
 export interface PrepareBridgeRuntimeOptions {
   binaryPath?: string;
   env?: EnvReader;
@@ -116,14 +120,12 @@ export interface PrepareBridgeRuntimeOptions {
   releaseChannel?: ReleaseChannel;
   userDataDir?: string;
 }
-
 export function resolveEffectiveHeadless(
   options: Pick<PrepareBridgeRuntimeOptions, 'headless'>,
   env: EnvReader = process.env,
 ): boolean {
   return options.headless ?? envBool(env, 'PLAYWRIGHT_MCP_HEADLESS', true);
 }
-
 export interface PlaywrightMcpBridgeConfig {
   browser?: {
     browserName?: 'chromium';
@@ -146,12 +148,10 @@ export interface PlaywrightMcpBridgeConfig {
     boxes?: boolean;
   };
 }
-
 const ignoredAutomationArgs = ['--enable-automation', '--enable-unsafe-swiftshader'];
 const activeProfileLocks = new Set<string>();
 const profileLockFileName = '.cloakbrowser-mcp-profile.lock';
-
-const inheritedChildEnvNames = new Set([
+const values: Iterable<string> | null | undefined = [
   'ALL_PROXY',
   'APPDATA',
   'CLOAKBROWSER_AUTO_UPDATE',
@@ -200,13 +200,11 @@ const inheritedChildEnvNames = new Set([
   'http_proxy',
   'https_proxy',
   'no_proxy',
-]);
-
+];
+const inheritedChildEnvNames = new Set(values);
 const inheritedChildEnvPrefixes = ['PLAYWRIGHT_MCP_', 'CLOAK_PLAYWRIGHT_MCP_'] as const;
-
 type BridgeBrowserConfig = NonNullable<PlaywrightMcpBridgeConfig['browser']>;
 type BridgeLaunchOptions = NonNullable<BridgeBrowserConfig['launchOptions']>;
-
 interface PreparedBridgeRuntimeBase {
   env: EnvReader;
   tempDir: string;
@@ -222,7 +220,6 @@ interface PreparedBridgeRuntimeBase {
   browserConfig: BridgeBrowserConfig;
   config: PlaywrightMcpBridgeConfig;
 }
-
 /**
  * Builds the temporary Playwright MCP config and environment used to launch the upstream bridge.
  */
@@ -230,12 +227,14 @@ export async function prepareBridgeRuntime(
   options: PrepareBridgeRuntimeOptions = {},
 ): Promise<BridgeRuntime> {
   const env = options.env ?? process.env;
-  const tempDir = mkdtempSync(path.join(options.tempRoot ?? tmpdir(), 'cloakbrowser-mcp-'));
+  const computedValue = options.tempRoot ?? tmpdir();
+  const joinedPath = path.join(computedValue, 'cloakbrowser-mcp-');
+  const tempDir = mkdtempSync(joinedPath);
   let releaseProfileLock: (() => void) | undefined;
-
   try {
     const runtime = createPreparedBridgeRuntimeBase(env, options, tempDir);
-    validateManagedCdpLaunchArgs(runtime.launchOptions.args ?? [], options.managedCdpInternalPort);
+    const computedValue2 = runtime.launchOptions.args ?? [];
+    validateManagedCdpLaunchArgs(computedValue2, options.managedCdpInternalPort);
     releaseProfileLock = applyConfiguredUserDataDir(runtime, options.userDataDir);
     const extensionPaths = applyConfiguredContextAndExtensions(runtime, options);
     applyConfiguredProxy(runtime, options.proxy);
@@ -248,33 +247,40 @@ export async function prepareBridgeRuntime(
     applyManagedCdpLaunchOption(runtime, options.managedCdpInternalPort);
     configureConsoleFallback(runtime);
     const configPath = writeBridgeConfig(runtime);
-
     return createBridgeRuntime(runtime, configPath, cloakBinaryPath, releaseProfileLock);
   } catch (error) {
     releaseProfileLock?.();
-    rmSync(tempDir, { recursive: true, force: true });
+    const rmSyncOptions = { recursive: true, force: true } as const;
+    rmSync(tempDir, rmSyncOptions);
     throw error;
   }
 }
-
 function createPreparedBridgeRuntimeBase(
   env: EnvReader,
   options: PrepareBridgeRuntimeOptions,
   tempDir: string,
 ): PreparedBridgeRuntimeBase {
-  const outputDir = envString(env, 'PLAYWRIGHT_MCP_OUTPUT_DIR', path.resolve('.playwright-mcp'));
-  mkdirSync(outputDir, { recursive: true });
-
+  const resolvedValue = path.resolve('.playwright-mcp');
+  const outputDir = envString(env, 'PLAYWRIGHT_MCP_OUTPUT_DIR', resolvedValue);
+  const mkdirSyncOptions = { recursive: true } as const;
+  mkdirSync(outputDir, mkdirSyncOptions);
   const extensionMode = options.extensionMode ?? envBool(env, 'PLAYWRIGHT_MCP_EXTENSION', false);
   const browserEngine = extensionMode
     ? 'playwright'
-    : parseBrowserEngine(envString(env, 'PLAYWRIGHT_MCP_BROWSER_ENGINE', 'cloak'));
+    : (() => {
+        const envStringResult = envString(env, 'PLAYWRIGHT_MCP_BROWSER_ENGINE', 'cloak');
+        return parseBrowserEngine(envStringResult);
+      })();
   const useCloak = browserEngine === 'cloak';
   const headless = extensionMode ? false : resolveEffectiveHeadless(options, env);
   const codegen = readCodegenLanguage(env);
   const snapshotBoxes = readSnapshotBoxes(env);
   const humanPreset =
-    options.humanPreset ?? parseHumanPreset(envString(env, 'CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET', 'default'));
+    options.humanPreset ??
+    (() => {
+      const envStringResult2 = envString(env, 'CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET', 'default');
+      return parseHumanPreset(envStringResult2);
+    })();
   const childEnv = createChildEnv(env, outputDir, options.proxy, headless, humanPreset);
   if (!useCloak && !extensionMode) {
     childEnv.PLAYWRIGHT_MCP_BROWSER ??= 'chromium';
@@ -290,7 +296,6 @@ function createPreparedBridgeRuntimeBase(
     browserName: 'chromium',
     launchOptions,
   };
-
   return {
     env,
     tempDir,
@@ -311,20 +316,17 @@ function createPreparedBridgeRuntimeBase(
     },
   };
 }
-
 function applyConfiguredUserDataDir(
   runtime: PreparedBridgeRuntimeBase,
   runtimeUserDataDir: string | undefined,
 ): (() => void) | undefined {
   const userDataDir = resolveConfiguredUserDataDir(runtime.env, runtimeUserDataDir);
   if (userDataDir === undefined) return undefined;
-
   runtime.browserConfig.userDataDir = userDataDir;
   runtime.childEnv.PLAYWRIGHT_MCP_USER_DATA_DIR = userDataDir;
   delete runtime.childEnv.PLAYWRIGHT_MCP_ISOLATED;
   return acquireProfileLock(userDataDir);
 }
-
 function applyConfiguredContextAndExtensions(
   runtime: PreparedBridgeRuntimeBase,
   options: PrepareBridgeRuntimeOptions,
@@ -333,7 +335,6 @@ function applyConfiguredContextAndExtensions(
   if (contextOptions !== undefined) {
     runtime.browserConfig.contextOptions = contextOptions;
   }
-
   const extensionPaths = resolveConfiguredExtensionPaths(runtime.env, options.extensionPaths);
   if (extensionPaths.length > 0 && runtime.browserConfig.userDataDir === undefined) {
     throw new BridgeRuntimeConfigurationError(
@@ -342,17 +343,17 @@ function applyConfiguredContextAndExtensions(
   }
   return extensionPaths;
 }
-
 function applyConfiguredProxy(
   runtime: PreparedBridgeRuntimeBase,
   runtimeProxy: BridgeRuntimeProxy | undefined,
 ): void {
-  const configuredProxy = resolveConfiguredProxy(runtime.env, runtime.launchOptions.args ?? [], runtimeProxy);
+  const argumentValue = runtime.env;
+  const computedValue3 = runtime.launchOptions.args ?? [];
+  const configuredProxy = resolveConfiguredProxy(argumentValue, computedValue3, runtimeProxy);
   if (configuredProxy && typeof configuredProxy !== 'string') {
     runtime.launchOptions.proxy = configuredProxy;
   }
 }
-
 function applyBrowserIsolation(
   runtime: PreparedBridgeRuntimeBase,
   browserIsolated: boolean | undefined,
@@ -362,7 +363,6 @@ function applyBrowserIsolation(
     runtime.childEnv.PLAYWRIGHT_MCP_ISOLATED = 'true';
   }
 }
-
 function validateAndApplyExtensionConnectionMode(
   runtime: PreparedBridgeRuntimeBase,
   options: PrepareBridgeRuntimeOptions,
@@ -377,7 +377,6 @@ function validateAndApplyExtensionConnectionMode(
     delete runtime.childEnv.PLAYWRIGHT_MCP_EXTENSION_TOKEN;
     return;
   }
-
   if (optionalEnvString(runtime.env, 'PLAYWRIGHT_MCP_EXTENSION_TOKEN') === undefined) {
     throw new BridgeRuntimeConfigurationError(
       'PLAYWRIGHT_MCP_EXTENSION_TOKEN must be a non-empty process environment value in extension mode',
@@ -388,20 +387,16 @@ function validateAndApplyExtensionConnectionMode(
       'PLAYWRIGHT_MCP_USER_DATA_DIR or initialize metadata userDataDir is required in extension mode',
     );
   }
-
   const conflicts = collectExtensionModeConflicts(runtime, options, extensionPaths);
   if (conflicts.length > 0) {
-    throw new BridgeRuntimeConfigurationError(
-      `Playwright Extension connection mode is incompatible with ${conflicts.join(', ')}`,
-    );
+    const message2 = `Playwright Extension connection mode is incompatible with ${conflicts.join(', ')}`;
+    throw new BridgeRuntimeConfigurationError(message2);
   }
-
   delete runtime.browserConfig.isolated;
   runtime.browserConfig.launchOptions = {};
   delete runtime.childEnv.PLAYWRIGHT_MCP_ISOLATED;
   runtime.childEnv.PLAYWRIGHT_MCP_HEADLESS = 'false';
 }
-
 function collectExtensionModeConflicts(
   runtime: PreparedBridgeRuntimeBase,
   options: PrepareBridgeRuntimeOptions,
@@ -411,37 +406,40 @@ function collectExtensionModeConflicts(
   const add = (condition: boolean, label: string): void => {
     if (condition) conflicts.push(label);
   };
-
-  add(options.managedCdpInternalPort !== undefined, 'managed CDP');
-  add(
-    optionalEnvString(runtime.env, 'PLAYWRIGHT_MCP_CDP_ENDPOINT') !== undefined,
-    'PLAYWRIGHT_MCP_CDP_ENDPOINT',
-  );
-  add(optionalEnvString(runtime.env, 'PLAYWRIGHT_MCP_ENDPOINT') !== undefined, 'PLAYWRIGHT_MCP_ENDPOINT');
-  add(
+  const computedValue4 = options.managedCdpInternalPort !== undefined;
+  add(computedValue4, 'managed CDP');
+  const computedValue5 = optionalEnvString(runtime.env, 'PLAYWRIGHT_MCP_CDP_ENDPOINT') !== undefined;
+  add(computedValue5, 'PLAYWRIGHT_MCP_CDP_ENDPOINT');
+  const computedValue6 = optionalEnvString(runtime.env, 'PLAYWRIGHT_MCP_ENDPOINT') !== undefined;
+  add(computedValue6, 'PLAYWRIGHT_MCP_ENDPOINT');
+  const computedValue7 =
     options.headless === true ||
-      (runtime.env.PLAYWRIGHT_MCP_HEADLESS !== undefined &&
-        envBool(runtime.env, 'PLAYWRIGHT_MCP_HEADLESS', false)),
-    'headless launch',
-  );
-  add(envBool(runtime.env, 'PLAYWRIGHT_MCP_ISOLATED', false), 'PLAYWRIGHT_MCP_ISOLATED');
-  add(runtime.launchOptions.proxy !== undefined, 'proxy configuration');
-  add(shouldMatchProxyGeoip(runtime.env, options.geoipProxyMatch), 'GeoIP matching');
-  add(shouldHumanize(runtime.env, options.humanize), 'humanization');
-  add(runtime.browserConfig.contextOptions !== undefined, 'browser context mutation');
-  add(extensionPaths.length > 0, 'CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS');
-
+    (runtime.env.PLAYWRIGHT_MCP_HEADLESS !== undefined &&
+      envBool(runtime.env, 'PLAYWRIGHT_MCP_HEADLESS', false));
+  add(computedValue7, 'headless launch');
+  const envBoolResult = envBool(runtime.env, 'PLAYWRIGHT_MCP_ISOLATED', false);
+  add(envBoolResult, 'PLAYWRIGHT_MCP_ISOLATED');
+  const computedValue8 = runtime.launchOptions.proxy !== undefined;
+  add(computedValue8, 'proxy configuration');
+  const shouldMatchProxyGeoipResult = shouldMatchProxyGeoip(runtime.env, options.geoipProxyMatch);
+  add(shouldMatchProxyGeoipResult, 'GeoIP matching');
+  const shouldHumanizeResult = shouldHumanize(runtime.env, options.humanize);
+  add(shouldHumanizeResult, 'humanization');
+  const computedValue9 = runtime.browserConfig.contextOptions !== undefined;
+  add(computedValue9, 'browser context mutation');
+  const computedValue10 = extensionPaths.length > 0;
+  add(computedValue10, 'CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS');
   for (const name of [
     'CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS',
     'CLOAK_PLAYWRIGHT_MCP_NO_SANDBOX',
     'CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL',
     'CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS',
   ] as const) {
-    add(runtime.env[name] !== undefined, name);
+    const computedValue11 = runtime.env[name] !== undefined;
+    add(computedValue11, name);
   }
   return conflicts;
 }
-
 function resolveProfileDirName(
   env: EnvReader,
   runtimeProfileDirName: string | undefined,
@@ -459,23 +457,48 @@ function resolveProfileDirName(
     trimmed.includes('\\')
   ) {
     const label = runtimeProfileDirName === undefined ? 'PLAYWRIGHT_MCP_PROFILE_DIR_NAME' : 'profileDirName';
-    throw new BridgeRuntimeConfigurationError(`${label} must be one relative path segment`);
+    const message3 = `${label} must be one relative path segment`;
+    throw new BridgeRuntimeConfigurationError(message3);
   }
   return trimmed;
 }
-
 async function configureCloakRuntime(
   runtime: PreparedBridgeRuntimeBase,
   options: PrepareBridgeRuntimeOptions,
   extensionPaths: string[],
 ): Promise<string> {
+  const profile = runtime.browserConfig.userDataDir;
+  const explicitFingerprint = envList(runtime.env, 'CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS').some(
+    (arg) => arg.split('=')[0] === '--fingerprint',
+  );
+  if (profile && envBool(runtime.env, 'CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS', true) && !explicitFingerprint) {
+    try {
+      const seed = await readOrCreateProfileSeed(profile);
+      runtime.launchOptions.args = [
+        `--fingerprint=${seed}`,
+        ...(runtime.launchOptions.args ?? []).filter((arg) => arg.split('=')[0] !== '--fingerprint'),
+      ];
+    } catch (cause) {
+      const bridgeRuntimeConfigurationErrorOptions = {
+        cause,
+      } as const;
+      throw new BridgeRuntimeConfigurationError(
+        'Unable to initialize the persistent profile fingerprint seed',
+        bridgeRuntimeConfigurationErrorOptions,
+      );
+    }
+  }
   const configuredBinaryPath = resolveConfiguredCloakBinaryPath(runtime.env, options.binaryPath);
   const cloakBinaryPath =
-    configuredBinaryPath ?? (await suppressStdout(options.ensureCloakBinary ?? ensureBinary));
+    configuredBinaryPath ??
+    (await (() => {
+      const computedValue12 = options.ensureCloakBinary ?? ensureBinary;
+      return suppressStdout(computedValue12);
+    })());
   runtime.launchOptions.executablePath = cloakBinaryPath;
   runtime.childEnv.PLAYWRIGHT_MCP_EXECUTABLE_PATH = cloakBinaryPath;
   runtime.childEnv.CLOAKBROWSER_AUTO_UPDATE = runtime.childEnv.CLOAKBROWSER_AUTO_UPDATE ?? 'false';
-  const cloakLaunchOptions = await resolveCloakLaunchOptions({
+  const resolveCloakLaunchOptionsOptions: ResolveCloakLaunchOptionsOptions = {
     env: runtime.env,
     cloakBinaryPath,
     args: runtime.launchOptions.args ?? [],
@@ -487,7 +510,8 @@ async function configureCloakRuntime(
     buildCloakLaunchOptions: options.buildCloakLaunchOptions ?? buildLaunchOptions,
     geoip: shouldMatchProxyGeoip(runtime.env, options.geoipProxyMatch),
     releaseChannel: resolveReleaseChannel(runtime.env, options.releaseChannel),
-  });
+  };
+  const cloakLaunchOptions = await resolveCloakLaunchOptions(resolveCloakLaunchOptionsOptions);
   runtime.launchOptions.args = cloakLaunchOptions.args;
   if (cloakLaunchOptions.proxy === undefined) delete runtime.launchOptions.proxy;
   else runtime.launchOptions.proxy = cloakLaunchOptions.proxy;
@@ -502,7 +526,6 @@ async function configureCloakRuntime(
   }
   return cloakBinaryPath;
 }
-
 function configureConsoleFallback(runtime: PreparedBridgeRuntimeBase): void {
   if (
     runtime.extensionMode ||
@@ -511,18 +534,19 @@ function configureConsoleFallback(runtime: PreparedBridgeRuntimeBase): void {
   ) {
     return;
   }
-
   const initScriptPath = path.join(runtime.tempDir, 'console-fallback-init.js');
   const preloadPath = path.join(runtime.tempDir, 'console-fallback.cjs');
   writeFileSync(initScriptPath, consoleFallbackInitScript);
-  writeFileSync(preloadPath, consoleFallbackPreloadScript(resolvePlaywrightCoreBundlePath()));
-  runtime.browserConfig.initScript = [...(runtime.browserConfig.initScript ?? []), initScriptPath];
-  runtime.childEnv.NODE_OPTIONS = appendNodeOption(
-    runtime.childEnv.NODE_OPTIONS,
-    `--require=${quoteNodeOptionValue(preloadPath)}`,
+  const resolvePlaywrightCoreBundlePathResult = resolvePlaywrightCoreBundlePath();
+  const consoleFallbackPreloadScriptResult = consoleFallbackPreloadScript(
+    resolvePlaywrightCoreBundlePathResult,
   );
+  writeFileSync(preloadPath, consoleFallbackPreloadScriptResult);
+  runtime.browserConfig.initScript = [...(runtime.browserConfig.initScript ?? []), initScriptPath];
+  const argumentValue2 = runtime.childEnv.NODE_OPTIONS;
+  const message4 = `--require=${quoteNodeOptionValue(preloadPath)}`;
+  runtime.childEnv.NODE_OPTIONS = appendNodeOption(argumentValue2, message4);
 }
-
 function applyManagedCdpLaunchOption(
   runtime: PreparedBridgeRuntimeBase,
   internalPort: number | undefined,
@@ -533,15 +557,13 @@ function applyManagedCdpLaunchOption(
     }
   }
   if (internalPort === undefined) return;
-  if (!Number.isInteger(internalPort) || internalPort < 1 || internalPort > 65_535) {
+  if (!Number.isInteger(internalPort) || internalPort < 1 || internalPort > 65535) {
     throw new BridgeRuntimeConfigurationError('managedCdpInternalPort must be an integer from 1 to 65535');
   }
-
   const args = runtime.launchOptions.args ?? [];
   validateManagedCdpLaunchArgs(args, internalPort);
   runtime.launchOptions.args = [...args, `--remote-debugging-port=${internalPort}`];
 }
-
 function validateManagedCdpLaunchArgs(args: string[], internalPort: number | undefined): void {
   if (internalPort === undefined) return;
   const prohibitedPrefixes = [
@@ -551,20 +573,27 @@ function validateManagedCdpLaunchArgs(args: string[], internalPort: number | und
     '--remote-allow-origins',
   ];
   const conflict = args.find((arg) =>
-    prohibitedPrefixes.some((prefix) => arg === prefix || arg.startsWith(`${prefix}=`)),
+    prohibitedPrefixes.some(
+      (prefix) =>
+        arg === prefix ||
+        (() => {
+          const message5 = `${prefix}=`;
+          return arg.startsWith(message5);
+        })(),
+    ),
   );
   if (conflict !== undefined) {
-    throw new BridgeRuntimeConfigurationError(`${conflict.split('=')[0]} conflicts with managed CDP`);
+    const message6 = `${conflict.split('=')[0]} conflicts with managed CDP`;
+    throw new BridgeRuntimeConfigurationError(message6);
   }
 }
-
 function writeBridgeConfig(runtime: PreparedBridgeRuntimeBase): string {
   const configPath = path.join(runtime.tempDir, 'playwright-mcp.config.json');
-  writeFileSync(configPath, `${JSON.stringify(runtime.config, null, 2)}\n`);
+  const message7 = `${JSON.stringify(runtime.config, null, 2)}\n`;
+  writeFileSync(configPath, message7);
   runtime.childEnv.PLAYWRIGHT_MCP_CONFIG = configPath;
   return configPath;
 }
-
 function createBridgeRuntime(
   runtime: PreparedBridgeRuntimeBase,
   configPath: string,
@@ -583,11 +612,11 @@ function createBridgeRuntime(
     dispose() {
       releaseLock?.();
       releaseLock = undefined;
-      rmSync(runtime.tempDir, { recursive: true, force: true });
+      const rmSyncOptions2 = { recursive: true, force: true } as const;
+      rmSync(runtime.tempDir, rmSyncOptions2);
     },
   };
 }
-
 export function createLaunchArgs(env: EnvReader): string[] {
   const args = new Set<string>();
   if (envBool(env, 'CLOAK_PLAYWRIGHT_MCP_STEALTH_ARGS', true)) {
@@ -597,9 +626,7 @@ export function createLaunchArgs(env: EnvReader): string[] {
   for (const arg of envList(env, 'CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS')) args.add(arg);
   return [...args];
 }
-
 export class BridgeRuntimeConfigurationError extends Error {}
-
 interface ResolveCloakLaunchOptionsOptions {
   env: EnvReader;
   cloakBinaryPath: string;
@@ -613,24 +640,50 @@ interface ResolveCloakLaunchOptionsOptions {
   geoip: boolean;
   releaseChannel: ReleaseChannel;
 }
-
 async function resolveCloakLaunchOptions(
   options: ResolveCloakLaunchOptionsOptions,
 ): Promise<ResolvedCloakLaunchOptions> {
   const proxy = resolveConfiguredProxy(options.env, options.args, options.proxy);
   const geoip = options.geoip && proxy !== undefined;
   const cloakOptions = createCloakLaunchOptions(options, proxy, geoip);
+  if (geoip) {
+    // A user-supplied spoof must not suppress or impersonate actual GeoIP discovery.
+    cloakOptions.args = options.args.filter((arg) => !isWebrtcIpArg(arg));
+  }
   const launchOptions = await suppressStdout(() =>
     withCloakBinaryPath(options.cloakBinaryPath, () => options.buildCloakLaunchOptions(cloakOptions)),
   );
   const generatedLicenseKey = launchOptions.env?.CLOAKBROWSER_LICENSE_KEY;
+  const argumentValue3 = options.args;
+  const generatedArgs = readStringArray(launchOptions.args);
+  const validatedArgs = geoip ? validateGeoipExitArgs(options.args, generatedArgs) : generatedArgs;
+  const extractCloakGeneratedArgsResult = extractCloakGeneratedArgs(validatedArgs);
+  const mergeLaunchArgsResult = mergeLaunchArgs(argumentValue3, extractCloakGeneratedArgsResult);
+  const propertyValue = launchOptions.proxy;
+  const propertyValue2 = typeof generatedLicenseKey === 'string' ? generatedLicenseKey : undefined;
   return {
-    args: mergeLaunchArgs(options.args, extractCloakGeneratedArgs(readStringArray(launchOptions.args))),
-    proxy: launchOptions.proxy,
-    licenseKey: typeof generatedLicenseKey === 'string' ? generatedLicenseKey : undefined,
+    args: mergeLaunchArgsResult,
+    proxy: propertyValue,
+    licenseKey: propertyValue2,
   };
 }
-
+function isWebrtcIpArg(arg: string): boolean {
+  const key = launchArgKey(arg);
+  return key === fingerprintWebrtcIpFlag;
+}
+function validateGeoipExitArgs(originalArgs: readonly string[], generatedArgs: string[]): string[] {
+  const exitIp = findLaunchArgValue(generatedArgs, fingerprintWebrtcIpFlag);
+  if (exitIp === undefined || isIP(exitIp) === 0) {
+    throw new BridgeRuntimeConfigurationError(
+      'GeoIP resolution failed: could not discover the proxy exit IP',
+    );
+  }
+  const explicitIp = findLaunchArgValue(originalArgs, fingerprintWebrtcIpFlag);
+  // Restore explicit spoofing only after discovery; "auto" keeps the resolved IP.
+  return explicitIp !== undefined && explicitIp !== 'auto'
+    ? generatedArgs.filter((arg) => !isWebrtcIpArg(arg))
+    : generatedArgs;
+}
 function createCloakLaunchOptions(
   options: ResolveCloakLaunchOptionsOptions,
   proxy: CloakProxyOption | undefined,
@@ -649,22 +702,22 @@ function createCloakLaunchOptions(
       options.chromiumSandbox === undefined ? undefined : { chromiumSandbox: options.chromiumSandbox },
   };
 }
-
 function resolveConfiguredUserDataDir(
   env: EnvReader,
   runtimeUserDataDir: string | undefined,
 ): string | undefined {
   if (runtimeUserDataDir !== undefined) {
-    return resolveDirectory(runtimeUserDataDir, 'userDataDir', { create: true, writable: true });
+    const resolveDirectoryOptions = { create: true, writable: true } as const;
+    return resolveDirectory(runtimeUserDataDir, 'userDataDir', resolveDirectoryOptions);
   }
   const envUserDataDir = optionalEnvString(env, 'PLAYWRIGHT_MCP_USER_DATA_DIR');
   if (envUserDataDir === undefined) return undefined;
-  return resolveDirectory(envUserDataDir, 'PLAYWRIGHT_MCP_USER_DATA_DIR', {
+  const resolveDirectoryOptions2 = {
     create: true,
     writable: true,
-  });
+  } as const;
+  return resolveDirectory(envUserDataDir, 'PLAYWRIGHT_MCP_USER_DATA_DIR', resolveDirectoryOptions2);
 }
-
 function resolveConfiguredCloakBinaryPath(
   env: EnvReader,
   runtimeBinaryPath: string | undefined,
@@ -674,7 +727,6 @@ function resolveConfiguredCloakBinaryPath(
   if (envBinaryPath === undefined) return undefined;
   return resolveFile(envBinaryPath, 'CLOAKBROWSER_BINARY_PATH');
 }
-
 function resolveConfiguredExtensionPaths(
   env: EnvReader,
   runtimeExtensionPaths: string[] | undefined,
@@ -686,14 +738,15 @@ function resolveConfiguredExtensionPaths(
           label: 'CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS',
         }
       : { paths: runtimeExtensionPaths, label: 'extensionPaths' };
-  return source.paths.map((extensionPath, index) =>
-    resolveDirectory(extensionPath, `${source.label}[${index}]`, {
+  return source.paths.map((extensionPath, index) => {
+    const message8 = `${source.label}[${index}]`;
+    const resolveDirectoryOptions3 = {
       create: false,
       writable: false,
-    }),
-  );
+    } as const;
+    return resolveDirectory(extensionPath, message8, resolveDirectoryOptions3);
+  });
 }
-
 function resolveConfiguredContextOptions(
   env: EnvReader,
   runtimeContextOptions: BridgeContextOptions | undefined,
@@ -705,7 +758,6 @@ function resolveConfiguredContextOptions(
       : parseBridgeContextOptions(runtimeContextOptions, 'contextOptions');
   return mergeContextOptions(envContextOptions, parsedRuntimeContextOptions);
 }
-
 function readEnvContextOptions(env: EnvReader): BridgeContextOptions | undefined {
   const raw = optionalEnvString(env, 'CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS');
   if (raw === undefined) return undefined;
@@ -713,13 +765,11 @@ function readEnvContextOptions(env: EnvReader): BridgeContextOptions | undefined
   try {
     parsed = JSON.parse(raw);
   } catch (error) {
-    throw new BridgeRuntimeConfigurationError(
-      `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS must be a JSON object: ${formatErrorMessage(error)}`,
-    );
+    const message9 = `CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS must be a JSON object: ${formatErrorMessage(error)}`;
+    throw new BridgeRuntimeConfigurationError(message9);
   }
   return parseBridgeContextOptions(parsed, 'CLOAK_PLAYWRIGHT_MCP_CONTEXT_OPTIONS');
 }
-
 function mergeContextOptions(
   envContextOptions: BridgeContextOptions | undefined,
   runtimeContextOptions: BridgeContextOptions | undefined,
@@ -730,7 +780,6 @@ function mergeContextOptions(
   };
   return Object.keys(merged).length === 0 ? undefined : merged;
 }
-
 const bridgeContextOptionParsers = {
   userAgent: readNonEmptyString,
   viewport: parseViewport,
@@ -747,136 +796,148 @@ const bridgeContextOptionParsers = {
   isMobile: readBoolean,
   hasTouch: readBoolean,
 } satisfies Record<keyof BridgeContextOptions, (value: unknown, label: string) => unknown>;
-
 /**
  * Validates browser context options supplied through environment JSON or initialize metadata.
  */
 export function parseBridgeContextOptions(value: unknown, label = 'contextOptions'): BridgeContextOptions {
   if (!isRecord(value)) {
-    throw new BridgeRuntimeConfigurationError(`${label} must be an object`);
+    const message10 = `${label} must be an object`;
+    throw new BridgeRuntimeConfigurationError(message10);
   }
-
   const result: BridgeContextOptions = {};
   for (const key of Object.keys(value)) {
     if (!isBridgeContextOptionKey(key)) {
-      throw new BridgeRuntimeConfigurationError(`${label}.${key} is not supported`);
+      const message11 = `${label}.${key} is not supported`;
+      throw new BridgeRuntimeConfigurationError(message11);
     }
-    Object.assign(result, {
-      [key]: bridgeContextOptionParsers[key](value[key], `${label}.${key}`),
-    });
+    const message12 = `${label}.${key}`;
+    const propertyValue3 = bridgeContextOptionParsers[key](value[key], message12);
+    const assignOptions = {
+      [key]: propertyValue3,
+    } as const;
+    Object.assign(result, assignOptions);
   }
   return result;
 }
-
 function isBridgeContextOptionKey(key: string): key is keyof BridgeContextOptions {
   return Object.hasOwn(bridgeContextOptionParsers, key);
 }
-
 function resolveDirectory(
   value: string,
   label: string,
-  options: { create: boolean; writable: boolean },
+  options: {
+    create: boolean;
+    writable: boolean;
+  },
 ): string {
   if (value.trim().length === 0) {
-    throw new BridgeRuntimeConfigurationError(`${label} must be a non-empty path`);
+    const message13 = `${label} must be a non-empty path`;
+    throw new BridgeRuntimeConfigurationError(message13);
   }
-  const resolved = path.resolve(path.normalize(value));
-  if (options.create) mkdirSync(resolved, { recursive: true });
-  const stats = statSync(resolved, { throwIfNoEntry: false });
+  const normalizeResult = path.normalize(value);
+  const resolved = path.resolve(normalizeResult);
+  if (options.create) {
+    const mkdirSyncOptions2 = { recursive: true } as const;
+    mkdirSync(resolved, mkdirSyncOptions2);
+  }
+  const statSyncOptions = { throwIfNoEntry: false } as const;
+  const stats = statSync(resolved, statSyncOptions);
   if (!stats?.isDirectory()) {
-    throw new BridgeRuntimeConfigurationError(`${label} must point to an existing directory: ${resolved}`);
+    const message14 = `${label} must point to an existing directory: ${resolved}`;
+    throw new BridgeRuntimeConfigurationError(message14);
   }
   try {
-    accessSync(resolved, options.writable ? fsConstants.W_OK : fsConstants.R_OK);
+    const argumentValue4 = options.writable ? fsConstants.W_OK : fsConstants.R_OK;
+    accessSync(resolved, argumentValue4);
   } catch {
     const access = options.writable ? 'writable' : 'readable';
-    throw new BridgeRuntimeConfigurationError(`${label} must point to a ${access} directory: ${resolved}`);
+    const message15 = `${label} must point to a ${access} directory: ${resolved}`;
+    throw new BridgeRuntimeConfigurationError(message15);
   }
   return realpathDirectory(resolved);
 }
-
 function resolveFile(value: string, label: string): string {
   const trimmed = value.trim();
   if (trimmed.length === 0) {
-    throw new BridgeRuntimeConfigurationError(`${label} must be a non-empty path`);
+    const message16 = `${label} must be a non-empty path`;
+    throw new BridgeRuntimeConfigurationError(message16);
   }
-  const resolved = path.resolve(path.normalize(trimmed));
-  const stats = statSync(resolved, { throwIfNoEntry: false });
+  const normalizeResult2 = path.normalize(trimmed);
+  const resolved = path.resolve(normalizeResult2);
+  const statSyncOptions2 = { throwIfNoEntry: false } as const;
+  const stats = statSync(resolved, statSyncOptions2);
   if (!stats?.isFile()) {
-    throw new BridgeRuntimeConfigurationError(`${label} must point to an existing file: ${resolved}`);
+    const message17 = `${label} must point to an existing file: ${resolved}`;
+    throw new BridgeRuntimeConfigurationError(message17);
   }
   try {
     accessSync(resolved, fsConstants.R_OK);
   } catch {
-    throw new BridgeRuntimeConfigurationError(`${label} must point to a readable file: ${resolved}`);
+    const message18 = `${label} must point to a readable file: ${resolved}`;
+    throw new BridgeRuntimeConfigurationError(message18);
   }
   try {
     accessSync(resolved, fsConstants.X_OK);
   } catch {
-    throw new BridgeRuntimeConfigurationError(`${label} must point to an executable file: ${resolved}`);
+    const message19 = `${label} must point to an executable file: ${resolved}`;
+    throw new BridgeRuntimeConfigurationError(message19);
   }
   try {
-    return path.normalize(realpathSync.native(resolved));
+    const nativeResult = realpathSync.native(resolved);
+    return path.normalize(nativeResult);
   } catch {
-    return path.resolve(path.normalize(resolved));
+    const normalizeResult3 = path.normalize(resolved);
+    return path.resolve(normalizeResult3);
   }
 }
-
 function realpathDirectory(directory: string): string {
   try {
-    return path.normalize(realpathSync.native(directory));
+    const nativeResult2 = realpathSync.native(directory);
+    return path.normalize(nativeResult2);
   } catch {
-    return path.resolve(path.normalize(directory));
+    const normalizeResult4 = path.normalize(directory);
+    return path.resolve(normalizeResult4);
   }
 }
-
 function acquireProfileLock(userDataDir: string): () => void {
   const key = profileLockKey(userDataDir);
   if (activeProfileLocks.has(key)) {
-    throw new BridgeRuntimeConfigurationError(
-      `User data directory is already active in this process: ${userDataDir}`,
-    );
+    const message20 = `User data directory is already active in this process: ${userDataDir}`;
+    throw new BridgeRuntimeConfigurationError(message20);
   }
-
   const lockPath = path.join(userDataDir, profileLockFileName);
   createProfileLockFile(lockPath, userDataDir);
   activeProfileLocks.add(key);
-
   return () => {
     activeProfileLocks.delete(key);
     removeProfileLockFile(lockPath);
   };
 }
-
 function createProfileLockFile(lockPath: string, userDataDir: string): void {
   let fd: number | undefined;
   try {
     fd = openSync(lockPath, 'wx', 0o600);
-    writeFileSync(
-      fd,
-      `${JSON.stringify(
-        {
-          pid: process.pid,
-          createdAt: new Date().toISOString(),
-          userDataDir,
-        },
-        null,
-        2,
-      )}\n`,
-    );
+    const currentFd = fd;
+    const stringifyOptions = {
+      pid: process.pid,
+      createdAt: new Date().toISOString(),
+      userDataDir,
+    } as const;
+    const templateValue = JSON.stringify(stringifyOptions, null, 2);
+    const message21 = `${templateValue}\n`;
+    writeFileSync(currentFd, message21);
   } catch (error) {
     if (isFileExistsError(error)) {
-      throw new BridgeRuntimeConfigurationError(
-        `Persistent profile is already active: ${userDataDir}${formatProfileLockDetails(lockPath)}`,
-      );
+      const message22 = `Persistent profile is already active: ${userDataDir}${formatProfileLockDetails(lockPath)}`;
+      throw new BridgeRuntimeConfigurationError(message22);
     }
     const message = error instanceof Error ? error.message : String(error);
-    throw new BridgeRuntimeConfigurationError(`Could not create profile lock for ${userDataDir}: ${message}`);
+    const message23 = `Could not create profile lock for ${userDataDir}: ${message}`;
+    throw new BridgeRuntimeConfigurationError(message23);
   } finally {
     if (fd !== undefined) closeSync(fd);
   }
 }
-
 function removeProfileLockFile(lockPath: string): void {
   try {
     unlinkSync(lockPath);
@@ -884,10 +945,10 @@ function removeProfileLockFile(lockPath: string): void {
     if (!isFileMissingError(error)) throw error;
   }
 }
-
 function formatProfileLockDetails(lockPath: string): string {
   try {
-    const parsed = JSON.parse(readFileSync(lockPath, 'utf8')) as unknown;
+    const fileSyncResult = readFileSync(lockPath, 'utf8');
+    const parsed = JSON.parse(fileSyncResult) as unknown;
     if (!isRecord(parsed)) return '';
     const pid = typeof parsed.pid === 'number' ? parsed.pid : undefined;
     const createdAt = typeof parsed.createdAt === 'string' ? parsed.createdAt : undefined;
@@ -900,183 +961,210 @@ function formatProfileLockDetails(lockPath: string): string {
     return '';
   }
 }
-
 function isFileExistsError(error: unknown): boolean {
-  return isNodeError(error) && error.code === 'EEXIST';
+  return isNodeError(error) && error.code === systemErrorCodes.EEXIST;
 }
-
 function isFileMissingError(error: unknown): boolean {
-  return isNodeError(error) && error.code === 'ENOENT';
+  return isNodeError(error) && error.code === systemErrorCodes.ENOENT;
 }
-
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && 'code' in error;
 }
-
 function profileLockKey(userDataDir: string): string {
   const normalized = path.normalize(userDataDir);
   return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
 }
-
 function parseViewport(value: unknown, label: string): BridgeContextOptions['viewport'] {
   if (value === null) return null;
-  if (!isRecord(value)) throw new BridgeRuntimeConfigurationError(`${label} must be an object or null`);
+  if (!isRecord(value)) {
+    const message24 = `${label} must be an object or null`;
+    throw new BridgeRuntimeConfigurationError(message24);
+  }
+  const message25 = `${label}.width`;
+  const positiveIntegerResult = readPositiveInteger(value.width, message25);
+  const message26 = `${label}.height`;
+  const positiveIntegerResult2 = readPositiveInteger(value.height, message26);
   return {
-    width: readPositiveInteger(value.width, `${label}.width`),
-    height: readPositiveInteger(value.height, `${label}.height`),
+    width: positiveIntegerResult,
+    height: positiveIntegerResult2,
   };
 }
-
 function parseColorScheme(value: unknown, label: string): BridgeContextOptions['colorScheme'] {
   if (value === 'dark' || value === 'light' || value === 'no-preference') return value;
-  throw new BridgeRuntimeConfigurationError(`${label} must be "dark", "light", or "no-preference"`);
+  const message27 = `${label} must be "dark", "light", or "no-preference"`;
+  throw new BridgeRuntimeConfigurationError(message27);
 }
-
 function parseStringArray(value: unknown, label: string): string[] {
-  if (!Array.isArray(value)) throw new BridgeRuntimeConfigurationError(`${label} must be a string array`);
-  return value.map((item, index) => readNonEmptyString(item, `${label}[${index}]`));
+  if (!Array.isArray(value)) {
+    const message28 = `${label} must be a string array`;
+    throw new BridgeRuntimeConfigurationError(message28);
+  }
+  return value.map((item, index) => {
+    const message29 = `${label}[${index}]`;
+    return readNonEmptyString(item, message29);
+  });
 }
-
 function parseGeolocation(value: unknown, label: string): NonNullable<BridgeContextOptions['geolocation']> {
-  if (!isRecord(value)) throw new BridgeRuntimeConfigurationError(`${label} must be an object`);
-  const longitude = readFiniteNumber(value.longitude, `${label}.longitude`);
-  const latitude = readFiniteNumber(value.latitude, `${label}.latitude`);
+  if (!isRecord(value)) {
+    const message30 = `${label} must be an object`;
+    throw new BridgeRuntimeConfigurationError(message30);
+  }
+  const message31 = `${label}.longitude`;
+  const longitude = readFiniteNumber(value.longitude, message31);
+  const message32 = `${label}.latitude`;
+  const latitude = readFiniteNumber(value.latitude, message32);
   if (longitude < -180 || longitude > 180) {
-    throw new BridgeRuntimeConfigurationError(`${label}.longitude must be between -180 and 180`);
+    const message33 = `${label}.longitude must be between -180 and 180`;
+    throw new BridgeRuntimeConfigurationError(message33);
   }
   if (latitude < -90 || latitude > 90) {
-    throw new BridgeRuntimeConfigurationError(`${label}.latitude must be between -90 and 90`);
+    const message34 = `${label}.latitude must be between -90 and 90`;
+    throw new BridgeRuntimeConfigurationError(message34);
   }
   const accuracy =
-    value.accuracy === undefined ? undefined : readNonNegativeNumber(value.accuracy, `${label}.accuracy`);
+    value.accuracy === undefined
+      ? undefined
+      : (() => {
+          const message35 = `${label}.accuracy`;
+          return readNonNegativeNumber(value.accuracy, message35);
+        })();
   return accuracy === undefined ? { longitude, latitude } : { longitude, latitude, accuracy };
 }
-
 function parseStringRecord(value: unknown, label: string): Record<string, string> {
-  if (!isRecord(value)) throw new BridgeRuntimeConfigurationError(`${label} must be an object`);
+  if (!isRecord(value)) {
+    const message36 = `${label} must be an object`;
+    throw new BridgeRuntimeConfigurationError(message36);
+  }
   const result: Record<string, string> = {};
   for (const [key, item] of Object.entries(value)) {
-    result[key] = readString(item, `${label}.${key}`);
+    const message37 = `${label}.${key}`;
+    result[key] = readString(item, message37);
   }
   return result;
 }
-
 function parseHttpCredentials(
   value: unknown,
   label: string,
 ): NonNullable<BridgeContextOptions['httpCredentials']> {
-  if (!isRecord(value)) throw new BridgeRuntimeConfigurationError(`${label} must be an object`);
+  if (!isRecord(value)) {
+    const message38 = `${label} must be an object`;
+    throw new BridgeRuntimeConfigurationError(message38);
+  }
+  const message39 = `${label}.username`;
+  const nonEmptyStringResult = readNonEmptyString(value.username, message39);
+  const message40 = `${label}.password`;
+  const stringResult = readString(value.password, message40);
   const result: NonNullable<BridgeContextOptions['httpCredentials']> = {
-    username: readNonEmptyString(value.username, `${label}.username`),
-    password: readString(value.password, `${label}.password`),
+    username: nonEmptyStringResult,
+    password: stringResult,
   };
   if (value.origin !== undefined) {
-    result.origin = readNonEmptyString(value.origin, `${label}.origin`);
+    const message41 = `${label}.origin`;
+    result.origin = readNonEmptyString(value.origin, message41);
   }
   if (value.send !== undefined) {
     if (value.send !== 'always' && value.send !== 'unauthorized') {
-      throw new BridgeRuntimeConfigurationError(`${label}.send must be "always" or "unauthorized"`);
+      const message42 = `${label}.send must be "always" or "unauthorized"`;
+      throw new BridgeRuntimeConfigurationError(message42);
     }
     result.send = value.send;
   }
   return result;
 }
-
 function readString(value: unknown, label: string): string {
   if (typeof value !== 'string') {
-    throw new BridgeRuntimeConfigurationError(`${label} must be a string`);
+    const message43 = `${label} must be a string`;
+    throw new BridgeRuntimeConfigurationError(message43);
   }
   return value;
 }
-
 function readNonEmptyString(value: unknown, label: string): string {
   const result = readString(value, label).trim();
   if (result.length === 0) {
-    throw new BridgeRuntimeConfigurationError(`${label} must be a non-empty string`);
+    const message44 = `${label} must be a non-empty string`;
+    throw new BridgeRuntimeConfigurationError(message44);
   }
   return result;
 }
-
 function readBoolean(value: unknown, label: string): boolean {
   if (typeof value !== 'boolean') {
-    throw new BridgeRuntimeConfigurationError(`${label} must be a boolean`);
+    const message45 = `${label} must be a boolean`;
+    throw new BridgeRuntimeConfigurationError(message45);
   }
   return value;
 }
-
 function readPositiveInteger(value: unknown, label: string): number {
   const result = readFiniteNumber(value, label);
   if (!Number.isInteger(result) || result <= 0) {
-    throw new BridgeRuntimeConfigurationError(`${label} must be a positive integer`);
+    const message46 = `${label} must be a positive integer`;
+    throw new BridgeRuntimeConfigurationError(message46);
   }
   return result;
 }
-
 function readPositiveNumber(value: unknown, label: string): number {
   const result = readFiniteNumber(value, label);
   if (result <= 0) {
-    throw new BridgeRuntimeConfigurationError(`${label} must be a positive number`);
+    const message47 = `${label} must be a positive number`;
+    throw new BridgeRuntimeConfigurationError(message47);
   }
   return result;
 }
-
 function readNonNegativeNumber(value: unknown, label: string): number {
   const result = readFiniteNumber(value, label);
   if (result < 0) {
-    throw new BridgeRuntimeConfigurationError(`${label} must be a non-negative number`);
+    const message48 = `${label} must be a non-negative number`;
+    throw new BridgeRuntimeConfigurationError(message48);
   }
   return result;
 }
-
 function readFiniteNumber(value: unknown, label: string): number {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
-    throw new BridgeRuntimeConfigurationError(`${label} must be a finite number`);
+    const message49 = `${label} must be a finite number`;
+    throw new BridgeRuntimeConfigurationError(message49);
   }
   return value;
 }
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
-
 function formatErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
-
 function shouldMatchProxyGeoip(env: EnvReader, explicit: boolean | undefined): boolean {
   return explicit ?? envBool(env, 'CLOAK_PLAYWRIGHT_MCP_GEOIP_PROXY_MATCH', false);
 }
-
 function shouldHumanize(env: EnvReader, explicit: boolean | undefined): boolean {
   return explicit ?? envBool(env, 'CLOAK_PLAYWRIGHT_MCP_HUMANIZE', false);
 }
-
 export function parseHumanPreset(value: string): HumanPreset {
   if (isHumanPreset(value)) return value;
-  throw new Error(`CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET must be "default" or "careful", got "${value}"`);
+  const message50 = `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET must be "default" or "careful", got "${value}"`;
+  throw new Error(message50);
 }
-
 function isHumanPreset(value: string): value is HumanPreset {
   return humanPresets.includes(value as HumanPreset);
 }
-
 function parseReleaseChannel(value: string): ReleaseChannel {
   if (isReleaseChannel(value)) return value;
-  throw new Error(`CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL must be "stable" or "preview", got "${value}"`);
+  const message51 = `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL must be "stable" or "preview", got "${value}"`;
+  throw new Error(message51);
 }
-
 function resolveReleaseChannel(env: EnvReader, explicit: ReleaseChannel | undefined): ReleaseChannel {
-  return explicit ?? parseReleaseChannel(envString(env, 'CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL', 'stable'));
+  return (
+    explicit ??
+    (() => {
+      const envStringResult3 = envString(env, 'CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL', 'stable');
+      return parseReleaseChannel(envStringResult3);
+    })()
+  );
 }
-
 function isReleaseChannel(value: string): value is ReleaseChannel {
   return releaseChannels.includes(value as ReleaseChannel);
 }
-
 function resolveHumanizeInitPagePath(): string {
-  return fileURLToPath(new URL('../runtime/humanize-init-page.cjs', import.meta.url));
+  const uRL = new URL('../runtime/humanize-init-page.cjs', import.meta.url);
+  return fileURLToPath(uRL);
 }
-
 function resolveConfiguredProxy(
   env: EnvReader,
   args: readonly string[],
@@ -1086,27 +1174,24 @@ function resolveConfiguredProxy(
     return runtimeProxy.bypass
       ? parseProxyOption(runtimeProxy.server, runtimeProxy.bypass)
       : parseProxyOption(runtimeProxy.server);
-
   const envProxyServer = optionalEnvString(env, 'PLAYWRIGHT_MCP_PROXY_SERVER');
   if (envProxyServer) {
     const bypass = optionalEnvString(env, 'PLAYWRIGHT_MCP_PROXY_BYPASS');
     return bypass ? parseProxyOption(envProxyServer, bypass) : parseProxyOption(envProxyServer);
   }
-
   const argProxyServer = findLaunchArgValue(args, '--proxy-server');
   if (!argProxyServer) return undefined;
   const bypass = findLaunchArgValue(args, '--proxy-bypass-list');
   return bypass ? parseProxyOption(argProxyServer, bypass) : parseProxyOption(argProxyServer);
 }
-
 function parseProxyOption(server: string, bypass?: string): PlaywrightProxyOption {
   const parsed = parseProxyServer(server);
   return bypass === undefined ? parsed : { ...parsed, bypass };
 }
-
 function parseProxyServer(server: string): PlaywrightProxyOption {
   try {
-    const url = new URL(ensureProxyServerScheme(server));
+    const ensureProxyServerSchemeResult = ensureProxyServerScheme(server);
+    const url = new URL(ensureProxyServerSchemeResult);
     const username = decodeUrlCredential(url.username);
     const password = decodeUrlCredential(url.password);
     if (username === undefined && password === undefined) return { server };
@@ -1119,29 +1204,24 @@ function parseProxyServer(server: string): PlaywrightProxyOption {
     return { server };
   }
 }
-
 function ensureProxyServerScheme(server: string): string {
   return /^[a-z][a-z0-9+.-]*:\/\//iu.test(server) ? server : `http://${server}`;
 }
-
 function decodeUrlCredential(value: string): string | undefined {
   return value ? decodeURIComponent(value) : undefined;
 }
-
 function hasProxyCredentials(server: string): boolean {
   const parsed = parseProxyServer(server);
   return parsed.username !== undefined || parsed.password !== undefined;
 }
-
 function extractCloakGeneratedArgs(args: readonly string[]): string[] {
   return args.filter(isCloakGeneratedArg);
 }
-
-const exactCloakGeneratedArgs = new Set(['--start-maximized']);
-
+const values2: Iterable<string> | null | undefined = ['--start-maximized'];
+const exactCloakGeneratedArgs = new Set(values2);
 const prefixedCloakGeneratedArgs = [
   '--fingerprint-timezone=',
-  '--fingerprint-webrtc-ip=',
+  `${fingerprintWebrtcIpFlag}=`,
   '--lang=',
   '--fingerprint-locale=',
   '--proxy-server=',
@@ -1149,17 +1229,17 @@ const prefixedCloakGeneratedArgs = [
   '--load-extension=',
   '--disable-extensions-except=',
 ];
-
 function isCloakGeneratedArg(arg: string): boolean {
   return (
     exactCloakGeneratedArgs.has(arg) || prefixedCloakGeneratedArgs.some((prefix) => arg.startsWith(prefix))
   );
 }
-
 function mergeLaunchArgs(args: readonly string[], replacements: readonly string[]): string[] {
-  const replacementByKey = new Map(
-    replacements.map((replacement) => [launchArgKey(replacement), replacement]),
-  );
+  const mappedValues = replacements.map((replacement): [string, string] => [
+    launchArgKey(replacement),
+    replacement,
+  ]);
+  const replacementByKey = new Map(mappedValues);
   const result: string[] = [];
   const replacedKeys = new Set<string>();
   for (const arg of args) {
@@ -1181,32 +1261,30 @@ function mergeLaunchArgs(args: readonly string[], replacements: readonly string[
   }
   return result;
 }
-
 function findLaunchArgValue(args: readonly string[], name: string): string | undefined {
   const prefix = `${name}=`;
   return args.find((arg) => arg.startsWith(prefix))?.slice(prefix.length);
 }
-
 function launchArgKey(arg: string): string {
   return arg.split('=')[0] ?? arg;
 }
-
 function readStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.filter((item): item is string => typeof item === 'string');
 }
-
 function optionalEnvString(env: EnvReader, name: string): string | undefined {
   const value = env[name]?.trim();
   return value ? value : undefined;
 }
-
 export function createChildEnv(
   env: EnvReader,
   outputDir: string,
   runtimeProxy?: BridgeRuntimeProxy,
   headless = envBool(env, 'PLAYWRIGHT_MCP_HEADLESS', true),
-  humanPreset = parseHumanPreset(envString(env, 'CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET', 'default')),
+  humanPreset = (() => {
+    const envStringResult4 = envString(env, 'CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET', 'default');
+    return parseHumanPreset(envStringResult4);
+  })(),
 ): Record<string, string> {
   const result: Record<string, string> = {};
   for (const [key, value] of Object.entries(env)) {
@@ -1215,8 +1293,10 @@ export function createChildEnv(
   result.PLAYWRIGHT_MCP_HEADLESS = String(headless);
   result.CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET = humanPreset;
   result.PLAYWRIGHT_MCP_OUTPUT_DIR = outputDir;
-  result.PLAYWRIGHT_MCP_TIMEOUT_ACTION = String(envInt(env, 'PLAYWRIGHT_MCP_TIMEOUT_ACTION', 5000));
-  result.PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION = String(envInt(env, 'PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION', 60000));
+  const envIntResult = envInt(env, 'PLAYWRIGHT_MCP_TIMEOUT_ACTION', 5000);
+  result.PLAYWRIGHT_MCP_TIMEOUT_ACTION = String(envIntResult);
+  const envIntResult2 = envInt(env, 'PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION', 60000);
+  result.PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION = String(envIntResult2);
   result.CLOAKBROWSER_AUTO_UPDATE = envString(env, 'CLOAKBROWSER_AUTO_UPDATE', 'false');
   const envProxyServer = optionalEnvString(env, 'PLAYWRIGHT_MCP_PROXY_SERVER');
   if (runtimeProxy === undefined && envProxyServer !== undefined && hasProxyCredentials(envProxyServer)) {
@@ -1225,50 +1305,40 @@ export function createChildEnv(
   if (runtimeProxy) applyRuntimeProxyEnv(result, runtimeProxy);
   return result;
 }
-
 function readCodegenLanguage(env: EnvReader): CodegenLanguage | undefined {
   const value = env.PLAYWRIGHT_MCP_CODEGEN;
   if (value === undefined) return undefined;
   if (codegenLanguages.includes(value as CodegenLanguage)) return value as CodegenLanguage;
-  throw new BridgeRuntimeConfigurationError(
-    `PLAYWRIGHT_MCP_CODEGEN must be one of "typescript", "python", "java", "csharp", or "none", got "${value}"`,
-  );
+  const message52 = `PLAYWRIGHT_MCP_CODEGEN must be one of "typescript", "python", "java", "csharp", or "none", got "${value}"`;
+  throw new BridgeRuntimeConfigurationError(message52);
 }
-
 function readSnapshotBoxes(env: EnvReader): boolean | undefined {
   const value = env.PLAYWRIGHT_MCP_SNAPSHOT_BOXES;
   if (value === undefined) return undefined;
   if (value === 'true') return true;
   if (value === 'false') return false;
-  throw new BridgeRuntimeConfigurationError(
-    `PLAYWRIGHT_MCP_SNAPSHOT_BOXES must be "true" or "false", got "${value}"`,
-  );
+  const message53 = `PLAYWRIGHT_MCP_SNAPSHOT_BOXES must be "true" or "false", got "${value}"`;
+  throw new BridgeRuntimeConfigurationError(message53);
 }
-
 function shouldInheritChildEnv(key: string): boolean {
   return (
     inheritedChildEnvNames.has(key) || inheritedChildEnvPrefixes.some((prefix) => key.startsWith(prefix))
   );
 }
-
 function applyRuntimeProxyEnv(env: Record<string, string>, proxy: BridgeRuntimeProxy): void {
   env.PLAYWRIGHT_MCP_PROXY_SERVER = proxy.server;
   if (proxy.bypass === undefined) delete env.PLAYWRIGHT_MCP_PROXY_BYPASS;
   else env.PLAYWRIGHT_MCP_PROXY_BYPASS = proxy.bypass;
   if (hasProxyCredentials(proxy.server)) removeProxyEnv(env);
 }
-
 function removeProxyEnv(env: Record<string, string>): void {
   delete env.PLAYWRIGHT_MCP_PROXY_SERVER;
   delete env.PLAYWRIGHT_MCP_PROXY_BYPASS;
 }
-
 export function getCurrentCloakBinaryInfo(): ReturnType<typeof binaryInfo> {
   return binaryInfo();
 }
-
 let cloakLaunchOptionsQueue: Promise<void> = Promise.resolve();
-
 function withCloakBinaryPath<T>(cloakBinaryPath: string, fn: () => Promise<T>): Promise<T> {
   // CloakBrowser reads this process-wide override during asynchronous launch option generation.
   const result = cloakLaunchOptionsQueue.then(async () => {
@@ -1287,12 +1357,11 @@ function withCloakBinaryPath<T>(cloakBinaryPath: string, fn: () => Promise<T>): 
   );
   return result;
 }
-
 function parseBrowserEngine(value: string): BrowserEngine {
   if (value === 'cloak' || value === 'playwright') return value;
-  throw new Error(`PLAYWRIGHT_MCP_BROWSER_ENGINE must be "cloak" or "playwright", got "${value}"`);
+  const message54 = `PLAYWRIGHT_MCP_BROWSER_ENGINE must be "cloak" or "playwright", got "${value}"`;
+  throw new Error(message54);
 }
-
 async function suppressStdout<T>(fn: () => Promise<T>): Promise<T> {
   const stdout = process.stdout;
   if (stdoutSuppressionDepth === 0) {
@@ -1311,10 +1380,8 @@ async function suppressStdout<T>(fn: () => Promise<T>): Promise<T> {
     }
   }
 }
-
 let stdoutSuppressionDepth = 0;
 let suppressedStdoutWrite: typeof process.stdout.write | undefined;
-
 function suppressedProcessStdoutWrite(
   _chunk: string | Uint8Array,
   encodingOrCallback?: BufferEncoding | ((error?: Error | null) => void),

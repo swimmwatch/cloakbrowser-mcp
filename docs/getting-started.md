@@ -30,7 +30,7 @@ Pin a release when reproducibility matters:
 npx -y {{ project.npm_pin }}
 ```
 
-The npm package requires Node.js 22.13+ in the 22.x line, or Node.js 24+. CloakBrowser downloads its Chromium binary on first use unless it is already cached.
+The npm package requires Node.js `{{ project.node_engine_range }}`. CloakBrowser downloads its Chromium binary on first use unless it is already cached.
 
 Use `doctor` to verify the local Node.js runtime, package metadata, the effective upstream Playwright MCP CLI, the resolved `@playwright/mcp`, `playwright`, and `playwright-core` versions and package paths, the effective core bundle path, and CloakBrowser binary metadata before connecting a client. The command does not start the bridge or download a browser.
 

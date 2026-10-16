@@ -14,7 +14,7 @@ tags:
 
 默认 upstream 浏览器工具表面应与固定的 Playwright MCP 依赖保持一致。它包括导航、snapshot、点击、输入、截图、标签页、控制台消息、网络检查、文件上传、对话框以及不安全求值工具等核心浏览器工具。
 
-稳定的 upstream 参考见 Playwright MCP `{{ project.playwright_mcp_package_tag }}` capability test，该测试固定到准确的包 commit：[default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/f1257a5a67aff872f947fae274759f7d54853862/tests/capabilities.spec.ts#L19-L77)。
+Playwright MCP `@playwright/mcp@0.0.83` 的稳定参考是固定到该包提交的能力测试：[默认工具和按能力启用的工具](https://github.com/microsoft/playwright-mcp/blob/f183dad4a52965583e3cc1d59b88cdc279e2e57d/tests/capabilities.spec.ts#L19-L74)。当前工具集合由已安装的依赖定义。
 
 本项目将 upstream Playwright MCP 视为权威来源，不维护复制的 schema 参考。
 
@@ -24,10 +24,7 @@ tags:
 `browser_stop_recording`。
 
 !!! warning "使用公开 CloakBrowser v146 二进制文件时的录制限制"
-    录制工具可以正常使用，但 CloakBrowser 0.5.10 使用的无密钥公开 Chromium 146
-    二进制文件会为保持隐蔽性而有意禁用 Playwright 的页面到主机绑定。因此，
-    `browser_stop_recording` 可能返回不完整的代码：导航会被记录，但已成功执行的
-    文本输入和点击会被省略。重复使用生成的录制代码前，请先进行检查。
+    录制工具可用，但无密钥的公开 Chromium 146 二进制文件会为保持隐蔽性而有意禁用 Playwright 的页面到主机绑定。因此，`browser_stop_recording` 可能返回不完整的代码：导航会被记录，但成功的输入和点击会被省略。重复使用生成的录制代码前，请先检查。
 
     显式启用兼容性的进展记录在 [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532)。
     有关底层绑定决策的讨论见
@@ -36,9 +33,13 @@ tags:
 
 ### 动态 WebMCP 工具
 
-Chromium 从版本 154 开始支持 WebMCP。较旧的 CloakBrowser 构建会忽略该 feature flag；如需 WebMCP，请使用兼容的浏览器构建或设置 `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright`。
+WebMCP 支持取决于所选浏览器构建及启用的功能。已安装的 Playwright MCP 需要带有 `getTools()` 方法的 `document.modelContext` 或 `navigator.modelContext`。需要 WebMCP 时，请使用兼容的 CloakBrowser 构建或 `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright`。
 
-使用 `--enable-features=WebMCP` 启动 Chromium 后，页面可以声明 `webmcp_*` 工具。桥接器会转发 `notifications/tools/list_changed`、清空完整的 `tools/list` 缓存，客户端应重新获取列表。在 Streamable HTTP 中，只有对应会话已打开的通知流会收到事件；即使没有流，下一次 `tools/list` 仍会返回最新列表。名称、描述、schema、annotations 和 output 都是不受信任的页面数据。桥接器不会自动启用 WebMCP；`PLAYWRIGHT_MCP_WEBMCP=false` 可禁用收集。
+[Chrome 的 WebMCP 文档](https://developer.chrome.com/docs/ai/webmcp)介绍了从 Chrome 149 开始的 origin trial、本地测试标志及无头模式限制。仅凭 Chromium 版本号不能保证与 Playwright MCP 所需 API 兼容。
+
+使用 `--enable-features=WebMCP` 启动 Chromium 后，Playwright MCP 可以在页面打开期间添加页面提供的 `webmcp_*` 工具。这些工具是动态的：桥接器声明支持 `tools.listChanged`，收到上游的 `notifications/tools/list_changed` 后，使完整的分页工具缓存失效，并将通知转发给所属的 MCP 客户端。客户端应监听该通知，并重新调用 `tools/list`。Streamable HTTP 客户端只有在该会话的通知流处于打开状态时才能收到通知；即使通知流未打开，下一次 `tools/list` 仍会返回最新列表。
+
+动态工具仅属于发现它们的 MCP 会话及当前托管 CDP 浏览器实例的代次。工具名称、描述、模式、注解和输出都是不可信的页面内容，桥接器会原样转发。调用前应先检查这些内容。设置 `PLAYWRIGHT_MCP_WEBMCP=false` 可禁用工具收集。桥接器不会自动启用 Chromium WebMCP。
 
 ## 本地工具
 
@@ -50,8 +51,13 @@ Chromium 从版本 154 开始支持 WebMCP。较旧的 CloakBrowser 构建会忽
 
 返回结构化桥接元数据：
 
-加法对象 `structuredContent.cdp` 报告调用会话的托管 CDP
-状态：
+- MCP 服务器名称和版本；
+- 运行模式；
+- 上游 Playwright MCP 包和版本；
+- 上游工具数量；
+- 本地 Cloak 专用工具名称。
+
+新增的 `structuredContent.cdp` 对象报告调用会话的托管 CDP 状态：
 
 ```json
 { "enabled": false }
@@ -83,12 +89,10 @@ Chromium 从版本 154 开始支持 WebMCP。较旧的 CloakBrowser 构建会忽
 }
 ```
 
-在更换浏览器后，`generation` 增加，`discoveryUrl` 旋转。
-`activeConnections` 计算已接受的代理 WebSocket 连接而不暴露
-客户端身份、目标ID或协议内容。对每一个非空发现 URL
-作为凭证。
+浏览器替换后，`generation` 会递增，`discoveryUrl` 会更换。
+`activeConnections` 统计已接受的代理 WebSocket 连接，不会暴露客户端身份、目标 ID 或协议内容。请将每个非空的发现 URL 视为访问凭证。
 
-使用支持 CDP 的客户端使用发现 URL：
+使用发现 URL 连接支持 CDP 的客户端：
 
 ```ts
 import { chromium } from 'playwright';
@@ -96,18 +100,11 @@ import { chromium } from 'playwright';
 const browser = await chromium.connectOverCDP(discoveryUrl);
 ```
 
-受管理的 CDP 不是 Playwright 服务器协议。Playwright
-`chromium.connect()` 和当前的 Open WebUI `PLAYWRIGHT_WS_URL` 集成预期
-一个 Playwright 服务器端点，与这个 URL 不兼容。
+托管 CDP 不是 Playwright Server 协议。Playwright 的 `chromium.connect()` 和当前 Open WebUI 的 `PLAYWRIGHT_WS_URL` 集成都要求 Playwright Server 端点，因此与此 URL 不兼容。
 
-- MCP server 名称和版本；
-- runtime 模式；
-- upstream Playwright MCP 包和版本；
-- upstream 工具数量；
-- 本地 Cloak-specific 工具名称。
+使用固定版本的 Playwright 客户端时，已验证对 `connectOverCDP()` 返回的浏览器调用 `browser.close()` 只会断开该客户端，Chromium 和当前代浏览器实例仍保持就绪。这是针对该客户端的观察结果，不保证其他 CDP 库具有相同行为。直接发送 CDP `Browser.close` 具有破坏性：它会终止当前代的共享 Chromium 实例，使访问凭证失效，并影响 MCP 调用方。请协调 MCP 和 CDP 操作，因为桥接器不会将相互冲突的导航、页面关闭、输入或存储修改操作串行化。
 
-本地工具表面仍仅限于这两个诊断工具。`SessionSeats` 和 `getSessionSeats`
-不会作为 MCP 工具公开，因为 CloakBrowser 0.5.10 未从其公共入口点导出该 API。
+本地工具仍仅限于这两个诊断工具。`SessionSeats` 和 `getSessionSeats` 不作为 MCP 工具公开，因为受支持的 CloakBrowser 公共入口不导出该 API。
 
 ## 兼容性
 

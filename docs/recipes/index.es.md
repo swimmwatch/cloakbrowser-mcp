@@ -8,7 +8,7 @@ tags:
 
 # Recetas
 
-Usa estas recetas cuando ya sabes la tarea. Los detalles completos siguen en Configuration, Docker y CLI Reference.
+Usa estas guías breves cuando ya sepas qué tarea quieres realizar con CloakBrowser MCP. Para consultar las opciones, ten a mano [Configuración](../configuration.md), [Docker](../docker.md) y la [Referencia de CLI](../generated/cli.md) generada.
 
 ## Estado del navegador y extensiones
 
@@ -26,4 +26,4 @@ Usa estas recetas cuando ya sabes la tarea. Los detalles completos siguen en Con
 - [Conectar con Claude Desktop](connect-claude-desktop.md)
 - [Conectar con Codex CLI](connect-codex-cli.md)
 
-Si todavía eliges entre paquetes, empieza por la comparación.
+Si todavía estás decidiendo si este paquete encaja, empieza por [`@playwright/mcp` frente a `cloakbrowser-mcp`](../comparison.md).

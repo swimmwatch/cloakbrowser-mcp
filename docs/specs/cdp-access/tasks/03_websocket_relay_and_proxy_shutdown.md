@@ -4,7 +4,7 @@ render_macros: false
 
 # Packet 03 — WebSocket Relay And Proxy Shutdown
 
-Status: Pending completed Packet 02 evidence and an explicit Packet 03 invocation.
+Status: Complete locally; retained execution evidence is recorded in todo.md and handoff.md.
 
 ## Outcome
 

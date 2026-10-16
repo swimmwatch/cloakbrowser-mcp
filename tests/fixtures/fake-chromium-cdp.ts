@@ -1,13 +1,10 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-
 import { type WebSocket, WebSocketServer } from 'ws';
-
 export interface FakeChromiumCdpRequest {
   headers: IncomingMessage['headers'];
   method: string;
   url: string;
 }
-
 export interface FakeChromiumCdpServer {
   close(): Promise<void>;
   readonly host: '127.0.0.1';
@@ -16,32 +13,35 @@ export interface FakeChromiumCdpServer {
   readonly webSocketRequests: FakeChromiumCdpRequest[];
   readonly webSockets: ReadonlySet<WebSocket>;
 }
-
 export type FakeChromiumCdpHandler = (request: IncomingMessage, response: ServerResponse) => void;
 export type FakeChromiumCdpWebSocketHandler = (socket: WebSocket, request: IncomingMessage) => void;
-
 export async function startFakeChromiumCdp(
   handler: FakeChromiumCdpHandler,
   webSocketHandler?: FakeChromiumCdpWebSocketHandler,
-  options: { port?: number } = {},
+  options: {
+    port?: number;
+  } = {},
 ): Promise<FakeChromiumCdpServer> {
   const requests: FakeChromiumCdpRequest[] = [];
   const webSocketRequests: FakeChromiumCdpRequest[] = [];
-  const webSocketServer = new WebSocketServer({ noServer: true, perMessageDeflate: false });
+  const webSocketServerOptions = { noServer: true, perMessageDeflate: false } as const;
+  const webSocketServer = new WebSocketServer(webSocketServerOptions);
   const server = createServer((request, response) => {
-    requests.push({
+    const pushOptions = {
       headers: request.headers,
       method: request.method ?? 'UNKNOWN',
       url: request.url ?? '',
-    });
+    } as const;
+    requests.push(pushOptions);
     handler(request, response);
   });
   server.on('upgrade', (request, socket, head) => {
-    webSocketRequests.push({
+    const pushOptions2 = {
       headers: request.headers,
       method: request.method ?? 'UNKNOWN',
       url: request.url ?? '',
-    });
+    } as const;
+    webSocketRequests.push(pushOptions2);
     if (webSocketHandler === undefined) {
       socket.end('HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n');
       return;
@@ -52,11 +52,11 @@ export async function startFakeChromiumCdp(
   });
   await new Promise<void>((resolve, reject) => {
     server.once('error', reject);
-    server.listen(options.port ?? 0, '127.0.0.1', resolve);
+    const computedValue = options.port ?? 0;
+    server.listen(computedValue, '127.0.0.1', resolve);
   });
   const address = server.address();
   if (address === null || typeof address === 'string') throw new Error('Fake CDP server has no port');
-
   return {
     close: async () => await closeFakeServer(server, webSocketServer),
     host: '127.0.0.1',
@@ -66,16 +66,16 @@ export async function startFakeChromiumCdp(
     webSockets: webSocketServer.clients,
   };
 }
-
 async function closeFakeServer(
   server: ReturnType<typeof createServer>,
   webSocketServer: WebSocketServer,
 ): Promise<void> {
   for (const socket of webSocketServer.clients) socket.terminate();
-  await Promise.all([
+  const values: [Promise<void>, Promise<void>] = [
     new Promise<void>((resolve) => webSocketServer.close(() => resolve())),
     new Promise<void>((resolve, reject) =>
       server.close((error) => (error === undefined ? resolve() : reject(error))),
     ),
-  ]);
+  ];
+  await Promise.all(values);
 }

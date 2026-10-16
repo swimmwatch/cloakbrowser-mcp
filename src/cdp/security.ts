@@ -1,20 +1,16 @@
 export type CdpSecurityRejectionCategory = 'capability' | 'host' | 'origin';
-
 export interface CdpSecurityRejectionSummary {
   capability: number;
   host: number;
   origin: number;
   windowSeconds: number;
 }
-
 export interface CdpSecurityRejectionReporter {
   close(): void;
   record(category: CdpSecurityRejectionCategory): void;
 }
-
-const maxUint32 = 0xffff_ffff;
-export const CDP_SECURITY_REJECTION_WINDOW_MS = 60_000;
-
+const maxUint32 = 4294967295;
+export const CDP_SECURITY_REJECTION_WINDOW_MS = 60000;
 /** Creates a session-scoped, bounded aggregate reporter for rejected CDP requests. */
 export function createCdpSecurityRejectionReporter(options: {
   onReport?: (summary: CdpSecurityRejectionSummary) => void;
@@ -24,11 +20,10 @@ export function createCdpSecurityRejectionReporter(options: {
   let counts = emptyCounts();
   let closed = false;
   let timer: NodeJS.Timeout | undefined;
-
   const flush = (): void => {
     timer = undefined;
     if (counts.capability === 0 && counts.host === 0 && counts.origin === 0) return;
-    const report = { ...counts, windowSeconds: windowMs / 1_000 };
+    const report = { ...counts, windowSeconds: windowMs / 1000 };
     counts = emptyCounts();
     try {
       options.onReport?.(report);
@@ -36,7 +31,6 @@ export function createCdpSecurityRejectionReporter(options: {
       // Diagnostic reporting never changes proxy behavior.
     }
   };
-
   return {
     close() {
       if (closed) return;
@@ -53,12 +47,11 @@ export function createCdpSecurityRejectionReporter(options: {
     },
   };
 }
-
 /** Increments a non-negative counter without exceeding the unsigned 32-bit maximum. */
 export function incrementSaturatingUint32(value: number): number {
-  return Math.min(maxUint32, value + 1);
+  const computedValue = value + 1;
+  return Math.min(maxUint32, computedValue);
 }
-
 function emptyCounts(): Record<CdpSecurityRejectionCategory, number> {
   return { capability: 0, host: 0, origin: 0 };
 }

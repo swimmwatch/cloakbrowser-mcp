@@ -15,14 +15,14 @@ import {
   translateMarkdown,
   validateLocalizedMarkdown,
 } from '#scripts/lib/doc-translations';
-
-const docsDir = join(process.cwd(), 'docs');
+const cwdResult = process.cwd();
+const docsDir = join(cwdResult, 'docs');
 const manifestPath = join(docsDir, 'data', 'translation-manifest.json');
-const args = new Set(process.argv.slice(2));
+const sliceResult = process.argv.slice(2);
+const args = new Set(sliceResult);
 const checkOnly = args.has('--check');
 const refreshManifestOnly = args.has('--refresh-manifest');
 const sourceLanguage = 'en';
-
 const locales = [
   { locale: 'ru', name: 'Русский', deeplTarget: 'RU' },
   { locale: 'be', name: 'Беларуская', deeplTarget: 'BE' },
@@ -35,17 +35,16 @@ const locales = [
   { locale: 'fr', name: 'Français', deeplTarget: 'FR' },
   { locale: 'hi', name: 'हिन्दी', deeplTarget: 'HI' },
 ];
-
 const localeSuffixes = createLocaleSuffixSet(locales);
-const excludedDirectories = new Set(['assets', 'data', 'generated', 'hooks', 'overrides', 'specs']);
-const excludedFiles = new Set(['dockerhub-readme.md']);
-
+const values2 = ['assets', 'data', 'generated', 'hooks', 'overrides', 'specs'];
+const excludedDirectories = new Set(values2);
+const values3 = ['dockerhub-readme.md'];
+const excludedFiles = new Set(values3);
 const invalidLocalizedContentPatterns = [
   /Translation failed:/u,
   /Quota for this billing period has been exceeded/u,
   /<clb-keep\b/u,
 ];
-
 const knownUntranslatedPhrases = [
   'Bridge runtime',
   'CloakBrowser execution',
@@ -63,7 +62,6 @@ const knownUntranslatedPhrases = [
   'Uses process-level environment variables and CLI flags when no runtime metadata is provided.',
   'Compared in CI',
 ];
-
 const localizedPhraseReplacements = {
   ru: {
     'Get started': 'Начать',
@@ -396,42 +394,41 @@ const localizedPhraseReplacements = {
     'Compared in CI': 'CI में तुलना की गई',
   },
 };
-
-const validateLocalizedDoc = (markdown, locale) =>
-  validateLocalizedMarkdown(markdown, locale, {
+const validateLocalizedDoc = (markdown, locale) => {
+  const validateLocalizedMarkdownOptions = {
     invalidLocalizedContentPatterns,
     knownUntranslatedPhrases,
-  });
-
+  };
+  return validateLocalizedMarkdown(markdown, locale, validateLocalizedMarkdownOptions);
+};
 const postProcessLocalizedDoc = (markdown, locale) =>
   postProcessLocalizedMarkdown(markdown, locale, localizedPhraseReplacements);
-
 async function main() {
   const sources = discoverEnglishDocs();
   const manifest = readManifest();
-
   if (refreshManifestOnly) {
-    refreshManifest(manifest, sources, {
+    const refreshManifestOptions = {
       docsDir,
       locales,
       validateLocalizedMarkdown: validateLocalizedDoc,
-    });
+    };
+    refreshManifest(manifest, sources, refreshManifestOptions);
     writeManifest(manifest);
     process.stderr.write('Refreshed documentation translation manifest.\n');
     return;
   }
-
-  const stale = findStaleTranslations(sources, manifest, {
+  const findStaleTranslationsOptions = {
     docsDir,
     locales,
     validateLocalizedMarkdown: validateLocalizedDoc,
-  });
-
+  };
+  const stale = findStaleTranslations(sources, manifest, findStaleTranslationsOptions);
   if (checkOnly) {
     if (stale.length > 0) {
       process.stderr.write('Documentation translations are missing or stale:\n');
       for (const item of stale) {
-        process.stderr.write(`- ${item.sourceRel} -> ${item.locale}: ${item.reason}\n`);
+        const message2 = `- ${item.sourceRel} -> ${item.locale}: ${item.reason}\n`;
+        process.stderr.write(message2);
       }
       process.exitCode = 1;
     } else {
@@ -439,38 +436,35 @@ async function main() {
     }
     return;
   }
-
   if (stale.length === 0) {
     process.stderr.write('Documentation translations are already current.\n');
     return;
   }
-
   const apiKey = process.env.DEEPL_API_KEY;
   if (!apiKey) {
     throw new Error('DEEPL_API_KEY is required to update documentation translations.');
   }
-
   const client = new DeepLMcpClient(apiKey);
   await client.initialize();
-
   try {
     for (const item of stale) {
       const localeConfig = locales.find(({ locale }) => locale === item.locale);
       if (!localeConfig) {
-        throw new Error(`Unsupported locale ${item.locale}`);
+        const message3 = `Unsupported locale ${item.locale}`;
+        throw new Error(message3);
       }
-
-      process.stderr.write(`Translating ${item.sourceRel} -> ${item.locale}\n`);
-      const translated = postProcessLocalizedDoc(
-        await translateMarkdown(item.sourceText, localeConfig.deeplTarget, client),
-        item.locale,
-      );
+      const message4 = `Translating ${item.sourceRel} -> ${item.locale}\n`;
+      process.stderr.write(message4);
+      const translatedMarkdown = await translateMarkdown(item.sourceText, localeConfig.deeplTarget, client);
+      const translated = postProcessLocalizedDoc(translatedMarkdown, item.locale);
       const invalidReason = validateLocalizedDoc(translated, item.locale);
       if (invalidReason) {
-        throw new Error(`Generated invalid translation for ${item.targetRel}: ${invalidReason}`);
+        const message5 = `Generated invalid translation for ${item.targetRel}: ${invalidReason}`;
+        throw new Error(message5);
       }
-
-      mkdirSync(dirname(item.targetPath), { recursive: true });
+      const dirnameResult = dirname(item.targetPath);
+      const mkdirSyncOptions = { recursive: true };
+      mkdirSync(dirnameResult, mkdirSyncOptions);
       writeFileSync(item.targetPath, translated);
       const translationHash = sha256(translated);
       const sourceEntry = (manifest.sources[item.sourceRel] ??= {
@@ -489,118 +483,114 @@ async function main() {
   } finally {
     client.close();
   }
-
-  pruneManifest(manifest, sources, { locales });
+  const pruneManifestOptions = { locales };
+  pruneManifest(manifest, sources, pruneManifestOptions);
   writeManifest(manifest);
-  process.stderr.write(`Updated ${stale.length} documentation translation(s).\n`);
+  const message6 = `Updated ${stale.length} documentation translation(s).\n`;
+  process.stderr.write(message6);
 }
-
 function discoverEnglishDocs() {
   const results = [];
-
   function visit(directory) {
     for (const entry of readdirSync(directory)) {
       const path = join(directory, entry);
       const stats = statSync(path);
-      const rel = normalizeDocPath(relative(docsDir, path));
+      const relativeResult = relative(docsDir, path);
+      const rel = normalizeDocPath(relativeResult);
       const parts = rel.split('/');
-
       if (stats.isDirectory()) {
         if (!excludedDirectories.has(entry)) {
           visit(path);
         }
         continue;
       }
-
       if (!entry.endsWith('.md') || excludedFiles.has(entry)) {
         continue;
       }
-
       if (isLocalizedMarkdown(entry, localeSuffixes)) {
         continue;
       }
-
       if (parts.some((part) => excludedDirectories.has(part))) {
         continue;
       }
-
       const sourceText = readFileSync(path, 'utf8');
-      results.push({
+      const pushOptions = {
         path,
         rel,
         sourceText,
         sourceHash: sha256(sourceText),
-      });
+      };
+      results.push(pushOptions);
     }
   }
-
   visit(docsDir);
   return results.sort((left, right) => left.rel.localeCompare(right.rel));
 }
-
 function readManifest() {
   if (!existsSync(manifestPath)) {
+    const propertyValue = 1;
+    const currentSourceLanguage = sourceLanguage;
+    const mappedValues = locales.map(({ locale, name, deeplTarget }) => [locale, { name, deeplTarget }]);
+    const fromEntriesResult = Object.fromEntries(mappedValues);
+    const options = {};
     return {
-      version: 1,
-      sourceLanguage,
-      locales: Object.fromEntries(
-        locales.map(({ locale, name, deeplTarget }) => [locale, { name, deeplTarget }]),
-      ),
-      sources: {},
+      version: propertyValue,
+      sourceLanguage: currentSourceLanguage,
+      locales: fromEntriesResult,
+      sources: options,
     };
   }
-
-  return JSON.parse(readFileSync(manifestPath, 'utf8'));
+  const fileSyncResult = readFileSync(manifestPath, 'utf8');
+  return JSON.parse(fileSyncResult);
 }
-
 function writeManifest(manifest) {
   manifest.version = 1;
   manifest.sourceLanguage = sourceLanguage;
-  manifest.locales = Object.fromEntries(
-    locales.map(({ locale, name, deeplTarget }) => [locale, { name, deeplTarget }]),
-  );
-  writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  const mappedValues2 = locales.map(({ locale, name, deeplTarget }) => [locale, { name, deeplTarget }]);
+  manifest.locales = Object.fromEntries(mappedValues2);
+  const message7 = `${JSON.stringify(manifest, null, 2)}\n`;
+  writeFileSync(manifestPath, message7);
 }
-
 class DeepLMcpClient {
   constructor(apiKey) {
     this.nextId = 1;
     this.pending = new Map();
     this.buffer = '';
     this.stderr = '';
-    this.child = spawn('npx', ['-y', 'deepl-mcp-server@latest'], {
+    const values4 = ['-y', 'deepl-mcp-server@latest'];
+    const spawnOptions = {
       env: { ...process.env, DEEPL_API_KEY: apiKey },
       stdio: ['pipe', 'pipe', 'pipe'],
-    });
-
+    };
+    this.child = spawn('npx', values4, spawnOptions);
     this.child.stdout.on('data', (chunk) => this.handleStdout(chunk));
     this.child.stderr.on('data', (chunk) => {
       this.stderr += chunk.toString();
     });
     this.child.on('exit', (code, signal) => {
-      const error = new Error(`DeepL MCP server exited unexpectedly: code=${code} signal=${signal}`);
+      const message8 = `DeepL MCP server exited unexpectedly: code=${code} signal=${signal}`;
+      const error = new Error(message8);
       for (const { reject } of this.pending.values()) {
         reject(error);
       }
       this.pending.clear();
     });
   }
-
   async initialize() {
-    await this.request('initialize', {
+    const requestOptions = {
       protocolVersion: '2024-11-05',
       capabilities: {},
       clientInfo: { name: 'cloakbrowser-doc-translator', version: '0.0.0' },
-    });
-    this.notify('notifications/initialized', {});
+    };
+    await this.request('initialize', requestOptions);
+    const notifyOptions = {};
+    this.notify('notifications/initialized', notifyOptions);
   }
-
   async translateText(text, targetLanguage) {
     if (text.trim() === '') {
       return text;
     }
-
-    const result = await this.request('tools/call', {
+    const requestOptions2 = {
       name: 'translate-text',
       arguments: {
         text,
@@ -608,71 +598,68 @@ class DeepLMcpClient {
         targetLangCode: targetLanguage,
         formality: 'default',
       },
-    });
+    };
+    const result = await this.request('tools/call', requestOptions2);
     const content = result?.content;
     const translated = Array.isArray(content)
       ? content.find((item) => item?.type === 'text')?.text
       : undefined;
-
     if (typeof translated !== 'string') {
       throw new Error('DeepL MCP translate-text returned no translated text content.');
     }
-
     for (const pattern of invalidLocalizedContentPatterns) {
       if (pattern.test(translated)) {
-        throw new Error(`DeepL MCP translate-text failed: ${translated}`);
+        const message9 = `DeepL MCP translate-text failed: ${translated}`;
+        throw new Error(message9);
       }
     }
-
     return translated;
   }
-
   request(method, params) {
     const id = this.nextId++;
     const message = { jsonrpc: '2.0', id, method, params };
-
     return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
-      this.child.stdin.write(`${JSON.stringify(message)}\n`);
+      const setOptions = { resolve, reject };
+      this.pending.set(id, setOptions);
+      const message10 = `${JSON.stringify(message)}\n`;
+      this.child.stdin.write(message10);
     });
   }
-
   notify(method, params) {
-    this.child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', method, params })}\n`);
+    const stringifyOptions = { jsonrpc: '2.0', method, params };
+    const templateValue = JSON.stringify(stringifyOptions);
+    const message11 = `${templateValue}\n`;
+    this.child.stdin.write(message11);
   }
-
   handleStdout(chunk) {
     this.buffer += chunk.toString();
     const lines = this.buffer.split('\n');
     this.buffer = lines.pop() ?? '';
-
     for (const line of lines) {
       if (!line.trim() || line.startsWith('DeepL MCP Server')) {
         continue;
       }
-
       const message = JSON.parse(line);
       const pending = this.pending.get(message.id);
       if (!pending) {
         continue;
       }
-
       this.pending.delete(message.id);
-
       if (message.error) {
-        pending.reject(new Error(`DeepL MCP error: ${JSON.stringify(message.error)}`));
+        const message12 = `DeepL MCP error: ${JSON.stringify(message.error)}`;
+        const error2 = new Error(message12);
+        pending.reject(error2);
       } else {
         pending.resolve(message.result);
       }
     }
   }
-
   close() {
     this.child.kill('SIGTERM');
   }
 }
-
 main().catch((error) => {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+  const message13 = `${error instanceof Error ? error.message : String(error)}\n`;
+  process.stderr.write(message13);
   process.exitCode = 1;
 });

@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head>
+    <title>WebMCP add</title>
+  </head>
+  <body>
+    <h1>WebMCP add</h1>
+    <script>
+      const modelContext = document.modelContext || navigator.modelContext;
+      const registerToolOptions = {
+        name: 'add',
+        description: 'Adds two numbers',
+        inputSchema: {
+          type: 'object',
+          properties: { a: { type: 'number' }, b: { type: 'number' } },
+          required: ['a', 'b'],
+        },
+        annotations: { readOnlyHint: true },
+        async execute(input) {
+          const propertyValue = 'text';
+          const computedValue = input.a + input.b;
+          const stringResult = String(computedValue);
+          const options = { type: propertyValue, text: stringResult };
+          const values = [options];
+          return { content: values };
+        },
+      };
+      modelContext.registerTool(registerToolOptions);
+    </script>
+  </body>
+</html>

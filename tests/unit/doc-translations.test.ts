@@ -2,7 +2,6 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-
 interface DocTranslationsModule {
   createLocaleSuffixSet(locales: LocaleConfig[]): Set<string>;
   findStaleTranslations(
@@ -23,7 +22,10 @@ interface DocTranslationsModule {
     localizedPhraseReplacements: Record<string, Record<string, string>>,
   ): string;
   preservesPlaceholders(source: string, translated: string): boolean;
-  protectMarkdown(markdown: string): { text: string; placeholders: Array<[string, string]> };
+  protectMarkdown(markdown: string): {
+    text: string;
+    placeholders: Array<[string, string]>;
+  };
   refreshManifest(
     manifest: TranslationManifest,
     sources: SourceDoc[],
@@ -47,25 +49,21 @@ interface DocTranslationsModule {
     },
   ): string | undefined;
 }
-
 interface LocaleConfig {
   locale: string;
   deeplTarget?: string;
 }
-
 interface SourceDoc {
   rel: string;
   sourceHash: string;
   sourceText: string;
 }
-
 interface StaleTranslation {
   locale: string;
   reason: string;
   sourceRel: string;
   targetRel: string;
 }
-
 interface TranslationManifest {
   sources: Record<
     string,
@@ -84,67 +82,93 @@ interface TranslationManifest {
     }
   >;
 }
-
 interface TranslationClient {
   translateText(text: string, targetLanguage: string): Promise<string>;
 }
-
-const translations = (await import(
-  new URL('../../scripts/lib/doc-translations.mjs', import.meta.url).href
-)) as unknown as DocTranslationsModule;
-
+const argumentValue = new URL('../../scripts/lib/doc-translations.mjs', import.meta.url).href;
+const translations = (await import(argumentValue)) as unknown as DocTranslationsModule;
 const tempRoots: string[] = [];
 const locales: LocaleConfig[] = [{ locale: 'es', deeplTarget: 'ES' }];
-
 afterEach(() => {
-  for (const root of tempRoots.splice(0)) rmSync(root, { recursive: true, force: true });
+  for (const root of tempRoots.splice(0)) {
+    const rmSyncOptions = { recursive: true, force: true } as const;
+    rmSync(root, rmSyncOptions);
+  }
 });
-
 function createTempRoot(): string {
-  const root = mkdtempSync(path.join(tmpdir(), 'cloakbrowser-doc-translations-'));
+  const tmpdirResult = tmpdir();
+  const joinedPath = path.join(tmpdirResult, 'cloakbrowser-doc-translations-');
+  const root = mkdtempSync(joinedPath);
   tempRoots.push(root);
   return root;
 }
-
 function writeDoc(root: string, rel: string, text: string): void {
   const filePath = path.join(root, rel);
-  mkdirSync(path.dirname(filePath), { recursive: true });
+  const dirnameResult = path.dirname(filePath);
+  const mkdirSyncOptions = { recursive: true } as const;
+  mkdirSync(dirnameResult, mkdirSyncOptions);
   writeFileSync(filePath, text);
 }
-
 describe('documentation translation helpers', () => {
   it('recognizes localized Markdown paths and applies phrase replacements', () => {
     const suffixes = translations.createLocaleSuffixSet(locales);
-
-    expect(translations.isLocalizedMarkdown('guide.es.md', suffixes)).toBe(true);
-    expect(translations.isLocalizedMarkdown('guide.md', suffixes)).toBe(false);
-    expect(translations.normalizeDocPath('nested\\guide.md')).toBe('nested/guide.md');
-    expect(translations.localizedPath('nested/guide.md', 'es')).toBe('nested/guide.es.md');
-    expect(translations.localizedPath('nested\\guide.md', 'es')).toBe('nested/guide.es.md');
-    expect(
-      translations.postProcessLocalizedMarkdown('Get started', 'es', {
-        es: { 'Get started': 'Primeros pasos' },
-      }),
-    ).toBe('Primeros pasos');
-  });
-
-  it('validates localized Markdown markers and fences', () => {
-    expect(
-      translations.validateLocalizedMarkdown('Translation failed: quota', 'es', {
-        invalidLocalizedContentPatterns: [/Translation failed:/u],
-      }),
-    ).toContain('invalid marker');
-    expect(translations.validateLocalizedMarkdown('```ts\ncode\n', 'es')).toContain(
-      'unbalanced triple-backtick',
+    const isLocalizedMarkdownResult = translations.isLocalizedMarkdown('guide.es.md', suffixes);
+    expect(isLocalizedMarkdownResult).toBe(true);
+    const isLocalizedMarkdownResult2 = translations.isLocalizedMarkdown('guide.md', suffixes);
+    expect(isLocalizedMarkdownResult2).toBe(false);
+    const normalizeDocPathResult = translations.normalizeDocPath('nested\\guide.md');
+    expect(normalizeDocPathResult).toBe('nested/guide.md');
+    const localizedPathResult = translations.localizedPath('nested/guide.md', 'es');
+    expect(localizedPathResult).toBe('nested/guide.es.md');
+    const localizedPathResult2 = translations.localizedPath('nested\\guide.md', 'es');
+    expect(localizedPathResult2).toBe('nested/guide.es.md');
+    const postProcessLocalizedMarkdownOptions = {
+      es: { 'Get started': 'Primeros pasos' },
+    } as const;
+    const postProcessLocalizedMarkdownResult = translations.postProcessLocalizedMarkdown(
+      'Get started',
+      'es',
+      postProcessLocalizedMarkdownOptions,
     );
-    expect(
-      translations.validateLocalizedMarkdown('Bridge runtime', 'es', {
-        knownUntranslatedPhrases: ['Bridge runtime'],
-      }),
-    ).toContain('untranslated phrase');
-    expect(translations.validateLocalizedMarkdown('Contenido localizado', 'es')).toBeUndefined();
+    expect(postProcessLocalizedMarkdownResult).toBe('Primeros pasos');
   });
-
+  it('validates localized Markdown markers and fences', () => {
+    const validateLocalizedMarkdownOptions:
+      | {
+          invalidLocalizedContentPatterns?: RegExp[];
+          knownUntranslatedPhrases?: string[];
+        }
+      | undefined = {
+      invalidLocalizedContentPatterns: [/Translation failed:/u],
+    };
+    const validateLocalizedMarkdownResult = translations.validateLocalizedMarkdown(
+      'Translation failed: quota',
+      'es',
+      validateLocalizedMarkdownOptions,
+    );
+    expect(validateLocalizedMarkdownResult).toContain('invalid marker');
+    const validateLocalizedMarkdownResult2 = translations.validateLocalizedMarkdown('```ts\ncode\n', 'es');
+    expect(validateLocalizedMarkdownResult2).toContain('unbalanced triple-backtick');
+    const validateLocalizedMarkdownOptions2:
+      | {
+          invalidLocalizedContentPatterns?: RegExp[];
+          knownUntranslatedPhrases?: string[];
+        }
+      | undefined = {
+      knownUntranslatedPhrases: ['Bridge runtime'],
+    };
+    const validateLocalizedMarkdownResult3 = translations.validateLocalizedMarkdown(
+      'Bridge runtime',
+      'es',
+      validateLocalizedMarkdownOptions2,
+    );
+    expect(validateLocalizedMarkdownResult3).toContain('untranslated phrase');
+    const validateLocalizedMarkdownResult4 = translations.validateLocalizedMarkdown(
+      'Contenido localizado',
+      'es',
+    );
+    expect(validateLocalizedMarkdownResult4).toBeUndefined();
+  });
   it('protects and restores Markdown placeholders around non-translatable fragments', async () => {
     const markdown = [
       '---',
@@ -153,29 +177,43 @@ describe('documentation translation helpers', () => {
       '---',
       '',
       'Use `CODE` and https://example.com/path.',
+      'Runtime: {{ project.node_engine_range }}.',
     ].join('\n');
-
     const protectedMarkdown = translations.protectMarkdown(markdown);
     expect(protectedMarkdown.text).toContain('<clb-keep');
-    expect(translations.restoreMarkdown(protectedMarkdown.text, protectedMarkdown.placeholders)).toBe(
-      markdown,
+    expect(protectedMarkdown.text).not.toContain('{{ project.node_engine_range }}');
+    const restoreMarkdownResult = translations.restoreMarkdown(
+      protectedMarkdown.text,
+      protectedMarkdown.placeholders,
     );
+    expect(restoreMarkdownResult).toBe(markdown);
     expect(() => translations.restoreMarkdown('missing', protectedMarkdown.placeholders)).toThrow(
       'DeepL response did not preserve placeholder',
     );
-    expect(translations.preservesPlaceholders(protectedMarkdown.text, protectedMarkdown.text)).toBe(true);
-    expect(translations.preservesPlaceholders(protectedMarkdown.text, 'translated')).toBe(false);
-    expect(translations.shouldTranslatePart('Hello')).toBe(true);
-    expect(translations.shouldTranslatePart('<clb-keep data-i="000000">CLB000000</clb-keep>')).toBe(false);
-
-    const translated = await translations.translateMarkdown('Hello `CODE`', 'ES', {
+    const preservesPlaceholdersResult = translations.preservesPlaceholders(
+      protectedMarkdown.text,
+      protectedMarkdown.text,
+    );
+    expect(preservesPlaceholdersResult).toBe(true);
+    const preservesPlaceholdersResult2 = translations.preservesPlaceholders(
+      protectedMarkdown.text,
+      'translated',
+    );
+    expect(preservesPlaceholdersResult2).toBe(false);
+    const shouldTranslatePartResult = translations.shouldTranslatePart('Hello');
+    expect(shouldTranslatePartResult).toBe(true);
+    const shouldTranslatePartResult2 = translations.shouldTranslatePart(
+      '<clb-keep data-i="000000">CLB000000</clb-keep>',
+    );
+    expect(shouldTranslatePartResult2).toBe(false);
+    const translateMarkdownOptions: TranslationClient = {
       async translateText(text) {
         return text.replace('Hello', 'Hola');
       },
-    });
+    };
+    const translated = await translations.translateMarkdown('Hello `CODE`', 'ES', translateMarkdownOptions);
     expect(translated).toBe('Hola `CODE`');
   });
-
   it('detects stale translations and refreshes manifest hashes from temp files', () => {
     const docsDir = createTempRoot();
     const sourceText = '# Guide\n';
@@ -186,7 +224,6 @@ describe('documentation translation helpers', () => {
       sourceText,
     };
     writeDoc(docsDir, 'guide.es.md', translatedText);
-
     const manifest: TranslationManifest = {
       sources: {
         'guide.md': {
@@ -205,39 +242,61 @@ describe('documentation translation helpers', () => {
         },
       },
     };
-
     const validateLocalizedMarkdown = () => undefined;
-    expect(
-      translations.findStaleTranslations([source], manifest, {
-        docsDir,
-        locales,
-        validateLocalizedMarkdown,
-      }),
-    ).toEqual([]);
-
+    const values: SourceDoc[] = [source];
+    const findStaleTranslationsOptions = {
+      docsDir,
+      locales,
+      validateLocalizedMarkdown,
+    } as const;
+    const findStaleTranslationsResult = translations.findStaleTranslations(
+      values,
+      manifest,
+      findStaleTranslationsOptions,
+    );
+    const receiverActual = findStaleTranslationsResult;
+    const values2: never[] = [];
+    expect(receiverActual).toEqual(values2);
     const translationEntry = manifest.sources['guide.md'].translations?.es;
     if (!translationEntry) throw new Error('missing test translation entry');
     translationEntry.translationHash = 'stale';
-    expect(
-      translations.findStaleTranslations([source], manifest, {
-        docsDir,
-        locales,
-        validateLocalizedMarkdown,
-      }),
-    ).toMatchObject([{ reason: 'localized file changed without manifest update', targetRel: 'guide.es.md' }]);
-
-    translations.refreshManifest(manifest, [source], {
+    const values3: SourceDoc[] = [source];
+    const findStaleTranslationsOptions2 = {
+      docsDir,
+      locales,
+      validateLocalizedMarkdown,
+    } as const;
+    const findStaleTranslationsResult2 = translations.findStaleTranslations(
+      values3,
+      manifest,
+      findStaleTranslationsOptions2,
+    );
+    const receiver2Actual = findStaleTranslationsResult2;
+    const values4: {
+      reason: string;
+      targetRel: string;
+    }[] = [{ reason: 'localized file changed without manifest update', targetRel: 'guide.es.md' }];
+    expect(receiver2Actual).toMatchObject(values4);
+    const values5: SourceDoc[] = [source];
+    const refreshManifestOptions: {
+      docsDir: string;
+      locales: LocaleConfig[];
+      now: () => string;
+      validateLocalizedMarkdown: (markdown: string, locale: string) => string | undefined;
+    } = {
       docsDir,
       locales,
       now: () => '2026-07-06T00:00:00.000Z',
       validateLocalizedMarkdown,
-    });
+    };
+    translations.refreshManifest(manifest, values5, refreshManifestOptions);
     const refreshedTranslationEntry = manifest.sources['guide.md'].translations?.es;
     if (!refreshedTranslationEntry) throw new Error('missing refreshed test translation entry');
-    expect(refreshedTranslationEntry.translationHash).toBe(translations.sha256(translatedText));
+    const receiver3Actual = refreshedTranslationEntry.translationHash;
+    const sha256Result = translations.sha256(translatedText);
+    expect(receiver3Actual).toBe(sha256Result);
     expect(manifest.sources['removed.md']).toBeUndefined();
   });
-
   it('normalizes Windows-style source paths before checking the manifest', () => {
     const docsDir = createTempRoot();
     const sourceText = '# Recipe\n';
@@ -248,7 +307,6 @@ describe('documentation translation helpers', () => {
       sourceText,
     };
     writeDoc(docsDir, 'recipes/guide.es.md', translatedText);
-
     const manifest: TranslationManifest = {
       sources: {
         'recipes/guide.md': {
@@ -263,13 +321,23 @@ describe('documentation translation helpers', () => {
         },
       },
     };
-
-    expect(
-      translations.findStaleTranslations([source], manifest, {
-        docsDir,
-        locales,
-        validateLocalizedMarkdown: () => undefined,
-      }),
-    ).toEqual([]);
+    const values6: SourceDoc[] = [source];
+    const findStaleTranslationsOptions3: {
+      docsDir: string;
+      locales: LocaleConfig[];
+      validateLocalizedMarkdown: (markdown: string, locale: string) => string | undefined;
+    } = {
+      docsDir,
+      locales,
+      validateLocalizedMarkdown: () => undefined,
+    };
+    const findStaleTranslationsResult3 = translations.findStaleTranslations(
+      values6,
+      manifest,
+      findStaleTranslationsOptions3,
+    );
+    const receiver4Actual = findStaleTranslationsResult3;
+    const values7: never[] = [];
+    expect(receiver4Actual).toEqual(values7);
   });
 });

@@ -15,6 +15,8 @@ GeoIP 代理匹配功能可确保浏览器指纹设置与上游 Playwright MCP
 所使用的代理位置保持一致。当区域质量保证（QA）工作需要
 依赖一致的代理、时区、语言和区域设置配置文件时，此功能非常有用。
 
+分步操作指南： [通过代理进行区域 QA](recipes/regional-qa-through-proxy.md).
+
 该桥接器本身不会创建或路由代理流量。它会将 `PLAYWRIGHT_MCP_PROXY_SERVER`
 传递给 CloakBrowser 的启动准备流程。启用匹配后，CloakBrowser 会解析已配置代理的
 出口位置，并为时区、浏览器语言、指纹区域设置和 WebRTC IP 添加相应的启动标志。
@@ -86,7 +88,7 @@ docker run --rm -p 127.0.0.1:3000:3000 \
   --transport streamable-http --http-host 0.0.0.0 --http-port 3000
 ```
 
-## 按会话计费的可流式传输 HTTP 代理
+## 每个会话的 Streamable HTTP 代理
 
 支持流式传输的 HTTP 客户端可以在 MCP 会话初始化时选择代理。
 这使得一个长期运行的 MCP 服务器能够处理不同的区域场景，而无需
@@ -163,7 +165,7 @@ docker run --rm -p 127.0.0.1:3000:3000 \
 | 现有会话 | 保留 `initialize` 期间捕获的代理和 GeoIP 设置。 |
 | 经过身份验证的 HTTP 代理 | 在受支持的二进制文件上使用 CloakBrowser 原生 URL 内联身份验证，在较旧的二进制文件上使用 Playwright 代理对象。 |
 | 原始时区/区域设置标志 | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` 中显式的 `--fingerprint-timezone`、`--lang` 和 `--fingerprint-locale` 值优先于 GeoIP 派生值，且不会重复。 |
-| Browser geolocation API | 此功能不会配置它；只会对齐 CloakBrowser 的时区、语言、区域设置和 WebRTC IP 指纹值。 |
+| 浏览器地理位置 API | 此功能不会配置它；只会对齐 CloakBrowser 的时区、语言和区域设置指纹标志。 |
 
 GeoIP 位置数据仅为近似值，具体取决于代理 IP 地址以及 CloakBrowser 的
 GeoIP 数据库。CloakBrowser 会在首次
@@ -182,10 +184,7 @@ npx -y cloakbrowser-mcp@latest
 测试。不应将其视为绕过访问控制或区域
 策略检查的手段。
 
-GeoIP 匹配采用 fail-closed 行为。如果 CloakBrowser 无法解析代理出口 IP、下载或
-读取 GeoIP 数据库，或无法得出时区或区域设置，浏览器启动将失败，而不会以部分
-匹配的指纹继续。GeoIP 解析限制为 20 秒；首次下载离线 GeoIP 数据库独立进行，
-可能需要更长时间。
+如果 CloakBrowser 无法解析代理出口 IP、下载或读取 GeoIP 数据库，或无法确定时区，GeoIP 匹配会阻止浏览器启动。从 CloakBrowser 0.6.3 开始，如果区域设置映射表中没有对应的国家，则发出警告并使用 `en-US`；塞舌尔使用 `en-SC`。GeoIP 解析的超时时间最多为 20 秒；首次下载离线数据库不在此超时范围内，可能需要更长时间。
 
 ## 相关配置
 
@@ -196,3 +195,7 @@ GeoIP 匹配采用 fail-closed 行为。如果 CloakBrowser 无法解析代理�
 ## 更多实用路径
 
 要在 upstream Playwright MCP 和本包之间选择，请查看[对比](comparison.md)。快速任务请使用[操作示例](recipes/index.md)：持久配置文件、扩展、reverse proxy、区域 QA、Claude Desktop、Codex CLI 和 CI 冒烟测试。
+
+## CloakBrowser 0.6.0
+
+通过浏览器的 `--proxy-server` 参数设置 SOCKS5 或需要身份验证的 HTTP 代理时，`context.request`、`page.request` 和 `route.fetch()` 不会使用该代理。需要遵循浏览器路由的请求应使用页面内的 `fetch()`。此桥接器不会安装 CloakBrowser 的自动警告。

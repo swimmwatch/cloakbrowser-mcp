@@ -22,8 +22,9 @@ description: Maintain, organize, consolidate, or audit the cloakbrowser-mcp docu
    accurate.
 5. Follow the surgical locale update and translation-manifest procedure in
    `AGENTS.md`. Do not bulk-regenerate translations or defer a touched locale
-   silently. Use Prompt MCP for a material scope decision that evidence cannot
-   resolve.
+   silently. Use Codex's standard **Request User Input** tool
+   (`request_user_input`) for a material scope decision that evidence cannot
+   resolve, following its exposed schema and host constraints.
 6. Do not hand-edit generated compatibility tables or generated CLI content.
    Use their owning scripts only when that generated scope is requested.
 7. Run applicable `npm run docs:build`, `npm run docs:seo:validate`,

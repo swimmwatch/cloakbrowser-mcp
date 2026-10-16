@@ -4,7 +4,6 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-
 interface McpSchemaMonitorModule {
   createSchemaSourceUrl(input: { schemaBaseUrl?: string; version: string }): string;
   describeTopLevelDiff(previousSchema: unknown, nextSchema: unknown): string;
@@ -20,112 +19,105 @@ interface McpSchemaMonitorModule {
   }): Promise<string>;
   selectLatestSchemaVersion(entries: unknown[]): string;
 }
-
-const monitor = (await import(
-  new URL('../../scripts/lib/mcp-schema-monitor.mjs', import.meta.url).href
-)) as unknown as McpSchemaMonitorModule;
-
-const checkScriptPath = fileURLToPath(new URL('../../scripts/check-mcp-schema-updates.mjs', import.meta.url));
-
+const argumentValue = new URL('../../scripts/lib/mcp-schema-monitor.mjs', import.meta.url).href;
+const monitor = (await import(argumentValue)) as unknown as McpSchemaMonitorModule;
+const uRL = new URL('../../scripts/check-mcp-schema-updates.mjs', import.meta.url);
+const checkScriptPath = fileURLToPath(uRL);
 describe('mcp schema monitor helpers', () => {
   it('normalizes object keys recursively for stable comparisons', () => {
-    const normalized = monitor.normalizeJson({
+    const normalizeJsonOptions = {
       z: 1,
       nested: {
         b: 2,
         a: 1,
       },
       array: [{ d: 4, c: 3 }],
-    });
-
-    expect(normalized).toBe(
-      [
-        '{',
-        '  "array": [',
-        '    {',
-        '      "c": 3,',
-        '      "d": 4',
-        '    }',
-        '  ],',
-        '  "nested": {',
-        '    "a": 1,',
-        '    "b": 2',
-        '  },',
-        '  "z": 1',
-        '}',
-        '',
-      ].join('\n'),
-    );
+    };
+    const normalized = monitor.normalizeJson(normalizeJsonOptions);
+    const receiverActual = normalized;
+    const joinedPath = [
+      '{',
+      '  "array": [',
+      '    {',
+      '      "c": 3,',
+      '      "d": 4',
+      '    }',
+      '  ],',
+      '  "nested": {',
+      '    "a": 1,',
+      '    "b": 2',
+      '  },',
+      '  "z": 1',
+      '}',
+      '',
+    ].join('\n');
+    expect(receiverActual).toBe(joinedPath);
   });
-
   it('selects the latest dated schema directory', () => {
-    const version = monitor.selectLatestSchemaVersion([
+    const values: unknown[] = [
       { name: '2025-10-17', type: 'dir' },
       { name: 'latest', type: 'dir' },
       { name: 'README.md', type: 'file' },
       { name: '2025-12-11', type: 'dir' },
       { name: '2025-09-29', type: 'dir' },
-    ]);
-
+    ];
+    const version = monitor.selectLatestSchemaVersion(values);
     expect(version).toBe('2025-12-11');
   });
-
   it('builds canonical static schema URLs', () => {
-    expect(
-      monitor.createSchemaSourceUrl({
-        schemaBaseUrl: 'https://static.example.test/schemas/',
-        version: '2025-12-11',
-      }),
-    ).toBe('https://static.example.test/schemas/2025-12-11/server.schema.json');
+    const createSchemaSourceUrlOptions = {
+      schemaBaseUrl: 'https://static.example.test/schemas/',
+      version: '2025-12-11',
+    } as const;
+    const schemaSourceUrlResult = monitor.createSchemaSourceUrl(createSchemaSourceUrlOptions);
+    expect(schemaSourceUrlResult).toBe('https://static.example.test/schemas/2025-12-11/server.schema.json');
   });
-
   it('resolves the latest schema URL from the catalog', async () => {
-    const fetchImpl = async () =>
-      new Response(
-        JSON.stringify([
-          { name: '2025-09-29', type: 'dir' },
-          { name: '2025-12-11', type: 'dir' },
-        ]),
-        {
-          headers: { 'content-type': 'application/json' },
-          status: 200,
-        },
-      );
-
-    await expect(
-      monitor.resolveSchemaSourceUrl({
-        catalogUrl: 'https://api.example.test/schemas',
-        fetchImpl: fetchImpl as unknown as typeof fetch,
-        schemaBaseUrl: 'https://static.example.test/schemas',
-      }),
-    ).resolves.toBe('https://static.example.test/schemas/2025-12-11/server.schema.json');
+    const fetchImpl = async () => {
+      const values2 = [
+        { name: '2025-09-29', type: 'dir' },
+        { name: '2025-12-11', type: 'dir' },
+      ];
+      const serializedValue = JSON.stringify(values2);
+      const responseOptions = {
+        headers: { 'content-type': 'application/json' },
+        status: 200,
+      } as const;
+      return new Response(serializedValue, responseOptions);
+    };
+    const resolveSchemaSourceUrlOptions = {
+      catalogUrl: 'https://api.example.test/schemas',
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      schemaBaseUrl: 'https://static.example.test/schemas',
+    } as const;
+    const resolveSchemaSourceUrlResult = monitor.resolveSchemaSourceUrl(resolveSchemaSourceUrlOptions);
+    await expect(resolveSchemaSourceUrlResult).resolves.toBe(
+      'https://static.example.test/schemas/2025-12-11/server.schema.json',
+    );
   });
-
   it('keeps an explicit schema source URL without catalog discovery', async () => {
     const fetchImpl = async () => {
       throw new Error('unexpected fetch');
     };
-
-    await expect(
-      monitor.resolveSchemaSourceUrl({
-        explicitUrl: ' https://example.test/custom.schema.json ',
-        fetchImpl: fetchImpl as unknown as typeof fetch,
-      }),
-    ).resolves.toBe('https://example.test/custom.schema.json');
+    const resolveSchemaSourceUrlOptions2 = {
+      explicitUrl: ' https://example.test/custom.schema.json ',
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    } as const;
+    const resolveSchemaSourceUrlResult2 = monitor.resolveSchemaSourceUrl(resolveSchemaSourceUrlOptions2);
+    await expect(resolveSchemaSourceUrlResult2).resolves.toBe('https://example.test/custom.schema.json');
   });
-
   it('rejects HTML responses when schema source does not return JSON', () => {
-    expect(() =>
-      monitor.parseSchemaPayload({
+    expect(() => {
+      const parseSchemaPayloadOptions = {
         text: '<html><body>Not JSON</body></html>',
         contentType: 'text/html; charset=utf-8',
         sourceUrl: 'https://example.invalid/schema.json',
-      }),
-    ).toThrow('Expected JSON');
+      } as const;
+      return monitor.parseSchemaPayload(parseSchemaPayloadOptions);
+    }).toThrow('Expected JSON');
   });
-
   it('ignores top-level comments when comparing schema content', () => {
-    const local = monitor.normalizeSchemaForComparison({
+    const normalizeSchemaForComparisonOptions = {
       $comment: 'Bundled locally.',
       $id: 'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
       definitions: {
@@ -133,9 +125,9 @@ describe('mcp schema monitor helpers', () => {
           type: 'object',
         },
       },
-    });
-
-    const upstream = monitor.normalizeSchemaForComparison({
+    } as const;
+    const local = monitor.normalizeSchemaForComparison(normalizeSchemaForComparisonOptions);
+    const normalizeSchemaForComparisonOptions2 = {
       $comment: 'Generated upstream.',
       $id: 'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
       definitions: {
@@ -143,37 +135,38 @@ describe('mcp schema monitor helpers', () => {
           type: 'object',
         },
       },
-    });
-
+    } as const;
+    const upstream = monitor.normalizeSchemaForComparison(normalizeSchemaForComparisonOptions2);
     expect(local).toBe(upstream);
   });
-
   it('rejects invalid JSON responses', () => {
-    expect(() =>
-      monitor.parseSchemaPayload({
+    expect(() => {
+      const parseSchemaPayloadOptions2 = {
         text: '{not-json}',
         contentType: 'application/json',
         sourceUrl: 'https://example.invalid/schema.json',
-      }),
-    ).toThrow('invalid JSON');
+      } as const;
+      return monitor.parseSchemaPayload(parseSchemaPayloadOptions2);
+    }).toThrow('invalid JSON');
   });
-
   it('allocates a suffixed snapshot filename when a same-day file already exists', () => {
-    const name = monitor.pickSnapshotFilename({
-      date: '2026-07-04',
-      existingFilenames: new Set(['mcp-schema-2026-07-04.json', 'latest.json']),
-    });
-
+    const propertyValue = '2026-07-04';
+    const values3: Iterable<string> | null | undefined = ['mcp-schema-2026-07-04.json', 'latest.json'];
+    const set = new Set(values3);
+    const pickSnapshotFilenameOptions: { date: string; existingFilenames: Set<string> } = {
+      date: propertyValue,
+      existingFilenames: set,
+    };
+    const name = monitor.pickSnapshotFilename(pickSnapshotFilenameOptions);
     expect(name).toBe('mcp-schema-2026-07-04-2.json');
   });
-
   it('describes top-level key changes for PR summaries', () => {
-    const summary = monitor.describeTopLevelDiff({ a: 1, b: 2 }, { b: 2, c: 3 });
-
+    const describeTopLevelDiffOptions = { a: 1, b: 2 } as const;
+    const describeTopLevelDiffOptions2 = { b: 2, c: 3 } as const;
+    const summary = monitor.describeTopLevelDiff(describeTopLevelDiffOptions, describeTopLevelDiffOptions2);
     expect(summary).toContain('added keys: c');
     expect(summary).toContain('removed keys: a');
   });
-
   it('can report schema changes without writing snapshots', () => {
     const root = mkdirTempDir('cloakbrowser-mcp-schema-check-');
     const schemaDir = path.join(root, 'schemas', 'mcp');
@@ -183,29 +176,40 @@ describe('mcp schema monitor helpers', () => {
       $id: 'https://example.test/schema.json',
       definitions: { New: {}, Old: {} },
     };
-
-    mkdirSync(schemaDir, { recursive: true });
-    writeFileSync(path.join(schemaDir, 'latest.json'), monitor.normalizeJson(previousSchema));
-
-    const result = spawnSync(process.execPath, [checkScriptPath], {
-      encoding: 'utf8',
-      env: {
-        ...process.env,
-        GITHUB_OUTPUT: githubOutputPath,
-        MCP_SCHEMA_CHECKED_AT: '2026-07-08',
-        MCP_SCHEMA_DIR: schemaDir,
-        MCP_SCHEMA_SOURCE_URL: `data:application/json,${encodeURIComponent(JSON.stringify(nextSchema))}`,
-        MCP_SCHEMA_WRITE_SNAPSHOTS: 'false',
-      },
-    });
-
+    const mkdirSyncOptions = { recursive: true } as const;
+    mkdirSync(schemaDir, mkdirSyncOptions);
+    const joinedPath2 = path.join(schemaDir, 'latest.json');
+    const normalizeJsonResult = monitor.normalizeJson(previousSchema);
+    writeFileSync(joinedPath2, normalizeJsonResult);
+    const argumentValue2 = process.execPath;
+    const values4: readonly string[] = [checkScriptPath];
+    const propertyValue4 = 'utf8';
+    const options = { ...process.env };
+    const currentGithubOutputPath = githubOutputPath;
+    const propertyValue2 = '2026-07-08';
+    const currentSchemaDir = schemaDir;
+    const serializedValue2 = JSON.stringify(nextSchema);
+    const templateValue = encodeURIComponent(serializedValue2);
+    const message = `data:application/json,${templateValue}`;
+    const propertyValue3 = 'false';
+    const options2 = {
+      ...options,
+      GITHUB_OUTPUT: currentGithubOutputPath,
+      MCP_SCHEMA_CHECKED_AT: propertyValue2,
+      MCP_SCHEMA_DIR: currentSchemaDir,
+      MCP_SCHEMA_SOURCE_URL: message,
+      MCP_SCHEMA_WRITE_SNAPSHOTS: propertyValue3,
+    } as const;
+    const spawnSyncOptions = {
+      encoding: propertyValue4,
+      env: options2,
+    } as const;
+    const result = spawnSync(argumentValue2, values4, spawnSyncOptions);
     expect(result.stderr).toBe('');
     expect(result.status).toBe(0);
-
     const output = readFileSync(githubOutputPath, 'utf8');
     expect(output).toContain('changed=true');
     expect(output).toContain('snapshots_written=false');
-
     const parsed = JSON.parse(result.stdout) as {
       changed: boolean;
       snapshotPath: string;
@@ -214,14 +218,22 @@ describe('mcp schema monitor helpers', () => {
     expect(parsed.changed).toBe(true);
     expect(parsed.snapshotPath).toBe('');
     expect(parsed.snapshotsWritten).toBe(false);
-    expect(readFileSync(path.join(schemaDir, 'latest.json'), 'utf8')).toBe(
-      monitor.normalizeJson(previousSchema),
-    );
-    expect(readdirSync(schemaDir)).toEqual(['latest.json']);
-    expect(existsSync(path.join(schemaDir, 'mcp-schema-2026-07-08.json'))).toBe(false);
+    const joinedPath3 = path.join(schemaDir, 'latest.json');
+    const fileSyncResult = readFileSync(joinedPath3, 'utf8');
+    const receiver2Actual = fileSyncResult;
+    const normalizeJsonResult2 = monitor.normalizeJson(previousSchema);
+    expect(receiver2Actual).toBe(normalizeJsonResult2);
+    const dirSyncResult = readdirSync(schemaDir);
+    const receiver3Actual = dirSyncResult;
+    const values5: string[] = ['latest.json'];
+    expect(receiver3Actual).toEqual(values5);
+    const joinedPath4 = path.join(schemaDir, 'mcp-schema-2026-07-08.json');
+    const existsSyncResult = existsSync(joinedPath4);
+    expect(existsSyncResult).toBe(false);
   });
 });
-
 function mkdirTempDir(prefix: string): string {
-  return mkdtempSync(path.join(tmpdir(), prefix));
+  const tmpdirResult = tmpdir();
+  const joinedPath5 = path.join(tmpdirResult, prefix);
+  return mkdtempSync(joinedPath5);
 }

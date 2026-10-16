@@ -8,7 +8,7 @@ tags:
 
 # रेसिपी
 
-जब task स्पष्ट हो, इन recipes का उपयोग करें। पूरी options अभी भी Configuration, Docker और CLI Reference में हैं।
+जब आपको पता हो कि CloakBrowser MCP से कौन सा काम करवाना है, तो इन संक्षिप्त गाइड का उपयोग करें। विकल्पों की जानकारी के लिए [विन्यास](../configuration.md), [डॉकर](../docker.md) और जनरेट की गई [CLI संदर्भ गाइड](../generated/cli.md) साथ रखें।
 
 ## Browser state और extensions
 
@@ -26,4 +26,4 @@ tags:
 - [Claude Desktop से कनेक्ट करें](connect-claude-desktop.md)
 - [Codex CLI से कनेक्ट करें](connect-codex-cli.md)
 
-यदि आप अभी भी packages के बीच चुन रहे हैं, comparison से शुरू करें।
+यदि आप अभी तय कर रहे हैं कि यह पैकेज आपके लिए उपयुक्त है या नहीं, तो [`@playwright/mcp` और `cloakbrowser-mcp` की तुलना](../comparison.md) से शुरू करें।

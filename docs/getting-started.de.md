@@ -9,9 +9,11 @@ tags:
 
 Verwenden Sie das veröffentlichte npm-Paket oder das Docker-Image. Eine Installation aus dem Quellcode ist nur für Entwicklungszwecke erforderlich.
 
+Schrittweise Anleitungen: [Mit Claude Desktop verbinden](recipes/connect-claude-desktop.md), [Mit Codex CLI verbinden](recipes/connect-codex-cli.md), [Docker Streamable HTTP hinter Reverse Proxy](recipes/docker-streamable-http-reverse-proxy.md).
+
 Wählen Sie „npm“, wenn Ihr MCP-Client bereits auf Ihrem Rechner läuft und Node.js verfügbar ist. Wählen Sie „Docker“, wenn Sie eine reproduzierbare Laufzeitumgebung mit dem Upstream-Basisimage von Playwright MCP und dem im Container vorbereiteten CloakBrowser-Cache wünschen.
 
-Einen schnellen Überblick über häufig gestellte Fragen zur Einrichtung finden Sie in den [FAQ](faq.md).
+Einen schnellen Überblick über häufig gestellte Fragen zur Einrichtung finden Sie in den [Häufig gestellte Fragen](faq.md).
 
 ## npm
 
@@ -30,7 +32,7 @@ Eine Version festhalten, wenn es auf die Reproduzierbarkeit ankommt:
 npx -y {{ project.npm_pin }}
 ```
 
-Das npm-Paket erfordert Node.js 22.13+ in der 22.x-Reihe oder Node.js 24+. CloakBrowser lädt bei der ersten Verwendung die Chromium-Binärdatei herunter, sofern diese nicht bereits im Cache vorhanden ist.
+Das npm-Paket erfordert Node.js `{{ project.node_engine_range }}`. CloakBrowser lädt bei der ersten Verwendung die Chromium-Binärdatei herunter, sofern diese nicht bereits im Cache vorhanden ist.
 
 Verwenden Sie `doctor`, um vor dem Verbinden eines Clients die lokale Node.js-Laufzeitumgebung, die Paketmetadaten, die tatsächlich verwendete Upstream-Playwright-MCP-CLI, die aufgelösten Versionen und Paketpfade von `@playwright/mcp`, `playwright` und `playwright-core`, den effektiven Core-Bundle-Pfad sowie die Metadaten der CloakBrowser-Binärdatei zu überprüfen. Der Befehl startet weder die Bridge noch lädt er einen Browser herunter.
 
@@ -85,7 +87,7 @@ docker run --rm -i \
 
 Verwenden Sie Docker für eine reproduzierbare Laufzeitumgebung. Behalten Sie `-i` bei, damit stdio verbunden bleibt; das Image enthält bereits Tini, das Browser-Kindprozesse korrekt einsammelt. Starten Sie für Streamable-HTTP-Clients den Server separat und konfigurieren Sie die Client-URL als `http://127.0.0.1:3000/mcp` oder `https://127.0.0.1:3000/mcp`. Wenn `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` oder `--http-auth-token` gesetzt ist, senden Sie denselben Bearer-Token an `/mcp`, `/healthz` und `/readyz`.
 
-## MCP-Client-Konfiguration
+## MCP-Client-Konfiguration { #mcp-client-config }
 
 Die meisten lokalen MCP-Clients lassen sich am besten mit stdio und npm nutzen:
 

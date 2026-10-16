@@ -58,6 +58,6 @@ docker run --rm -i \
 
 ## ЗВЯЗАНАЕ
 
-- [GeoIP Proxy Matching](../geoip-proxy-matching.md)
-- [Configuration](../configuration.md)
-- [Docker](../docker.md)
+- [Супастаўленне праз GeoIP-праксі](../geoip-proxy-matching.md)
+- [Канфігурацыя](../configuration.md#streamable-http-runtime-metadata)
+- [Докер](../docker.md#geoip-proxy-matching)

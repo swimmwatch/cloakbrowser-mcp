@@ -14,7 +14,7 @@ tags:
 
 既定の upstream ブラウザーツール表面は、固定された Playwright MCP 依存関係と一致することが期待されます。これには、ナビゲーション、snapshot、クリック、入力、スクリーンショット、タブ、コンソールメッセージ、ネットワーク検査、ファイルアップロード、ダイアログ、安全でない評価ツールなどの主要ブラウザーツールが含まれます。
 
-安定した upstream 参照として、正確なパッケージ commit に固定された Playwright MCP `{{ project.playwright_mcp_package_tag }}` の capability test を参照してください：[default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/f1257a5a67aff872f947fae274759f7d54853862/tests/capabilities.spec.ts#L19-L77)。
+Playwright MCP `@playwright/mcp@0.0.83` の安定した参照先は、そのパッケージのコミットに固定した能力テストです：[既定のツールと能力別のツール](https://github.com/microsoft/playwright-mcp/blob/f183dad4a52965583e3cc1d59b88cdc279e2e57d/tests/capabilities.spec.ts#L19-L74)。現在のツール一覧はインストール済みの依存関係が定義します。
 
 このプロジェクトは upstream Playwright MCP を権威ある情報源として扱い、schema 参照のコピーは保守しません。
 
@@ -25,11 +25,7 @@ tags:
 `browser_stop_recording` も含まれます。
 
 !!! warning "公開 CloakBrowser v146 バイナリでの記録制限"
-    記録ツールは利用できますが、CloakBrowser 0.5.10 が使用するキー不要の公開
-    Chromium 146 バイナリは、ステルス性を保つため Playwright のページからホストへの
-    バインディングを意図的に無効化します。そのため `browser_stop_recording` が返す
-    コードは不完全になる場合があります。ナビゲーションは記録されますが、正常に実行された
-    テキスト入力やクリックは省略されます。生成された記録は再利用前に確認してください。
+    記録ツールは利用できますが、キー不要の公開 Chromium 146 バイナリは、ステルス性を保つため Playwright のページからホストへのバインディングを意図的に無効化します。そのため `browser_stop_recording` が返すコードは不完全になる場合があります。ナビゲーションは記録されますが、成功した入力やクリックは省略されます。生成された記録は再利用前に確認してください。
 
     明示的に有効化する互換性対応は [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532) で追跡されています。
     基盤となるバインディングの判断については
@@ -38,9 +34,13 @@ tags:
 
 ### 動的 WebMCP ツール
 
-Chromium はバージョン 154 以降で WebMCP を実装しています。それ以前の CloakBrowser ビルドは feature flag を無視するため、WebMCP が必要な場合は互換性のあるブラウザビルドまたは `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright` を使用してください。
+WebMCP のサポートは、選択したブラウザビルドと有効な機能に依存します。インストール済みの Playwright MCP は `getTools()` メソッドを持つ `document.modelContext` または `navigator.modelContext` を必要とします。WebMCP が必要な場合は、互換性のある CloakBrowser ビルドまたは `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright` を使用してください。
 
-Chromium を `--enable-features=WebMCP` で起動すると、ページは `webmcp_*` ツールを宣言できます。ブリッジは `notifications/tools/list_changed` を転送して `tools/list` キャッシュ全体を消去し、クライアントは一覧を再取得する必要があります。Streamable HTTP では、該当セッションで開いている通知ストリームだけがイベントを受信します。ストリームがなくても次の `tools/list` は最新です。名前、説明、schema、annotations、output はすべて信頼できないページデータとして扱ってください。ブリッジは WebMCP を自動的に有効化しません。`PLAYWRIGHT_MCP_WEBMCP=false` で収集を無効化できます。
+[Chrome の WebMCP ドキュメント](https://developer.chrome.com/docs/ai/webmcp)では、Chrome 149 以降の origin trial、ローカルテスト用フラグ、ヘッドレスモードの制限を説明しています。Chromium のバージョン番号だけでは、Playwright MCP が期待する API との互換性は保証されません。
+
+Chromium を `--enable-features=WebMCP` で起動すると、Playwright MCP はページが開いている間、ページが提供する `webmcp_*` ツールを追加できます。これらのツールは動的です。ブリッジは `tools.listChanged` の対応を通知し、上流から `notifications/tools/list_changed` を受け取ると、ページ分割されたツール一覧のキャッシュ全体を無効化して、該当する MCP クライアントへ通知を転送します。クライアントはこの通知を監視し、`tools/list` を再度呼び出してください。Streamable HTTP クライアントが通知を受け取れるのは、そのセッションの通知ストリームが開いている間だけです。ストリームが開いていなかった場合でも、次の `tools/list` は最新の一覧を返します。
+
+動的ツールは、それを検出した MCP セッションと、現在の管理対象 CDP ブラウザ世代にのみ属します。名前、説明、スキーマ、注釈、出力は信頼できないページコンテンツであり、ブリッジは書き換えずに転送します。呼び出す前に内容を確認してください。`PLAYWRIGHT_MCP_WEBMCP=false` を設定すると収集を無効にできます。ブリッジが Chromium WebMCP を自動的に有効にすることはありません。
 
 ## ローカルツール
 
@@ -52,8 +52,13 @@ CloakBrowser パッケージ、現在のプラットフォーム、キャッシ�
 
 構造化されたブリッジメタデータを返します：
 
-アドイン `structuredContent.cdp` オブジェクトは、呼び出し元セッションの管理された CDP を報告します
-州:
+- MCP サーバーの名前とバージョン；
+- 実行モード；
+- 上流 Playwright MCP のパッケージとバージョン；
+- 上流ツールの数；
+- ローカルの Cloak 固有ツールの名前。
+
+追加の `structuredContent.cdp` オブジェクトは、呼び出し元セッションの管理対象 CDP の状態を報告します：
 
 ```json
 { "enabled": false }
@@ -85,12 +90,10 @@ CloakBrowser パッケージ、現在のプラットフォーム、キャッシ�
 }
 ```
 
-ブラウザを交換した後、`generation`は増加し、`discoveryUrl`は回転します。
-`activeConnections`は、公開せずに承認されたプロキシ接続WebSocketの数をカウントします
-クライアントの識別情報、ターゲットID、またはプロトコルの内容。すべての非ヌルの検出URLを扱う
-資格として
+ブラウザの置き換え後、`generation` が増加し、`discoveryUrl` が更新されます。
+`activeConnections` は受け付けたプロキシ WebSocket 接続数を示し、クライアントの識別情報、ターゲット ID、プロトコルの内容は公開しません。null でないすべての検出 URL をアクセス資格情報として扱ってください。
 
-CDP対応クライアントでURLの発見を使用する:
+検出 URL を CDP 対応クライアントで使用します：
 
 ```ts
 import { chromium } from 'playwright';
@@ -98,20 +101,11 @@ import { chromium } from 'playwright';
 const browser = await chromium.connectOverCDP(discoveryUrl);
 ```
 
-管理された CDP は Playwright サーバープロトコルではありません。Playwright
-`chromium.connect()`と現在のOpen WebUI `PLAYWRIGHT_WS_URL`統合の予想
-Playwrightサーバーのエンドポイントであり、これはURLとは互換性がありません。
+管理対象 CDP は Playwright Server プロトコルではありません。Playwright の `chromium.connect()` と現在の Open WebUI の `PLAYWRIGHT_WS_URL` 連携は Playwright Server エンドポイントを必要とするため、この URL とは互換性がありません。
 
-- MCP server 名とバージョン；
-- runtime モード；
-- upstream Playwright MCP パッケージとバージョン；
-- upstream ツール数；
-- ローカル Cloak-specific ツール名。
+固定されたバージョンの Playwright クライアントでは、`connectOverCDP()` が返したブラウザに対する `browser.close()` は、そのクライアントを切断するだけで、Chromium と現在のブラウザ世代は準備完了の状態を維持することが確認されています。これは当該クライアントでの観測結果であり、他の CDP ライブラリの動作を保証するものではありません。CDP の `Browser.close` を直接送信する操作は破壊的です。共有する Chromium の現在の世代を終了し、アクセス資格情報を無効化して、MCP の呼び出し元にも影響します。ブリッジは競合するナビゲーション、ページの終了、入力、ストレージの変更を直列化しないため、MCP と CDP の操作を調整してください。
 
-ローカルのツール表面は引き続きこの 2 つの診断ツールに限定されます。
-`SessionSeats` と `getSessionSeats` は、CloakBrowser 0.5.10 がその API を
-公開エントリポイントからエクスポートしていないため、MCP ツールとして公開
-されません。
+ローカルツールは、この 2 つの診断ツールに限られます。サポート対象の CloakBrowser 公開エントリポイントが該当 API をエクスポートしないため、`SessionSeats` と `getSessionSeats` は MCP ツールとして公開されません。
 
 ## 互換性
 

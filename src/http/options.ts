@@ -1,6 +1,5 @@
 import type { HumanPreset, ReleaseChannel } from '#src/bridge/config';
 import type { CdpEndpointConfig } from '#src/cdp/config';
-
 export const BRIDGE_TRANSPORT_STDIO = 'stdio' as const;
 export const BRIDGE_TRANSPORT_STREAMABLE_HTTP = 'streamable-http' as const;
 export const HTTP_PROTOCOL_HTTP = 'http' as const;
@@ -8,11 +7,9 @@ export const HTTP_PROTOCOL_HTTPS = 'https' as const;
 export const HTTP_SESSION_BACKEND_MEMORY = 'memory' as const;
 export const HEALTHZ_PATH = '/healthz' as const;
 export const READYZ_PATH = '/readyz' as const;
-
 export type BridgeTransportMode = typeof BRIDGE_TRANSPORT_STDIO | typeof BRIDGE_TRANSPORT_STREAMABLE_HTTP;
 export type HttpProtocol = typeof HTTP_PROTOCOL_HTTP | typeof HTTP_PROTOCOL_HTTPS;
 export type HttpSessionBackend = typeof HTTP_SESSION_BACKEND_MEMORY;
-
 export const bridgeTransportModes = [
   BRIDGE_TRANSPORT_STDIO,
   BRIDGE_TRANSPORT_STREAMABLE_HTTP,
@@ -25,14 +22,12 @@ export const httpSessionBackends = [
   HTTP_SESSION_BACKEND_MEMORY,
 ] as const satisfies readonly HttpSessionBackend[];
 export const streamableHttpProbePaths = [HEALTHZ_PATH, READYZ_PATH] as const;
-
 export interface StreamableHttpTlsOptions {
   cert?: string;
   key?: string;
   pfx?: string;
   passphrase?: string;
 }
-
 export interface StreamableHttpOptions {
   protocol: HttpProtocol;
   host: string;
@@ -45,7 +40,6 @@ export interface StreamableHttpOptions {
   sessionMax: number;
   bodyLimitBytes: number;
 }
-
 export interface BridgeOptions {
   binaryPath?: string;
   geoipProxyMatch: boolean;
@@ -53,21 +47,18 @@ export interface BridgeOptions {
   humanPreset: HumanPreset;
   releaseChannel: ReleaseChannel;
 }
-
 export interface CliOptions {
   transport: BridgeTransportMode;
   bridge: BridgeOptions;
   cdp: CdpEndpointConfig;
   http: StreamableHttpOptions;
 }
-
 export const defaultBridgeOptions: BridgeOptions = {
   geoipProxyMatch: false,
   humanize: false,
   humanPreset: 'default',
   releaseChannel: 'stable',
 };
-
 export const defaultStreamableHttpOptions: StreamableHttpOptions = {
   protocol: HTTP_PROTOCOL_HTTP,
   host: '127.0.0.1',
@@ -75,7 +66,7 @@ export const defaultStreamableHttpOptions: StreamableHttpOptions = {
   endpoint: '/mcp',
   tls: {},
   sessionBackend: HTTP_SESSION_BACKEND_MEMORY,
-  sessionIdleTtlMs: 3_600_000,
+  sessionIdleTtlMs: 3600000,
   sessionMax: 32,
-  bodyLimitBytes: 1_048_576,
+  bodyLimitBytes: 1048576,
 };

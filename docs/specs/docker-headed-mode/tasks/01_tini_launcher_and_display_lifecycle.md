@@ -4,7 +4,7 @@ render_macros: false
 
 # Packet 01 — Tini, Launcher, and Display Lifecycle
 
-Status: Ready
+Status: Complete locally.
 
 ## Outcome
 

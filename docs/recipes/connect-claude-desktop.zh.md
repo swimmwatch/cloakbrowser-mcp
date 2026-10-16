@@ -12,6 +12,8 @@ tags:
 
 ## 添加服务器
 
+将此配置项添加到 `claude_desktop_config.json`，然后重启 Claude Desktop：
+
 ```json
 {
   "mcpServers": {
@@ -41,10 +43,10 @@ tags:
 
 ## 验证
 
-Ask Claude Desktop to open a page with the cloakbrowser server and take a browser snapshot.
+请让 Claude Desktop 使用 `cloakbrowser` 服务器打开页面并获取浏览器快照。上游 Playwright MCP 浏览器工具应保持不变并可正常使用。
 
 ## 相关内容
 
-- [Getting Started](../getting-started.md)
+- [入门指南](../getting-started.md#mcp-client-config)
 - [持久登录配置文件](persistent-login-profile.md)
-- [Tools](../tools.md)
+- [工具](../tools.md)

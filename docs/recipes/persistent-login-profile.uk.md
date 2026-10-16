@@ -34,13 +34,17 @@ docker run --rm -i \
 
 ## Перевірити
 
-1. Попросіть клієнта MCP відкрити сторінку входу та ввійти.
-2. Чисто зупиніть сервер.
-3. Почніть знову з тим самим `PLAYWRIGHT_MCP_USER_DATA_DIR`.
-4. Попросіть клієнта повторно відвідати сайт і підтвердити, що стан входу все ще присутній.
+1. Попросіть клієнт MCP відкрити сторінку входу й увійдіть у систему.
+2. Коректно зупиніть сервер.
+3. Запустіть його знову з тим самим `PLAYWRIGHT_MCP_USER_DATA_DIR`.
+4. Попросіть клієнт знову відкрити сайт і переконайтеся, що стан входу зберігся.
 
 ## Пов'язані
 
-- [Configuration](../configuration.md)
-- [Docker](../docker.md)
-- [Load Chrome Extension](load-chrome-extension.md)
+- [Налаштування](../configuration.md#streamable-http-runtime-metadata)
+- [Docker](../docker.md#persistent-profiles)
+- [Завантажити розширення Chrome](load-chrome-extension.md)
+
+## CloakBrowser 0.6.0
+
+Коли stealth CloakBrowser увімкнено, явно налаштований постійний профіль зберігає fingerprint seed у `.cloakbrowser-seed`. Перший запуск після оновлення призначає seed, якщо файла немає. Явний `--fingerprint`, зокрема `--fingerprint=off`, має пріоритет і не змінює файл. Коли stealth вимкнено, файл не змінюється. Пошкоджений файл відновлюється з попередженням; помилка доступу до файла зупиняє запуск.

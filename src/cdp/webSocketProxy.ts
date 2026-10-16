@@ -1,8 +1,6 @@
 import type { IncomingMessage } from 'node:http';
 import type { Duplex } from 'node:stream';
-
 import { type RawData, WebSocket, WebSocketServer } from 'ws';
-
 import { matchesCdpCapability } from '#src/cdp/capability';
 import {
   CDP_WEBSOCKET_HANDSHAKE_TIMEOUT_MS,
@@ -13,7 +11,6 @@ import {
 } from '#src/cdp/limits';
 import { formatCdpAuthority } from '#src/cdp/urls';
 import type { CdpSecurityRejectionCategory } from '#src/cdp/security';
-
 export const CDP_WEBSOCKET_LOCAL_CLOSE = {
   goingAway: { code: 1001, reason: 'going_away' },
   internalError: { code: 1011, reason: 'internal_error' },
@@ -21,14 +18,12 @@ export const CDP_WEBSOCKET_LOCAL_CLOSE = {
   protocolError: { code: 1002, reason: 'protocol_error' },
   tryAgainLater: { code: 1013, reason: 'try_again_later' },
 } as const;
-
 export interface CdpWebSocketGeneration {
   capability: string;
   state: 'ready';
   upstreamHost: string;
   upstreamPort: number;
 }
-
 export interface CdpWebSocketProxyOptions {
   beforeForward?: (signal: AbortSignal) => Promise<boolean>;
   createErrorResponse(
@@ -43,19 +38,16 @@ export interface CdpWebSocketProxyOptions {
   shutdownTimeoutMs?: number;
   validateAuthority(request: IncomingMessage): 'accepted' | 'bad_request' | 'forbidden';
 }
-
 export interface CdpWebSocketProxy {
   readonly activeConnections: number;
   close(): Promise<void>;
   closeGeneration(generation: CdpWebSocketGeneration | undefined): void;
   handleUpgrade(request: IncomingMessage, socket: Duplex, head: Buffer): void;
 }
-
 interface WebSocketRoute {
   path: string;
   targetType: 'browser' | 'page';
 }
-
 type CdpWebSocketUpgradeFailureKind =
   | 'bad_gateway'
   | 'bad_request'
@@ -64,50 +56,52 @@ type CdpWebSocketUpgradeFailureKind =
   | 'not_found'
   | 'unavailable'
   | 'upstream_error';
-
 interface CdpWebSocketUpgradeErrorResponse {
   body: Buffer;
   headers: Readonly<Record<string, string>>;
   status: number;
 }
-
 export interface CdpWebSocketRelayDirection {
   paused: boolean;
   queuedBytes: number;
 }
-
 interface RelayPair {
   client: WebSocket;
   generation: CdpWebSocketGeneration;
   targetType: WebSocketRoute['targetType'];
   upstream: WebSocket;
 }
-
 interface PendingUpgrade {
   cancelled: boolean;
   socket: Duplex;
 }
-
 interface PendingProbe {
   abort?: () => void;
 }
-
 export function createCdpWebSocketProxy(options: CdpWebSocketProxyOptions): CdpWebSocketProxy {
   return new CdpWebSocketProxyRuntime(options);
 }
-
 export function classifyCdpWebSocketRoute(
   requestTarget: string,
   expectedCapability: string,
-): { kind: 'bad_request' } | { kind: 'not_found' } | ({ kind: 'route' } & WebSocketRoute) {
+):
+  | {
+      kind: 'bad_request';
+    }
+  | {
+      kind: 'not_found';
+    }
+  | ({
+      kind: 'route';
+    } & WebSocketRoute) {
   if (!requestTarget.startsWith('/cdp/')) return { kind: 'not_found' };
   const capabilityAndPath = requestTarget.slice('/cdp/'.length);
   const separator = capabilityAndPath.indexOf('/');
   if (separator === -1) return { kind: 'not_found' };
-  if (!matchesCdpCapability(expectedCapability, capabilityAndPath.slice(0, separator))) {
+  const sliceResult = capabilityAndPath.slice(0, separator);
+  if (!matchesCdpCapability(expectedCapability, sliceResult)) {
     return { kind: 'not_found' };
   }
-
   const path = capabilityAndPath.slice(separator);
   const match = /^\/devtools\/(browser|page)\/([^/?#]+)$/u.exec(path);
   if (match === null) return { kind: 'not_found' };
@@ -115,7 +109,6 @@ export function classifyCdpWebSocketRoute(
   if (!/^[A-Za-z0-9_-]+$/u.test(id)) return { kind: 'bad_request' };
   return { kind: 'route', path, targetType: match[1] as WebSocketRoute['targetType'] };
 }
-
 class CdpWebSocketProxyRuntime implements CdpWebSocketProxy {
   readonly #attempts = new Set<WebSocket>();
   readonly #pendingUpgrades = new Set<PendingUpgrade>();
@@ -123,35 +116,33 @@ class CdpWebSocketProxyRuntime implements CdpWebSocketProxy {
   readonly #options: CdpWebSocketProxyOptions;
   readonly #server: WebSocketServer;
   #closing = false;
-
   constructor(options: CdpWebSocketProxyOptions) {
     this.#options = options;
-    this.#server = new WebSocketServer({
+    const webSocketServerOptions = {
       maxPayload: CDP_WEBSOCKET_MAX_MESSAGE_BYTES,
       noServer: true,
       perMessageDeflate: false,
-    });
+    } as const;
+    this.#server = new WebSocketServer(webSocketServerOptions);
   }
-
   get activeConnections(): number {
     return this.#pairs.size;
   }
-
   handleUpgrade(request: IncomingMessage, socket: Duplex, head: Buffer): void {
     void this.#handleUpgrade(request, socket, head);
   }
-
   async #handleUpgrade(request: IncomingMessage, socket: Duplex, head: Buffer): Promise<void> {
     const accepted = this.#acceptUpgrade(request);
     if (accepted.kind === 'error') {
-      writeUpgradeError(socket, this.#options.createErrorResponse(accepted.failureKind));
+      const errorResponseResult = this.#options.createErrorResponse(accepted.failureKind);
+      writeUpgradeError(socket, errorResponseResult);
       return;
     }
     if (!hasValidWebSocketHandshake(request)) {
-      writeUpgradeError(socket, this.#options.createErrorResponse('bad_request'));
+      const errorResponseResult2 = this.#options.createErrorResponse('bad_request');
+      writeUpgradeError(socket, errorResponseResult2);
       return;
     }
-
     const probe: PendingProbe = {};
     const pending: PendingUpgrade = { cancelled: false, socket };
     this.#pendingUpgrades.add(pending);
@@ -168,20 +159,17 @@ class CdpWebSocketProxyRuntime implements CdpWebSocketProxy {
       finishPending,
     );
     if (upstreamHandshakeTimeoutMs === undefined) return;
-
-    const upstream = new WebSocket(
-      `ws://${formatCdpAuthority(accepted.generation.upstreamHost, accepted.generation.upstreamPort)}${accepted.route.path}`,
-      {
-        followRedirects: false,
-        handshakeTimeout: upstreamHandshakeTimeoutMs,
-        maxPayload: CDP_WEBSOCKET_MAX_MESSAGE_BYTES,
-        perMessageDeflate: false,
-      },
-    );
+    const message2 = `ws://${formatCdpAuthority(accepted.generation.upstreamHost, accepted.generation.upstreamPort)}${accepted.route.path}`;
+    const webSocketOptions = {
+      followRedirects: false,
+      handshakeTimeout: upstreamHandshakeTimeoutMs,
+      maxPayload: CDP_WEBSOCKET_MAX_MESSAGE_BYTES,
+      perMessageDeflate: false,
+    } as const;
+    const upstream = new WebSocket(message2, webSocketOptions);
     this.#attempts.add(upstream);
     finishPending();
     socket.off('close', finishPending);
-
     let settled = false;
     const finishAttempt = (): void => {
       if (settled) return;
@@ -198,7 +186,8 @@ class CdpWebSocketProxyRuntime implements CdpWebSocketProxy {
       if (this.#closing || this.#options.getGeneration() !== accepted.generation) {
         finishAttempt();
         upstream.close(CDP_WEBSOCKET_LOCAL_CLOSE.goingAway.code, CDP_WEBSOCKET_LOCAL_CLOSE.goingAway.reason);
-        writeUpgradeError(socket, this.#options.createErrorResponse('unavailable'));
+        const errorResponseResult3 = this.#options.createErrorResponse('unavailable');
+        writeUpgradeError(socket, errorResponseResult3);
         return;
       }
       let paired = false;
@@ -220,10 +209,9 @@ class CdpWebSocketProxyRuntime implements CdpWebSocketProxy {
       upstream.terminate();
       const kind = status >= 400 && status <= 499 ? 'upstream_error' : 'bad_gateway';
       if (kind === 'bad_gateway') safelyReportBrowserLoss(this.#options.onBrowserLoss);
-      writeUpgradeError(
-        socket,
-        this.#options.createErrorResponse(kind, kind === 'upstream_error' ? status : undefined),
-      );
+      const argumentValue = kind === 'upstream_error' ? status : undefined;
+      const errorResponseResult4 = this.#options.createErrorResponse(kind, argumentValue);
+      writeUpgradeError(socket, errorResponseResult4);
     });
     upstream.once('error', (error) => {
       if (settled) return;
@@ -236,10 +224,10 @@ class CdpWebSocketProxyRuntime implements CdpWebSocketProxy {
             ? 'gateway_timeout'
             : 'bad_gateway';
       if (kind !== 'unavailable') safelyReportBrowserLoss(this.#options.onBrowserLoss);
-      writeUpgradeError(socket, this.#options.createErrorResponse(kind));
+      const errorResponseResult5 = this.#options.createErrorResponse(kind);
+      writeUpgradeError(socket, errorResponseResult5);
     });
   }
-
   async #prepareUpstreamHandshake(
     generation: CdpWebSocketGeneration,
     pending: PendingUpgrade,
@@ -249,55 +237,52 @@ class CdpWebSocketProxyRuntime implements CdpWebSocketProxy {
   ): Promise<number | undefined> {
     const configuredTimeout = this.#options.handshakeTimeoutMs ?? CDP_WEBSOCKET_HANDSHAKE_TIMEOUT_MS;
     if (this.#options.beforeForward === undefined) return configuredTimeout;
-
     const deadline = createHandshakeDeadline(configuredTimeout);
     probe.abort = deadline.abort;
     let available = false;
     try {
-      available = await withinAbortSignal(this.#options.beforeForward(deadline.signal), deadline.signal);
+      const beforeForwardResult = this.#options.beforeForward(deadline.signal);
+      available = await withinAbortSignal(beforeForwardResult, deadline.signal);
     } catch {
       // A failed identity probe makes the generation unavailable to the caller.
     }
     const remainingMs = deadline.remainingMs();
     deadline.clear();
     probe.abort = undefined;
-
-    const unavailable = isPendingHandshakeUnavailable({
+    const isPendingHandshakeUnavailableOptions = {
       available,
       closing: this.#closing,
       currentGeneration: this.#options.getGeneration(),
       generation,
       pending,
       socket,
-    });
+    } as const;
+    const unavailable = isPendingHandshakeUnavailable(isPendingHandshakeUnavailableOptions);
     if (unavailable) {
       const wasPending = finishPending();
       socket.off('close', finishPending);
       if (wasPending && !pending.cancelled && socket.writable) {
-        writeUpgradeError(
-          socket,
-          this.#options.createErrorResponse(deadline.signal.aborted ? 'gateway_timeout' : 'unavailable'),
-        );
+        const argumentValue2 = deadline.signal.aborted ? 'gateway_timeout' : 'unavailable';
+        const errorResponseResult6 = this.#options.createErrorResponse(argumentValue2);
+        writeUpgradeError(socket, errorResponseResult6);
       }
       return undefined;
     }
     if (remainingMs >= 1) return remainingMs;
-
     const wasPending = finishPending();
     socket.off('close', finishPending);
     if (wasPending && socket.writable) {
-      writeUpgradeError(socket, this.#options.createErrorResponse('gateway_timeout'));
+      const errorResponseResult7 = this.#options.createErrorResponse('gateway_timeout');
+      writeUpgradeError(socket, errorResponseResult7);
     }
     return undefined;
   }
-
   closeGeneration(generation: CdpWebSocketGeneration | undefined): void {
     if (generation === undefined) return;
     for (const pair of this.#pairs) {
       if (pair.generation === generation) closePair(pair, CDP_WEBSOCKET_LOCAL_CLOSE.goingAway);
     }
   }
-
   async close(): Promise<void> {
     if (this.#closing) {
       await this.#waitForAllClosed();
@@ -306,24 +291,34 @@ class CdpWebSocketProxyRuntime implements CdpWebSocketProxy {
     this.#closing = true;
     for (const pending of this.#pendingUpgrades) {
       pending.cancelled = true;
-      writeUpgradeError(pending.socket, this.#options.createErrorResponse('unavailable'));
+      const argumentValue3 = pending.socket;
+      const errorResponseResult8 = this.#options.createErrorResponse('unavailable');
+      writeUpgradeError(argumentValue3, errorResponseResult8);
     }
     for (const attempt of this.#attempts) attempt.terminate();
     for (const pair of this.#pairs) closePair(pair, CDP_WEBSOCKET_LOCAL_CLOSE.goingAway);
     await this.#waitForAllClosed();
     this.#server.close();
   }
-
-  #acceptUpgrade(
-    request: IncomingMessage,
-  ):
-    | { failureKind: CdpWebSocketUpgradeFailureKind; kind: 'error' }
-    | { generation: CdpWebSocketGeneration; kind: 'route'; route: WebSocketRoute } {
+  #acceptUpgrade(request: IncomingMessage):
+    | {
+        failureKind: CdpWebSocketUpgradeFailureKind;
+        kind: 'error';
+      }
+    | {
+        generation: CdpWebSocketGeneration;
+        kind: 'route';
+        route: WebSocketRoute;
+      } {
     const generation = this.#options.getGeneration();
-    if (hasMismatchedCapability(request.url ?? '', generation?.capability ?? dummyCapability)) {
+    const computedValue = request.url ?? '';
+    const computedValue2 = generation?.capability ?? dummyCapability;
+    if (hasMismatchedCapability(computedValue, computedValue2)) {
       safelyReportSecurityRejection(this.#options.onSecurityRejection, 'capability');
     }
-    const route = classifyCdpWebSocketRoute(request.url ?? '', generation?.capability ?? dummyCapability);
+    const computedValue3 = request.url ?? '';
+    const computedValue4 = generation?.capability ?? dummyCapability;
+    const route = classifyCdpWebSocketRoute(computedValue3, computedValue4);
     if (generation === undefined || route.kind === 'not_found') {
       return { failureKind: 'not_found', kind: 'error' };
     }
@@ -338,7 +333,6 @@ class CdpWebSocketProxyRuntime implements CdpWebSocketProxy {
     }
     return { generation, kind: 'route', route };
   }
-
   #pair(
     client: WebSocket,
     upstream: WebSocket,
@@ -347,7 +341,6 @@ class CdpWebSocketProxyRuntime implements CdpWebSocketProxy {
   ): void {
     const pair = { client, generation, targetType, upstream };
     this.#pairs.add(pair);
-
     let locallyClosing = false;
     let clientClosed = false;
     let upstreamClosed = false;
@@ -361,10 +354,8 @@ class CdpWebSocketProxyRuntime implements CdpWebSocketProxy {
     };
     const clientToUpstream = createCdpWebSocketRelayDirection();
     const upstreamToClient = createCdpWebSocketRelayDirection();
-
     guardProtocolErrors(client, closeLocally);
     guardProtocolErrors(upstream, closeLocally);
-
     client.on('message', (data, isBinary) => {
       safelyReportActivity(this.#options.onActivity, this.#pairs.size);
       relayCdpWebSocketMessage(client, upstream, data, isBinary, clientToUpstream, closeLocally);
@@ -376,12 +367,16 @@ class CdpWebSocketProxyRuntime implements CdpWebSocketProxy {
       safelyReportActivity(this.#options.onActivity, this.#pairs.size);
       relayCdpWebSocketMessage(upstream, client, data, isBinary, upstreamToClient, closeLocally);
     });
-    client.on('error', (error) => closeLocally(closeForWebSocketError(error)));
+    client.on('error', (error) => {
+      const closeForWebSocketErrorResult = closeForWebSocketError(error);
+      return closeLocally(closeForWebSocketErrorResult);
+    });
     upstream.on('error', (error) => {
       if (targetType === 'browser' && !clientClosed && !locallyClosing) {
         safelyReportBrowserLoss(this.#options.onBrowserLoss);
       }
-      closeLocally(closeForWebSocketError(error));
+      const closeForWebSocketErrorResult2 = closeForWebSocketError(error);
+      closeLocally(closeForWebSocketErrorResult2);
     });
     client.on('close', (code, reason) => {
       clientClosed = true;
@@ -397,11 +392,10 @@ class CdpWebSocketProxyRuntime implements CdpWebSocketProxy {
       maybeFinish();
     });
   }
-
   async #waitForAllClosed(): Promise<void> {
     if (this.#pendingUpgrades.size === 0 && this.#pairs.size === 0 && this.#attempts.size === 0) return;
     const deadline = this.#options.shutdownTimeoutMs ?? CDP_WEBSOCKET_SHUTDOWN_TIMEOUT_MS;
-    await Promise.race([
+    const values: [Promise<void>, Promise<void>] = [
       new Promise<void>((resolve) => {
         const poll = (): void => {
           if (this.#pendingUpgrades.size === 0 && this.#pairs.size === 0 && this.#attempts.size === 0) {
@@ -411,7 +405,8 @@ class CdpWebSocketProxyRuntime implements CdpWebSocketProxy {
         poll();
       }),
       new Promise<void>((resolve) => setTimeout(resolve, deadline).unref()),
-    ]);
+    ];
+    await Promise.race(values);
     for (const pending of this.#pendingUpgrades) pending.socket.destroy();
     for (const attempt of this.#attempts) attempt.terminate();
     for (const pair of this.#pairs) {
@@ -423,7 +418,6 @@ class CdpWebSocketProxyRuntime implements CdpWebSocketProxy {
     }
   }
 }
-
 function isPendingHandshakeUnavailable(options: {
   available: boolean;
   closing: boolean;
@@ -440,7 +434,6 @@ function isPendingHandshakeUnavailable(options: {
     !options.socket.writable
   );
 }
-
 function createHandshakeDeadline(timeoutMs: number): {
   abort: () => void;
   clear(): void;
@@ -454,16 +447,22 @@ function createHandshakeDeadline(timeoutMs: number): {
   return {
     abort: () => controller.abort(),
     clear: () => clearTimeout(timer),
-    remainingMs: () => Math.max(0, expiresAt - Date.now()),
+    remainingMs: () => {
+      const computedValue5 = expiresAt - Date.now();
+      return Math.max(0, computedValue5);
+    },
     signal: controller.signal,
   };
 }
-
 async function withinAbortSignal<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
   if (signal.aborted) throw new Error('Managed CDP WebSocket handshake timed out');
   return await new Promise<T>((resolve, reject) => {
-    const onAbort = (): void => reject(new Error('Managed CDP WebSocket handshake timed out'));
-    signal.addEventListener('abort', onAbort, { once: true });
+    const onAbort = (): void => {
+      const error2 = new Error('Managed CDP WebSocket handshake timed out');
+      return reject(error2);
+    };
+    const addEventListenerOptions = { once: true } as const;
+    signal.addEventListener('abort', onAbort, addEventListenerOptions);
     promise.then(
       (value) => {
         signal.removeEventListener('abort', onAbort);
@@ -471,17 +470,22 @@ async function withinAbortSignal<T>(promise: Promise<T>, signal: AbortSignal): P
       },
       (error: unknown) => {
         signal.removeEventListener('abort', onAbort);
-        reject(error instanceof Error ? error : new Error(String(error)));
+        const argumentValue4 =
+          error instanceof Error
+            ? error
+            : (() => {
+                const stringResult = String(error);
+                return new Error(stringResult);
+              })();
+        reject(argumentValue4);
       },
     );
   });
 }
-
 /** Creates isolated queue accounting for one relay direction. */
 export function createCdpWebSocketRelayDirection(): CdpWebSocketRelayDirection {
   return { paused: false, queuedBytes: 0 };
 }
-
 /** Relays one decoded message while enforcing per-direction queue accounting. */
 export function relayCdpWebSocketMessage(
   source: WebSocket,
@@ -500,13 +504,13 @@ export function relayCdpWebSocketMessage(
     closeLocally(CDP_WEBSOCKET_LOCAL_CLOSE.internalError);
     return;
   }
-
   direction.queuedBytes += bytes;
   if (!direction.paused) {
     direction.paused = true;
     source.pause();
   }
-  destination.send(data, { binary: isBinary }, (error) => {
+  const sendOptions = { binary: isBinary } as const;
+  destination.send(data, sendOptions, (error) => {
     direction.queuedBytes -= bytes;
     if (error) {
       closeLocally(CDP_WEBSOCKET_LOCAL_CLOSE.internalError);
@@ -518,12 +522,10 @@ export function relayCdpWebSocketMessage(
     }
   });
 }
-
 function rawDataBytes(data: RawData): number {
   if (Array.isArray(data)) return data.reduce((total, chunk) => total + chunk.byteLength, 0);
   return data.byteLength;
 }
-
 function relayPeerClose(destination: WebSocket, code: number, reason: Buffer): void {
   if (destination.readyState !== WebSocket.OPEN) return;
   if (code === 1005) destination.close();
@@ -532,20 +534,37 @@ function relayPeerClose(destination: WebSocket, code: number, reason: Buffer): v
       CDP_WEBSOCKET_LOCAL_CLOSE.internalError.code,
       CDP_WEBSOCKET_LOCAL_CLOSE.internalError.reason,
     );
-  } else destination.close(code, reason.toString('utf8'));
+  } else {
+    (() => {
+      const toStringResult = reason.toString('utf8');
+      return destination.close(code, toStringResult);
+    })();
+  }
 }
-
-function closePair(pair: RelayPair, close: { code: number; reason: string }): void {
+function closePair(
+  pair: RelayPair,
+  close: {
+    code: number;
+    reason: string;
+  },
+): void {
   closeWebSocket(pair.client, close);
   closeWebSocket(pair.upstream, close);
 }
-
-function closeWebSocket(socket: WebSocket, close: { code: number; reason: string }): void {
+function closeWebSocket(
+  socket: WebSocket,
+  close: {
+    code: number;
+    reason: string;
+  },
+): void {
   if (socket.readyState === WebSocket.OPEN) socket.close(close.code, close.reason);
   else if (socket.readyState === WebSocket.CONNECTING) socket.terminate();
 }
-
-function closeForWebSocketError(error: Error): { code: number; reason: string } {
+function closeForWebSocketError(error: Error): {
+  code: number;
+  reason: string;
+} {
   const code = 'code' in error && typeof error.code === 'string' ? error.code : '';
   if (code === 'WS_ERR_UNSUPPORTED_MESSAGE_LENGTH') {
     return CDP_WEBSOCKET_LOCAL_CLOSE.messageTooBig;
@@ -553,7 +572,6 @@ function closeForWebSocketError(error: Error): { code: number; reason: string } 
   if (code.startsWith('WS_ERR_')) return CDP_WEBSOCKET_LOCAL_CLOSE.protocolError;
   return CDP_WEBSOCKET_LOCAL_CLOSE.internalError;
 }
-
 function guardProtocolErrors(
   socket: WebSocket,
   closeLocally: (close: { code: number; reason: string }) => void,
@@ -567,9 +585,11 @@ function guardProtocolErrors(
       };
     }
   )._receiver;
-  receiver?.prependListener('error', (error) => closeLocally(closeForWebSocketError(error)));
+  receiver?.prependListener('error', (error) => {
+    const closeForWebSocketErrorResult3 = closeForWebSocketError(error);
+    return closeLocally(closeForWebSocketErrorResult3);
+  });
 }
-
 function hasValidWebSocketHandshake(request: IncomingMessage): boolean {
   const key = request.headers['sec-websocket-key'];
   const upgrade = request.headers.upgrade;
@@ -585,11 +605,9 @@ function hasValidWebSocketHandshake(request: IncomingMessage): boolean {
   ) {
     return false;
   }
-
   const protocolHeader = request.headers['sec-websocket-protocol'];
   if (protocolHeader === undefined) return true;
   if (typeof protocolHeader !== 'string') return false;
-
   const protocols = new Set<string>();
   for (const rawProtocol of protocolHeader.split(',')) {
     const protocol = rawProtocol.replace(/^[\t ]+|[\t ]+$/gu, '');
@@ -598,32 +616,30 @@ function hasValidWebSocketHandshake(request: IncomingMessage): boolean {
   }
   return true;
 }
-
 function isHandshakeTimeout(error: Error): boolean {
   return error.message === 'Opening handshake has timed out';
 }
-
 function writeUpgradeError(socket: Duplex, response: CdpWebSocketUpgradeErrorResponse): void {
   if (!socket.writable) return;
   const headers = Object.entries(response.headers)
     .map(([name, value]) => `${name}: ${value}\r\n`)
     .join('');
-  socket.end(
-    `HTTP/1.1 ${response.status} Error\r\n${headers}Connection: close\r\n\r\n${response.body.toString()}`,
-  );
+  const message3 = `HTTP/1.1 ${response.status} Error\r\n${headers}Connection: close\r\n\r\n${response.body.toString()}`;
+  socket.end(message3);
 }
-
 function safelyReportActivity(
   callback: CdpWebSocketProxyOptions['onActivity'],
   activeConnections: number,
 ): void {
   try {
-    callback?.({ activeConnections, kind: 'websocket' });
+    if (callback) {
+      const activity = { activeConnections, kind: 'websocket' } as const;
+      callback(activity);
+    }
   } catch {
     // Diagnostic callbacks never affect proxy behavior.
   }
 }
-
 function safelyReportBrowserLoss(callback: CdpWebSocketProxyOptions['onBrowserLoss']): void {
   try {
     callback?.();
@@ -631,7 +647,6 @@ function safelyReportBrowserLoss(callback: CdpWebSocketProxyOptions['onBrowserLo
     // Lifecycle observers cannot change relay cleanup.
   }
 }
-
 function safelyReportSecurityRejection(
   callback: CdpWebSocketProxyOptions['onSecurityRejection'],
   category: CdpSecurityRejectionCategory,
@@ -642,17 +657,16 @@ function safelyReportSecurityRejection(
     // Diagnostic callbacks never affect proxy behavior.
   }
 }
-
 function hasMismatchedCapability(requestTarget: string, expectedCapability: string): boolean {
   if (!requestTarget.startsWith('/cdp/')) return false;
   const capability = requestTarget.slice('/cdp/'.length).split('/', 1)[0] ?? '';
   return !matchesCdpCapability(expectedCapability, capability);
 }
-
 function isBrowserCloseMessage(data: RawData, isBinary: boolean): boolean {
   if (isBinary) return false;
   try {
-    const payload = JSON.parse(Buffer.from(data as ArrayBuffer).toString('utf8')) as unknown;
+    const toStringResult2 = Buffer.from(data as ArrayBuffer).toString('utf8');
+    const payload = JSON.parse(toStringResult2) as unknown;
     return (
       typeof payload === 'object' &&
       payload !== null &&
@@ -664,5 +678,4 @@ function isBrowserCloseMessage(data: RawData, isBinary: boolean): boolean {
     return false;
   }
 }
-
 const dummyCapability = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';

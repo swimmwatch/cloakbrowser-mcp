@@ -45,6 +45,6 @@ docker run --rm \
 
 ## Relacionado
 
-- [Getting Started](../getting-started.md)
-- [Docker](../docker.md)
-- [Testing](../testing.md)
+- [Primeros pasos](../getting-started.md)
+- [Docker](../docker.md#build-locally)
+- [Pruebas](../testing.md)

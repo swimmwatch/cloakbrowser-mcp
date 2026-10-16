@@ -45,6 +45,6 @@ docker run --rm \
 
 ## Повʼязані матеріали
 
-- [Getting Started](../getting-started.md)
-- [Docker](../docker.md)
-- [Testing](../testing.md)
+- [Початок роботи](../getting-started.md)
+- [Docker](../docker.md#build-locally)
+- [Тестування](../testing.md)

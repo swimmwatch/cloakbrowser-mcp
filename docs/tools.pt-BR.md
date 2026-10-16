@@ -14,7 +14,7 @@ tags:
 
 Espera-se que a superfície padrão de ferramentas de navegador upstream corresponda à dependência fixada do Playwright MCP. Ela inclui ferramentas principais como navegação, snapshots, cliques, digitação, screenshots, abas, mensagens de console, inspeção de rede, upload de arquivos, diálogos e ferramentas de avaliação insegura.
 
-Como referência upstream estável, veja o teste de capacidades do Playwright MCP `{{ project.playwright_mcp_package_tag }}` fixado no commit exato do pacote: [default and capability-gated tool names](https://github.com/microsoft/playwright-mcp/blob/f1257a5a67aff872f947fae274759f7d54853862/tests/capabilities.spec.ts#L19-L77).
+Como referência estável para Playwright MCP `@playwright/mcp@0.0.83`, consulte o teste de capacidades fixado no commit desse pacote: [ferramentas padrão e ferramentas habilitadas por capacidades](https://github.com/microsoft/playwright-mcp/blob/f183dad4a52965583e3cc1d59b88cdc279e2e57d/tests/capabilities.spec.ts#L19-L74). A dependência instalada define a superfície atual de ferramentas.
 
 Este projeto trata o upstream Playwright MCP como fonte autorizada e não mantém uma referência de esquemas copiada.
 
@@ -24,11 +24,7 @@ ponte; as ferramentas e os esquemas upstream resultantes são encaminhados sem
 alterações, incluindo `browser_start_recording` e `browser_stop_recording`.
 
 !!! warning "Limitação de gravação com o binário público CloakBrowser v146"
-    As ferramentas de gravação estão disponíveis, mas o binário público do Chromium 146
-    sem chave usado pelo CloakBrowser 0.5.10 desativa intencionalmente a ligação do Playwright
-    entre a página e o host para preservar a furtividade. Como resultado, `browser_stop_recording`
-    pode retornar código parcial: a navegação é gravada, enquanto entradas de texto e cliques
-    concluídos com sucesso são omitidos. Revise as gravações geradas antes de reutilizá-las.
+    As ferramentas de gravação estão disponíveis, mas o binário público do Chromium 146 sem chave desativa intencionalmente a ligação do Playwright entre a página e o host para preservar a furtividade. Por isso, `browser_stop_recording` pode retornar código parcial: a navegação é gravada, mas entradas e cliques concluídos com sucesso são omitidos. Revise as gravações geradas antes de reutilizá-las.
 
     A compatibilidade com ativação explícita é acompanhada em [CloakBrowser #532](https://github.com/CloakHQ/CloakBrowser/issues/532).
     A decisão subjacente sobre a ligação é discutida em
@@ -37,9 +33,13 @@ alterações, incluindo `browser_start_recording` e `browser_stop_recording`.
 
 ### Ferramentas WebMCP dinâmicas
 
-O Chromium implementa WebMCP a partir da versão 154. Builds anteriores do CloakBrowser ignoram o feature flag; quando o WebMCP for necessário, use um build de navegador compatível ou `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright`.
+O suporte a WebMCP depende da build do navegador e dos recursos habilitados. O Playwright MCP instalado espera `document.modelContext` ou `navigator.modelContext` com o método `getTools()`. Quando WebMCP for necessário, use uma build compatível do CloakBrowser ou `PLAYWRIGHT_MCP_BROWSER_ENGINE=playwright`.
 
-Quando o Chromium é iniciado com `--enable-features=WebMCP`, as páginas podem declarar ferramentas `webmcp_*`. A ponte encaminha `notifications/tools/list_changed`, limpa todo o cache de `tools/list` e o cliente deve solicitar a lista novamente. No Streamable HTTP, somente o fluxo aberto da sessão correspondente recebe a notificação; o próximo `tools/list` continua atualizado mesmo sem fluxo. Trate nome, descrição, esquema, annotations e output como dados de página não confiáveis. A ponte não ativa o WebMCP automaticamente; `PLAYWRIGHT_MCP_WEBMCP=false` desativa a coleta.
+[A documentação do Chrome sobre WebMCP](https://developer.chrome.com/docs/ai/webmcp) descreve um origin trial desde o Chrome 149, uma flag para testes locais e limitações do modo headless. O número da versão do Chromium, por si só, não garante compatibilidade com a API esperada pelo Playwright MCP.
+
+Quando o Chromium é iniciado com `--enable-features=WebMCP`, o Playwright MCP pode adicionar ferramentas fornecidas pela página com nomes `webmcp_*` enquanto ela estiver aberta. Essas ferramentas são dinâmicas: a ponte anuncia `tools.listChanged`, invalida todo o cache paginado de ferramentas quando o servidor upstream envia `notifications/tools/list_changed` e encaminha a notificação ao cliente MCP da sessão correspondente. Os clientes devem escutar essa notificação e chamar `tools/list` novamente. Um cliente Streamable HTTP só a recebe enquanto o fluxo de notificações da sua sessão estiver aberto; a próxima chamada a `tools/list` continua retornando informações atualizadas mesmo que nenhum fluxo estivesse aberto.
+
+As ferramentas dinâmicas pertencem somente à sessão MCP e à geração atual do navegador com CDP gerenciado que as descobriu. Seus nomes, descrições, esquemas, anotações e resultados são conteúdo não confiável da página e são encaminhados sem alterações pela ponte. Revise-os antes de chamar as ferramentas. Defina `PLAYWRIGHT_MCP_WEBMCP=false` para desativar a coleta. A ponte nunca habilita o Chromium WebMCP automaticamente.
 
 ## Ferramentas locais
 
@@ -51,8 +51,13 @@ Retorna informações estruturadas sobre o pacote CloakBrowser, a plataforma atu
 
 Retorna metadados estruturados da ponte:
 
-O objeto aditivo `structuredContent.cdp` reporta o CDP gerenciado da sessão de chamada
-estado:
+- nome e versão do servidor MCP;
+- modo de runtime;
+- pacote e versão do upstream Playwright MCP;
+- contagem de ferramentas upstream;
+- nomes das ferramentas locais específicas do Cloak.
+
+O objeto adicional `structuredContent.cdp` informa o estado do CDP gerenciado da sessão que faz a chamada:
 
 ```json
 { "enabled": false }
@@ -84,12 +89,9 @@ estado:
 }
 ```
 
-`generation` aumenta e `discoveryUrl` gira após a substituição do navegador.
-`activeConnections` conta conexões WebSocket aceitas por proxy sem expor
-identidades de clientes, IDs de alvo ou conteúdo de protocolo. Trate toda descoberta não nula URL
-como uma credencial.
+`generation` aumenta e `discoveryUrl` muda após a substituição do navegador. `activeConnections` conta as conexões WebSocket aceitas por meio do proxy sem expor identidades dos clientes, identificadores dos alvos ou conteúdo do protocolo. Trate cada URL de descoberta não nula como uma credencial.
 
-Use a descoberta URL com um cliente compatível com CDP:
+Use a URL de descoberta com um cliente compatível com CDP:
 
 ```ts
 import { chromium } from 'playwright';
@@ -97,20 +99,11 @@ import { chromium } from 'playwright';
 const browser = await chromium.connectOverCDP(discoveryUrl);
 ```
 
-CDP gerenciado não é o protocolo do servidor Playwright. Playwright
-A integração atual Open WebUI `PLAYWRIGHT_WS_URL` e `chromium.connect()` esperam
-um endpoint de servidor Playwright e não são compatíveis com este URL.
+O CDP gerenciado não é o protocolo Playwright Server. O método `chromium.connect()` do Playwright e a integração atual do Open WebUI `PLAYWRIGHT_WS_URL` esperam um endpoint Playwright Server e não são compatíveis com essa URL.
 
-- nome e versão do servidor MCP;
-- modo de runtime;
-- pacote e versão do upstream Playwright MCP;
-- contagem de ferramentas upstream;
-- nomes das ferramentas locais específicas do Cloak.
+Com a versão fixada do cliente Playwright, foi verificado que `browser.close()` em um navegador retornado por `connectOverCDP()` desconecta esse cliente e mantém o Chromium e a geração do navegador prontos. Essa observação é específica do cliente e não é uma garantia para outras bibliotecas CDP. Enviar diretamente o comando CDP `Browser.close` é destrutivo: encerra a geração compartilhada do Chromium, invalida a capability e afeta os clientes que chamam o MCP. Coordene as operações MCP e CDP, pois a ponte não serializa operações conflitantes de navegação, fechamento de páginas, entrada ou alteração do armazenamento.
 
-A superfície local continua limitada a estas duas ferramentas de diagnóstico.
-`SessionSeats` e `getSessionSeats` não são expostos como uma ferramenta MCP
-porque o CloakBrowser 0.5.10 não exporta essa API a partir de seu ponto de
-entrada público.
+A superfície local continua limitada a estas duas ferramentas de diagnóstico. `SessionSeats` e `getSessionSeats` não são expostos como ferramenta MCP porque o ponto de entrada público suportado do CloakBrowser não exporta essa API.
 
 ## Paridade
 

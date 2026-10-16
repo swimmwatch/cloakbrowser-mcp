@@ -34,6 +34,8 @@ docker run --rm -i \
 
 ## Metadatos de sesión Streamable HTTP
 
+Un servidor Streamable HTTP puede aceptar una configuración de proxy distinta por sesión MCP:
+
 ```json
 {
   "params": {
@@ -48,10 +50,14 @@ docker run --rm -i \
 }
 ```
 
-Las sesiones existentes conservan el proxy capturado durante initialize; crea otra sesión para cambiar de región.
+Las sesiones existentes conservan el proxy registrado durante `initialize`; inicie una sesión nueva para cambiar de región.
+
+## Verificación
+
+Pida al cliente MCP que visite una página de prueba de IP o localización y compare la región, el idioma y la zona horaria observados con la ubicación esperada del proveedor del proxy.
 
 ## Relacionado
 
-- [GeoIP Proxy Matching](../geoip-proxy-matching.md)
-- [Configuration](../configuration.md)
-- [Docker](../docker.md)
+- [Coincidencia de proxies GeoIP](../geoip-proxy-matching.md)
+- [Configuración](../configuration.md#streamable-http-runtime-metadata)
+- [Docker](../docker.md#geoip-proxy-matching)

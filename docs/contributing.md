@@ -14,6 +14,16 @@ npm install
 npm run check
 ```
 
+## Test Reports
+
+Local reports generated with `test:report:generate` remain self-contained HTML. Combined CI reports use separate HTML, JavaScript and data files to avoid the GitHub file size limit. Download and extract the entire `combined-test-report` artifact, then open its directory:
+
+```bash
+npm run test:report:open -- --report /path/to/extracted-report
+```
+
+For a multi-file report, this command starts the installed Allure viewer. Keep it running while viewing the report; press `Ctrl+C` to stop it. GitHub Pages publication preserves the report resources in the separate reports repository.
+
 ## Pull Request Checklist
 
 - [ ] `npm run check` passes.

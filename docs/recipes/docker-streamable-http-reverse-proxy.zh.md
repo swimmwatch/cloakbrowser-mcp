@@ -27,11 +27,13 @@ docker run --rm -p 127.0.0.1:3000:3000 \
 
 ## 代理 endpoint
 
+将反向代理配置为把经过身份验证的 HTTPS 流量转发到：
+
 ```text
 http://127.0.0.1:3000/mcp
 ```
 
-原样转发 Authorization 和 mcp-session-id。health probes 应保留 auth 或仅限可信网络。
+原样转发 `Authorization` 和 `mcp-session-id` 请求头。仅允许可信的健康检查访问 `/healthz` 和 `/readyz`，或要求提供同一个 Bearer 令牌。
 
 ## 验证
 
@@ -40,8 +42,14 @@ curl -H "Authorization: Bearer $MCP_AUTH_TOKEN" http://127.0.0.1:3000/healthz
 curl -H "Authorization: Bearer $MCP_AUTH_TOKEN" http://127.0.0.1:3000/readyz
 ```
 
+然后为 MCP 客户端配置公开的 HTTPS URL，例如：
+
+```text
+https://mcp.example.com/mcp
+```
+
 ## 相关内容
 
-- [Docker](../docker.md)
-- [Configuration](../configuration.md)
-- [Security](../security.md)
+- [Docker](../docker.md#streamable-http)
+- [配置](../configuration.md#https)
+- [安全](../security.md)

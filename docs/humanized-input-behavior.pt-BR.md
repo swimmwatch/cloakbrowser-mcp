@@ -162,3 +162,19 @@ Ele não deve ser utilizado como forma de contornar controles de acesso ou verif
 ## Mais caminhos práticos
 
 Para escolher entre o Playwright MCP upstream e este pacote, consulte a [comparação](comparison.md). Para tarefas rápidas, use as [receitas](recipes/index.md): perfil persistente, extensões, reverse proxy, QA regional, Claude Desktop, Codex CLI e teste smoke de CI.
+
+## CloakBrowser
+
+A dependência atual do CloakBrowser é `{{ project.cloakbrowser_dependency }}`. A digitação humanizada sobrepõe os pressionamentos e varia os intervalos entre as teclas. O tempo de movimento do mouse depende da distância. A rolagem usa passos inteiros da roda para a plataforma simulada, portanto pequenos deslocamentos solicitados podem ser arredondados. As interações aceitam modais com posição fixa e elementos com posição absoluta fora dos contêineres de rolagem ancestrais. Selecionar uma opção que causa navegação retorna os valores escolhidos em vez de um erro de elemento obsoleto.
+
+No CloakBrowser 0.6.2/0.6.3, a ponte navega até o primeiro segmento com `ArrowLeft` antes de digitar nos editores nativos de data e hora. Isso evita que o primeiro clique coloque todos os dígitos no campo do ano. Os valores são inseridos pelo teclado, sem atribuição programática.
+
+O CloakBrowser 0.6.2 corrige as verificações de visibilidade das ações humanizadas com Playwright 1.64. A ponte transmite a visibilidade real dos iframe ancestrais para ambos os caminhos de verificação do estado do elemento, em vez do `true` incondicional de upstream.
+
+As ações humanizadas seguem a semântica dos seletores do Playwright, incluindo o modo estrito. Localizadores ambíguos e ações não suportadas geram erros em vez de recorrer silenciosamente a ações normais. Por exemplo, o `fill()` humanizado não suporta `input[type=color]`; desative humanize em uma sessão que precise dessa operação.
+
+Com humanize ativado, a ponte aceita apenas versões e hashes de código verificados. Ela verifica a visibilidade dos iframe ancestrais e mantém referências fracas aos elementos DOM encontrados para permitir a coleta dos elementos removidos. Versões não compatíveis ou código modificado são rejeitados; use `CLOAK_PLAYWRIGHT_MCP_HUMANIZE=false` até que a ponte ofereça suporte.
+
+O CloakBrowser 0.6.1 executa `inputValue()`, `textContent()`, `innerText()`, `innerHTML()`, `getAttribute()` e `dispatchEvent()` no contexto isolado de humanize para `Page`, `Frame`, `Locator` e `ElementHandle`. Para elementos `ElementHandle` ocultos ou sobrepostos e argumentos de eventos que contêm um `JSHandle`, o upstream utiliza o Playwright sem humanize como alternativa para leitura e envio de eventos.
+
+A seleção em listas suspensas usa busca por prefixo e permite seleções repetidas. No macOS, uma opção cujo rótulo começa com um emoji pode ser inacessível à entrada humanizada; o erro é encaminhado pelo MCP. Se a seleção programática for aceitável, use explicitamente o método upstream `page._original.selectOption()`.

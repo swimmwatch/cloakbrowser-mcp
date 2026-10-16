@@ -37,10 +37,10 @@ Reinicie o servidor depois de alterar arquivos ou caminhos da extensão.
 
 ## Verificar
 
-Use the MCP client to open a page where the extension should be active, then inspect behavior or capture a screenshot.
+Peça ao cliente MCP para abrir uma página onde a extensão deve estar ativa e verifique seu comportamento ou faça uma captura de tela. Também é possível chamar `cloakbrowser_bridge_info` para confirmar a versão esperada do pacote da ponte.
 
 ## Relacionado
 
-- [Configuration](../configuration.md)
-- [Docker](../docker.md)
+- [Configuração](../configuration.md#chrome-extensions)
+- [Docker](../docker.md#chrome-extensions)
 - [Perfil de login persistente](persistent-login-profile.md)

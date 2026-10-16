@@ -13,19 +13,21 @@ tags:
 एकीकृत `Release` वर्कफ़्लो टैग को एक बार रिज़ॉल्व करता है, फिर व्युत्पन्न `version`,
 `version_tag`, और npm पैकेजिंग, Docker बिल्ड आर्गुमेंट्स, इमेज लेबल, सर्वर मेटाडेटा, README मार्कर्स, और डॉक्यूमेंटेशन मार्कर्स के माध्यम से Docker-सेफ इमेज टैग।
 
+सभी एप्लिकेशन परीक्षण समूह, कवरेज, पैकेज इंस्टॉलेशन और निर्भरता हस्ताक्षर जाँच मर्ज से पहले चलते हैं और `required-ci` उन्हें अनिवार्य बनाता है। `Release` वर्कफ़्लो `package:pack` और `docs:build:site` से परीक्षण की गई रिविज़न बनाकर प्रकाशित करता है और रिलीज़ मेटाडेटा तथा आर्टिफ़ैक्ट फ़ाइल सूची का सत्यापन करता है।
+
 ## गिटहब रिपॉजिटरी सेटिंग्स
 
 पहली रिलीज़ से पहले इन सेटिंग्स को कॉन्फ़िगर करें।
 
-| Area | Required setting |
+| क्षेत्र | आवश्यक सेटिंग |
 | --- | --- |
-| Actions | Enable GitHub Actions for the repository. |
-| Actions token | Allow workflows to request the permissions declared in each workflow. |
-| Branch protection | Require `Actionlint`, `CI`, `CodeQL`, and `Dependency Review` before merging to `main`. |
-| Pages | Set `Build and deployment -> Source` to `GitHub Actions`. |
-| Packages | Allow GitHub Actions to publish packages to GitHub Packages. |
-| Environments | Create `npm-production`, `docker-production`, `github-pages`, and `mcp-registry-production`. |
-| Code scanning | Enable code scanning to view CodeQL, Scorecard, and Trivy SARIF results. |
+| Actions | रिपॉजिटरी के लिए GitHub Actions सक्षम करें। |
+| Actions टोकन | workflows को अपने घोषित अधिकार मांगने की अनुमति दें। |
+| ब्रांच सुरक्षा | `main` में merge से पहले `Actionlint`, `CI`, `CodeQL` और `Dependency Review` सफल होना आवश्यक करें। |
+| Pages | `Build and deployment -> Source` को `GitHub Actions` पर सेट करें। |
+| Packages | GitHub Actions को GitHub Packages में पैकेज प्रकाशित करने दें। |
+| पर्यावरण | `npm-production`, `docker-production`, `github-pages` और `mcp-registry-production` बनाएं। |
+| कोड स्कैनिंग | CodeQL, Scorecard और Trivy के SARIF परिणाम देखने के लिए code scanning सक्षम करें। |
 
 `npm-production`, `docker-production`, और में आवश्यक समीक्षकों को जोड़ें
 `mcp-registry-production` यदि GitHub रिलीज़ प्रकाशित होने के बाद रिलीज़ के लिए मैन्युअल अनुमोदन की आवश्यकता होनी चाहिए। `github-pages` वातावरण का उपयोग नेटिव GitHub पेज डिप्लॉयमेंट जॉब द्वारा किया जाता है।
@@ -36,13 +38,13 @@ tags:
 
 इन सटीक मानों के साथ npmjs.com पर विश्वसनीय प्रकाशक को कॉन्फ़िगर करें:
 
-| npm Trusted Publisher field | Value |
+| npm Trusted Publisher फ़ील्ड | मान |
 | --- | --- |
-| Provider | GitHub Actions |
-| Repository | `swimmwatch/cloakbrowser-mcp` |
-| Workflow filename | `release.yml` |
-| Environment | `npm-production` |
-| Allowed action | `npm publish` |
+| प्रदाता | GitHub Actions |
+| रिपॉज़िटरी | `swimmwatch/cloakbrowser-mcp` |
+| वर्कफ़्लो फ़ाइल का नाम | `release.yml` |
+| पर्यावरण | `npm-production` |
+| अनुमत क्रिया | `npm publish` |
 
 `npm` जॉब GitHub-होस्टेड रनर्स पर चलती है, Node.js 24 का उपयोग करती है, और रखती है
 `id-token: write` ताकि npm GitHub Actions OIDC टोकन को एक अल्पकालिक पब्लिश क्रेडेंशियल के लिए एक्सचेंज कर सके। npm ट्रस्टेड पब्लिशिंग के लिए npm CLI
@@ -170,16 +172,16 @@ GitHub की `https://github.com/mcp` रजिस्ट्री एक अल
 
 रिपॉजिटरी मुफ्त सुरक्षा उपकरणों का उपयोग करती है:
 
-| Workflow | Tool | Trigger | User setup |
+| वर्कफ़्लो | टूल | चलने की शर्त | उपयोगकर्ता सेटिंग |
 | --- | --- | --- | --- |
-| `CodeQL` | GitHub CodeQL | push, pull request, weekly, manual | Enable code scanning to view SARIF results. |
-| `Dependency Review` | GitHub Dependency Review | pull request | No external account or token. |
-| `OpenSSF Scorecard` | OpenSSF Scorecard | push, weekly, manual | Enable code scanning to view SARIF results. |
-| `Zizmor` | zizmor | workflow changes, manual | No external account or token. |
-| `CI` / `Release` | Trivy | Docker build and release | Enable code scanning to view SARIF results. |
-| `CI` / npm release | `npm audit --omit=dev --audit-level=high` | PR CI and npm publish job | No external account or token. |
+| `CodeQL` | GitHub CodeQL | push, pull request, हर सप्ताह, मैन्युअल रूप से | SARIF परिणाम देखने के लिए code scanning सक्षम करें। |
+| `Dependency Review` | GitHub Dependency Review | pull request | बाहरी खाते या टोकन की जरूरत नहीं है। |
+| `OpenSSF Scorecard` | OpenSSF Scorecard | push, हर सप्ताह, मैन्युअल रूप से | SARIF परिणाम देखने के लिए code scanning सक्षम करें। |
+| `Zizmor` | zizmor | वर्कफ़्लो में बदलाव, मैन्युअल रूप से | बाहरी खाते या टोकन की जरूरत नहीं है। |
+| `CI` | Trivy | PR में Docker बिल्ड | SARIF परिणाम देखने के लिए code scanning सक्षम करें। |
+| `CI` | `npm audit --omit=dev --audit-level=high` | PR CI | बाहरी खाते या टोकन की जरूरत नहीं है। |
 
-एक्शन SHA पिनिंग को एक भविष्य के हार्डनिंग पास के रूप में ट्रैक किया जाता है। वर्तमान वर्कफ़्लो संस्करणित एक्शन संदर्भों का उपयोग करते हैं ताकि अपडेट प्रबंधनीय बने रहें, जब तक कि रिलीज़ इंफ्रास्ट्रक्चर अभी भी नया है।
+बाहरी GitHub Actions पूर्ण कमिट SHA पर पिन हैं और उनके साथ पढ़ने योग्य संस्करण टिप्पणियां हैं। workflows अपडेट करते समय ये पिन बनाए रखें।
 
 ## दस्तावेज़ीकरण प्रकाशन
 
@@ -220,10 +222,10 @@ npm run upstream:check
 
 ## रिलीज़ टैग
 
-| Release type | GitHub Release setting | npm dist-tag | Docker tags |
+| रिलीज़ का प्रकार | GitHub Release सेटिंग | npm dist-tag | Docker टैग |
 | --- | --- | --- | --- |
-| Stable | Not prerelease | `latest` | `vX.Y.Z`, `X.Y.Z`, `X.Y`, `latest` |
-| Prerelease | Prerelease | `next` | `vX.Y.Z-prerelease`, `X.Y.Z-prerelease` |
+| स्थिर | प्रीरिलीज़ नहीं | `latest` | `vX.Y.Z`, `X.Y.Z`, `X.Y`, `latest` |
+| प्रीरिलीज़ | प्रीरिलीज़ | `next` | `vX.Y.Z-prerelease`, `X.Y.Z-prerelease` |
 
 ## चेकलिस्ट
 

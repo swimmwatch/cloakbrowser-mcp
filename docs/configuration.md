@@ -39,7 +39,7 @@ For task-focused examples, see the [Recipes](recipes/index.md) section.
 | `CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET` | `default` | CloakBrowser human behavior preset: `default` or `careful`. Used only when humanize is enabled. |
 | `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` | `stable` | CloakBrowser binary release channel: `stable` or Pro-only `preview`. |
 | `CLOAKBROWSER_BINARY_PATH` | unset | Path to a custom CloakBrowser executable. The `--binary-path` CLI option takes precedence. |
-| `CLOAKBROWSER_VERSION` | unset | Version pin passed to CloakBrowser's cache resolver when no custom executable is selected. |
+| `CLOAKBROWSER_VERSION` | unset | Version pin passed to CloakBrowser's cache resolver when no custom executable is selected. A valid free-plan license key ignores the pin; CloakBrowser may reuse a cached binary. |
 | `PLAYWRIGHT_MCP_BROWSER_ENGINE` | `cloak` | `cloak` uses the CloakBrowser binary. `playwright` skips Cloak-specific executable replacement. |
 | `PLAYWRIGHT_MCP_HEADLESS` | `true` | Runs Chromium in headless mode. |
 | `PLAYWRIGHT_MCP_OUTPUT_DIR` | `.playwright-mcp` | Artifact directory for npm. Docker sets `/data`. |
@@ -172,18 +172,24 @@ logging it. When `CLOAKBROWSER_CACHE_DIR` points to a custom cache containing
 resolved key from the generated browser environment. Other generated
 environment entries are not copied.
 
-If CloakBrowser rejects a supplied license key, cannot verify it, or cannot
-reach its license server, startup fails with the explicit CloakBrowser error.
+If CloakBrowser rejects a supplied license key or cannot validate it through
+the license server or cached validation, startup fails with the explicit CloakBrowser error.
 The bridge preserves that error; it does not mask it or silently fall back to a
 different browser or license tier.
+
+CloakBrowser can reuse cached validation when its license server is unavailable.
+Cached validation does not guarantee an offline launch: downloading the binary
+or starting the browser can still fail.
 
 ## CloakBrowser Release Channel
 
 `CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL` selects the CloakBrowser binary release
 channel. It defaults to `stable`. `preview` requests a Pro Preview browser
 build and is available only with a Pro license. An explicit
-`CLOAKBROWSER_VERSION` pin takes precedence. If Preview is unavailable for the
-platform, CloakBrowser falls back to Stable.
+`CLOAKBROWSER_VERSION` pin takes precedence for no-key and paid-key downloads.
+A valid free-plan license key ignores the pin and may reuse a cached binary.
+If Preview is unavailable for the platform, CloakBrowser falls
+back to Stable.
 
 The release channel is selected when the bridge process starts. It applies to
 all Streamable HTTP sessions and cannot be set or overridden in initialize
@@ -205,7 +211,8 @@ The bridge does not download or update a custom executable. When no custom path
 is selected, `CLOAKBROWSER_VERSION` can pin the CloakBrowser-managed binary
 version instead.
 
-When the selected binary implements `document.modelContext`, upstream
+When the selected binary provides `document.modelContext` or
+`navigator.modelContext` with `getTools()`, upstream
 Playwright MCP can add `webmcp_<page-tool>` tools after a page snapshot. It
 sends `tools/list_changed`; the bridge forwards the notification and refreshed
 tool list. The page defines each dynamic tool's name and schema.
@@ -226,12 +233,6 @@ older binaries.
 See [GeoIP Proxy Matching](geoip-proxy-matching.md) for setup examples, runtime
 Streamable HTTP proxy metadata, use cases, precedence rules, and limitations.
 For a concise task path, see [Regional QA Through Proxy](recipes/regional-qa-through-proxy.md).
-
-Matching is fail-closed: if CloakBrowser cannot resolve the proxy exit IP, GeoIP
-database, timezone, or locale, the browser does not start with a partially
-matched fingerprint. GeoIP lookup uses a maximum 20-second resolution timeout;
-the first download of the offline GeoIP database is separate and can take
-longer.
 
 ## Humanized Input Behavior
 
@@ -437,7 +438,7 @@ For external or non-loopback exposure, use HTTPS plus `--http-auth-token`, or te
 
 ## Streamable HTTP Sessions
 
-Each Streamable HTTP MCP session owns its own bridge runtime and upstream Playwright MCP child process. HTTP sessions run upstream Playwright MCP with an isolated browser profile so concurrent users do not contend for the same persistent Chromium profile. The built-in `memory` session backend stores only metadata such as session ID, timestamps, expiry, and status. Browser state remains in the live upstream child process, and artifacts are still controlled by `PLAYWRIGHT_MCP_OUTPUT_DIR`.
+Each Streamable HTTP MCP session owns its own bridge runtime and upstream Playwright MCP child process. HTTP sessions use isolated browser profiles by default, unless a persistent profile is configured. An explicit persistent profile is locked; concurrent sessions need different profile directories. The built-in `memory` session backend stores only metadata such as session ID, timestamps, expiry, and status. Browser state remains in the live upstream child process, and artifacts are still controlled by `PLAYWRIGHT_MCP_OUTPUT_DIR`.
 
 For horizontal scaling, run multiple server replicas behind a load balancer with sticky sessions keyed by the `mcp-session-id` header. Future Redis, Postgres, or SQLite backends can coordinate metadata and locks, but they cannot restore a live browser session after the process that owns it exits.
 

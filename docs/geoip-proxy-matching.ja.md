@@ -15,6 +15,8 @@ GeoIPプロキシのマッチング機能により、ブラウザのフィンガ
 上流のPlaywright MCPで使用されているプロキシの所在地と整合するようになります。これは、地域ごとのQAにおいて、
 一貫したプロキシ、タイムゾーン、言語、ロケールプロファイルが求められる場合に役立ちます。
 
+手順別のガイド： [プロキシ経由のリージョン QA](recipes/regional-qa-through-proxy.md).
+
 このブリッジ自体は、プロキシトラフィックを作成したりルーティングしたりしません。
 `PLAYWRIGHT_MCP_PROXY_SERVER` を CloakBrowser の起動準備に渡します。
 マッチングが有効な場合、CloakBrowser は設定されたプロキシの出口位置を解決し、
@@ -164,7 +166,7 @@ docker run --rm -p 127.0.0.1:3000:3000 \
 | 既存セッション | `initialize` 中に取得されたプロキシと GeoIP 設定を保持します。 |
 | 認証付き HTTP プロキシ | 対応するバイナリでは CloakBrowser のネイティブ URL 内インライン認証を使用し、古いバイナリでは Playwright のプロキシオブジェクトを使用します。 |
 | 生のタイムゾーン/ロケールフラグ | `CLOAK_PLAYWRIGHT_MCP_EXTRA_ARGS` 内の明示的な `--fingerprint-timezone`、`--lang`、`--fingerprint-locale` の値は GeoIP 由来の値より優先され、重複しません。 |
-| Browser geolocation API | この機能では設定されません。CloakBrowser のタイムゾーン、言語、ロケール、WebRTC IP のフィンガープリント値のみを合わせます。 |
+| ブラウザの位置情報 API | この機能では設定されません。CloakBrowser のタイムゾーン、言語、ロケールのフィンガープリントフラグのみを合わせます。 |
 
 GeoIPの位置情報は概算であり、プロキシのIPアドレスおよびCloakBrowserの
 GeoIPデータベースに依存します。CloakBrowserは、初回
@@ -184,12 +186,7 @@ npx -y cloakbrowser-mcp@latest
 テストのために使用してください。アクセス制御や地域
 ポリシーのチェックを回避する手段として扱ってはなりません。
 
-GeoIP マッチングは fail-closed です。CloakBrowser がプロキシ出口 IP を解決
-できない、GeoIP データベースをダウンロードまたは読み取れない、あるいは
-タイムゾーンやロケールを導出できない場合、部分的にしか一致しない
-フィンガープリントで続行せず、ブラウザーの起動は失敗します。GeoIP の解決は
-20 秒に制限されます。オフライン GeoIP データベースの初回ダウンロードは別処理で、
-さらに時間がかかることがあります。
+CloakBrowser がプロキシ出口 IP を解決できない、GeoIP データベースをダウンロードまたは読み取れない、あるいはタイムゾーンを取得できない場合、GeoIP マッチングはブラウザーの起動を失敗させます。CloakBrowser 0.6.3 以降では、ロケールの対応表に国がない場合、警告を出して `en-US` を使用します。セーシェルには `en-SC` を使用します。GeoIP の解決タイムアウトは最大 20 秒です。オフラインデータベースの初回ダウンロードはこの制限の対象外で、さらに時間がかかることがあります。
 
 ## 関連する設定
 
@@ -200,3 +197,7 @@ GeoIP マッチングは fail-closed です。CloakBrowser がプロキシ出口
 ## 追加の実用パス
 
 upstream Playwright MCP とこのパッケージのどちらを使うかは[比較](comparison.md)を参照してください。短い作業手順には[レシピ](recipes/index.md)を使います: 永続プロファイル、拡張機能、reverse proxy、リージョン QA、Claude Desktop、Codex CLI、CI スモークテスト。
+
+## CloakBrowser 0.6.0
+
+ブラウザーの `--proxy-server` で SOCKS5 または認証付き HTTP プロキシを設定しても、`context.request`、`page.request`、`route.fetch()` はそのプロキシを使いません。ブラウザーと同じ経路を使う必要があるリクエストには、ページ内の `fetch()` を使用してください。このブリッジは CloakBrowser の自動警告を設定しません。

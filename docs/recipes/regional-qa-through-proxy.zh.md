@@ -34,6 +34,8 @@ docker run --rm -i \
 
 ## Streamable HTTP 会话元数据
 
+一个 Streamable HTTP 服务器可以为每个 MCP 会话接受不同的代理设置：
+
 ```json
 {
   "params": {
@@ -48,10 +50,14 @@ docker run --rm -i \
 }
 ```
 
-现有会话保留 initialize 时捕获的 proxy；要切换区域请创建新会话。
+现有会话保留 `initialize` 时确定的代理；如需切换地区，请启动新会话。
+
+## 验证
+
+让 MCP 客户端访问 IP 或本地化测试页面，并将观察到的地区、语言和时区与代理提供商的预期位置进行比较。
 
 ## 相关内容
 
-- [GeoIP Proxy Matching](../geoip-proxy-matching.md)
-- [Configuration](../configuration.md)
-- [Docker](../docker.md)
+- [GeoIP 代理匹配](../geoip-proxy-matching.md)
+- [配置](../configuration.md#streamable-http-runtime-metadata)
+- [Docker](../docker.md#geoip-proxy-matching)

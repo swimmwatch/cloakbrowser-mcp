@@ -9,6 +9,8 @@ tags:
 
 Используйте опубликованный пакет npm или образ Docker. Установка из исходного кода требуется только для разработки.
 
+Пошаговые инструкции: [Подключитесь к Claude Desktop](recipes/connect-claude-desktop.md), [Подключитесь к Codex CLI](recipes/connect-codex-cli.md), [Docker Streamable HTTP За обратным прокси](recipes/docker-streamable-http-reverse-proxy.md).
+
 Выберите npm, если клиент MCP уже запущен на вашем компьютере и установлен Node.js. Выберите Docker, если вам нужна воспроизводимая среда выполнения с базовым образом Playwright MCP из исходного репозитория и кэшем CloakBrowser, подготовленным внутри контейнера.
 
 Чтобы быстро ознакомиться с ответами на типичные вопросы по настройке, см. [Часто задаваемые вопросы](faq.md).
@@ -30,7 +32,7 @@ npx -y cloakbrowser-mcp@latest --transport streamable-http --http-protocol https
 npx -y {{ project.npm_pin }}
 ```
 
-Для работы этого пакета npm требуется Node.js версии 22.13 или более поздней в ветке 22.x либо Node.js 24 или более поздней версии. При первом запуске CloakBrowser загружает бинарный файл Chromium, если он ещё не находится в кэше.
+Пакет npm требует Node.js `{{ project.node_engine_range }}`. CloakBrowser загружает бинарный файл Chromium, если он ещё не находится в кэше.
 
 Перед подключением клиента используйте `doctor` для проверки локальной среды выполнения Node.js, метаданных пакета, фактически используемого upstream CLI Playwright MCP, определённых версий и путей пакетов `@playwright/mcp`, `playwright` и `playwright-core`, фактического пути к core bundle и метаданных бинарного файла CloakBrowser. Эта команда не запускает мост и не загружает браузер.
 
@@ -85,7 +87,7 @@ docker run --rm -i \
 
 Используйте Docker для воспроизводимой среды выполнения. Сохраните `-i`, чтобы stdio оставалось подключённым; образ уже включает Tini для корректной очистки дочерних процессов браузера. Для клиентов Streamable HTTP запустите сервер отдельно и настройте URL клиента как `http://127.0.0.1:3000/mcp` или `https://127.0.0.1:3000/mcp`. Если задан `CLOAK_PLAYWRIGHT_MCP_HTTP_AUTH_TOKEN` или `--http-auth-token`, передавайте тот же токен Bearer в `/mcp`, `/healthz` и `/readyz`.
 
-## Настройки клиента MCP
+## Настройки клиента MCP { #mcp-client-config }
 
 Большинство локальных клиентов MCP наиболее эффективно работают с stdio и npm:
 

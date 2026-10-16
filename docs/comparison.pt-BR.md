@@ -8,26 +8,30 @@ tags:
 
 # @playwright/mcp vs cloakbrowser-mcp
 
-O upstream @playwright/mcp é o servidor canônico das ferramentas de navegador do Playwright MCP. cloakbrowser-mcp mantém essa superfície sem alterações, mas a executa com CloakBrowser Chromium e fluxos de implantação empacotados.
+O pacote original `@playwright/mcp` é o servidor de referência das ferramentas de navegador do Playwright MCP. `cloakbrowser-mcp` atende equipes que precisam dessas mesmas ferramentas com Chromium do CloakBrowser e formas de implantação empacotadas.
 
-## Recurso
+## Comparação de recursos
 
-| Recurso | @playwright/mcp | cloakbrowser-mcp |
+| Recurso | `@playwright/mcp` | `cloakbrowser-mcp` |
 | --- | --- | --- |
-| Upstream tools | Canonical browser tool surface. | Forwarded unchanged with parity checks. |
-| CloakBrowser Chromium | Uses upstream selected browser runtime. | Runs upstream tools with CloakBrowser Chromium. |
-| npm / Docker | Use upstream package and image. | Adds package and image paths for CloakBrowser deployment. |
-| Streamable HTTP | Follows upstream transport behavior. | Adds packaged health, readiness, auth, HTTPS, and session metadata options. |
-| Profiles / extensions | Use upstream browser state options. | Adds validated persistent profiles and extension paths. |
-| Regional QA / humanized input | Standard Playwright MCP behavior. | Adds GeoIP helpers and optional humanized interactions. |
+| Ferramentas originais sem alterações | Define os esquemas, descrições e respostas originais das ferramentas de navegador. | Encaminha as ferramentas originais sem alterações e verifica a equivalência no CI. |
+| Binário CloakBrowser | Usa o navegador selecionado pelo Playwright MCP original. | Gera a configuração upstream com Chromium do CloakBrowser como executável. |
+| Distribuição npm | É publicado como pacote original do Playwright MCP. | É publicado como `cloakbrowser-mcp` para `npx` e configurações stdio de clientes MCP. |
+| Imagem Docker | Fornece a imagem oficial do Playwright MCP. | É baseado na imagem oficial do Playwright MCP e prepara os padrões do ambiente CloakBrowser. |
+| Streamable HTTP | Segue o comportamento de transporte do projeto original. | Inclui stdio e Streamable HTTP com verificações de saúde e prontidão, autenticação, HTTPS e metadados de sessão. |
+| Perfis persistentes | Usa opções de estado do navegador suportadas pelo upstream. | Valida `PLAYWRIGHT_MCP_USER_DATA_DIR` e bloqueia o perfil ao gerar a configuração. |
+| Caminhos de extensões | São configurados pelo navegador quando há suporte. | Carrega diretórios validados de extensões Chrome e exige perfil persistente. |
+| Validação do contexto | Depende da estrutura da configuração upstream. | Valida opções de contexto suportadas antes de escrever a configuração do Playwright MCP. |
+| QA regional com GeoIP | O roteamento por proxy continua sob responsabilidade do upstream. | Pode alinhar os sinais de fuso horário, idioma e localidade do CloakBrowser à localização do proxy configurado. |
+| Interações humanizadas | Usa o comportamento padrão de interação do Playwright MCP. | Pode encaminhar interações suportadas para a entrada humanizada do CloakBrowser. |
 
-## Escolha upstream quando
+## Quando escolher o Playwright MCP original
 
 - você quer a instalação mais simples de Playwright MCP;
 - não precisa do CloakBrowser Chromium;
 - prefere seguir diretamente o empacotamento upstream do Playwright MCP.
 
-## Escolha CloakBrowser MCP quando
+## Quando escolher o CloakBrowser MCP
 
 - as ferramentas do Playwright MCP devem rodar com CloakBrowser Chromium;
 - você quer caminhos documentados para npm, Docker ou Streamable HTTP;
@@ -35,6 +39,6 @@ O upstream @playwright/mcp é o servidor canônico das ferramentas de navegador 
 
 ## Próximos passos
 
-- [Getting Started](getting-started.md)
-- [Recipes](recipes/index.md)
-- [Tools](tools.md)
+- [Introdução](getting-started.md)
+- [Receitas](recipes/index.md)
+- [Ferramentas](tools.md)

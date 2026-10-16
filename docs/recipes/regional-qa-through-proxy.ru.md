@@ -59,5 +59,5 @@ docker run --rm -i \
 ## Связанный
 
 - [GeoIP Сопоставление прокси](../geoip-proxy-matching.md)
-- [Конфигурация](../configuration.md)
-- [Docker](../docker.md)
+- [Конфигурация](../configuration.md#streamable-http-runtime-metadata)
+- [Docker](../docker.md#geoip-proxy-matching)

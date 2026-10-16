@@ -12,6 +12,8 @@ tags:
 
 ## Server जोड़ें
 
+यह प्रविष्टि `claude_desktop_config.json` में जोड़ें, फिर Claude Desktop दोबारा शुरू करें:
+
 ```json
 {
   "mcpServers": {
@@ -41,10 +43,10 @@ tags:
 
 ## सत्यापन
 
-Ask Claude Desktop to open a page with the cloakbrowser server and take a browser snapshot.
+Claude Desktop से `cloakbrowser` सर्वर द्वारा पेज खोलने और ब्राउज़र स्नैपशॉट लेने को कहें। मूल Playwright MCP ब्राउज़र टूल बिना बदलाव उपलब्ध होने चाहिए।
 
 ## संबंधित
 
-- [Getting Started](../getting-started.md)
+- [आरंभ करना](../getting-started.md#mcp-client-config)
 - [स्थायी लॉगिन प्रोफ़ाइल](persistent-login-profile.md)
-- [Tools](../tools.md)
+- [टूल](../tools.md)

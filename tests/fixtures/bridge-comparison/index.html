@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Cloak MCP fixture</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 24px;
+      }
+      #drop-target {
+        border: 2px dashed #0f766e;
+        height: 96px;
+        margin-top: 12px;
+        padding: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Cloak MCP fixture</h1>
+    <form>
+      <label>Name <input id="name" name="name" /></label>
+      <label>Agree <input id="agree" type="checkbox" /></label>
+      <label>Notes <textarea id="notes"></textarea></label>
+      <label
+        >Role
+        <select id="role">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </label>
+      <input id="file-input" type="file" />
+    </form>
+    <button id="login" type="button">Login</button>
+    <button id="dialog-button" type="button">Dialog</button>
+    <div id="drag-source" draggable="true">Drag source</div>
+    <div id="drop-target">Drop target</div>
+    <iframe id="nested-outer" src="/nested-outer" title="Nested fixture"></iframe>
+    <pre id="status">ready</pre>
+    <script>
+      console.log('console-probe-log');
+      console.warn('console-probe-warn');
+      console.error('console-probe-error');
+      console.info('console-probe-info');
+      console.debug('console-probe-debug');
+      document.body.dataset.consoleProbe = 'complete';
+      fetch('/api/data')
+        .then((r) => r.json())
+        .then((data) => {
+          document.querySelector('#status').textContent = 'api:' + data.ok;
+        });
+      document.querySelector('#login').addEventListener('click', () => {
+        document.body.dataset.clicked = 'true';
+      });
+      document.querySelector('#dialog-button').addEventListener('click', () => {
+        prompt('Dialog question', 'default');
+      });
+      document.querySelector('#file-input').addEventListener('change', (event) => {
+        document.body.dataset.file = event.target.files[0]?.name || '';
+      });
+      document.querySelector('#drag-source').addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('text/plain', 'dragged');
+      });
+      document.querySelector('#drop-target').addEventListener('dragover', (event) => event.preventDefault());
+      document.querySelector('#drop-target').addEventListener('drop', (event) => {
+        event.preventDefault();
+        document.querySelector('#drop-target').textContent =
+          event.dataTransfer.getData('text/plain') || 'dropped';
+      });
+    </script>
+  </body>
+</html>

@@ -9,7 +9,6 @@ export enum HttpStatus {
   InternalServerError = 500,
   ServiceUnavailable = 503,
 }
-
 export enum JsonRpcErrorCode {
   ServerError = -32000,
   SessionNotFound = -32001,

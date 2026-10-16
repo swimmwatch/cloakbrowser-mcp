@@ -8,7 +8,6 @@ export const requiredPackageFiles = [
   'dist/cli.js',
   'dist/runtime/humanize-init-page.cjs',
 ];
-
 export const forbiddenPackageFilePatterns = [
   /^src\//,
   /^tests\//,
@@ -20,27 +19,26 @@ export const forbiddenPackageFilePatterns = [
   /^node_modules\//,
   /(^|\/)\.env(?:\.|$)/,
 ];
-
 export function assertPackageFileList(files) {
   for (const file of requiredPackageFiles) {
     if (!files.includes(file)) {
-      throw new Error(`npm package is missing required file: ${file}`);
+      const message = `npm package is missing required file: ${file}`;
+      throw new Error(message);
     }
   }
-
   const leakedFiles = files.filter((file) =>
     forbiddenPackageFilePatterns.some((pattern) => pattern.test(file)),
   );
-
   if (leakedFiles.length > 0) {
-    throw new Error(`npm package contains non-runtime files: ${leakedFiles.join(', ')}`);
+    const message2 = `npm package contains non-runtime files: ${leakedFiles.join(', ')}`;
+    throw new Error(message2);
   }
 }
-
 export function formatBytes(bytes) {
-  return `${Math.round(bytes / 1024)} KiB`;
+  const computedValue = bytes / 1024;
+  const templateValue = Math.round(computedValue);
+  return `${templateValue} KiB`;
 }
-
 export function parseNpmPackOutput(raw) {
   let parsed;
   try {
@@ -48,16 +46,12 @@ export function parseNpmPackOutput(raw) {
   } catch {
     throw new Error('npm pack --json returned invalid JSON');
   }
-
   const entries = Array.isArray(parsed) ? parsed : isRecord(parsed) ? Object.values(parsed) : [];
-
   if (entries.length !== 1 || !isNpmPackResult(entries[0])) {
     throw new Error('npm pack --json must describe exactly one package');
   }
-
   return entries[0];
 }
-
 function isNpmPackResult(value) {
   return (
     isRecord(value) &&
@@ -71,7 +65,6 @@ function isNpmPackResult(value) {
     typeof value.version === 'string'
   );
 }
-
 function isRecord(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }

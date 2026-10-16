@@ -4,7 +4,7 @@ render_macros: false
 
 # Managed CDP Access Implementation Plan
 
-Status: Replanned against the current Approved specification. Packet 06 is reopened and ready only for a separate explicit implementation invocation. Packets 07 and 08 remain pending.
+Status: Packets 01–06 and 08 are complete locally. Packet 07 has local verification evidence; delivery and native release gates remain open.
 
 Planning does not authorize production changes, dependency changes, commits, pull requests, releases, or publication.
 
@@ -24,7 +24,7 @@ Every implementation invocation must reopen `cdp-access` through Engineer Agent 
 
 Packet 07 real-browser evidence showed that raw CDP `Browser.close` can leave the CloakBrowser upstream child unable to create a usable replacement target. The approved contract now requires a bounded upstream-child restart before the first later `browser_*` tool is forwarded.
 
-Existing code does the opposite:
+Implementation baseline at replanning (retained historical evidence):
 
 - `src/server.ts:110-130` forwards to one fixed upstream client first and only attempts CDP bootstrap after a successful result.
 - `src/server.ts:170-227` retains the initial runtime and client for the lifetime of the bridge server.
@@ -78,9 +78,9 @@ No global mutex is added. Only restart creation is single-flight per session; af
 | 03 | WebSocket relay and proxy shutdown | 02 | Completed evidence retained |
 | 04 | Initial browser bootstrap and generation state | 01-03 | Completed evidence retained |
 | 05 | Stdio/HTTP integration and discovery | 04 | Completed evidence retained |
-| 06 | Upstream-child restart, activity, ordered cleanup | 05 | Reopened; ready only for explicit Packet 06 implementation |
-| 07 | Real-browser and distribution verification | Revised 06 complete | Paused pending Packet 06 evidence |
-| 08 | Operator and developer documentation | 07 complete | Pending |
+| 06 | Upstream-child restart, activity, ordered cleanup | 05 | Complete locally |
+| 07 | Real-browser and distribution verification | Revised 06 complete | Local verification complete; delivery and native release gates open |
+| 08 | Operator and developer documentation | 07 complete | Complete locally |
 
 No packet authorizes another packet, commit, push, pull request, release, or publication. Each implementation invocation stops after its packet and updates `todo.md` and `handoff.md`.
 
@@ -149,4 +149,4 @@ Durable developer documentation remains warranted. The behavior crosses the MCP 
 
 ## Completion Boundary
 
-Planning is complete when both manifest-listed artifacts and all packet contracts match the pinned Approved specification and final workflow check. Implementation remains incomplete. The next authorized action is a separate explicit Packet 06 incremental-implementation invocation. Packet 07, Packet 08, commit, push, pull request, release, and publication remain unauthorized.
+Planning is complete when both manifest-listed artifacts and all packet contracts match the pinned Approved specification and final workflow check. Implementation and documentation have retained local evidence. Remaining delivery-stage and native release checks are listed in `todo.md` and `handoff.md`; local completion does not satisfy those gates. Commit, push, pull request, release, and publication require separate authorization.

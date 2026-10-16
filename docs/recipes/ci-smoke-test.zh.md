@@ -45,6 +45,6 @@ docker run --rm \
 
 ## 相关内容
 
-- [Getting Started](../getting-started.md)
-- [Docker](../docker.md)
-- [Testing](../testing.md)
+- [入门指南](../getting-started.md)
+- [Docker](../docker.md#build-locally)
+- [测试](../testing.md)

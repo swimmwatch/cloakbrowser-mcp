@@ -7,7 +7,6 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { WebSocketServer } from 'ws';
-
 const cdpMetrics = {
   challengePlacements: 0,
   internalPort: null,
@@ -15,10 +14,10 @@ const cdpMetrics = {
 };
 const cdpChallenges = new Map();
 const toolCallCounts = new Map();
+const startedCalls = new Set();
 const dynamicTools = new Map();
 let browserGeneration = 1;
 let fakeChromium;
-
 function configuredCdpPort() {
   const args = readBrowserConfig()?.launchOptions?.args;
   if (!Array.isArray(args)) return null;
@@ -26,38 +25,41 @@ function configuredCdpPort() {
     typeof value === 'string' ? value.startsWith('--remote-debugging-port=') : false,
   );
   if (typeof argument !== 'string') return null;
-  const port = Number(argument.slice('--remote-debugging-port='.length));
-  return Number.isInteger(port) && port >= 1 && port <= 65_535 ? port : null;
+  const sliceResult = argument.slice('--remote-debugging-port='.length);
+  const port = Number(sliceResult);
+  return Number.isInteger(port) && port >= 1 && port <= 65535 ? port : null;
 }
-
 async function ensureFakeChromium() {
   if (fakeChromium !== undefined) return;
   const port = configuredCdpPort();
   if (port === null) return;
-
-  const webSocketServer = new WebSocketServer({ noServer: true, perMessageDeflate: false });
+  const webSocketServerOptions = { noServer: true, perMessageDeflate: false };
+  const webSocketServer = new WebSocketServer(webSocketServerOptions);
   const httpServer = createServer((request, response) => {
     const origin = `ws://127.0.0.1:${port}`;
     if (request.url === '/json/version' || request.url === '/json/version/') {
-      respondJson(response, {
+      const respondJsonOptions = {
         webSocketDebuggerUrl: `${origin}/devtools/browser/browser-${process.pid}-${browserGeneration}`,
-      });
+      };
+      respondJson(response, respondJsonOptions);
       return;
     }
     if (request.url === '/json/list' || request.url === '/json/list/') {
-      respondJson(response, [
+      const values2 = [
         {
           id: `page-${process.pid}-${browserGeneration}`,
           type: 'page',
           webSocketDebuggerUrl: `${origin}/devtools/page/page-${process.pid}-${browserGeneration}`,
         },
-      ]);
+      ];
+      respondJson(response, values2);
       return;
     }
     response.writeHead(404).end();
   });
   httpServer.on('upgrade', (request, socket, head) => {
-    if (!/^\/devtools\/(?:browser|page)\//u.test(request.url ?? '')) {
+    const computedValue = request.url ?? '';
+    if (!/^\/devtools\/(?:browser|page)\//u.test(computedValue)) {
       socket.end('HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n');
       return;
     }
@@ -67,7 +69,8 @@ async function ensureFakeChromium() {
   });
   webSocketServer.on('connection', (webSocket) => {
     webSocket.on('message', (data) => {
-      const request = JSON.parse(Buffer.from(data).toString());
+      const toStringResult = Buffer.from(data).toString();
+      const request = JSON.parse(toStringResult);
       if (request.method === 'Browser.close') {
         browserGeneration += 1;
         webSocket.close(1001, 'browser_closed');
@@ -77,13 +80,14 @@ async function ensureFakeChromium() {
         webSocket.send(data);
         return;
       }
-      const propertyMatch = /const propertyName = ("(?:[^"\\]|\\.)*")/u.exec(
-        request.params?.expression ?? '',
-      );
+      const computedValue2 = request.params?.expression ?? '';
+      const propertyMatch = /const propertyName = ("(?:[^"\\]|\\.)*")/u.exec(computedValue2);
       const propertyName = propertyMatch === null ? undefined : JSON.parse(propertyMatch[1]);
       const value = propertyName === undefined ? undefined : cdpChallenges.get(propertyName);
       if (propertyName !== undefined) cdpChallenges.delete(propertyName);
-      webSocket.send(JSON.stringify({ id: request.id, result: { result: { type: 'string', value } } }));
+      const stringifyOptions = { id: request.id, result: { result: { type: 'string', value } } };
+      const serializedValue = JSON.stringify(stringifyOptions);
+      webSocket.send(serializedValue);
     });
   });
   await new Promise((resolve, reject) => {
@@ -93,47 +97,51 @@ async function ensureFakeChromium() {
   cdpMetrics.internalPort = port;
   fakeChromium = { httpServer, webSocketServer };
 }
-
 async function closeFakeChromium() {
   if (fakeChromium === undefined) return;
   const { httpServer, webSocketServer } = fakeChromium;
   fakeChromium = undefined;
   for (const socket of webSocketServer.clients) socket.terminate();
-  await Promise.all([
+  const values3 = [
     new Promise((resolve) => webSocketServer.close(resolve)),
     new Promise((resolve) => httpServer.close(resolve)),
-  ]);
+  ];
+  await Promise.all(values3);
 }
-
 function respondJson(response, value) {
-  response.writeHead(200, { 'content-type': 'application/json' });
-  response.end(JSON.stringify(value));
+  const writeHeadOptions = { 'content-type': 'application/json' };
+  response.writeHead(200, writeHeadOptions);
+  const serializedValue2 = JSON.stringify(value);
+  response.end(serializedValue2);
 }
-
 function recordChallenge(functionSource) {
   const match = /globalThis\[("(?:[^"\\]|\\.)*")\]\s*=\s*("(?:[^"\\]|\\.)*")/u.exec(functionSource);
   if (match === null) return;
-  cdpChallenges.set(JSON.parse(match[1]), JSON.parse(match[2]));
+  const parsedValue = JSON.parse(match[1]);
+  const parsedValue2 = JSON.parse(match[2]);
+  cdpChallenges.set(parsedValue, parsedValue2);
   cdpMetrics.challengePlacements += 1;
 }
-
-const server = new Server(
-  { name: 'fake-playwright-mcp', version: '1.0.0' },
-  { capabilities: { tools: { listChanged: true } } },
-);
-const toolNames = JSON.parse(readFileSync(new URL('./fake-upstream-tools.json', import.meta.url), 'utf8'));
+const serverOptions = { name: 'fake-playwright-mcp', version: '1.0.0' };
+const serverOptions2 = { capabilities: { tools: { listChanged: true } } };
+const server = new Server(serverOptions, serverOptions2);
+const uRL = new URL('./fake-upstream-tools.json', import.meta.url);
+const fileSyncResult = readFileSync(uRL, 'utf8');
+const toolNames = JSON.parse(fileSyncResult);
 const tools = toolNames.map((name) => ({
   name,
   title: formatToolTitle(name),
   description: `Fake upstream implementation for ${name}.`,
   inputSchema: { type: 'object', properties: {}, additionalProperties: true },
 }));
-
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [...tools, ...dynamicTools.values()],
 }));
-
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  if (request.params.arguments?.fakeRecordStartedCall === true) {
+    const callId = request.params.arguments?.callId;
+    if (typeof callId === 'string') startedCalls.add(callId);
+  }
   const delayMs = request.params.arguments?.delayMs;
   if (typeof delayMs === 'number' && Number.isFinite(delayMs) && delayMs > 0) {
     await new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -143,13 +151,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     await ensureFakeChromium();
   }
   if (request.params.name === 'browser_evaluate') {
-    recordChallenge(request.params.arguments?.function ?? '');
+    const computedValue3 = request.params.arguments?.function ?? '';
+    recordChallenge(computedValue3);
   }
   const dynamicToolAction = request.params.arguments?.fakeDynamicToolAction;
   if (dynamicToolAction === 'add') {
     const dynamicName = request.params.arguments?.fakeDynamicToolName;
     if (typeof dynamicName === 'string' && dynamicName.startsWith('webmcp_')) {
-      dynamicTools.set(dynamicName, {
+      const setOptions = {
         name: dynamicName,
         title: 'Untrusted page tool',
         description: 'Page-provided dynamic tool.',
@@ -159,7 +168,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           additionalProperties: false,
         },
         annotations: { readOnlyHint: false },
-      });
+      };
+      dynamicTools.set(dynamicName, setOptions);
       await server.sendToolListChanged();
     }
   } else if (dynamicToolAction === 'remove') {
@@ -179,6 +189,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     toolCallCounts.set(callId, count);
     value.toolCallCount = count;
   }
+  if (request.params.arguments?.includeStartedCalls === true) value.startedCalls = [...startedCalls];
   if (request.params.arguments?.includePid === true) value.upstreamPid = process.pid;
   if (request.params.arguments?.includeProxyEnv === true) {
     value.proxyEnv = {
@@ -209,15 +220,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     structuredContent: value,
   };
 });
-
-process.stdin.once('end', () => void closeFakeChromium());
-await server.connect(new StdioServerTransport());
-
+process.stdin.once('end', () => {
+  void server.close().finally(() => closeFakeChromium());
+});
+const stdioServerTransport = new StdioServerTransport();
+await server.connect(stdioServerTransport);
 function readProxyConfig() {
   const config = readConfig();
   return config?.browser?.launchOptions?.proxy ?? null;
 }
-
 function readHumanizeConfig() {
   const config = readConfig();
   const initPage = config?.browser?.initPage;
@@ -228,7 +239,6 @@ function readHumanizeConfig() {
     preset: process.env.CLOAK_PLAYWRIGHT_MCP_HUMAN_PRESET ?? null,
   };
 }
-
 function readHeadlessConfig() {
   const config = readConfig();
   return {
@@ -236,7 +246,6 @@ function readHeadlessConfig() {
     config: config?.browser?.launchOptions?.headless ?? null,
   };
 }
-
 function readExtensionConfig() {
   const config = readConfig();
   return {
@@ -246,18 +255,16 @@ function readExtensionConfig() {
     userDataDir: config?.browser?.userDataDir ?? null,
   };
 }
-
 function readBrowserConfig() {
   const config = readConfig();
   return config?.browser ?? null;
 }
-
 function readConfig() {
   const configPath = process.env.PLAYWRIGHT_MCP_CONFIG;
   if (!configPath) return null;
-  return JSON.parse(readFileSync(configPath, 'utf8'));
+  const fileSyncResult2 = readFileSync(configPath, 'utf8');
+  return JSON.parse(fileSyncResult2);
 }
-
 function formatToolTitle(name) {
   return name
     .replace(/^browser_/u, '')

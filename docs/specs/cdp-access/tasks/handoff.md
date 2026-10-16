@@ -6,6 +6,12 @@ render_macros: false
 
 ## Current State
 
+Delivery is consolidated into `release/v1.15.0` and
+[PR 169](https://github.com/swimmwatch/cloakbrowser-mcp/pull/169). Local completion
+does not close the CDP-specific pull-request Docker or native release gates.
+
+### Retained local documentation checkpoint
+
 Packet 08 — Operator And Developer Documentation is locally complete. The approved
 specification remained current before execution:
 
@@ -16,9 +22,9 @@ specification remained current before execution:
 - review: `f008baec-bf84-4454-88db-dab9801e85df`;
 - issues: none.
 
-Packets 01 through 08 are complete locally. Pull-request and release evidence remain
-manual gates because this invocation did not authorize commit, push, pull request,
-release, or publication.
+Packets 01 through 08 have local completion evidence. The original invocation
+did not authorize commit, push, pull request, release, or publication. Later
+source delivery is recorded above; the remaining acceptance gates stay open.
 
 ## Documented Contract
 
@@ -113,13 +119,15 @@ strict build completed successfully.
 
 ## Remaining Manual Gates
 
-- Pull-request CI results have not been observed because no push or pull request was
-  authorized. The linux/amd64 default-Cloak Docker checklist item remains open.
-- Native linux/arm64 runtime evidence has not been observed locally. The release
-  workflow encodes the required native gate, but an emulated build cannot satisfy it.
-- No commit, push, pull request, issue update, release, or publication was performed.
+- CDP-specific pull-request evidence has not been reconciled with this checklist.
+  The linux/amd64 default-Cloak Docker checklist item remains open.
+- Native linux/arm64 runtime evidence must be matched to the required release gate;
+  an emulated build cannot satisfy it.
+- The original local invocation performed no commit, push, pull request, issue
+  update, release, or publication. This is historical execution evidence.
 
 ## Next Action
 
-Owner: user. Decide whether to authorize a commit and pull-request workflow so the
-remaining pull-request and native release gates can be observed.
+Owner: the main agent, when delivery verification is requested. Reconcile completed
+CDP-specific CI evidence with the pull-request and native release checklist.
+Do not wait for or poll remote CI; pending jobs leave acceptance open.

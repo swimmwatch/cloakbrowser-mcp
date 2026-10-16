@@ -10,6 +10,8 @@ tags:
 
 Das veröffentlichte Bild zeigt die empfohlene Laufzeit für eine wiederholbare Nutzung von MCP.
 
+Eine kurze Anleitung für einen bereits laufenden HTTP-Server hinter TLS und Authentifizierung bietet das [Docker-Streamable-HTTP-Rezept für Reverse Proxies](recipes/docker-streamable-http-reverse-proxy.md).
+
 ## Ausführen
 
 ```bash
@@ -22,13 +24,32 @@ Artefakte werden im Container unter `/data` gespeichert. Mounten Sie diesen Pfad
 
 Das Image führt Tini bereits als PID 1 und Subreaper aus, daher benötigen normale Befehle keinen zusätzlichen Docker-init-Prozess.
 
-## Headed-Sitzungen, Health Check und eingeschränkte Laufzeit
-
-Bei headless: false startet der Container bei Bedarf ein privates Xvfb und behält es bis zum Ende des Containers. Dies ist weder ein sichtbarer Desktop noch ein Dienst für VNC, noVNC, RDP, Host-X11 oder Bildschirmaufzeichnung. Playwright-Kontexte, Seiten, Profile und Artefakte sind isoliert, aber nativer X11-Fokus, die Zwischenablage und Bildschirmaufzeichnung sind keine Mandanten-Isolationsgrenzen. Der Docker-Health-Check verwendet einen privaten Unix-Socket, um die Event-Loop der MCP CLI und, falls Xvfb gestartet wurde, dessen Verfügbarkeit zu prüfen; er sendet keinen Datenverkehr über MCP-stdio und ersetzt weder /healthz noch /readyz. Bei einem read-only root filesystem müssen Sie /data einhängen und bei möglichen Headed-Sitzungen writable tmpfs für /tmp und /tmp/.X11-unix bereitstellen.
-
 Die gleichen Release-Tags werden auf Docker Hub als `swimmwatch/cloakbrowser-mcp` und auf GHCR als `ghcr.io/swimmwatch/cloakbrowser-mcp`.
 
-## Persistente Profile
+## Sitzungen mit grafischer Oberfläche und virtuelle Anzeige { #headed-sessions-and-virtual-display }
+
+Das Image verwendet standardmäßig `PLAYWRIGHT_MCP_HEADLESS=true`; Headless-Sitzungen starten Xvfb nicht. Fordert eine Sitzung `headless: false` an, startet der Launcher bei Bedarf eine containerinterne Xvfb-Anzeige, wartet auf deren Betriebsbereitschaft und hält sie bis zum Containerende aktiv. Gleichzeitige HTTP-Sitzungen mit grafischer Oberfläche teilen diese Anzeige, während ihre Playwright-Browserkontexte, Seiten, Profile und Artefakte weiterhin isoliert bleiben.
+
+Setzen Sie für eine stdio-Sitzung mit grafischer Oberfläche die übliche Playwright-MCP-Variable:
+
+```bash
+docker run --rm -i \
+  -e PLAYWRIGHT_MCP_HEADLESS=false \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+Dies ist weder ein sichtbarer Desktop noch ein GUI-Streamingdienst: Das Image bietet kein VNC, noVNC, RDP, keinen Zugriff auf Host-X11 und keine Anzeigeaufzeichnung. Behandeln Sie nativen X11-Fokus, Zwischenablage und Anzeigeaufzeichnung nicht als Isolationsgrenzen zwischen Mandanten. Der Launcher stoppt die Anzeige beim Herunterfahren. Ein Startfehler oder das Ende der MCP CLI beendet den Container, statt eine weiterhin nutzbare Bridge zurückzulassen.
+
+Auch außerhalb dieses Images benötigt ein Browser mit grafischer Oberfläche eine nutzbare Anzeigeumgebung. Setzen Sie `PLAYWRIGHT_MCP_HEADLESS=true`, wenn keine Anzeige verfügbar ist.
+
+## Containerzustand und eingeschränkte Laufzeit { #container-health-and-restricted-runtime }
+
+Der Docker-`HEALTHCHECK` verwendet einen privaten Unix-Socket und prüft aktiv, ob die Ereignisschleife der MCP CLI antwortet. Wenn Xvfb gestartet wurde, prüft er auch die X11-Anzeige. Ein Headless-Container, für den nie eine Anzeige angefordert wurde, bleibt gesund. Anzeigenstart, Herunterfahren der Anzeige oder ein Anzeigenfehler führen zu einem ungesunden Zustand. Die X11-Antwortprüfung ist auf 1 Sekunde, die CLI-Antwort auf 750 Millisekunden und die private Zustandsanfrage auf 2.5 Sekunden begrenzt. Docker beendet einen einzelnen Prüfungsbefehl nach 3 Sekunden. Bei einem Docker-Intervall von 2 Sekunden und zwei Wiederholungen hängen Zustandsübergänge von der Docker-Zeitplanung ab und sind kein Verfügbarkeits-Service-Level-Ziel. Diese Prüfung ist von den öffentlichen HTTP-Endpunkten `/healthz` und `/readyz` getrennt und sendet niemals Datenverkehr über MCP-stdio. Sie belegt nicht, dass ein Browser, eine MCP-Sitzung oder eine entfernte Website nutzbar ist. Neustart und Wiederherstellung liegen beim externen Orchestrator.
+
+Der Launcher wartet pro Kindprozess nach `SIGTERM` bis zu 8 Sekunden und anschließend nach `SIGKILL` bis zu 2 Sekunden auf dessen Ende. Das Docker-Stoppzeitlimit muss das nacheinander erfolgende Herunterfahren von CLI und Xvfb berücksichtigen. Das Image läuft als Benutzer `node` ohne Root-Rechte und unterstützt ein schreibgeschütztes Root-Dateisystem. Halten Sie `/data` für Artefakte eingehängt und stellen Sie beschreibbare temporäre Mounts für `/tmp` und `/tmp/.X11-unix` bereit, wenn Sitzungen mit grafischer Oberfläche möglich sind. Der Zustandssocket ist nur für den Eigentümer zugänglich (`0600`). Der containerinterne X11-Socket wird vom `node`-Prozess und Xvfb gemeinsam genutzt und bildet daher keine Isolationsgrenze zwischen Mandanten. Mounten Sie keinen dieser Sockets vom Host und teilen Sie sie nicht zwischen Containern.
+
+## Persistente Profile { #persistent-profiles }
 
 Docker aktiviert standardmäßig kein persistentes Browserprofil. Verwenden Sie das
 vorhandene Volume `/data` als Persistenzwurzel, wenn Cookies, lokaler Speicher,
@@ -82,7 +103,7 @@ Binden Sie eine kompatible Browser-Binärdatei in den Container ein und übergeb
 Sie ihren Containerpfad über `--binary-path` (oder `CLOAKBROWSER_BINARY_PATH`):
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/custom-chrome:/browser/chrome:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -94,7 +115,7 @@ passt; benötigte Bibliotheken müssen im Container verfügbar sein. Der Pfad gi
 alle Streamable-HTTP-Sitzungen in diesem Container; verwenden Sie getrennte
 Container für unterschiedliche Browser-Binärdateien.
 
-## Chrome-Erweiterungen
+## Chrome-Erweiterungen { #chrome-extensions }
 
 Chrome-Erweiterungen erfordern ein persistentes Profil und müssen separat
 gemountet werden. Verwenden Sie Containerpfade in Umgebungsvariablen, keine
@@ -116,7 +137,7 @@ Erweiterungspfade geändert haben.
 
 Der Playwright-Extension-Verbindungsmodus unterscheidet sich vom oben gezeigten Mount einer entpackten Erweiterung. Er benötigt die offizielle Erweiterung in einem persistent Chrome/Edge profile und `PLAYWRIGHT_MCP_EXTENSION_TOKEN`. Mounten Sie jedes profile in einen eigenen writable path, injizieren Sie das Token über einen Secret Manager und kombinieren Sie `PLAYWRIGHT_MCP_EXTENSION=true` nicht mit `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS`.
 
-## Streamable HTTP
+## Streamable HTTP { #streamable-http }
 
 Für die lokale Nutzung von Streamable HTTP veröffentlichen Sie den Container-Port über Loopback:
 
@@ -128,6 +149,16 @@ docker run --rm -p 127.0.0.1:3000:3000 \
 
 curl http://127.0.0.1:3000/healthz
 curl http://127.0.0.1:3000/readyz
+```
+
+Setzen Sie für HTTP-Sitzungen mit grafischer Oberfläche `PLAYWRIGHT_MCP_HEADLESS=false` im Container. Einzelne `initialize`-Anfragen können über die unterstützten MCP-Metadaten weiterhin den Headless-Modus wählen.
+
+```bash
+docker run --rm -p 127.0.0.1:3000:3000 \
+  -e PLAYWRIGHT_MCP_HEADLESS=false \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http --http-host 0.0.0.0 --http-port 3000
 ```
 
 Für einen direkten HTTPS-Zugriff aus dem Container heraus mounten Sie Ihre Zertifikatsdateien und wählen Sie „HTTPS“ aus:
@@ -201,7 +232,7 @@ belegt denselben beworbenen Port im externen Netzwerknamensraum, bewahrt
 `Host`/`Origin` und leitet eins zu eins an den Klartext-Bridge-Listener weiter. Der
 bridge-to-Chromium Hop bleibt auch Klartext-Loopback-Verkehr.
 
-## GeoIP-Proxy-Abgleich
+## GeoIP-Proxy-Abgleich { #geoip-proxy-matching }
 
 Docker verwendet dieselben Proxy- und GeoIP-Umgebungsvariablen wie npm. Aktivieren Sie
 die GeoIP-Proxy-Zuordnung, wenn die regionale Qualitätssicherung die Zeitzonen-, Sprach- und
@@ -272,7 +303,7 @@ Anwendungsfälle in mehreren Regionen und Einschränkungen.
 }
 ```
 
-## Lokal erstellen
+## Lokal erstellen { #build-locally }
 
 ```bash
 npm run docker:build

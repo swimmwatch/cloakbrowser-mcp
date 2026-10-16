@@ -101,7 +101,7 @@ Mount a compatible browser executable into the container and pass its container
 path through `--binary-path` (or `CLOAKBROWSER_BINARY_PATH`):
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/custom-chrome:/browser/chrome:ro" \
   swimmwatch/cloakbrowser-mcp:latest \

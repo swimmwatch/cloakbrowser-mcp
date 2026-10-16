@@ -7,8 +7,13 @@ from jinja2 import Environment, StrictUndefined
 
 def on_pre_build(config):
     config_file_path = getattr(config, "config_file_path", None) or config.get("config_file_path")
-    root = Path(config_file_path).resolve().parent if config_file_path else Path.cwd()
-    subprocess.run(["npm", "run", "docs:cli"], cwd=root, check=True)
+    if config_file_path:
+        config_path = Path(config_file_path)
+        root = config_path.resolve().parent
+    else:
+        root = Path.cwd()
+    command = ["npm", "run", "docs:cli"]
+    subprocess.run(command, cwd=root, check=True)
     render_llms_txt(root)
 
 
@@ -20,8 +25,10 @@ def render_llms_txt(root):
         keep_trailing_newline=True,
         undefined=StrictUndefined,
     )
-    template = environment.from_string(template_path.read_text(encoding="utf-8"))
-    rendered = template.render(project=read_project_metadata(root))
+    template_source = template_path.read_text(encoding="utf-8")
+    template = environment.from_string(template_source)
+    metadata = read_project_metadata(root)
+    rendered = template.render(project=metadata)
     target_path.write_text(rendered, encoding="utf-8")
 
 
@@ -29,7 +36,8 @@ def read_project_metadata(root):
     module_path = root / "docs_macros.py"
     spec = importlib.util.spec_from_file_location("docs_macros", module_path)
     if spec is None or spec.loader is None:
-        raise RuntimeError(f"Cannot load docs macro module from {module_path}")
+        message = f"Cannot load docs macro module from {module_path}"
+        raise RuntimeError(message)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module.read_project_metadata(root)

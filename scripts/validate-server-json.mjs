@@ -5,49 +5,48 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import { readJson } from '#scripts/lib/files';
 import { fetchJson } from '#scripts/lib/http';
-
-const BUNDLED_SCHEMAS = new Map([
-  [
-    'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
-    fileURLToPath(new URL('./lib/schemas/mcp-server-2025-12-11.schema.json', import.meta.url)),
-  ],
-]);
-
+const argumentValue = 'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json';
+const uRL = new URL('./lib/schemas/mcp-server-2025-12-11.schema.json', import.meta.url);
+const fileURLToPathResult = fileURLToPath(uRL);
+const values = [argumentValue, fileURLToPathResult];
+const values2 = [values];
+const BUNDLED_SCHEMAS = new Map(values2);
 const serverJsonPath = process.argv[2] ?? 'server.json';
 const serverJson = readJson(serverJsonPath);
 const schemaUrl = serverJson.$schema;
-
 if (typeof schemaUrl !== 'string' || schemaUrl.length === 0) {
-  throw new Error(`${serverJsonPath} must declare a non-empty $schema URL.`);
+  const message = `${serverJsonPath} must declare a non-empty $schema URL.`;
+  throw new Error(message);
 }
-
 for (const [index, pkg] of (serverJson.packages ?? []).entries()) {
   if (pkg?.registryType === 'oci' && Object.hasOwn(pkg, 'registryBaseUrl')) {
-    throw new Error(
-      `${serverJsonPath} package ${index + 1} is an OCI package and must not declare registryBaseUrl; use the canonical image reference in identifier instead.`,
-    );
+    const message2 = `${serverJsonPath} package ${index + 1} is an OCI package and must not declare registryBaseUrl; use the canonical image reference in identifier instead.`;
+    throw new Error(message2);
   }
 }
-
 const bundledSchemaPath = BUNDLED_SCHEMAS.get(schemaUrl);
 const schema =
   bundledSchemaPath !== undefined
     ? readJson(bundledSchemaPath)
-    : await fetchJson(schemaUrl, { userAgent: 'cloakbrowser-mcp-server-validator' });
-
-const ajv = new Ajv({
+    : await (() => {
+        const fetchJsonOptions = { userAgent: 'cloakbrowser-mcp-server-validator' };
+        return fetchJson(schemaUrl, fetchJsonOptions);
+      })();
+const ajvOptions = {
   allErrors: true,
   strict: false,
-});
+};
+const ajv = new Ajv(ajvOptions);
 addFormats(ajv);
-
 const validate = ajv.compile(schema);
 if (!validate(serverJson)) {
-  const errors = ajv.errorsText(validate.errors, {
+  const errorsTextOptions = {
     dataVar: serverJsonPath,
     separator: '\n',
-  });
-  throw new Error(`Server metadata validation failed:\n${errors}`);
+  };
+  const errors = ajv.errorsText(validate.errors, errorsTextOptions);
+  const message3 = `Server metadata validation failed:\n${errors}`;
+  throw new Error(message3);
 }
-
-process.stderr.write(`validated ${serverJsonPath} against ${schemaUrl}\n`);
+const message4 = `validated ${serverJsonPath} against ${schemaUrl}\n`;
+process.stderr.write(message4);

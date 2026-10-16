@@ -10,6 +10,8 @@ tags:
 
 掲載されている画像は、MCPを安定して繰り返し使用するための推奨実行環境です。
 
+稼働中の HTTP サーバーを TLS と認証の背後に配置する短い手順は、[Docker Streamable HTTP のリバースプロキシレシピ](recipes/docker-streamable-http-reverse-proxy.md)を参照してください。
+
 ## 実行
 
 ```bash
@@ -22,13 +24,32 @@ docker run --rm -i \
 
 イメージはすでに Tini を PID 1 および subreaper として実行しているため、通常のコマンドに追加の Docker init プロセスは不要です。
 
-## Headed セッション、health check、制限された runtime
-
-headless: false では、コンテナは必要に応じてプライベートな Xvfb を起動し、コンテナ終了まで維持します。これは可視デスクトップでも VNC、noVNC、RDP、host X11、画面キャプチャのサービスでもありません。Playwright の context、page、profile、artifact は分離されますが、ネイティブ X11 の focus、clipboard、画面キャプチャは tenant 分離の境界ではありません。Docker health check はプライベート Unix socket で MCP CLI の event loop を確認し、Xvfb が起動済みならその可用性も確認します。MCP stdio 経由でトラフィックを送らず、/healthz や /readyz の代替でもありません。read-only root filesystem では /data をマウントし、headed セッションがあり得る場合は /tmp と /tmp/.X11-unix に writable tmpfs を用意してください。
-
 同じリリースタグが、Docker Hub には `swimmwatch/cloakbrowser-mcp`という形式で公開され、GHCRには`ghcr.io/swimmwatch/cloakbrowser-mcp`という形式で公開されます。
 
-## 永続プロファイル
+## ヘッドありセッションと仮想ディスプレイ { #headed-sessions-and-virtual-display }
+
+イメージの既定値は `PLAYWRIGHT_MCP_HEADLESS=true` で、ヘッドレスセッションは Xvfb を起動しません。セッションが `headless: false` を要求すると、ランチャーは必要に応じてコンテナ専用の Xvfb ディスプレイを 1 つ起動し、利用可能になるまで待機して、コンテナ終了まで維持します。同時実行のヘッドあり HTTP セッションはこのディスプレイを共有しますが、Playwright のブラウザコンテキスト、ページ、プロファイル、成果物はそれぞれ分離されたままです。
+
+ヘッドあり stdio セッションでは、標準の Playwright MCP 環境変数を設定します：
+
+```bash
+docker run --rm -i \
+  -e PLAYWRIGHT_MCP_HEADLESS=false \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest
+```
+
+これは可視デスクトップや GUI ストリーミングサービスではありません。イメージは VNC、noVNC、RDP、ホストの X11 へのアクセス、ディスプレイのキャプチャを提供しません。ネイティブ X11 のフォーカス、クリップボード、ディスプレイのキャプチャをテナント間の隔離境界として扱わないでください。ランチャーは終了処理でディスプレイを停止します。起動失敗や MCP CLI の終了時にはコンテナも終了し、利用可能なブリッジを残しません。
+
+このイメージ以外でも、ヘッドありブラウザには利用可能なディスプレイ環境が必要です。ディスプレイを利用できない場合は `PLAYWRIGHT_MCP_HEADLESS=true` を設定してください。
+
+## コンテナのヘルスチェックと制限された実行環境 { #container-health-and-restricted-runtime }
+
+Docker の `HEALTHCHECK` は専用の Unix ソケットを使い、MCP CLI のイベントループが応答することを能動的に確認します。Xvfb が起動済みの場合は X11 ディスプレイも確認します。ディスプレイを一度も要求していないヘッドレスコンテナは正常と判定されます。ディスプレイの起動中、終了中、障害時は異常と判定されます。X11 の応答待ちは最大 1 秒、CLI の応答待ちは 750 ミリ秒、内部ヘルスチェックリクエストは 2.5 秒に制限され、Docker は 1 回のヘルスチェックコマンドを 3 秒後に終了します。Docker の確認間隔は 2 秒で、再試行は 2 回です。そのため状態遷移は Docker のスケジューリングに依存し、可用性のサービスレベル目標ではありません。このチェックは公開 HTTP エンドポイントの `/healthz` と `/readyz` とは別で、MCP stdio 経由で通信しません。ブラウザ、MCP セッション、リモートサイトが利用できることを保証するものではありません。再起動と復旧は外部のオーケストレーターが担当します。
+
+ランチャーは各子プロセスに `SIGTERM` を送信した後、終了を最大 8 秒待ちます。その後 `SIGKILL` を送信し、さらに最大 2 秒待ちます。Docker の停止タイムアウトには、CLI と Xvfb を順番に終了するための時間が必要です。イメージは root ではない `node` ユーザーで実行され、読み取り専用のルートファイルシステムでも動作できます。成果物用の `/data` をマウントし、ヘッドありセッションを使用する可能性がある場合は `/tmp` と `/tmp/.X11-unix` に書き込み可能な一時マウントを用意してください。ヘルスチェックソケットへのアクセスは所有者のみ許可されます（`0600`）。コンテナ内の X11 ソケットは `node` プロセスと Xvfb が共有するため、テナント間の隔離境界にはなりません。どちらのソケットもホストからマウントしたり、コンテナ間で共有したりしないでください。
+
+## 永続プロファイル { #persistent-profiles }
 
 Docker はデフォルトでは永続的なブラウザプロファイルを有効にしません。cookie、
 ローカルストレージ、キャッシュ、または拡張機能の状態をコンテナ再起動後も保持したい場合は、
@@ -79,7 +100,7 @@ docker run --rm -i \
 `--binary-path`（または `CLOAKBROWSER_BINARY_PATH`）で渡します。
 
 ```bash
-docker run --rm --init -i \
+docker run --rm -i \
   -v "$PWD/artifacts:/data" \
   -v "$PWD/custom-chrome:/browser/chrome:ro" \
   swimmwatch/cloakbrowser-mcp:latest \
@@ -91,7 +112,7 @@ docker run --rm --init -i \
 パスはコンテナ内のすべての Streamable HTTP セッションに適用されます。異なる
 ブラウザバイナリには別のコンテナを実行してください。
 
-## Chrome 拡張機能
+## Chrome 拡張機能 { #chrome-extensions }
 
 Chrome 拡張機能には永続プロファイルが必要で、個別にマウントする必要があります。
 環境変数にはホストパスではなくコンテナパスを使用してください。
@@ -112,7 +133,7 @@ docker run --rm -i \
 
 Playwright Extension 接続モードは、上記の展開済み拡張機能のマウントとは別です。persistent Chrome/Edge profile に公式拡張機能をインストールし、`PLAYWRIGHT_MCP_EXTENSION_TOKEN` を指定する必要があります。各 profile を別々の writable path にマウントし、token は secret manager から渡してください。`PLAYWRIGHT_MCP_EXTENSION=true` と `CLOAK_PLAYWRIGHT_MCP_EXTENSION_PATHS` は併用しないでください。
 
-## ストリーム可能なHTTP
+## ストリーム可能なHTTP { #streamable-http }
 
 ローカルでの Streamable HTTP を使用する場合は、コンテナのポートをループバックで公開してください：
 
@@ -124,6 +145,16 @@ docker run --rm -p 127.0.0.1:3000:3000 \
 
 curl http://127.0.0.1:3000/healthz
 curl http://127.0.0.1:3000/readyz
+```
+
+ヘッドあり HTTP セッションでは、コンテナに `PLAYWRIGHT_MCP_HEADLESS=false` を設定します。個別の `initialize` リクエストでは、対応する MCP メタデータを使ってヘッドレスモードを選択できます。
+
+```bash
+docker run --rm -p 127.0.0.1:3000:3000 \
+  -e PLAYWRIGHT_MCP_HEADLESS=false \
+  -v "$PWD/artifacts:/data" \
+  swimmwatch/cloakbrowser-mcp:latest \
+  --transport streamable-http --http-host 0.0.0.0 --http-port 3000
 ```
 
 コンテナから直接HTTPSにアクセスするには、証明書ファイルをマウントし、「HTTPS」を選択してください：
@@ -197,7 +228,7 @@ CDP対応セッション；無効なセッションの容量を減らすこと�
 `Host`/`Origin`、そしてプレーンテキストブリッジリスナーに一対一で転送します。
 bridge-to-Chromiumホップもプレーンテキストのループバックトラフィックとして残ります。
 
-## GeoIPプロキシの照合
+## GeoIPプロキシの照合 { #geoip-proxy-matching }
 
 Docker は npm と同じプロキシおよび GeoIP 環境変数を使用します。地域ごとの QA において、CloakBrowser のタイムゾーン、言語、および
 ロケールのフィンガープリントを設定されたプロキシの場所に合わせる必要がある場合は、
@@ -266,7 +297,7 @@ docker run --rm -i \
 }
 ```
 
-## ローカルでビルドする
+## ローカルでビルドする { #build-locally }
 
 ```bash
 npm run docker:build

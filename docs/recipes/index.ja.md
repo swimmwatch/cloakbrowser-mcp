@@ -8,7 +8,7 @@ tags:
 
 # レシピ
 
-作業内容が決まっている場合に使う短いレシピです。詳細なオプションは Configuration、Docker、CLI Reference を参照してください。
+CloakBrowser MCP に任せたい作業が決まっている場合は、これらの短いガイドを使用してください。オプションの詳細は[設定](../configuration.md)、[Docker](../docker.md)、生成された [CLI リファレンス](../generated/cli.md)を参照してください。
 
 ## ブラウザー状態と拡張機能
 
@@ -26,4 +26,4 @@ tags:
 - [Claude Desktop に接続](connect-claude-desktop.md)
 - [Codex CLI に接続](connect-codex-cli.md)
 
-まだパッケージを選んでいる場合は、比較ページから始めてください。
+このパッケージが適しているかまだ検討中の場合は、[`@playwright/mcp` と `cloakbrowser-mcp` の比較](../comparison.md)から始めてください。

@@ -45,227 +45,227 @@
   },
   "sources": {
     "architecture.md": {
-      "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
+      "sourceHash": "38983502f21ca5a22f5fb29d6c3fd3b296844a2645d42c72d75eae5d0822add7",
       "translations": {
         "ru": {
           "path": "architecture.ru.md",
-          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
-          "translationHash": "77c7070bf08b73929727240d0f9017a75d7d494424a06cf1be017dab9f922d98",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:10:07.195Z"
+          "sourceHash": "38983502f21ca5a22f5fb29d6c3fd3b296844a2645d42c72d75eae5d0822add7",
+          "translationHash": "26f2d9295a6f630d5312c073d07d997a5bc5739b782cd9a971db518cf5963ed3",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "be": {
           "path": "architecture.be.md",
-          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
-          "translationHash": "31b5e29c862b2da08aca3b5351baed31cf4d5ab9fdfd560756645bcd58df5686",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:10:13.149Z"
+          "sourceHash": "38983502f21ca5a22f5fb29d6c3fd3b296844a2645d42c72d75eae5d0822add7",
+          "translationHash": "59403dff26133ee9f918042662ac563e1d2ba4215b130e33a0242da6c43efa67",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "uk": {
           "path": "architecture.uk.md",
-          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
-          "translationHash": "19815850f3f083cdc7757c9431cb687c1570ed03f427da2e67573b638becc573",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:10:18.766Z"
+          "sourceHash": "38983502f21ca5a22f5fb29d6c3fd3b296844a2645d42c72d75eae5d0822add7",
+          "translationHash": "1575671c2ebdb9e3268b20238d2241cf646871d035abc1d63276f1b688e2dda9",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "es": {
           "path": "architecture.es.md",
-          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
-          "translationHash": "e484db1520d116a52536d9c022a2ad532b25390ea5adaa95970cb5a3cc122d6a",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:10:23.754Z"
+          "sourceHash": "38983502f21ca5a22f5fb29d6c3fd3b296844a2645d42c72d75eae5d0822add7",
+          "translationHash": "7572291d4bf502f102475bfdcf2fe738e21eb17ede40135a7d319d4a594e32c5",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "pt-BR": {
           "path": "architecture.pt-BR.md",
-          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
-          "translationHash": "e9cc89acf68d8119e93826f54812426c7d668f901a11f6899090f6857e5bde83",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:10:38.446Z"
+          "sourceHash": "38983502f21ca5a22f5fb29d6c3fd3b296844a2645d42c72d75eae5d0822add7",
+          "translationHash": "7ebc882c83353f2d30b6c6585cf7aac4cfcccb6f7a93a7c06cceea5540e2b768",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "zh": {
           "path": "architecture.zh.md",
-          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
-          "translationHash": "689e30b5d6fab151bec406d56e33a54d77e968b058ecd778b32b3019bd3b5b7f",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:10:43.750Z"
+          "sourceHash": "38983502f21ca5a22f5fb29d6c3fd3b296844a2645d42c72d75eae5d0822add7",
+          "translationHash": "a7f86bd1dcf2dcf044d600f9c973a31fa2d5e84c294eead7ab45b965e7b16778",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "ja": {
           "path": "architecture.ja.md",
-          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
-          "translationHash": "9ca2515bcb2f0faa45d2b50a37024d5185fd8dd185823c27f09fb3b8e28cfd72",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:10:49.055Z"
+          "sourceHash": "38983502f21ca5a22f5fb29d6c3fd3b296844a2645d42c72d75eae5d0822add7",
+          "translationHash": "b6a345a3cf921a65e308ea0f901409721fecfc353c8226317c16deb9deb8f918",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "de": {
           "path": "architecture.de.md",
-          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
-          "translationHash": "1e2e6ec6b2ff11ca8e1bc533e30e42f889a8246b4b2cb46e0b995ca9ccdba4d4",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:10:57.277Z"
+          "sourceHash": "38983502f21ca5a22f5fb29d6c3fd3b296844a2645d42c72d75eae5d0822add7",
+          "translationHash": "67bfede8d3fd4c3899419e00ae618268687e6c891f5822a446435edb15da3902",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "fr": {
           "path": "architecture.fr.md",
-          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
-          "translationHash": "62823569d2d47e40ac7c4df71c5c7285dfbf653d0ed12e7cadea7fb234797d24",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:11:07.629Z"
+          "sourceHash": "38983502f21ca5a22f5fb29d6c3fd3b296844a2645d42c72d75eae5d0822add7",
+          "translationHash": "003341a3b1b0db2e4f06d91626e12c36709e8c22b2e11370c4d71403d561c0d1",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "hi": {
           "path": "architecture.hi.md",
-          "sourceHash": "34da211f9e223db338b49c73e048ebc5358e9b59e54bb60391fce3bbb0506d86",
-          "translationHash": "08a7512c5431ef71596e9fad30c9f6f93ff2962ede4e4d762a17272f60dc8eeb",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:11:14.587Z"
+          "sourceHash": "38983502f21ca5a22f5fb29d6c3fd3b296844a2645d42c72d75eae5d0822add7",
+          "translationHash": "8a968a79999b4ae355c0dad595d04892da5599b09bbebed205a1d662780b0b29",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         }
       }
     },
     "configuration.md": {
-      "sourceHash": "0f9386d344558d2004aa5c0ab030dcd1383a302c393015833d8c73797ae99286",
+      "sourceHash": "4d7e8c2f95ec29fa1ed159a09ff9f60dd4200810b2c598160088c768bfee340f",
       "translations": {
         "ru": {
           "path": "configuration.ru.md",
-          "sourceHash": "0f9386d344558d2004aa5c0ab030dcd1383a302c393015833d8c73797ae99286",
-          "translationHash": "52f6adc98769037609af5c8f8a6787d4e786dc052a163ba8506bfae4de6d2d61",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:57:21+03:00"
+          "sourceHash": "4d7e8c2f95ec29fa1ed159a09ff9f60dd4200810b2c598160088c768bfee340f",
+          "translationHash": "7f83f425f99b223f29f6adf50372994162637b681b8b93c58822480629c8bef1",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "be": {
           "path": "configuration.be.md",
-          "sourceHash": "0f9386d344558d2004aa5c0ab030dcd1383a302c393015833d8c73797ae99286",
-          "translationHash": "f96bbf61deb11a1314460c545a304c23944f73e0deeb1f3a4c9b15523e8c5848",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:57:21+03:00"
+          "sourceHash": "4d7e8c2f95ec29fa1ed159a09ff9f60dd4200810b2c598160088c768bfee340f",
+          "translationHash": "c55c449d62e349484a1165519bf44ca0171ca9e3791ecd3dd9e2a3c3cc265d3a",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "uk": {
           "path": "configuration.uk.md",
-          "sourceHash": "0f9386d344558d2004aa5c0ab030dcd1383a302c393015833d8c73797ae99286",
-          "translationHash": "bf22afd46ec584d57258f6f37781a3a1e1d8c97d693482c9e9f6395d9857615a",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:57:21+03:00"
+          "sourceHash": "4d7e8c2f95ec29fa1ed159a09ff9f60dd4200810b2c598160088c768bfee340f",
+          "translationHash": "28474569dadf5e43e9c47b0dfb79b7b731afb9572f58c817fc4515eb72fd707b",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "es": {
           "path": "configuration.es.md",
-          "sourceHash": "0f9386d344558d2004aa5c0ab030dcd1383a302c393015833d8c73797ae99286",
-          "translationHash": "bcfbaf136eda6f0443d091b9b4146933262e7851485587dec10873161693cb2e",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:57:21+03:00"
+          "sourceHash": "4d7e8c2f95ec29fa1ed159a09ff9f60dd4200810b2c598160088c768bfee340f",
+          "translationHash": "bb9033ccbf99b9d5fa96cc170f9f689bbf3e54278fa53fd534ea6430066bfa42",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "pt-BR": {
           "path": "configuration.pt-BR.md",
-          "sourceHash": "0f9386d344558d2004aa5c0ab030dcd1383a302c393015833d8c73797ae99286",
-          "translationHash": "f22cd00052d9a98af90a4a4e83f94bc8f5c8730e305622371bfc44b2e69b68cb",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:57:21+03:00"
+          "sourceHash": "4d7e8c2f95ec29fa1ed159a09ff9f60dd4200810b2c598160088c768bfee340f",
+          "translationHash": "2c0ab8352db09ec53ed6801de6e5b815972c1dc458acc45f72efa104a4ee7859",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "zh": {
           "path": "configuration.zh.md",
-          "sourceHash": "0f9386d344558d2004aa5c0ab030dcd1383a302c393015833d8c73797ae99286",
-          "translationHash": "42d4a18cf977008c26d87be9bb0f0f5275a864d2bb12c170ee4b243c0f3b01e6",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:57:21+03:00"
+          "sourceHash": "4d7e8c2f95ec29fa1ed159a09ff9f60dd4200810b2c598160088c768bfee340f",
+          "translationHash": "434ee480a74c5956e64736857d0edfb6684d1cb119aed2fb8275c7dcf0ef9a2a",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "ja": {
           "path": "configuration.ja.md",
-          "sourceHash": "0f9386d344558d2004aa5c0ab030dcd1383a302c393015833d8c73797ae99286",
-          "translationHash": "5300f92d103b59b4360ec7219f1e31332a431dbfc62ea13341f5178430d67f03",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:57:21+03:00"
+          "sourceHash": "4d7e8c2f95ec29fa1ed159a09ff9f60dd4200810b2c598160088c768bfee340f",
+          "translationHash": "52556925bc835a96b381199c4dad5996f7b0d75fe44768f9d26a463eef0d9661",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "de": {
           "path": "configuration.de.md",
-          "sourceHash": "0f9386d344558d2004aa5c0ab030dcd1383a302c393015833d8c73797ae99286",
-          "translationHash": "15259fec770a0021b1d03495f12ddcbba2027c3268cb6780f3e5cfb006905af7",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:57:21+03:00"
+          "sourceHash": "4d7e8c2f95ec29fa1ed159a09ff9f60dd4200810b2c598160088c768bfee340f",
+          "translationHash": "e46e05ed11eb926164951eaed076c1cffb2d2f9a7d8e9c1a499dcda8cee96137",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "fr": {
           "path": "configuration.fr.md",
-          "sourceHash": "0f9386d344558d2004aa5c0ab030dcd1383a302c393015833d8c73797ae99286",
-          "translationHash": "47899300bd2f8567f154a500f242d7c29d7d5230cd4d7e3c79d39989b95bd00d",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:57:21+03:00"
+          "sourceHash": "4d7e8c2f95ec29fa1ed159a09ff9f60dd4200810b2c598160088c768bfee340f",
+          "translationHash": "6116dcc03ed9b9e3862ce37fd607fe01eca210d4cbed25b5f2ff61a9e70f39dc",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "hi": {
           "path": "configuration.hi.md",
-          "sourceHash": "0f9386d344558d2004aa5c0ab030dcd1383a302c393015833d8c73797ae99286",
-          "translationHash": "532a947ecf9d4e9230f728c3bbf763bd0543533d0b8edced07f0606f48b30750",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:57:21+03:00"
+          "sourceHash": "4d7e8c2f95ec29fa1ed159a09ff9f60dd4200810b2c598160088c768bfee340f",
+          "translationHash": "2db89f8fe19141e1f58e18c04440c9e4e90a0186f39cb5dc13b98c3da0d1287f",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         }
       }
     },
     "contributing.md": {
-      "sourceHash": "fe30365316cd317dd03fd8c6f6ed042ab98837a219f36d28ac635708b0518479",
+      "sourceHash": "c3610e5b9fcd24ac6cc9e7703ae12b0cd6a5486f2b908771f8402498bb5a67e1",
       "translations": {
         "ru": {
           "path": "contributing.ru.md",
-          "sourceHash": "fe30365316cd317dd03fd8c6f6ed042ab98837a219f36d28ac635708b0518479",
-          "translationHash": "c93bc9480106f5860b2fae41f0cf6255b36d4239aaa30b3c75a1a61956ce95fc",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:13:46.822Z"
+          "sourceHash": "c3610e5b9fcd24ac6cc9e7703ae12b0cd6a5486f2b908771f8402498bb5a67e1",
+          "translationHash": "48f69ddee8a8ee916d2538de9aaf7ddea6afd927703f847dcb58c97ae1dc1a93",
+          "translator": "manual targeted translation (LLM)",
+          "updatedAt": "2026-10-11T19:00:12+03:00"
         },
         "be": {
           "path": "contributing.be.md",
-          "sourceHash": "fe30365316cd317dd03fd8c6f6ed042ab98837a219f36d28ac635708b0518479",
-          "translationHash": "5decb56599d7f671f432609dea1700a9fad588714c9284fd768c026065707a3e",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:13:49.734Z"
+          "sourceHash": "c3610e5b9fcd24ac6cc9e7703ae12b0cd6a5486f2b908771f8402498bb5a67e1",
+          "translationHash": "1386ff5edca59f17709d027cc303970c176c9a006de6b6705d53199ffeab5ea3",
+          "translator": "manual targeted translation (LLM)",
+          "updatedAt": "2026-10-11T19:00:12+03:00"
         },
         "uk": {
           "path": "contributing.uk.md",
-          "sourceHash": "fe30365316cd317dd03fd8c6f6ed042ab98837a219f36d28ac635708b0518479",
-          "translationHash": "c3b6e11a8f3ef8faa70953a8c9a8896ef657ef0c29428a18163ad9944440b1cc",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:13:53.742Z"
+          "sourceHash": "c3610e5b9fcd24ac6cc9e7703ae12b0cd6a5486f2b908771f8402498bb5a67e1",
+          "translationHash": "1411532ac46a7aa672cc7e360c1bf2b067d058ceb3459e569cd016191d944a32",
+          "translator": "manual targeted translation (LLM)",
+          "updatedAt": "2026-10-11T19:00:12+03:00"
         },
         "es": {
           "path": "contributing.es.md",
-          "sourceHash": "fe30365316cd317dd03fd8c6f6ed042ab98837a219f36d28ac635708b0518479",
-          "translationHash": "fb2f9416724e0cf92a5f47754a1ae292ea49f0e8599b6cb0b541cf79c57d224d",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:13:58.367Z"
+          "sourceHash": "c3610e5b9fcd24ac6cc9e7703ae12b0cd6a5486f2b908771f8402498bb5a67e1",
+          "translationHash": "10a626309a50e30a840ba0e811d39809790f1dd8a7fb4547904acaebcb7d41dd",
+          "translator": "manual targeted translation (LLM)",
+          "updatedAt": "2026-10-11T19:00:12+03:00"
         },
         "pt-BR": {
           "path": "contributing.pt-BR.md",
-          "sourceHash": "fe30365316cd317dd03fd8c6f6ed042ab98837a219f36d28ac635708b0518479",
-          "translationHash": "4ae8f01569a8b729cfc0fbff25b7c19905ec3a022eb15ae8900a0bfe4a8e81ca",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:14:02.291Z"
+          "sourceHash": "c3610e5b9fcd24ac6cc9e7703ae12b0cd6a5486f2b908771f8402498bb5a67e1",
+          "translationHash": "f1a085d16d4aaf23a12008b9e5c5a23d10d4849845a87f6218dc112fdaed94f6",
+          "translator": "manual targeted translation (LLM)",
+          "updatedAt": "2026-10-11T19:00:12+03:00"
         },
         "zh": {
           "path": "contributing.zh.md",
-          "sourceHash": "fe30365316cd317dd03fd8c6f6ed042ab98837a219f36d28ac635708b0518479",
-          "translationHash": "8eea44411ea1aa0723142d2493cb95245ad48ae6e4f72448ad24ee58fb8787dd",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:14:06.602Z"
+          "sourceHash": "c3610e5b9fcd24ac6cc9e7703ae12b0cd6a5486f2b908771f8402498bb5a67e1",
+          "translationHash": "121d03b1658300fc65d2d659ac61e5546a779bc031ce4d1608c190d5816d47fa",
+          "translator": "manual targeted translation (LLM)",
+          "updatedAt": "2026-10-11T19:00:12+03:00"
         },
         "ja": {
           "path": "contributing.ja.md",
-          "sourceHash": "fe30365316cd317dd03fd8c6f6ed042ab98837a219f36d28ac635708b0518479",
-          "translationHash": "92e006804ac12cf3b3b3fe88b8c5a17f4380528da40a08e6c2f8f008c6564519",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:14:10.538Z"
+          "sourceHash": "c3610e5b9fcd24ac6cc9e7703ae12b0cd6a5486f2b908771f8402498bb5a67e1",
+          "translationHash": "7b59050b26d9a5050141dddef86037da0e400802bbd5e3936b1033b50b798a05",
+          "translator": "manual targeted translation (LLM)",
+          "updatedAt": "2026-10-11T19:00:12+03:00"
         },
         "de": {
           "path": "contributing.de.md",
-          "sourceHash": "fe30365316cd317dd03fd8c6f6ed042ab98837a219f36d28ac635708b0518479",
-          "translationHash": "407e6ef129dea036a253a2eb69c8c5373e1f7633795fd6501b9fe98335a911d1",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:14:14.602Z"
+          "sourceHash": "c3610e5b9fcd24ac6cc9e7703ae12b0cd6a5486f2b908771f8402498bb5a67e1",
+          "translationHash": "98b15e896bcdb2579be996535a54593760cd23975aea2ec1c6141d419872761e",
+          "translator": "manual targeted translation (LLM)",
+          "updatedAt": "2026-10-11T19:00:12+03:00"
         },
         "fr": {
           "path": "contributing.fr.md",
-          "sourceHash": "fe30365316cd317dd03fd8c6f6ed042ab98837a219f36d28ac635708b0518479",
-          "translationHash": "d62584e8df12b841c424d3308092211d657a271b51b4c62309a465eb67bd3d98",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:14:18.349Z"
+          "sourceHash": "c3610e5b9fcd24ac6cc9e7703ae12b0cd6a5486f2b908771f8402498bb5a67e1",
+          "translationHash": "1ced2239b2d6c81756ae701719aee357b937f266168d9c74fd109d09aa6ee1a9",
+          "translator": "manual targeted translation (LLM)",
+          "updatedAt": "2026-10-11T19:00:12+03:00"
         },
         "hi": {
           "path": "contributing.hi.md",
-          "sourceHash": "fe30365316cd317dd03fd8c6f6ed042ab98837a219f36d28ac635708b0518479",
-          "translationHash": "806ee946000e56d2606a24de8d1b457acacbaea841fce532afcea540a242915b",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:14:23.121Z"
+          "sourceHash": "c3610e5b9fcd24ac6cc9e7703ae12b0cd6a5486f2b908771f8402498bb5a67e1",
+          "translationHash": "8b0be4d9e32aceef51df678c0bfb1f95764048b976850d5a842144c72ea09f2b",
+          "translator": "manual targeted translation (LLM)",
+          "updatedAt": "2026-10-11T19:00:12+03:00"
         }
       }
     },
@@ -345,602 +345,602 @@
       }
     },
     "development.md": {
-      "sourceHash": "fc669da6f36bfeeb8533ffb38d1bfe538f745cfb5d28d85c72675b70479a1523",
+      "sourceHash": "a698123365f3b02793253d7ad16f81efc2896132bcb30ae43266520915df6a2b",
       "translations": {
         "ru": {
           "path": "development.ru.md",
-          "sourceHash": "fc669da6f36bfeeb8533ffb38d1bfe538f745cfb5d28d85c72675b70479a1523",
-          "translationHash": "61413698f770bad5958c0c61be4286c6e7b07cc662d47509412b5b46fca7591d",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:15:05.302Z"
+          "sourceHash": "a698123365f3b02793253d7ad16f81efc2896132bcb30ae43266520915df6a2b",
+          "translationHash": "f7ab70374840920ccbbd68af6e0fb6c908547e717fc99b2634351674350104ca",
+          "translator": "manual documentation audit",
+          "updatedAt": "2026-10-12T20:19:14.599Z"
         },
         "be": {
           "path": "development.be.md",
-          "sourceHash": "fc669da6f36bfeeb8533ffb38d1bfe538f745cfb5d28d85c72675b70479a1523",
-          "translationHash": "2daa959b8addf8e8056d7c25bb2f0fd1e7757c775b4071ef3b273c010b6a714e",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:15:09.122Z"
+          "sourceHash": "a698123365f3b02793253d7ad16f81efc2896132bcb30ae43266520915df6a2b",
+          "translationHash": "70bf35ee9513d75fda42734f8c0cc7210ccbe495eb7ad69f4e16bb76c131c82c",
+          "translator": "manual documentation audit",
+          "updatedAt": "2026-10-12T20:19:14.599Z"
         },
         "uk": {
           "path": "development.uk.md",
-          "sourceHash": "fc669da6f36bfeeb8533ffb38d1bfe538f745cfb5d28d85c72675b70479a1523",
-          "translationHash": "f7715e5ea9d2e07c098a0c3e4559542e7e7a98746cabdcd1ee605d0bb3e82f64",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:15:14.091Z"
+          "sourceHash": "a698123365f3b02793253d7ad16f81efc2896132bcb30ae43266520915df6a2b",
+          "translationHash": "8fe365e8f446e3a20e16480bbe832e2cbb3452c8457d1152897a53bd5ccba6c4",
+          "translator": "manual documentation audit",
+          "updatedAt": "2026-10-12T20:19:14.599Z"
         },
         "es": {
           "path": "development.es.md",
-          "sourceHash": "fc669da6f36bfeeb8533ffb38d1bfe538f745cfb5d28d85c72675b70479a1523",
-          "translationHash": "78da19e4bf0f493c50b4db9904fa280c8f0387d4a21fecda211f03e60a3d98ca",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:15:17.986Z"
+          "sourceHash": "a698123365f3b02793253d7ad16f81efc2896132bcb30ae43266520915df6a2b",
+          "translationHash": "d20e0a6080c51cc898e3a700558e552dc0181f2220d43b052e675cb73a58c90a",
+          "translator": "manual documentation audit",
+          "updatedAt": "2026-10-12T20:19:14.599Z"
         },
         "pt-BR": {
           "path": "development.pt-BR.md",
-          "sourceHash": "fc669da6f36bfeeb8533ffb38d1bfe538f745cfb5d28d85c72675b70479a1523",
-          "translationHash": "88c5b6d2594bfd6204df6fc6716b5199d8b14985f673e93edf174ef65e3da28a",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:15:21.933Z"
+          "sourceHash": "a698123365f3b02793253d7ad16f81efc2896132bcb30ae43266520915df6a2b",
+          "translationHash": "0a2018d33652c1d0cbc4f729655f5c318704fc6c5b75446880cd8b21ce0141b2",
+          "translator": "manual documentation audit",
+          "updatedAt": "2026-10-12T20:19:14.599Z"
         },
         "zh": {
           "path": "development.zh.md",
-          "sourceHash": "fc669da6f36bfeeb8533ffb38d1bfe538f745cfb5d28d85c72675b70479a1523",
-          "translationHash": "d7254e88dead8c0f9f9c4a458375672190a30a5abf5b1188449d092e87f5c22e",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:15:26.703Z"
+          "sourceHash": "a698123365f3b02793253d7ad16f81efc2896132bcb30ae43266520915df6a2b",
+          "translationHash": "4096865c6bbf8f9528f0953a6f2a07065d4e5a3a066ab7a550d5eb9fefc60720",
+          "translator": "manual documentation audit",
+          "updatedAt": "2026-10-12T20:19:14.599Z"
         },
         "ja": {
           "path": "development.ja.md",
-          "sourceHash": "fc669da6f36bfeeb8533ffb38d1bfe538f745cfb5d28d85c72675b70479a1523",
-          "translationHash": "55df0afa9b7bbefc09e8912d9799e336e1753b7c2dddd7ba223ebe5fa2ca6419",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:15:30.385Z"
+          "sourceHash": "a698123365f3b02793253d7ad16f81efc2896132bcb30ae43266520915df6a2b",
+          "translationHash": "9c8de44a07523c62c0b661846a24b579e04fe25d7f1be1ffccd620467680b009",
+          "translator": "manual documentation audit",
+          "updatedAt": "2026-10-12T20:19:14.599Z"
         },
         "de": {
           "path": "development.de.md",
-          "sourceHash": "fc669da6f36bfeeb8533ffb38d1bfe538f745cfb5d28d85c72675b70479a1523",
-          "translationHash": "e1eb35400b4b927f090b35fa6ca128ef9ea74dfb00028b2476784a0f17dca754",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:15:35.146Z"
+          "sourceHash": "a698123365f3b02793253d7ad16f81efc2896132bcb30ae43266520915df6a2b",
+          "translationHash": "3af3a834db6a8ec139a7050bfe3d7f929b2e2a8fd960140e1cd5aed48b978fb4",
+          "translator": "manual documentation audit",
+          "updatedAt": "2026-10-12T20:19:14.599Z"
         },
         "fr": {
           "path": "development.fr.md",
-          "sourceHash": "fc669da6f36bfeeb8533ffb38d1bfe538f745cfb5d28d85c72675b70479a1523",
-          "translationHash": "6659d3829e9fb4789e598c388bd9df7b75be377bdcdcb6628f97a1e5ad6870d2",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:15:38.980Z"
+          "sourceHash": "a698123365f3b02793253d7ad16f81efc2896132bcb30ae43266520915df6a2b",
+          "translationHash": "74ff19b65e53e352f5e1ae42dc8601d535086aa553f48bda4175734b5973659b",
+          "translator": "manual documentation audit",
+          "updatedAt": "2026-10-12T20:19:14.599Z"
         },
         "hi": {
           "path": "development.hi.md",
-          "sourceHash": "fc669da6f36bfeeb8533ffb38d1bfe538f745cfb5d28d85c72675b70479a1523",
-          "translationHash": "a2a3a19f742ec2efc32c5d7e9a4ad2b528ffe365ec2e5635145373816a6779fd",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:15:44.069Z"
+          "sourceHash": "a698123365f3b02793253d7ad16f81efc2896132bcb30ae43266520915df6a2b",
+          "translationHash": "461d76a5db4a77709a48b5c9e269a938d64961873b2131266eff78495eaa2fcd",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         }
       }
     },
     "docker.md": {
-      "sourceHash": "d333996178411b4326b739f8a1895f2e66e6a54a9ad5dd5103ae94e84b77e7c9",
+      "sourceHash": "121cdaca9d3fb45118ebf09d7c2df4e6da8d3f865a8f8888b34e858db6361f3b",
       "translations": {
         "ru": {
           "path": "docker.ru.md",
-          "sourceHash": "d333996178411b4326b739f8a1895f2e66e6a54a9ad5dd5103ae94e84b77e7c9",
-          "translationHash": "23cd9b582944993ebb41731cc20e3784f499150bba8dda6c2771a0e1d63241fd",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:43:23+03:00"
+          "sourceHash": "121cdaca9d3fb45118ebf09d7c2df4e6da8d3f865a8f8888b34e858db6361f3b",
+          "translationHash": "d03bf19ece7be0668b60413975657ec4045320859023b71be689c1f704af7449",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "be": {
           "path": "docker.be.md",
-          "sourceHash": "d333996178411b4326b739f8a1895f2e66e6a54a9ad5dd5103ae94e84b77e7c9",
-          "translationHash": "9fc6f6b2859a3c8faa7c711e326e0b131b79e9da3ec9de15e3756465e548cefe",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:43:23+03:00"
+          "sourceHash": "121cdaca9d3fb45118ebf09d7c2df4e6da8d3f865a8f8888b34e858db6361f3b",
+          "translationHash": "9c2ebbc76b79a099fe387d74501030f2169a8518a4d1684353f420c1b5fa86ac",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "uk": {
           "path": "docker.uk.md",
-          "sourceHash": "d333996178411b4326b739f8a1895f2e66e6a54a9ad5dd5103ae94e84b77e7c9",
-          "translationHash": "96c299b07b9c73b054db16a2bba4cae0cdde7a6d5fa95faede3f327172e0c81f",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:43:23+03:00"
+          "sourceHash": "121cdaca9d3fb45118ebf09d7c2df4e6da8d3f865a8f8888b34e858db6361f3b",
+          "translationHash": "46db9c7357f68543a5d25b7ecf8888f5db13632b8be1f855b8ec99487171f3af",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "es": {
           "path": "docker.es.md",
-          "sourceHash": "d333996178411b4326b739f8a1895f2e66e6a54a9ad5dd5103ae94e84b77e7c9",
-          "translationHash": "82f39fbab7f2c678081d3f698de11529355d673e4b6297fd1de690a8b66e4f97",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:43:23+03:00"
+          "sourceHash": "121cdaca9d3fb45118ebf09d7c2df4e6da8d3f865a8f8888b34e858db6361f3b",
+          "translationHash": "0d45a6eb38c4ea0f67dbd24a20193f79e8e327dc292ae4982cbcc66dc83fd037",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "pt-BR": {
           "path": "docker.pt-BR.md",
-          "sourceHash": "d333996178411b4326b739f8a1895f2e66e6a54a9ad5dd5103ae94e84b77e7c9",
-          "translationHash": "d0877dc98e6b262fdfd38db452ae34e516da72827e63ef0203c45788d9bd0cee",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:43:23+03:00"
+          "sourceHash": "121cdaca9d3fb45118ebf09d7c2df4e6da8d3f865a8f8888b34e858db6361f3b",
+          "translationHash": "19eac1e1222670faaded834e9163af09da0172643a0f8ba59fa8dcde43a66a8a",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "zh": {
           "path": "docker.zh.md",
-          "sourceHash": "d333996178411b4326b739f8a1895f2e66e6a54a9ad5dd5103ae94e84b77e7c9",
-          "translationHash": "4e71216e01bb8c8e92c8a43dcc535d52db868b385459667da649756247ead6c5",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:43:23+03:00"
+          "sourceHash": "121cdaca9d3fb45118ebf09d7c2df4e6da8d3f865a8f8888b34e858db6361f3b",
+          "translationHash": "fee6385b49240ed52784b0f71b92c94f17e9695723d56e806bae2b06eb74f941",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "ja": {
           "path": "docker.ja.md",
-          "sourceHash": "d333996178411b4326b739f8a1895f2e66e6a54a9ad5dd5103ae94e84b77e7c9",
-          "translationHash": "123d36ae34d9f0541622b3e42bf9be7bba292364caf60b00e196c8ea055e9455",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:43:23+03:00"
+          "sourceHash": "121cdaca9d3fb45118ebf09d7c2df4e6da8d3f865a8f8888b34e858db6361f3b",
+          "translationHash": "7a528661f6b99179fffda6932b315854c6e2ea22e1a1024dd207749585cdf445",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "de": {
           "path": "docker.de.md",
-          "sourceHash": "d333996178411b4326b739f8a1895f2e66e6a54a9ad5dd5103ae94e84b77e7c9",
-          "translationHash": "4b483c7c1f0dc401407947b2e7b512e616a07410f52ab748697e29a8b49aed82",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:43:23+03:00"
+          "sourceHash": "121cdaca9d3fb45118ebf09d7c2df4e6da8d3f865a8f8888b34e858db6361f3b",
+          "translationHash": "9d6ae408cb277d38da13d63dd24e9f4255b65242df5eac687caa0951096ec801",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "fr": {
           "path": "docker.fr.md",
-          "sourceHash": "d333996178411b4326b739f8a1895f2e66e6a54a9ad5dd5103ae94e84b77e7c9",
-          "translationHash": "e0fe0a3e2fc092407466d4ff6565c9df093ab5441ab9ef1a87af338e2c32bfbf",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:43:23+03:00"
+          "sourceHash": "121cdaca9d3fb45118ebf09d7c2df4e6da8d3f865a8f8888b34e858db6361f3b",
+          "translationHash": "335dec82dfc11712f06c40bef29ee0f4103f76e3b7d54eee1460292163c6c59c",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "hi": {
           "path": "docker.hi.md",
-          "sourceHash": "d333996178411b4326b739f8a1895f2e66e6a54a9ad5dd5103ae94e84b77e7c9",
-          "translationHash": "cb73b8a991cb963c66922208b54b928e50009341bfc1a45d4e8edd7153eb6442",
-          "translator": "manual targeted translation (LLM)",
-          "updatedAt": "2026-09-23T21:43:23+03:00"
+          "sourceHash": "121cdaca9d3fb45118ebf09d7c2df4e6da8d3f865a8f8888b34e858db6361f3b",
+          "translationHash": "8706651b0342fab86e0a4f3e2dbaf58c3100b085f5ae272fd9dec4ad9487d4ae",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         }
       }
     },
     "faq.md": {
-      "sourceHash": "d07b9a1f7b85ba148518c42e32eebfc535011321f8b5164587166a9dfb06a694",
+      "sourceHash": "662c95f10eaee8a5b3772352d42c49fc54f9340140fb2d743244e77079c1cf3b",
       "translations": {
         "ru": {
           "path": "faq.ru.md",
-          "sourceHash": "d07b9a1f7b85ba148518c42e32eebfc535011321f8b5164587166a9dfb06a694",
-          "translationHash": "84f27f32badf8adeff10e64072f133278c8a8254645019cc35f2cdad446ccad8",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:17:22.554Z"
+          "sourceHash": "662c95f10eaee8a5b3772352d42c49fc54f9340140fb2d743244e77079c1cf3b",
+          "translationHash": "87a6a5ce4ec10d56e4bea3cdb018ba8300ba0fe38d3a2f2278995e667b448a0f",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "be": {
           "path": "faq.be.md",
-          "sourceHash": "d07b9a1f7b85ba148518c42e32eebfc535011321f8b5164587166a9dfb06a694",
-          "translationHash": "dae94a1d48c8c4ec3e52bd125100584318540168af9480c7fe9f00ca65335678",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:17:29.553Z"
+          "sourceHash": "662c95f10eaee8a5b3772352d42c49fc54f9340140fb2d743244e77079c1cf3b",
+          "translationHash": "b48d76a6259f0097ab576c984351fac62ca3c7874e31806c6aee160d88c3acc5",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "uk": {
           "path": "faq.uk.md",
-          "sourceHash": "d07b9a1f7b85ba148518c42e32eebfc535011321f8b5164587166a9dfb06a694",
-          "translationHash": "6b0531a87760fa936f03231236fea6dc3c444b3b70674bc81242f77c6ecf78f6",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:17:36.913Z"
+          "sourceHash": "662c95f10eaee8a5b3772352d42c49fc54f9340140fb2d743244e77079c1cf3b",
+          "translationHash": "6ceb75c1224b8bb63f16e1699bdbc499e1252a7e7b58dc6059c676182a3c27ef",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "es": {
           "path": "faq.es.md",
-          "sourceHash": "d07b9a1f7b85ba148518c42e32eebfc535011321f8b5164587166a9dfb06a694",
-          "translationHash": "f95e9a5696fb454e09c6b2874f124791bca60ffbf4fa579dc8fbc970bd16fa76",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:17:44.541Z"
+          "sourceHash": "662c95f10eaee8a5b3772352d42c49fc54f9340140fb2d743244e77079c1cf3b",
+          "translationHash": "edec7fd1f1f549139dc11e2dc70db5a5a0ea25ace7ed26c8ac5925155f01dd8d",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "pt-BR": {
           "path": "faq.pt-BR.md",
-          "sourceHash": "d07b9a1f7b85ba148518c42e32eebfc535011321f8b5164587166a9dfb06a694",
-          "translationHash": "d8d695a329e0f84af09e944adccdd94824e103967cef6775381b26b370d19e2c",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:17:52.532Z"
+          "sourceHash": "662c95f10eaee8a5b3772352d42c49fc54f9340140fb2d743244e77079c1cf3b",
+          "translationHash": "b6c357aa1cf11e49f01e3b96ee9fa2dd02c02ef713def4ca1c5d94db18612199",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "zh": {
           "path": "faq.zh.md",
-          "sourceHash": "d07b9a1f7b85ba148518c42e32eebfc535011321f8b5164587166a9dfb06a694",
-          "translationHash": "ca0a92595538fc8a031626fe838e569918c6ee4c4dd5d3641dbd78e03a8b21d8",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:18:00.311Z"
+          "sourceHash": "662c95f10eaee8a5b3772352d42c49fc54f9340140fb2d743244e77079c1cf3b",
+          "translationHash": "cda19fecc7356a93dcf5d633e1fec0a2da3f1a26bf1442020ae36ec7839fc443",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "ja": {
           "path": "faq.ja.md",
-          "sourceHash": "d07b9a1f7b85ba148518c42e32eebfc535011321f8b5164587166a9dfb06a694",
-          "translationHash": "e9346a18ed629ef696b46014c50d865186a584a4a14d84b0c228963e957ddf89",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:18:07.894Z"
+          "sourceHash": "662c95f10eaee8a5b3772352d42c49fc54f9340140fb2d743244e77079c1cf3b",
+          "translationHash": "92036029fde06515d53008c119fce8ffc348ddcc3266b67cdebb0bccee1dcd1a",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "de": {
           "path": "faq.de.md",
-          "sourceHash": "d07b9a1f7b85ba148518c42e32eebfc535011321f8b5164587166a9dfb06a694",
-          "translationHash": "02a154b71f53e1737e7da1bddb6c5fac3b6791160b39948deb71a82ff38c268f",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:18:15.645Z"
+          "sourceHash": "662c95f10eaee8a5b3772352d42c49fc54f9340140fb2d743244e77079c1cf3b",
+          "translationHash": "cfce754c358a1e5d19db11bb7d5c15fd2407994fc0aab190fda0a5f3ee59626d",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "fr": {
           "path": "faq.fr.md",
-          "sourceHash": "d07b9a1f7b85ba148518c42e32eebfc535011321f8b5164587166a9dfb06a694",
-          "translationHash": "24d6d958b6c7b6fbed354041fefdc8f0467cc7d4f280888b5f418da986c9cc43",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:18:22.515Z"
+          "sourceHash": "662c95f10eaee8a5b3772352d42c49fc54f9340140fb2d743244e77079c1cf3b",
+          "translationHash": "514706165d2a34c356c533453786ff75ad0eead60305796d85d7920c3167562e",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "hi": {
           "path": "faq.hi.md",
-          "sourceHash": "d07b9a1f7b85ba148518c42e32eebfc535011321f8b5164587166a9dfb06a694",
-          "translationHash": "c1789641f926dd8d3a80e5841c8550b880d56a44cd8f883eb1daf6a226629353",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:18:42.127Z"
+          "sourceHash": "662c95f10eaee8a5b3772352d42c49fc54f9340140fb2d743244e77079c1cf3b",
+          "translationHash": "7ce9127ea8cadcc7740f2921d7ea9782daaf8015323de6c4066622e9797b1123",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         }
       }
     },
     "geoip-proxy-matching.md": {
-      "sourceHash": "4f473ef8592f8c06530e5c6a051e8652083cb1c0c488eb544b2bd9ebd54bc1f1",
+      "sourceHash": "bea7a20e76346a0aee6a452f511a413adf91c896314b60d868e30ce02cb2db7a",
       "translations": {
         "ru": {
           "path": "geoip-proxy-matching.ru.md",
-          "sourceHash": "4f473ef8592f8c06530e5c6a051e8652083cb1c0c488eb544b2bd9ebd54bc1f1",
-          "translationHash": "b26d4d255b4847720f6a2daa5ae358eda4c3314ed75a0f2767eccb5a46479d2f",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "bea7a20e76346a0aee6a452f511a413adf91c896314b60d868e30ce02cb2db7a",
+          "translationHash": "44e4cc97f5baeb8829cae2cf339cba4683ed9975c2072fe36a7ca38339da78e0",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-16T09:35:00.000Z"
         },
         "be": {
           "path": "geoip-proxy-matching.be.md",
-          "sourceHash": "4f473ef8592f8c06530e5c6a051e8652083cb1c0c488eb544b2bd9ebd54bc1f1",
-          "translationHash": "4cd8854ac687912b60dd2a4261ad1126b8e542cbd839a0ac3b399c31276d4b78",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "bea7a20e76346a0aee6a452f511a413adf91c896314b60d868e30ce02cb2db7a",
+          "translationHash": "0ba802fdb9e080e5dcca2d6492ee8600b9b5081c0481c073e0ae418d6033e0e2",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-16T09:35:00.000Z"
         },
         "uk": {
           "path": "geoip-proxy-matching.uk.md",
-          "sourceHash": "4f473ef8592f8c06530e5c6a051e8652083cb1c0c488eb544b2bd9ebd54bc1f1",
-          "translationHash": "176503a784fb0f49cb8a86d151482fded0cf6adc371fa8a68525820f7f7ca3ca",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "bea7a20e76346a0aee6a452f511a413adf91c896314b60d868e30ce02cb2db7a",
+          "translationHash": "ffdf41ed792d8c61a9ec7266ec0a71fce889ccf5670f4e8dae88e6a3eb50e572",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-16T09:35:00.000Z"
         },
         "es": {
           "path": "geoip-proxy-matching.es.md",
-          "sourceHash": "4f473ef8592f8c06530e5c6a051e8652083cb1c0c488eb544b2bd9ebd54bc1f1",
-          "translationHash": "a12d1fcdcf4734334ad4c136d84276603c5a31c80afbb794c253d8dacd035f7d",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "bea7a20e76346a0aee6a452f511a413adf91c896314b60d868e30ce02cb2db7a",
+          "translationHash": "a26a1b53f38662e27c0f9aacc9ccb6da352aaf431f5a2618c3a7e509fc1647d3",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-16T09:35:00.000Z"
         },
         "pt-BR": {
           "path": "geoip-proxy-matching.pt-BR.md",
-          "sourceHash": "4f473ef8592f8c06530e5c6a051e8652083cb1c0c488eb544b2bd9ebd54bc1f1",
-          "translationHash": "3daf25dcd61bd82b615ab358243293671d38293368bdf4ce8de8694bc96aa506",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "bea7a20e76346a0aee6a452f511a413adf91c896314b60d868e30ce02cb2db7a",
+          "translationHash": "f43334c48fd4e51a698c83621c3b31e0d5163ad26601fe1b494c40d9f9ac07c3",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-16T09:35:00.000Z"
         },
         "zh": {
           "path": "geoip-proxy-matching.zh.md",
-          "sourceHash": "4f473ef8592f8c06530e5c6a051e8652083cb1c0c488eb544b2bd9ebd54bc1f1",
-          "translationHash": "b3a9ed787f51b47230343d2bc14138777854443b35143f8d75977858ff5a9b74",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "bea7a20e76346a0aee6a452f511a413adf91c896314b60d868e30ce02cb2db7a",
+          "translationHash": "a74ef83fc60e483c08fb8c86dc699dd36fa2cc05ada8e7dfb20c3e182b693ffa",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-16T09:35:00.000Z"
         },
         "ja": {
           "path": "geoip-proxy-matching.ja.md",
-          "sourceHash": "4f473ef8592f8c06530e5c6a051e8652083cb1c0c488eb544b2bd9ebd54bc1f1",
-          "translationHash": "5f50e87cef9af10f7cf4f4bf6af0d651d75e29f0a08eb1f929ac5e4bdce90a15",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "bea7a20e76346a0aee6a452f511a413adf91c896314b60d868e30ce02cb2db7a",
+          "translationHash": "5a19322f3cce1786b660f9d17c077bffb6d8e6f416c391c61807acba12cc13cb",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-16T09:35:00.000Z"
         },
         "de": {
           "path": "geoip-proxy-matching.de.md",
-          "sourceHash": "4f473ef8592f8c06530e5c6a051e8652083cb1c0c488eb544b2bd9ebd54bc1f1",
-          "translationHash": "7d381c5361da54e929468b381b83800ee0e4ee7c94cc9493995b1690a287f832",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "bea7a20e76346a0aee6a452f511a413adf91c896314b60d868e30ce02cb2db7a",
+          "translationHash": "7683422de77bd7571e51439ba581364608e4830f0de85e7072d47005ec642f28",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-16T09:35:00.000Z"
         },
         "fr": {
           "path": "geoip-proxy-matching.fr.md",
-          "sourceHash": "4f473ef8592f8c06530e5c6a051e8652083cb1c0c488eb544b2bd9ebd54bc1f1",
-          "translationHash": "8b0919c7735f7e895e07097667c5a1d5e60457344d4c70530e32983a0b428c1d",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "bea7a20e76346a0aee6a452f511a413adf91c896314b60d868e30ce02cb2db7a",
+          "translationHash": "16d745e7332c1079488dfff41d75562fdb5757e4b8cd564a1d38775297f20664",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-16T09:35:00.000Z"
         },
         "hi": {
           "path": "geoip-proxy-matching.hi.md",
-          "sourceHash": "4f473ef8592f8c06530e5c6a051e8652083cb1c0c488eb544b2bd9ebd54bc1f1",
-          "translationHash": "da548c685805cd0c96cd3d7ad568fa3b8e2e337e1a5d0467df6d9667d4f979d2",
-          "translator": "manual targeted translation (DeepL quota fallback)",
-          "updatedAt": "2026-07-23T11:43:37.000Z"
+          "sourceHash": "bea7a20e76346a0aee6a452f511a413adf91c896314b60d868e30ce02cb2db7a",
+          "translationHash": "2c8db364715ae1f57f2ed70be2a3513dc90f1bd72d37af94aea48071d4cffdbf",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-16T09:35:00.000Z"
         }
       }
     },
     "getting-started.md": {
-      "sourceHash": "7fe1c7c14676bf8eed4e4cfb1ce65a25a18216258a6e922c7b5f98bf60b8d710",
+      "sourceHash": "c2c2bbd93caaadd683a6bb7706db2de6abccd06d7ccd4c9a202b29e26d9d3a5c",
       "translations": {
         "ru": {
           "path": "getting-started.ru.md",
-          "sourceHash": "7fe1c7c14676bf8eed4e4cfb1ce65a25a18216258a6e922c7b5f98bf60b8d710",
-          "translationHash": "021b34ea193e348bc000433bcfb376158c2293ca3c791a0f897d62d6cf96da3e",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:21:49.348Z"
+          "sourceHash": "c2c2bbd93caaadd683a6bb7706db2de6abccd06d7ccd4c9a202b29e26d9d3a5c",
+          "translationHash": "912f3a927a0f67a6d322ffd7ef25b4ec6ab1708df0c6d1a6466cf2a220be65e0",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "be": {
           "path": "getting-started.be.md",
-          "sourceHash": "7fe1c7c14676bf8eed4e4cfb1ce65a25a18216258a6e922c7b5f98bf60b8d710",
-          "translationHash": "b0ddf9dc7bfa0f66248ff2a096854e73e59c26240eba62468825d81025b8c6f2",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:22:12.297Z"
+          "sourceHash": "c2c2bbd93caaadd683a6bb7706db2de6abccd06d7ccd4c9a202b29e26d9d3a5c",
+          "translationHash": "5d78af7019133b649f0ac359051c8f3452d0b23eddaf32820617e0bebbf20635",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "uk": {
           "path": "getting-started.uk.md",
-          "sourceHash": "7fe1c7c14676bf8eed4e4cfb1ce65a25a18216258a6e922c7b5f98bf60b8d710",
-          "translationHash": "a05d1245b691e668bbe577164ea5330116208ff8e631e951850caa38a0637c4d",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:22:51.329Z"
+          "sourceHash": "c2c2bbd93caaadd683a6bb7706db2de6abccd06d7ccd4c9a202b29e26d9d3a5c",
+          "translationHash": "55af8d4caf63d33b61977e634be307bf5244e116e39e9ab582684a7e2d9987d1",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "es": {
           "path": "getting-started.es.md",
-          "sourceHash": "7fe1c7c14676bf8eed4e4cfb1ce65a25a18216258a6e922c7b5f98bf60b8d710",
-          "translationHash": "d08cb59731bd88d7e1132fde4325cb32019ba58c3bf36e42ec83073ca48d9b34",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:23:04.023Z"
+          "sourceHash": "c2c2bbd93caaadd683a6bb7706db2de6abccd06d7ccd4c9a202b29e26d9d3a5c",
+          "translationHash": "bf82ec902491e07c7410679f24534d015d22752770566d492f4f410513e88533",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "pt-BR": {
           "path": "getting-started.pt-BR.md",
-          "sourceHash": "7fe1c7c14676bf8eed4e4cfb1ce65a25a18216258a6e922c7b5f98bf60b8d710",
-          "translationHash": "85456fd5e6ff7520a53904a51f7aa93e1a56f706ea8985fdf73cec26245f5991",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:23:28.533Z"
+          "sourceHash": "c2c2bbd93caaadd683a6bb7706db2de6abccd06d7ccd4c9a202b29e26d9d3a5c",
+          "translationHash": "6f4e2c053280b597ae86e821f34e48529323de317096119cbd47a1f02dd01940",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "zh": {
           "path": "getting-started.zh.md",
-          "sourceHash": "7fe1c7c14676bf8eed4e4cfb1ce65a25a18216258a6e922c7b5f98bf60b8d710",
-          "translationHash": "9c397a13aca362772d5f29975747c267ea529b607f2b2807a4323f57d9d46fa3",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:23:53.292Z"
+          "sourceHash": "c2c2bbd93caaadd683a6bb7706db2de6abccd06d7ccd4c9a202b29e26d9d3a5c",
+          "translationHash": "1c82acbad86fb9acdbcb1f967ed1c2e5cf9962a92b5d0a90da1e5b5e1d3210be",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "ja": {
           "path": "getting-started.ja.md",
-          "sourceHash": "7fe1c7c14676bf8eed4e4cfb1ce65a25a18216258a6e922c7b5f98bf60b8d710",
-          "translationHash": "7f94eac6ba0f19c6997eeabb121ffa2d70ac922337d989fe4d3d0bd7ee6f69f8",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:24:16.353Z"
+          "sourceHash": "c2c2bbd93caaadd683a6bb7706db2de6abccd06d7ccd4c9a202b29e26d9d3a5c",
+          "translationHash": "c37e0e8ab4e39699182504ccac0e2f97c9557e54564906cf9a466a603dfce76a",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "de": {
           "path": "getting-started.de.md",
-          "sourceHash": "7fe1c7c14676bf8eed4e4cfb1ce65a25a18216258a6e922c7b5f98bf60b8d710",
-          "translationHash": "3391af3f90935f4be82f100a826106c293ef421010523d6341fa681868a6778f",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:24:39.362Z"
+          "sourceHash": "c2c2bbd93caaadd683a6bb7706db2de6abccd06d7ccd4c9a202b29e26d9d3a5c",
+          "translationHash": "b39489102f63c88c8758b752d88a9960e50be8432226d2ab60a297ca247784f8",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "fr": {
           "path": "getting-started.fr.md",
-          "sourceHash": "7fe1c7c14676bf8eed4e4cfb1ce65a25a18216258a6e922c7b5f98bf60b8d710",
-          "translationHash": "be5969366d61917cde11d1959529e90367999fabbd1eb511c9c0ed9531cb80d0",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:25:00.925Z"
+          "sourceHash": "c2c2bbd93caaadd683a6bb7706db2de6abccd06d7ccd4c9a202b29e26d9d3a5c",
+          "translationHash": "288c5eb8c75124c600904255ba7c8ed16f42060fa3cf74293e6309c0de68eec5",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "hi": {
           "path": "getting-started.hi.md",
-          "sourceHash": "7fe1c7c14676bf8eed4e4cfb1ce65a25a18216258a6e922c7b5f98bf60b8d710",
-          "translationHash": "5fb49eb8f1f7507f9b121be2fff503a62d8e58a32ca4d2dac6dfb93bb6769f9d",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:25:25.436Z"
+          "sourceHash": "c2c2bbd93caaadd683a6bb7706db2de6abccd06d7ccd4c9a202b29e26d9d3a5c",
+          "translationHash": "45e1a47f0a2be827b33a445c059c20b3660c23e6242faea9c8be17ca452940c7",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         }
       }
     },
     "humanized-input-behavior.md": {
-      "sourceHash": "e1a1b505e41ff6f6314f691a80ba826ffeb95c28800753acde5a2e1457b92f88",
+      "sourceHash": "b1f2f291853ff7592ff97bc5e8c2e4bad655d325283d4a1023ee0de17d56e905",
       "translations": {
         "ru": {
           "path": "humanized-input-behavior.ru.md",
-          "sourceHash": "e1a1b505e41ff6f6314f691a80ba826ffeb95c28800753acde5a2e1457b92f88",
-          "translationHash": "de0378520eb5f32da251c4b9033b43cc98ef6f227127790c284c8c951b13038a",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:25:36.848Z"
+          "sourceHash": "b1f2f291853ff7592ff97bc5e8c2e4bad655d325283d4a1023ee0de17d56e905",
+          "translationHash": "007ef568e2d3b316b5ad16f745630d6ced00f02b01ad3d566a76afe3bdbe4a6a",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "be": {
           "path": "humanized-input-behavior.be.md",
-          "sourceHash": "e1a1b505e41ff6f6314f691a80ba826ffeb95c28800753acde5a2e1457b92f88",
-          "translationHash": "5053822fa7f9e229e1a6b81a944c91e820f46e0c0353e948671f8efa7de4cb63",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:25:47.539Z"
+          "sourceHash": "b1f2f291853ff7592ff97bc5e8c2e4bad655d325283d4a1023ee0de17d56e905",
+          "translationHash": "5671384f19d333cbccdb173fea0dd169e87f5931c6c9ec683bc0a946d95a1060",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "uk": {
           "path": "humanized-input-behavior.uk.md",
-          "sourceHash": "e1a1b505e41ff6f6314f691a80ba826ffeb95c28800753acde5a2e1457b92f88",
-          "translationHash": "2cd7a61cfc977d5923eb804c742654213dbe3aaeaa96e4b9b0965143454847b1",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:25:58.833Z"
+          "sourceHash": "b1f2f291853ff7592ff97bc5e8c2e4bad655d325283d4a1023ee0de17d56e905",
+          "translationHash": "f042119c6aabe521b02c1a2c454a51a49608a87d3e6e217d41c65c31c8f5014d",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "es": {
           "path": "humanized-input-behavior.es.md",
-          "sourceHash": "e1a1b505e41ff6f6314f691a80ba826ffeb95c28800753acde5a2e1457b92f88",
-          "translationHash": "43c9d457bc629a55afafc7840622d2de06a67f691187e48f4bcfa494c055a171",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:26:10.888Z"
+          "sourceHash": "b1f2f291853ff7592ff97bc5e8c2e4bad655d325283d4a1023ee0de17d56e905",
+          "translationHash": "f888c5abb1ae30207783e9d2f0eba69643ad963552b624b3ddf26bf5d235a2c2",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "pt-BR": {
           "path": "humanized-input-behavior.pt-BR.md",
-          "sourceHash": "e1a1b505e41ff6f6314f691a80ba826ffeb95c28800753acde5a2e1457b92f88",
-          "translationHash": "fa4ab445b2cd5bb5d04a8bfc348c89b9085e510fc0cb25c65015308b16a4e467",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:26:23.238Z"
+          "sourceHash": "b1f2f291853ff7592ff97bc5e8c2e4bad655d325283d4a1023ee0de17d56e905",
+          "translationHash": "6c1eb0aae089f62ce69b3c2c7b7d4397d162ad9b4608aa9f9c284838be3b5f97",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "zh": {
           "path": "humanized-input-behavior.zh.md",
-          "sourceHash": "e1a1b505e41ff6f6314f691a80ba826ffeb95c28800753acde5a2e1457b92f88",
-          "translationHash": "71823395e484dbe9e455f37a6af15f7c2f8a3f24be453a561c5c141d2a4dfa37",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:26:35.381Z"
+          "sourceHash": "b1f2f291853ff7592ff97bc5e8c2e4bad655d325283d4a1023ee0de17d56e905",
+          "translationHash": "7cf8d6c8daa4facf924a51638125a0449412849f2aaaaa0c4105249dbde02473",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "ja": {
           "path": "humanized-input-behavior.ja.md",
-          "sourceHash": "e1a1b505e41ff6f6314f691a80ba826ffeb95c28800753acde5a2e1457b92f88",
-          "translationHash": "a099fdd25b14dbd5b9c393cec332df23084ea3c3489af6e181e081e1fa73aa6e",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:26:47.799Z"
+          "sourceHash": "b1f2f291853ff7592ff97bc5e8c2e4bad655d325283d4a1023ee0de17d56e905",
+          "translationHash": "2e6ac16025ca8e061af1a3fe707dddb70ea196fe2bc240954428c3edc4b482d7",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "de": {
           "path": "humanized-input-behavior.de.md",
-          "sourceHash": "e1a1b505e41ff6f6314f691a80ba826ffeb95c28800753acde5a2e1457b92f88",
-          "translationHash": "1ab5ad59dcf6e49477b86e33651913971255c4ce04c02d82733db3e7229900d7",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:26:58.930Z"
+          "sourceHash": "b1f2f291853ff7592ff97bc5e8c2e4bad655d325283d4a1023ee0de17d56e905",
+          "translationHash": "33e81533d8ed3ca0570723855cc6c8c7a64f0636372106e5c81829c657b2561d",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "fr": {
           "path": "humanized-input-behavior.fr.md",
-          "sourceHash": "e1a1b505e41ff6f6314f691a80ba826ffeb95c28800753acde5a2e1457b92f88",
-          "translationHash": "5ce2028edfc79603e5a69d8fa4fb26812465dd07ec99d9f0506240ee9ab6e4cb",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:27:10.968Z"
+          "sourceHash": "b1f2f291853ff7592ff97bc5e8c2e4bad655d325283d4a1023ee0de17d56e905",
+          "translationHash": "5ded7ee99f7eceacfe506f57a18b9df0e8c0695ec1dcc6763ee8a4b95bc5bd00",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         },
         "hi": {
           "path": "humanized-input-behavior.hi.md",
-          "sourceHash": "e1a1b505e41ff6f6314f691a80ba826ffeb95c28800753acde5a2e1457b92f88",
-          "translationHash": "f628e8cf48a2f473a0776b2c1212157771f79c04ce4b886df8d45ce08f577ee8",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:27:22.721Z"
+          "sourceHash": "b1f2f291853ff7592ff97bc5e8c2e4bad655d325283d4a1023ee0de17d56e905",
+          "translationHash": "281901d2d4f1aab75596a285665618c55758f68cd5c8ddfec73d54327c063a33",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T09:47:54.559Z"
         }
       }
     },
     "index.md": {
-      "sourceHash": "4de04364a5745c6ba846fd1ce2d0e6ec92730c887a785bdb4fa58baaa9c9d8b1",
+      "sourceHash": "79f37137e6ab770a46532808a82565fb5259b8bb7ec3d9aaec9c4cf4bf508f38",
       "translations": {
         "ru": {
           "path": "index.ru.md",
-          "sourceHash": "4de04364a5745c6ba846fd1ce2d0e6ec92730c887a785bdb4fa58baaa9c9d8b1",
-          "translationHash": "0549ee3cdedc4aed0a5a50a0486fe958d8d1605f3ee9d5149b913fe42323b982",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "79f37137e6ab770a46532808a82565fb5259b8bb7ec3d9aaec9c4cf4bf508f38",
+          "translationHash": "259fd6ba4f8eafa957bebad4759e5981119587b560484db6399199b17b07b2e4",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "be": {
           "path": "index.be.md",
-          "sourceHash": "4de04364a5745c6ba846fd1ce2d0e6ec92730c887a785bdb4fa58baaa9c9d8b1",
-          "translationHash": "eee4fa23770c47b089d8adeaaa36332d8648e2e031da127f176d654cf12dd179",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "79f37137e6ab770a46532808a82565fb5259b8bb7ec3d9aaec9c4cf4bf508f38",
+          "translationHash": "65283829bfc7d77b5750788ab6935fdf1b788c334afb62a3f0f51d0344711514",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "uk": {
           "path": "index.uk.md",
-          "sourceHash": "4de04364a5745c6ba846fd1ce2d0e6ec92730c887a785bdb4fa58baaa9c9d8b1",
-          "translationHash": "2d5d1acd5bf99590ab4ea774159c341b001d1e40233853cfde575d3860261fa9",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "79f37137e6ab770a46532808a82565fb5259b8bb7ec3d9aaec9c4cf4bf508f38",
+          "translationHash": "3b4cfe11c28156608ecd2575876e5d356aac11d2b2e0fdee3818d6d3ece802d0",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "es": {
           "path": "index.es.md",
-          "sourceHash": "4de04364a5745c6ba846fd1ce2d0e6ec92730c887a785bdb4fa58baaa9c9d8b1",
-          "translationHash": "07e04a8060f8f1ad399545904329118eec61a98a3bdb4aafd5fca40c6f33b72f",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "79f37137e6ab770a46532808a82565fb5259b8bb7ec3d9aaec9c4cf4bf508f38",
+          "translationHash": "9a8c02bb8df18e22108f3c21aa49b667a67cb5fb3bcb651cd9d849616854a11c",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "pt-BR": {
           "path": "index.pt-BR.md",
-          "sourceHash": "4de04364a5745c6ba846fd1ce2d0e6ec92730c887a785bdb4fa58baaa9c9d8b1",
-          "translationHash": "8214c2d14e89403ca73eb6835e523cc320451ead055d9324d080588ee43850ea",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "79f37137e6ab770a46532808a82565fb5259b8bb7ec3d9aaec9c4cf4bf508f38",
+          "translationHash": "fca8e74195cff52a920df139fd4afb6e16dc2b9201409ffaff4c92dd333c5cd1",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "zh": {
           "path": "index.zh.md",
-          "sourceHash": "4de04364a5745c6ba846fd1ce2d0e6ec92730c887a785bdb4fa58baaa9c9d8b1",
-          "translationHash": "9aeb1851dde7590b95f0d969605ff175942fae9fa810963fcfba76a6e5941f13",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "79f37137e6ab770a46532808a82565fb5259b8bb7ec3d9aaec9c4cf4bf508f38",
+          "translationHash": "3eceedcf7892480bf4eaa6ca1d6aa79bb126a4c426bb4880228e1bcd652487fb",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "ja": {
           "path": "index.ja.md",
-          "sourceHash": "4de04364a5745c6ba846fd1ce2d0e6ec92730c887a785bdb4fa58baaa9c9d8b1",
-          "translationHash": "fb4719f6acbee811919b53f1d25c0c8d88145ab5065fe35714a9855d3496b7c2",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "79f37137e6ab770a46532808a82565fb5259b8bb7ec3d9aaec9c4cf4bf508f38",
+          "translationHash": "fd9512e0e9a6d84211fabc0f10bba1fd4add6c1f8ee1f47ff139c42b20ef8277",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "de": {
           "path": "index.de.md",
-          "sourceHash": "4de04364a5745c6ba846fd1ce2d0e6ec92730c887a785bdb4fa58baaa9c9d8b1",
-          "translationHash": "9f025f52a84a445c8dc0f85e98b29d661f04f6adc27883c034f5c3e72a02b4a4",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "79f37137e6ab770a46532808a82565fb5259b8bb7ec3d9aaec9c4cf4bf508f38",
+          "translationHash": "d0188ca6446d988a8e61aae664c27095534b2a85173b6d865c5fc449598d39bb",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "fr": {
           "path": "index.fr.md",
-          "sourceHash": "4de04364a5745c6ba846fd1ce2d0e6ec92730c887a785bdb4fa58baaa9c9d8b1",
-          "translationHash": "c8fed9520c905f34472534d51016ea811d882b941e6f7dd1f8eb8b5e639edf55",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "79f37137e6ab770a46532808a82565fb5259b8bb7ec3d9aaec9c4cf4bf508f38",
+          "translationHash": "dd8f328bbfa8146565905d2758ed7229997457093915512646e55b0fc2832329",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "hi": {
           "path": "index.hi.md",
-          "sourceHash": "4de04364a5745c6ba846fd1ce2d0e6ec92730c887a785bdb4fa58baaa9c9d8b1",
-          "translationHash": "98fbe5ecaf5f07d265db8ce9e3a0a450d1b0a5d015b11d7a4228c919b31d4260",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "79f37137e6ab770a46532808a82565fb5259b8bb7ec3d9aaec9c4cf4bf508f38",
+          "translationHash": "086d7fcecb2510d182d1b0fc7192d8278bfcbd327d448e8a2e02713126967e24",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         }
       }
     },
     "release.md": {
-      "sourceHash": "b171353e17d2c1f2e7a15506287d031f380f6574552da70cc0dc53f7a780f304",
+      "sourceHash": "be83883bf82ba32aa6d978e8ed40ad112629412b2ae612ecfb8da4822594e0c3",
       "translations": {
         "ru": {
           "path": "release.ru.md",
-          "sourceHash": "b171353e17d2c1f2e7a15506287d031f380f6574552da70cc0dc53f7a780f304",
-          "translationHash": "31e1241882ebd1d4ee34dbe4978a6db87f9d1dab617272e60c1539070d2a11cb",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:28:38.961Z"
+          "sourceHash": "be83883bf82ba32aa6d978e8ed40ad112629412b2ae612ecfb8da4822594e0c3",
+          "translationHash": "4475c4090eb82ff07df814c4d8e7e77e4020353e3d57f74b8aaf04bae94162d1",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-13T09:09:12.785Z"
         },
         "be": {
           "path": "release.be.md",
-          "sourceHash": "b171353e17d2c1f2e7a15506287d031f380f6574552da70cc0dc53f7a780f304",
-          "translationHash": "ee1992d4f8b65ea112b9cd988cf126761c534cdce0bb44b8f2efddecd4874650",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:29:05.826Z"
+          "sourceHash": "be83883bf82ba32aa6d978e8ed40ad112629412b2ae612ecfb8da4822594e0c3",
+          "translationHash": "eb8115c4da171cb759d3d8ae26bf4c4f7df8044fa3fcd4bfbdb5f857668cb0cc",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-13T09:09:12.785Z"
         },
         "uk": {
           "path": "release.uk.md",
-          "sourceHash": "b171353e17d2c1f2e7a15506287d031f380f6574552da70cc0dc53f7a780f304",
-          "translationHash": "63d9650c6e829ce72cfd05a8fb8bc8b208a2234ab2893c051f06fe89d1e68621",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:29:29.387Z"
+          "sourceHash": "be83883bf82ba32aa6d978e8ed40ad112629412b2ae612ecfb8da4822594e0c3",
+          "translationHash": "2c946389ae53543f98410988fd43947b7cb1a3bd83146dfbcec9adb840484451",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-13T09:09:12.785Z"
         },
         "es": {
           "path": "release.es.md",
-          "sourceHash": "b171353e17d2c1f2e7a15506287d031f380f6574552da70cc0dc53f7a780f304",
-          "translationHash": "1a1df3fa050d10d2688a15063b60976845db08a5e988977f2ecff1c06a829f05",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:29:56.001Z"
+          "sourceHash": "be83883bf82ba32aa6d978e8ed40ad112629412b2ae612ecfb8da4822594e0c3",
+          "translationHash": "9417b4ebc6fb054ce44d2fdd4d82ce8adb24e9728f1b65a7fc400dfa1fb2342b",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-13T09:09:12.785Z"
         },
         "pt-BR": {
           "path": "release.pt-BR.md",
-          "sourceHash": "b171353e17d2c1f2e7a15506287d031f380f6574552da70cc0dc53f7a780f304",
-          "translationHash": "479297a82ff6ded1cd8f87105b85abdb3d2eaf14ef3c01747be32403d1b23b3c",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:30:22.813Z"
+          "sourceHash": "be83883bf82ba32aa6d978e8ed40ad112629412b2ae612ecfb8da4822594e0c3",
+          "translationHash": "048d0696925d890cf81f403c3d7bb68a7f832c0208ff78a03a919130cd5de733",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-13T09:09:12.785Z"
         },
         "zh": {
           "path": "release.zh.md",
-          "sourceHash": "b171353e17d2c1f2e7a15506287d031f380f6574552da70cc0dc53f7a780f304",
-          "translationHash": "d0c4eab99d77a968d3c3614b8204bdad1b940dc5f1093df5cac95fa8e4d68b47",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:30:51.591Z"
+          "sourceHash": "be83883bf82ba32aa6d978e8ed40ad112629412b2ae612ecfb8da4822594e0c3",
+          "translationHash": "b8620252e8965bf179febf396e9e11641f9fe4896fa4f9c76f1c9c67f5a5ea40",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-13T09:09:12.785Z"
         },
         "ja": {
           "path": "release.ja.md",
-          "sourceHash": "b171353e17d2c1f2e7a15506287d031f380f6574552da70cc0dc53f7a780f304",
-          "translationHash": "15f272bca5630172c106d89aa781939b770cf85c351a71bd0f44edf0017d3a07",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:31:19.753Z"
+          "sourceHash": "be83883bf82ba32aa6d978e8ed40ad112629412b2ae612ecfb8da4822594e0c3",
+          "translationHash": "56e60f1064f3365f66313d3dc74a66f879146a55fce31429fda76f4a7054967c",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-13T09:09:12.785Z"
         },
         "de": {
           "path": "release.de.md",
-          "sourceHash": "b171353e17d2c1f2e7a15506287d031f380f6574552da70cc0dc53f7a780f304",
-          "translationHash": "dee2f883f166146d4390404bcdc91861c07f38b6ee9d3c76a466dc03e5417226",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:31:45.483Z"
+          "sourceHash": "be83883bf82ba32aa6d978e8ed40ad112629412b2ae612ecfb8da4822594e0c3",
+          "translationHash": "1f8226cd50e2134a9b4fa7a5a38affa2dd0b6f256a372fed7f133b99a6e1f043",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-13T09:09:12.785Z"
         },
         "fr": {
           "path": "release.fr.md",
-          "sourceHash": "b171353e17d2c1f2e7a15506287d031f380f6574552da70cc0dc53f7a780f304",
-          "translationHash": "0f60283cf8704ad98302b9eea98b26e3dbf7535f0aae696aa3c8c979d52b0dd1",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:32:11.435Z"
+          "sourceHash": "be83883bf82ba32aa6d978e8ed40ad112629412b2ae612ecfb8da4822594e0c3",
+          "translationHash": "8846b5d9b482f14a8437722df956cac2e68fbe5df0bf11c19b5c786fd8f07eaa",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-13T09:09:12.785Z"
         },
         "hi": {
           "path": "release.hi.md",
-          "sourceHash": "b171353e17d2c1f2e7a15506287d031f380f6574552da70cc0dc53f7a780f304",
-          "translationHash": "3fcce8af65822b5f1b5b399c30cf9971f42ef82f8f5216001595890e69071ae6",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:32:41.069Z"
+          "sourceHash": "be83883bf82ba32aa6d978e8ed40ad112629412b2ae612ecfb8da4822594e0c3",
+          "translationHash": "ead19c74f70185a45b5f1426d3a0308b47684837a6285951d07cbb4d8eb558d1",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-13T09:09:12.785Z"
         }
       }
     },
@@ -1095,227 +1095,227 @@
       }
     },
     "testing.md": {
-      "sourceHash": "39b23c81fe22ac11f6fc35ff82fdd63100a4cb1964aa86b40016d656b9345e01",
+      "sourceHash": "a69a0b2967799f139181d2a47312e310acdd6e2d553bf80dbd8b50286c73bd19",
       "translations": {
         "ru": {
           "path": "testing.ru.md",
-          "sourceHash": "39b23c81fe22ac11f6fc35ff82fdd63100a4cb1964aa86b40016d656b9345e01",
-          "translationHash": "aea08d3229f19096662b756ffc83803752d6e8249013475d27b6958eab78d80a",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:36:57.430Z"
+          "sourceHash": "a69a0b2967799f139181d2a47312e310acdd6e2d553bf80dbd8b50286c73bd19",
+          "translationHash": "e9bade5300b16eba4e35f02facd684f94e94fcf08f2d94253cffc3cc6de6e718",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T10:53:10.103Z"
         },
         "be": {
           "path": "testing.be.md",
-          "sourceHash": "39b23c81fe22ac11f6fc35ff82fdd63100a4cb1964aa86b40016d656b9345e01",
-          "translationHash": "bf3ab2adec6f565de42cfe09891fb4451ac8473a3f84f5f2da0d2c1b791437c6",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:37:11.298Z"
+          "sourceHash": "a69a0b2967799f139181d2a47312e310acdd6e2d553bf80dbd8b50286c73bd19",
+          "translationHash": "055ea65222d0e4874c4b95308144a730b469568afffb95cac6c7940ad729b2bf",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T10:53:10.103Z"
         },
         "uk": {
           "path": "testing.uk.md",
-          "sourceHash": "39b23c81fe22ac11f6fc35ff82fdd63100a4cb1964aa86b40016d656b9345e01",
-          "translationHash": "1059c06613dd2776605395a27cf6d346e5b37c54b7ce2145a76e6354184b6b50",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:37:25.169Z"
+          "sourceHash": "a69a0b2967799f139181d2a47312e310acdd6e2d553bf80dbd8b50286c73bd19",
+          "translationHash": "1d44bd522dc8520f4a3054e850b856bf3a4e98b83e5d7d45fc2543342e9db828",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T10:53:10.103Z"
         },
         "es": {
           "path": "testing.es.md",
-          "sourceHash": "39b23c81fe22ac11f6fc35ff82fdd63100a4cb1964aa86b40016d656b9345e01",
-          "translationHash": "2bca43daa52f751e8c5ea46514d205e0ee8f77fb303106f0dd24c46d5ec53cfa",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:37:38.042Z"
+          "sourceHash": "a69a0b2967799f139181d2a47312e310acdd6e2d553bf80dbd8b50286c73bd19",
+          "translationHash": "8f2b4ba6d483d071b8325afd683524ab7bdc9bf25a3ca5b1d6c6edd1fc8fab34",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T10:53:10.103Z"
         },
         "pt-BR": {
           "path": "testing.pt-BR.md",
-          "sourceHash": "39b23c81fe22ac11f6fc35ff82fdd63100a4cb1964aa86b40016d656b9345e01",
-          "translationHash": "c4877765328f86461beef45bf615277e41a8af94cceb9a7c4b35ce6c721b8b49",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:37:50.909Z"
+          "sourceHash": "a69a0b2967799f139181d2a47312e310acdd6e2d553bf80dbd8b50286c73bd19",
+          "translationHash": "1682a24d6611b057de41dccb28f975a30d0a8c05287d0e8ce7826a51829c1f87",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T10:53:10.103Z"
         },
         "zh": {
           "path": "testing.zh.md",
-          "sourceHash": "39b23c81fe22ac11f6fc35ff82fdd63100a4cb1964aa86b40016d656b9345e01",
-          "translationHash": "01b3431cdbdeed2f4de3a0c9fb7de66bee0601619d3675d21a639735be305cfd",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:38:04.783Z"
+          "sourceHash": "a69a0b2967799f139181d2a47312e310acdd6e2d553bf80dbd8b50286c73bd19",
+          "translationHash": "4d23ab2857082b1eb41a3ecbf95242c22ab592ca8b7fb6e0619fe7fa162fa88b",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T10:53:10.103Z"
         },
         "ja": {
           "path": "testing.ja.md",
-          "sourceHash": "39b23c81fe22ac11f6fc35ff82fdd63100a4cb1964aa86b40016d656b9345e01",
-          "translationHash": "eaa033fbce3f9834faa486b3cc2f0089ff23b42d782577f1b0ec822c0294454f",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:38:18.647Z"
+          "sourceHash": "a69a0b2967799f139181d2a47312e310acdd6e2d553bf80dbd8b50286c73bd19",
+          "translationHash": "f846b6d837a99b60a33e5f4b578d18265917b1d41d51548dd78b934601a8b986",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T10:53:10.103Z"
         },
         "de": {
           "path": "testing.de.md",
-          "sourceHash": "39b23c81fe22ac11f6fc35ff82fdd63100a4cb1964aa86b40016d656b9345e01",
-          "translationHash": "ed213ff7ff25f3ed561445e8885430e3d7710c3bf60852cb09beeda5aa640b2c",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:38:32.513Z"
+          "sourceHash": "a69a0b2967799f139181d2a47312e310acdd6e2d553bf80dbd8b50286c73bd19",
+          "translationHash": "7fa682fc389b10967337949ce83571a8d3c2e81a6ca9316dc7319d657fb568c4",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T10:53:10.103Z"
         },
         "fr": {
           "path": "testing.fr.md",
-          "sourceHash": "39b23c81fe22ac11f6fc35ff82fdd63100a4cb1964aa86b40016d656b9345e01",
-          "translationHash": "a017543f5a4e43a26410a9c2fab6c5d4cc0a50cd0672d53056dea79b9d7ceafc",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:38:46.376Z"
+          "sourceHash": "a69a0b2967799f139181d2a47312e310acdd6e2d553bf80dbd8b50286c73bd19",
+          "translationHash": "8253b0f355466021de11ab15a3907fb08a3f4362e8fdf02b143c6cc23e455fad",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T10:53:10.103Z"
         },
         "hi": {
           "path": "testing.hi.md",
-          "sourceHash": "39b23c81fe22ac11f6fc35ff82fdd63100a4cb1964aa86b40016d656b9345e01",
-          "translationHash": "89a23ee386627bc15b14c9947a3e4e79d97d2f94ee11b1155a5120762200deb6",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-06-27T13:39:00.243Z"
+          "sourceHash": "a69a0b2967799f139181d2a47312e310acdd6e2d553bf80dbd8b50286c73bd19",
+          "translationHash": "19526da78b52cd149f85824882375c4a2609cf6e23246cb9a3746dc3424c7e9f",
+          "translator": "manual targeted translation (DeepL quota fallback)",
+          "updatedAt": "2026-10-16T10:53:10.103Z"
         }
       }
     },
     "tools.md": {
-      "sourceHash": "bcec641867aea7fa01d9c0a5095ae8af4caeabed02ceb718a0616b7596c32361",
+      "sourceHash": "de7e0b23b06f1541ed27f332043e94b2f986278dc04a180af636c7a2b7f83dd5",
       "translations": {
         "ru": {
           "path": "tools.ru.md",
-          "sourceHash": "bcec641867aea7fa01d9c0a5095ae8af4caeabed02ceb718a0616b7596c32361",
-          "translationHash": "9321adeaaa4788e075710a4c31c88c90af44ea979889597b1eebf6c242006ddf",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "de7e0b23b06f1541ed27f332043e94b2f986278dc04a180af636c7a2b7f83dd5",
+          "translationHash": "beb8d5b975a21e788cd400e745c6e24bf792dbc0d0ffab044439c477d6054494",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "be": {
           "path": "tools.be.md",
-          "sourceHash": "bcec641867aea7fa01d9c0a5095ae8af4caeabed02ceb718a0616b7596c32361",
-          "translationHash": "314048b5c1f4823ac0aeb07ac231f47a3104ace5f22464a0cdd4f9d795de5f8f",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "de7e0b23b06f1541ed27f332043e94b2f986278dc04a180af636c7a2b7f83dd5",
+          "translationHash": "88706b3d9d3ce3585b2987b03d6c710bf07e3b603b5cd98f6ed5f87925393a4e",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "uk": {
           "path": "tools.uk.md",
-          "sourceHash": "bcec641867aea7fa01d9c0a5095ae8af4caeabed02ceb718a0616b7596c32361",
-          "translationHash": "a1f1f4df1eac639e2437796122c0f3c0d23b3f2502173596cefc18fb71c17fd2",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "de7e0b23b06f1541ed27f332043e94b2f986278dc04a180af636c7a2b7f83dd5",
+          "translationHash": "a95cfdacdd1b33e60216c8733df86214a9ea91bfd75ae4ff39e724e1ff50ac53",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "es": {
           "path": "tools.es.md",
-          "sourceHash": "bcec641867aea7fa01d9c0a5095ae8af4caeabed02ceb718a0616b7596c32361",
-          "translationHash": "201d3e937bd5492dc708430ea7fd14b78111f4591fb5a0730f116026883195c1",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "de7e0b23b06f1541ed27f332043e94b2f986278dc04a180af636c7a2b7f83dd5",
+          "translationHash": "71aef25a2be83981077af6731bffb821c81f31f8f124976ad2d8616ef490c1bf",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "pt-BR": {
           "path": "tools.pt-BR.md",
-          "sourceHash": "bcec641867aea7fa01d9c0a5095ae8af4caeabed02ceb718a0616b7596c32361",
-          "translationHash": "fd6c4bffc6e5b413125707ef9fe8d1757fc8adcb33b2f43ecc39e1eff39084fb",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "de7e0b23b06f1541ed27f332043e94b2f986278dc04a180af636c7a2b7f83dd5",
+          "translationHash": "e1a98eb1a3ed1e47c7a7c18ab526387c8571c99e3cef4fa8b7cedb27849dab5c",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "zh": {
           "path": "tools.zh.md",
-          "sourceHash": "bcec641867aea7fa01d9c0a5095ae8af4caeabed02ceb718a0616b7596c32361",
-          "translationHash": "e43624a0195a3da3ca9083345a6b638e7de3b9c0fdef63fd8a29a5b3d7f6cc63",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "de7e0b23b06f1541ed27f332043e94b2f986278dc04a180af636c7a2b7f83dd5",
+          "translationHash": "c411da831150daadfe8e1f77c89c8698a47673c0ce210057c022008e865a0440",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "ja": {
           "path": "tools.ja.md",
-          "sourceHash": "bcec641867aea7fa01d9c0a5095ae8af4caeabed02ceb718a0616b7596c32361",
-          "translationHash": "cb7177767c533b6dca2443aa2db72c8ffc891ebd72938e420e3974ee7a9f5875",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "de7e0b23b06f1541ed27f332043e94b2f986278dc04a180af636c7a2b7f83dd5",
+          "translationHash": "b8f4994d222a980d44b528643228217ea0bcd3458cba2fbc4a68d93fe9a10265",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "de": {
           "path": "tools.de.md",
-          "sourceHash": "bcec641867aea7fa01d9c0a5095ae8af4caeabed02ceb718a0616b7596c32361",
-          "translationHash": "97ce2868a867440bb3006774b73946d8ffd723dab426b15a1e88a5f1ae22fe12",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "de7e0b23b06f1541ed27f332043e94b2f986278dc04a180af636c7a2b7f83dd5",
+          "translationHash": "6c516c30520014e52d8062d79044ce777dc436a8a774db8861498f0afa188b10",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "fr": {
           "path": "tools.fr.md",
-          "sourceHash": "bcec641867aea7fa01d9c0a5095ae8af4caeabed02ceb718a0616b7596c32361",
-          "translationHash": "0d28372ac1314d12ababf2f7d282bf983fcd34459dcdba3b19b7bbd767eff114",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "de7e0b23b06f1541ed27f332043e94b2f986278dc04a180af636c7a2b7f83dd5",
+          "translationHash": "6859fbb8dd4d005d7aab9d247419d6cd823c3fe5971b15c1560b0f6e80964a13",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "hi": {
           "path": "tools.hi.md",
-          "sourceHash": "bcec641867aea7fa01d9c0a5095ae8af4caeabed02ceb718a0616b7596c32361",
-          "translationHash": "74b2d37dea7bdd16a1ce1e0841ef4e176694a1b82bfca1d6ae23f6ab05bf268c",
-          "translator": "manual targeted recorder limitation update",
-          "updatedAt": "2026-09-04T16:03:35.851Z"
+          "sourceHash": "de7e0b23b06f1541ed27f332043e94b2f986278dc04a180af636c7a2b7f83dd5",
+          "translationHash": "e448effab8d1d94c5d934f908f0e2ef563aee16e3ded0170581239e0fa57f7bb",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         }
       }
     },
     "version-compatibility.md": {
-      "sourceHash": "6b0736c7c74309250a0c3a6ae9d373edb5f0c0dd55eb89d3404ab0b6cd6a2323",
+      "sourceHash": "72206e050beddcd555986af48654b1b60a9699dc424e8ae0f1308189b1997263",
       "translations": {
         "ru": {
           "path": "version-compatibility.ru.md",
-          "sourceHash": "6b0736c7c74309250a0c3a6ae9d373edb5f0c0dd55eb89d3404ab0b6cd6a2323",
-          "translationHash": "cd1ebbc74be43dd3fecab5894a4cf88ab77e2991b4109fea9cf62f176368767d",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "72206e050beddcd555986af48654b1b60a9699dc424e8ae0f1308189b1997263",
+          "translationHash": "df049c9812094ce4fabeb8370b810b36568bb806a7d43a7fddf85d6017c24682",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "be": {
           "path": "version-compatibility.be.md",
-          "sourceHash": "6b0736c7c74309250a0c3a6ae9d373edb5f0c0dd55eb89d3404ab0b6cd6a2323",
-          "translationHash": "fa2e0d4b1c36ee000762f9e12d52e6ffdd5d1d0b9b428522419db652a0913c4b",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "72206e050beddcd555986af48654b1b60a9699dc424e8ae0f1308189b1997263",
+          "translationHash": "bdfc46aece1d837699a9a453902ffaed2c95d03358951a4284e49987818394e0",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "uk": {
           "path": "version-compatibility.uk.md",
-          "sourceHash": "6b0736c7c74309250a0c3a6ae9d373edb5f0c0dd55eb89d3404ab0b6cd6a2323",
-          "translationHash": "76e7ca3eede6af7e8f8028b7d3b434916e0128fdd3f4f8704f650cd2cc4248ba",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "72206e050beddcd555986af48654b1b60a9699dc424e8ae0f1308189b1997263",
+          "translationHash": "a16a8b72e342866629dafef7d437af77ba798d46c7e91a72a4652f13a04f9102",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "es": {
           "path": "version-compatibility.es.md",
-          "sourceHash": "6b0736c7c74309250a0c3a6ae9d373edb5f0c0dd55eb89d3404ab0b6cd6a2323",
-          "translationHash": "02ab1cbdc9f149f888d56d2982a3cd43678443558b53db070a6a1826a5640afa",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "72206e050beddcd555986af48654b1b60a9699dc424e8ae0f1308189b1997263",
+          "translationHash": "68b61459838ec3fc87eacf6342fbf65c45c206a4ce58ce6829385b15652046f7",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "pt-BR": {
           "path": "version-compatibility.pt-BR.md",
-          "sourceHash": "6b0736c7c74309250a0c3a6ae9d373edb5f0c0dd55eb89d3404ab0b6cd6a2323",
-          "translationHash": "9d00234274d65140bc03d2cd1f4fa1d66a11a9951bf095f4371731b4652a47e2",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "72206e050beddcd555986af48654b1b60a9699dc424e8ae0f1308189b1997263",
+          "translationHash": "e4f2811e208412c66db50eb55b308d35b91a56ce95c7e42a0a77869d7d113781",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "zh": {
           "path": "version-compatibility.zh.md",
-          "sourceHash": "6b0736c7c74309250a0c3a6ae9d373edb5f0c0dd55eb89d3404ab0b6cd6a2323",
-          "translationHash": "f54f13c0b96fdd0a79d8ec456f6646287fde2da8b1af510f1a6669af879070f2",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "72206e050beddcd555986af48654b1b60a9699dc424e8ae0f1308189b1997263",
+          "translationHash": "a3a070ba776b679834264eb548476988d56e93141063b4d852df3716d5817034",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "ja": {
           "path": "version-compatibility.ja.md",
-          "sourceHash": "6b0736c7c74309250a0c3a6ae9d373edb5f0c0dd55eb89d3404ab0b6cd6a2323",
-          "translationHash": "a1aa2f2c0bd73ad58230f727f5e3d7c4c0aa9d73c00ee697f0f128a310139180",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "72206e050beddcd555986af48654b1b60a9699dc424e8ae0f1308189b1997263",
+          "translationHash": "368c1fd1b929d01990da45e16240cd1c7d7250acf3edc269e72e94effbf7aa0e",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "de": {
           "path": "version-compatibility.de.md",
-          "sourceHash": "6b0736c7c74309250a0c3a6ae9d373edb5f0c0dd55eb89d3404ab0b6cd6a2323",
-          "translationHash": "ef7b0db88451cd07741e3368e2a2c696c1a1fa8449bdf66d547b374fb85985f3",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "72206e050beddcd555986af48654b1b60a9699dc424e8ae0f1308189b1997263",
+          "translationHash": "1ca42e4c46c07649489f3c8d7fda2ed9ce1b5abda029336bdeb890f807824680",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "fr": {
           "path": "version-compatibility.fr.md",
-          "sourceHash": "6b0736c7c74309250a0c3a6ae9d373edb5f0c0dd55eb89d3404ab0b6cd6a2323",
-          "translationHash": "406873f780691441f9c7f7dda4ad191e048503e1887bdae1e91f60eeb00e8437",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "72206e050beddcd555986af48654b1b60a9699dc424e8ae0f1308189b1997263",
+          "translationHash": "9edcd3e11770387baa303574e3f0cb164866c57ff9168eec563dc5428296caca",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         },
         "hi": {
           "path": "version-compatibility.hi.md",
-          "sourceHash": "6b0736c7c74309250a0c3a6ae9d373edb5f0c0dd55eb89d3404ab0b6cd6a2323",
-          "translationHash": "84a71f5c149644558d47df631d4bbf9cf7dccdcc89488c3794004c887af9bf3c",
-          "translator": "generated version compatibility table",
-          "updatedAt": "2026-09-23T21:45:46+03:00"
+          "sourceHash": "72206e050beddcd555986af48654b1b60a9699dc424e8ae0f1308189b1997263",
+          "translationHash": "8073264a85dda6256051edc38e263f579be1fa44f838c5c496ad777b8935d408",
+          "translator": "targeted compatibility metadata and manual Node.js list update",
+          "updatedAt": "2026-10-16T13:43:40.509Z"
         }
       }
     },
@@ -1325,72 +1325,72 @@
         "ru": {
           "path": "comparison.ru.md",
           "sourceHash": "8a8ccf4a51a799255b7724ad8421cba716ed6d6078ecee3f7dd53a60df40db32",
-          "translationHash": "f6195f6d6f3d2c213c33c8b3036b2c989572630df31bddf3d3e6bcb4e3d959ca",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.381Z"
+          "translationHash": "e11fa2031982c1d5e0a11b130cf69129b8c3ab4f13aa4757a4e660e065d868e0",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "be": {
           "path": "comparison.be.md",
           "sourceHash": "8a8ccf4a51a799255b7724ad8421cba716ed6d6078ecee3f7dd53a60df40db32",
-          "translationHash": "822eef83721da0971eabc3c17480d77c7f4b3d1306f568f2da07095d4b049591",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.381Z"
+          "translationHash": "cda32ac63c91e26902928801ece1b4cbee3fb3a914d5a0f208d24be859a5fde7",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "uk": {
           "path": "comparison.uk.md",
           "sourceHash": "8a8ccf4a51a799255b7724ad8421cba716ed6d6078ecee3f7dd53a60df40db32",
-          "translationHash": "80bc1b2c5097ba5a8c9aafbe3ed0d67a02819e9a7396d7892548dbd5c988ac91",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.381Z"
+          "translationHash": "028573f1984b465c86439c555d6da354f1ec4d2a9e25eaa169273427506a2c99",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "es": {
           "path": "comparison.es.md",
           "sourceHash": "8a8ccf4a51a799255b7724ad8421cba716ed6d6078ecee3f7dd53a60df40db32",
-          "translationHash": "20e565dfe0512899d50d618ad3b6e8fbf58d9beba4bacba32bf8326fa93209db",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.381Z"
+          "translationHash": "bd53520ace0518a6e83a7efa35f6bb9a850337aebc8d402da9f40291de107a94",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "pt-BR": {
           "path": "comparison.pt-BR.md",
           "sourceHash": "8a8ccf4a51a799255b7724ad8421cba716ed6d6078ecee3f7dd53a60df40db32",
-          "translationHash": "ade87d65ee00106ffb42e3359e61b7d91f3fd02d28a529df6ba6ec0d83877061",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.381Z"
+          "translationHash": "5dcf28d089bab46c4dc9c53963f929149543bf4461f2359802606a981ca80e5f",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "zh": {
           "path": "comparison.zh.md",
           "sourceHash": "8a8ccf4a51a799255b7724ad8421cba716ed6d6078ecee3f7dd53a60df40db32",
-          "translationHash": "5d73e0c5923ebd48fb1dc761a408f7a840b33638145eb363bdb28a2329bca6e4",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.381Z"
+          "translationHash": "fdc614ea10f4fbecabfa78540f9952e41da0e7f0e7470af56e17c4c58fd15e29",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "ja": {
           "path": "comparison.ja.md",
           "sourceHash": "8a8ccf4a51a799255b7724ad8421cba716ed6d6078ecee3f7dd53a60df40db32",
-          "translationHash": "49015166b253159ff0c82323064c1204cba1d4bed8c3834b145845b324b9bbef",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.381Z"
+          "translationHash": "d15574ab3f01faa43b12a4c607c891c790760383a37945295bbe7a7e6b000c9e",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "de": {
           "path": "comparison.de.md",
           "sourceHash": "8a8ccf4a51a799255b7724ad8421cba716ed6d6078ecee3f7dd53a60df40db32",
-          "translationHash": "8f5e263cd762f06d87a40d70870bd68d9b1b7735f70fed4e91df823d9892ab93",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.381Z"
+          "translationHash": "aa26981af58ab23125bc885b5f48e2b6b2d7c3332da6545546c4a2f3054367fb",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "fr": {
           "path": "comparison.fr.md",
           "sourceHash": "8a8ccf4a51a799255b7724ad8421cba716ed6d6078ecee3f7dd53a60df40db32",
-          "translationHash": "e6c50b9cf0f069c2ddb08b588666431d443bd0b607795293a24a9b70d2fa244a",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.381Z"
+          "translationHash": "b7569c0fc4767043e2789cecc4307987b62804381958de0438e5af7c8370d4fd",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "hi": {
           "path": "comparison.hi.md",
           "sourceHash": "8a8ccf4a51a799255b7724ad8421cba716ed6d6078ecee3f7dd53a60df40db32",
-          "translationHash": "96a59cfd100cc5a888bf5e3ef72c061ce327dc22a79660e668d750a9c4d3f05d",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.381Z"
+          "translationHash": "50fe9e6ee729c17ee8b1ffbe0d58fcbbcb27537fe4f3d0bf4d1c647d22f83ed3",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         }
       }
     },
@@ -1400,72 +1400,72 @@
         "ru": {
           "path": "recipes/ci-smoke-test.ru.md",
           "sourceHash": "601c5bdccde87e54927919fad7d6df06a04737d53fad6a7b6a20791a67433fb0",
-          "translationHash": "18aadb619995b530a89d8cbfd42ea95e0b4efffa2836bf8b2a32aee6ef06b015",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.386Z"
+          "translationHash": "b978b05281d9cfc4b59de2d90791dfaaf3d08b75edcb8258b06bf92e618761e6",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "be": {
           "path": "recipes/ci-smoke-test.be.md",
           "sourceHash": "601c5bdccde87e54927919fad7d6df06a04737d53fad6a7b6a20791a67433fb0",
-          "translationHash": "6be5e4018a828dc5edadfc99f1e900240385f116f82ed90fb6473f79e0a8956f",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.386Z"
+          "translationHash": "b655f5fdf26910ad13cd101dfefc39f89aef9b0093b66d59c54be911492141ad",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "uk": {
           "path": "recipes/ci-smoke-test.uk.md",
           "sourceHash": "601c5bdccde87e54927919fad7d6df06a04737d53fad6a7b6a20791a67433fb0",
-          "translationHash": "45c423aef8b35ab624b1effdd1a3ffde265f38d6d2e8179285cebf9078fb0dd0",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.386Z"
+          "translationHash": "fabc7323e6954e50bf5cb2fbc8b86261b06e95f2b5875d4334286501236c1740",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "es": {
           "path": "recipes/ci-smoke-test.es.md",
           "sourceHash": "601c5bdccde87e54927919fad7d6df06a04737d53fad6a7b6a20791a67433fb0",
-          "translationHash": "dc9b5fc4732e2e24a73202ba91029950fb60b4248163969220220363cd565ffe",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.386Z"
+          "translationHash": "87a8109a83e6ffae0399a68b2a022d53b5a9e230e28bee6166b0c8ce9506cabc",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "pt-BR": {
           "path": "recipes/ci-smoke-test.pt-BR.md",
           "sourceHash": "601c5bdccde87e54927919fad7d6df06a04737d53fad6a7b6a20791a67433fb0",
-          "translationHash": "2af4dbb9d51c57b98fcbd78348f957f184cd6e090f97f3a4c35859be58551509",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.386Z"
+          "translationHash": "29d713917dddfa220c576c8e69be40eef2fc8b1d3eb1225ecc28094ab581dc7f",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "zh": {
           "path": "recipes/ci-smoke-test.zh.md",
           "sourceHash": "601c5bdccde87e54927919fad7d6df06a04737d53fad6a7b6a20791a67433fb0",
-          "translationHash": "d2dbcadd2678feb1e118efa869adfc72cafb19bdc2f75e26bc5af1b7be18399b",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.386Z"
+          "translationHash": "7a46ce5e281623bc6c2eab0a68a1cf8256f97d8df3f95f63636df8333eadabb0",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "ja": {
           "path": "recipes/ci-smoke-test.ja.md",
           "sourceHash": "601c5bdccde87e54927919fad7d6df06a04737d53fad6a7b6a20791a67433fb0",
-          "translationHash": "b73706ed0d957e500d9079f575b0f19e381f4247db0633956596aed1ccefe5cc",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.386Z"
+          "translationHash": "be8fb2e9bbf1a4615eeb16c4c8d4d344fcbf61404ab73a089da5016085bb5fe0",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "de": {
           "path": "recipes/ci-smoke-test.de.md",
           "sourceHash": "601c5bdccde87e54927919fad7d6df06a04737d53fad6a7b6a20791a67433fb0",
-          "translationHash": "b2588d430d1ed94529302df506f8dd1fe46791e4c0484d03693383bf2500e348",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.386Z"
+          "translationHash": "f0df254203ed7a74ed3bfd6b201e861c6e11605adbe88a70d040805524a0f46d",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "fr": {
           "path": "recipes/ci-smoke-test.fr.md",
           "sourceHash": "601c5bdccde87e54927919fad7d6df06a04737d53fad6a7b6a20791a67433fb0",
-          "translationHash": "18e3cb770e8c5c7cefd7a961056765e1035e2deb6e2f65fe78bffc92f60ff22d",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "523614e29fd8a6eb5a87f419dfa3e90948f388f25d37312f8a5ca463f23068e2",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "hi": {
           "path": "recipes/ci-smoke-test.hi.md",
           "sourceHash": "601c5bdccde87e54927919fad7d6df06a04737d53fad6a7b6a20791a67433fb0",
-          "translationHash": "a1d0ba0a896e6d7f0df089f21966b17aaa865b274d011942b4014b29576f92fd",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "c6d1119d09fda3ce0d3aae40b4806f791ad27e46ff2a7fb1bd809c6edae16612",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         }
       }
     },
@@ -1475,72 +1475,72 @@
         "ru": {
           "path": "recipes/connect-claude-desktop.ru.md",
           "sourceHash": "42311c066f01478d5ac1f9a77ad2ce600ea8726de463ff35c26142a895761258",
-          "translationHash": "6fe03814838c61eb08ec0d82c78e0202f35b06580b6490c1a1fd6ddc5c287b63",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "c5f7abe1dfd4619b9f07439d988754467783b7e35338cc8f5774e703913f4cc0",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "be": {
           "path": "recipes/connect-claude-desktop.be.md",
           "sourceHash": "42311c066f01478d5ac1f9a77ad2ce600ea8726de463ff35c26142a895761258",
-          "translationHash": "d28c94fa56676e24cc2841882f393f0f27c9a2d686082bba1fb7af3ce42a8bb6",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "b0e3675abcf4e1807aa932fe0015f60f1d7e41644e66e9f7fe03c72e3a5207b8",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "uk": {
           "path": "recipes/connect-claude-desktop.uk.md",
           "sourceHash": "42311c066f01478d5ac1f9a77ad2ce600ea8726de463ff35c26142a895761258",
-          "translationHash": "7e4e930ad5927de1bea6986071dd595d3dc8517a9c3c972247a21f6ac8ed2dd2",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "b264e2887e9c9a23d8f92347b920733edec5e11e0b6bd6319a669445b5cb85f5",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "es": {
           "path": "recipes/connect-claude-desktop.es.md",
           "sourceHash": "42311c066f01478d5ac1f9a77ad2ce600ea8726de463ff35c26142a895761258",
-          "translationHash": "e39c03c26a24560c038156b16a6b9282a0f73c2526b43b6ea36bba550de63784",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "127e5aad2207f2f9c51ac7bacab394270c76830300d034d7b9f9086f03628829",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "pt-BR": {
           "path": "recipes/connect-claude-desktop.pt-BR.md",
           "sourceHash": "42311c066f01478d5ac1f9a77ad2ce600ea8726de463ff35c26142a895761258",
-          "translationHash": "02543f44d7efade90e83747fd24eb90f16f75ea451571a8ab852fd3ca0c316ad",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "bfe1c783012424797225185f3336cfd90c0343d804109be743c7cd921717f1e2",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "zh": {
           "path": "recipes/connect-claude-desktop.zh.md",
           "sourceHash": "42311c066f01478d5ac1f9a77ad2ce600ea8726de463ff35c26142a895761258",
-          "translationHash": "3ddcd327951cc61491312afd0374f63d1092ee2e1ebf70ec211ff4dc1d4c2f78",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "f45b974f056d65aecbbefc934b5ccea3fe2494abf10ad3b0332f34a7bb9ce4e2",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "ja": {
           "path": "recipes/connect-claude-desktop.ja.md",
           "sourceHash": "42311c066f01478d5ac1f9a77ad2ce600ea8726de463ff35c26142a895761258",
-          "translationHash": "3b0c045320b702ea0d7669049dd2662371c2064f0d31f96af2132d32c2a8b180",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "fb2b279a4ad5b180f10118cc4d1eba27ae6b441e337535d27a239a2e7ee744ed",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "de": {
           "path": "recipes/connect-claude-desktop.de.md",
           "sourceHash": "42311c066f01478d5ac1f9a77ad2ce600ea8726de463ff35c26142a895761258",
-          "translationHash": "6ac47e91d4fdbd86872dbbac1686512b03013249c056250a6a3f6f00006878bd",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "b8dedf8d195f6b8f5ac2db721c2ebbde162143f9930d1ca69c285b3d67792f3c",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "fr": {
           "path": "recipes/connect-claude-desktop.fr.md",
           "sourceHash": "42311c066f01478d5ac1f9a77ad2ce600ea8726de463ff35c26142a895761258",
-          "translationHash": "c98a1235f5bfec6b778b91ed6a3709c3ece23ebada8669a5a126b53a00899ffb",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "338df29bd4d7548f692a8a7b39675fecbc989b6d5b525e1c5f22c4ea7f250086",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "hi": {
           "path": "recipes/connect-claude-desktop.hi.md",
           "sourceHash": "42311c066f01478d5ac1f9a77ad2ce600ea8726de463ff35c26142a895761258",
-          "translationHash": "fe5a33017b1bb1427e30f364dcbc79b241ac82bb551294d20b13148f772daac5",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "97b0dd665d2e3f5dcd60a6d0afd25c3652e6ef91f7060968c2b02b9a6c6704bd",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         }
       }
     },
@@ -1550,72 +1550,72 @@
         "ru": {
           "path": "recipes/connect-codex-cli.ru.md",
           "sourceHash": "7bf10f3c6b627246f55abc86d6e65ee0f1aa228ba237906f6fd245f4c60528ce",
-          "translationHash": "cfbf035a1187ee9346c10758d94bfd5d0d6481b8ec30584ddcab10de48c386ed",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "17c1966e8672b56f07865cbe34be3ad3c59cf00698cf976157b6d0773f0062d8",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "be": {
           "path": "recipes/connect-codex-cli.be.md",
           "sourceHash": "7bf10f3c6b627246f55abc86d6e65ee0f1aa228ba237906f6fd245f4c60528ce",
-          "translationHash": "73ec933eebbf80441ee14bd96e99e0d7834aac18b937a7965ba75218aade393a",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "0bd030d76d2fec4581dc4428f23aa81c3e1a41a35a0578edbd46b90f25b8234d",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "uk": {
           "path": "recipes/connect-codex-cli.uk.md",
           "sourceHash": "7bf10f3c6b627246f55abc86d6e65ee0f1aa228ba237906f6fd245f4c60528ce",
-          "translationHash": "9e500adf3f728531b19e8d57e50dea8378914e9ea36f3c4645ed34aec7036a98",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "997f13602e16dc378cb73af45cc4164e219b345a05d051d30ebcd22a8df303e7",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "es": {
           "path": "recipes/connect-codex-cli.es.md",
           "sourceHash": "7bf10f3c6b627246f55abc86d6e65ee0f1aa228ba237906f6fd245f4c60528ce",
-          "translationHash": "1221b2639ebcb9d26d3a606000fa25c6d444a69c9e83aebf242a4ae96057954d",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "6d1cbe7b63f2a1851bcfd5f60568b73f3af3ec51176c9aa579addf2a816edf75",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "pt-BR": {
           "path": "recipes/connect-codex-cli.pt-BR.md",
           "sourceHash": "7bf10f3c6b627246f55abc86d6e65ee0f1aa228ba237906f6fd245f4c60528ce",
-          "translationHash": "76daa715ea024e9c2224106984753d61aee4d533081affda6d6da4a04053a12c",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "4cc020650b01ac336056e0822bb52e5a55695c93bdd2a764f7cd49a69e45d988",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "zh": {
           "path": "recipes/connect-codex-cli.zh.md",
           "sourceHash": "7bf10f3c6b627246f55abc86d6e65ee0f1aa228ba237906f6fd245f4c60528ce",
-          "translationHash": "aae6e135cbe3246d5f4c10c19110d4887a0334ba3661f05bf277db02a59a095c",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "e08e950e3e43f9ff31c098fecd1f3ef4aea47f2f86c887a4834d93d267a3ece7",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "ja": {
           "path": "recipes/connect-codex-cli.ja.md",
           "sourceHash": "7bf10f3c6b627246f55abc86d6e65ee0f1aa228ba237906f6fd245f4c60528ce",
-          "translationHash": "83ffa191c9d5a33e8d59a362dc77ff638939b4d5412da271406f3914cd53af43",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "2be46ef248f1b9303d791934ea356c84d2c90b5baf5d742b3b1bdc259062a87c",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "de": {
           "path": "recipes/connect-codex-cli.de.md",
           "sourceHash": "7bf10f3c6b627246f55abc86d6e65ee0f1aa228ba237906f6fd245f4c60528ce",
-          "translationHash": "312987c9dd847d78f5256d181813d6e6027ceacf8c572e3e67fe27d3175e1c23",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "5ca66bab2912059548068511bd47729fc25f0ab5bbf09ae4c52f7d09a1e7fc86",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "fr": {
           "path": "recipes/connect-codex-cli.fr.md",
           "sourceHash": "7bf10f3c6b627246f55abc86d6e65ee0f1aa228ba237906f6fd245f4c60528ce",
-          "translationHash": "a386cba1168081309ed4bef1145b737aec7cff608caf26260f2c3aa356eae77f",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "c75e9fd32bb000d6d5b868dd68f8e8e5c17708a26da4ac72b5474b1ff23d0cbb",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "hi": {
           "path": "recipes/connect-codex-cli.hi.md",
           "sourceHash": "7bf10f3c6b627246f55abc86d6e65ee0f1aa228ba237906f6fd245f4c60528ce",
-          "translationHash": "76e8fdaaccd270eea18d9c2ff627734044f925cba5c96be7b160dd96205ce727",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "184e4bda03eaf7ec737dbfa7937480eed6de8bf0c5b01acaab2339049cd9d34e",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         }
       }
     },
@@ -1625,72 +1625,72 @@
         "ru": {
           "path": "recipes/docker-streamable-http-reverse-proxy.ru.md",
           "sourceHash": "69b0d0f984bcdbc140c6b14addaf9d3a637a82c9e653365015c633c7f8ab3c6a",
-          "translationHash": "45fed9dce4a45b619d412ed84c08b1f52450092b33bdd84000a2ab56c02d477d",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "bf51b231e99fdc684cd0addcb381baf0844f0c090c3201ad96b7669073117499",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "be": {
           "path": "recipes/docker-streamable-http-reverse-proxy.be.md",
           "sourceHash": "69b0d0f984bcdbc140c6b14addaf9d3a637a82c9e653365015c633c7f8ab3c6a",
-          "translationHash": "906fb444d925cd121b76aa64475b2e9add23705416d11ec5df827dbca744a18f",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "fb9f32ba70e61b69b79a20dd17e478f978e946135e54b8b9da5e570d45dac6e7",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "uk": {
           "path": "recipes/docker-streamable-http-reverse-proxy.uk.md",
           "sourceHash": "69b0d0f984bcdbc140c6b14addaf9d3a637a82c9e653365015c633c7f8ab3c6a",
-          "translationHash": "4cc0793f3f98b577c7a76c585e58bb01cd48714c980b381d7862f557634a7cee",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "4d3211d6be555cc76269cbb66ae5a347dcb1492b2de22dabec5f8bfa07b28d72",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "es": {
           "path": "recipes/docker-streamable-http-reverse-proxy.es.md",
           "sourceHash": "69b0d0f984bcdbc140c6b14addaf9d3a637a82c9e653365015c633c7f8ab3c6a",
-          "translationHash": "26580066416bf35b91d7c79232b24d2d1fa8dd09546fe3fe124ade2c02c908ca",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "6b130c0c379a6437eb887b9916c6bff92292d72470c02aa22b474b43fc899a50",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "pt-BR": {
           "path": "recipes/docker-streamable-http-reverse-proxy.pt-BR.md",
           "sourceHash": "69b0d0f984bcdbc140c6b14addaf9d3a637a82c9e653365015c633c7f8ab3c6a",
-          "translationHash": "da1f61ccc9cda3409e93218057f1a9dd689e1133eb577c4f620856ba15172776",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "a187745ca6c12b2bb89388bf7219734aae028dae8884a90eb82c587417de343f",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "zh": {
           "path": "recipes/docker-streamable-http-reverse-proxy.zh.md",
           "sourceHash": "69b0d0f984bcdbc140c6b14addaf9d3a637a82c9e653365015c633c7f8ab3c6a",
-          "translationHash": "37a017f508f73292fe35ec5b6d1a54ef1ddaed2af90eb99c1150a42b7784b932",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "b66153f52897e120a1cc9181e9d21de89c04a4b32174c3b794532f9ceb49fb17",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "ja": {
           "path": "recipes/docker-streamable-http-reverse-proxy.ja.md",
           "sourceHash": "69b0d0f984bcdbc140c6b14addaf9d3a637a82c9e653365015c633c7f8ab3c6a",
-          "translationHash": "6532d40055debf902c9570d09fceac4c9cb1f89de1b75711ed2b89b7787171bf",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "2e3b3117fc6de23306cff4a998122a778b583392c84bd978f9709eaaae1b6ddb",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "de": {
           "path": "recipes/docker-streamable-http-reverse-proxy.de.md",
           "sourceHash": "69b0d0f984bcdbc140c6b14addaf9d3a637a82c9e653365015c633c7f8ab3c6a",
-          "translationHash": "e0c72502ec2bc00ab929bf47f241243c2bdf353179b9652d0fe8b1bc72f19ca0",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "cb2885b9f9aa1f2f4cdcd580c764dae6f5aa83642930cf6861ae399c2743c4f8",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "fr": {
           "path": "recipes/docker-streamable-http-reverse-proxy.fr.md",
           "sourceHash": "69b0d0f984bcdbc140c6b14addaf9d3a637a82c9e653365015c633c7f8ab3c6a",
-          "translationHash": "66be7165c382ef1364bbcd89f3659e4ae2f9627d2ab82a9b1ec2a23db06e8fcb",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "0c3d5f04f2820b7fd092e053d48c9130112461503237bbaa326c0786977e9729",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "hi": {
           "path": "recipes/docker-streamable-http-reverse-proxy.hi.md",
           "sourceHash": "69b0d0f984bcdbc140c6b14addaf9d3a637a82c9e653365015c633c7f8ab3c6a",
-          "translationHash": "8ae6bcc122771383c9f9479b9439d60230584590fd319e0775bb77ddefb667c0",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "7fcce80076c9333a84d9a4a0826f4edec02c4ac9f877ed2392fbdeca699645b0",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         }
       }
     },
@@ -1707,65 +1707,65 @@
         "be": {
           "path": "recipes/index.be.md",
           "sourceHash": "32a93c36e22c8f8d7ff28da64ed1dc98752609514fa0f08ebdd4110f7cd3da85",
-          "translationHash": "fb6667a5a141cb6bacaf3186a42b60b77a76b28ca4b81c48a2d19f4d9776d814",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "68ea9765a9b06bc6fa7e80b21c548bae90b0004de566b5416b9a1e2ef4c71616",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "uk": {
           "path": "recipes/index.uk.md",
           "sourceHash": "32a93c36e22c8f8d7ff28da64ed1dc98752609514fa0f08ebdd4110f7cd3da85",
-          "translationHash": "87cf890474f4b22956c62c32fe5ea36c18dbc8519b7f40985f2b82e77ff70af7",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "7f6e3f87d444c46d222580cf8b99a5d9d6979cbf1fde3db43f5b85fb3953da91",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "es": {
           "path": "recipes/index.es.md",
           "sourceHash": "32a93c36e22c8f8d7ff28da64ed1dc98752609514fa0f08ebdd4110f7cd3da85",
-          "translationHash": "942529b9115820b2d0cbbe9e8e173f6e52a950be4d4d26fc5c571088c2e5d2f8",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "8cf25d4fe0d57ef477319e8f1facae818aa9ce939af1cb36c6e0598d4fb185f7",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "pt-BR": {
           "path": "recipes/index.pt-BR.md",
           "sourceHash": "32a93c36e22c8f8d7ff28da64ed1dc98752609514fa0f08ebdd4110f7cd3da85",
-          "translationHash": "e7725d45c35fad59ba0e5082658c77a7e4ddcb575cda3f93ea9a877e3f25b3a8",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "151776ff710246aaf934b7493ac985ad7c88a23be26a58415873813787337de7",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "zh": {
           "path": "recipes/index.zh.md",
           "sourceHash": "32a93c36e22c8f8d7ff28da64ed1dc98752609514fa0f08ebdd4110f7cd3da85",
-          "translationHash": "ab9a69906c742dc8baf447aacc72280feabf12685bcb8388f032b79b6549542c",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "1086af78dd896ac240fb5f1c1bac91139b95dbd02c9437c22444e336979bfa9d",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "ja": {
           "path": "recipes/index.ja.md",
           "sourceHash": "32a93c36e22c8f8d7ff28da64ed1dc98752609514fa0f08ebdd4110f7cd3da85",
-          "translationHash": "4a09ee028f5e841b9156cdfb19cd80c4557ff8674923c20aa7c7746151566503",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "a36d7d6e7e3b4027f756e565658e8ddcff48d905323dda75d23931b29c121cd4",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "de": {
           "path": "recipes/index.de.md",
           "sourceHash": "32a93c36e22c8f8d7ff28da64ed1dc98752609514fa0f08ebdd4110f7cd3da85",
-          "translationHash": "4db3c3b15ebbde1bb9139314599b705b6d38a5d7b262838a8277e4f59eabcc5f",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "66fb140c71f554bed3059a69ec9a2db142cc7ae45a810669c65da3cd1537dd2a",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "fr": {
           "path": "recipes/index.fr.md",
           "sourceHash": "32a93c36e22c8f8d7ff28da64ed1dc98752609514fa0f08ebdd4110f7cd3da85",
-          "translationHash": "4027084eedcb1ad026baa6f4f59be527ad0d022802bc88d54acefd9d29129767",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "ae6c6466b2b821afbce83cbb042311a1dc931d8fbe9739a2cbb4fcaedb6eeb5b",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "hi": {
           "path": "recipes/index.hi.md",
           "sourceHash": "32a93c36e22c8f8d7ff28da64ed1dc98752609514fa0f08ebdd4110f7cd3da85",
-          "translationHash": "798d18aca0806f2f623eba3b27a4ebd00b0f305f247e30bf0c5a47b025f5e891",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "120c613a6d7bb2f6fcd38a7cae896fad2f75be5f085458ef1612a58ad3a547d8",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         }
       }
     },
@@ -1775,147 +1775,147 @@
         "ru": {
           "path": "recipes/load-chrome-extension.ru.md",
           "sourceHash": "04d96eb4ffc8f806e2b4ac3c21d01b30b9d97f2ad184f3e4fd1baefd3164f9ef",
-          "translationHash": "6b0fa7dc1a78bdd1004acd7440ac656287a517b01a13c3e0248e6da54a4ce776",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "06cc6969bf60ef5ec6455bedffdb7a71c4e067ae1cc28acceb49902e415a7f51",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "be": {
           "path": "recipes/load-chrome-extension.be.md",
           "sourceHash": "04d96eb4ffc8f806e2b4ac3c21d01b30b9d97f2ad184f3e4fd1baefd3164f9ef",
-          "translationHash": "7173cb65e3ede2eeb324d16d6c131942945d198ceeb89b7ae1ff7f5798166dd9",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "0d880fcb7815ded69fbeb2e7dcc3fe41f80c507cea4adc40332631d753462867",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "uk": {
           "path": "recipes/load-chrome-extension.uk.md",
           "sourceHash": "04d96eb4ffc8f806e2b4ac3c21d01b30b9d97f2ad184f3e4fd1baefd3164f9ef",
-          "translationHash": "113237aaf75ddce08c85312700be6240d4485595954767d3ff600c9790bd1d8f",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "c9d45bef1aa4967d3bf893f160400c258e5a1dadca09e4c27a6a2d23052edd66",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "es": {
           "path": "recipes/load-chrome-extension.es.md",
           "sourceHash": "04d96eb4ffc8f806e2b4ac3c21d01b30b9d97f2ad184f3e4fd1baefd3164f9ef",
-          "translationHash": "bfb91a5683364cb0a98decfbaf03e6b424e09a9c858894fbf1c94f172a40d0a5",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "3669e0b8b74b3dcde5583091fe7740c211ef761d739bb16304442c513358ef90",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "pt-BR": {
           "path": "recipes/load-chrome-extension.pt-BR.md",
           "sourceHash": "04d96eb4ffc8f806e2b4ac3c21d01b30b9d97f2ad184f3e4fd1baefd3164f9ef",
-          "translationHash": "a312f28bd13ddb42c64ddc014d250a77cda241c55e0221c0f91e387e09420182",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.387Z"
+          "translationHash": "da71af398b5a39d0d19af45405340b6b3bf610464965da5908df228c5e130f28",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "zh": {
           "path": "recipes/load-chrome-extension.zh.md",
           "sourceHash": "04d96eb4ffc8f806e2b4ac3c21d01b30b9d97f2ad184f3e4fd1baefd3164f9ef",
-          "translationHash": "bb6796fb287eab2266df3a8ab014c2e01043931e88b8f8ac5ec0aa4f47c1f742",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "translationHash": "5ede91cea32425ce1cedc56f47c19510c3bb400924ef2c56876b28cf4a891c3b",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "ja": {
           "path": "recipes/load-chrome-extension.ja.md",
           "sourceHash": "04d96eb4ffc8f806e2b4ac3c21d01b30b9d97f2ad184f3e4fd1baefd3164f9ef",
-          "translationHash": "c80de40b40d065fb8153bf48ad49298f960215e92ddc7900163977b7cd63ba30",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "translationHash": "1b1f50d8a17c6a889318960741ebf928d94ccc6166d61f67e8be8a4d11f91edc",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "de": {
           "path": "recipes/load-chrome-extension.de.md",
           "sourceHash": "04d96eb4ffc8f806e2b4ac3c21d01b30b9d97f2ad184f3e4fd1baefd3164f9ef",
-          "translationHash": "b62481c85aa074681c8eed671cdd4ca50c01d38f9c239f44b824ca4bbc63af38",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "translationHash": "00be38977948672cb68caebbe631bd7be9b47178e2d701a69e84f1e10b2174ee",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "fr": {
           "path": "recipes/load-chrome-extension.fr.md",
           "sourceHash": "04d96eb4ffc8f806e2b4ac3c21d01b30b9d97f2ad184f3e4fd1baefd3164f9ef",
-          "translationHash": "113d2d116e7461b520c8fc3626af17675b1b3592b26102d191a195e376868ff3",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "translationHash": "4861a3643105ca6fd2f218c08faf1b8c6c55ef4b07bb33aaabe00de2beb08e43",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "hi": {
           "path": "recipes/load-chrome-extension.hi.md",
           "sourceHash": "04d96eb4ffc8f806e2b4ac3c21d01b30b9d97f2ad184f3e4fd1baefd3164f9ef",
-          "translationHash": "3de4c58eb21456e2e2ab59192e0e5fe5edca045996af9d57738f5be579c38b26",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "translationHash": "5d98aa095708296eaf40f052bd13b1fc09b6e3428f18baada8aced49b7d5f08c",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         }
       }
     },
     "recipes/persistent-login-profile.md": {
-      "sourceHash": "01c0ab696c1359bbc0c1faed41803e1194bb51ef2ae2569c5e12f375eef4af1a",
+      "sourceHash": "b1dce8c40e4bfcbdf9821ef3b7cac982a9bf2ed00a0322eee3b5d0bf55d5b5a9",
       "translations": {
         "ru": {
           "path": "recipes/persistent-login-profile.ru.md",
-          "sourceHash": "01c0ab696c1359bbc0c1faed41803e1194bb51ef2ae2569c5e12f375eef4af1a",
-          "translationHash": "b47b738a17a1f826b8c1ea3ed1721e8d546a3a6991e709fe11594bd0babb1689",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "sourceHash": "b1dce8c40e4bfcbdf9821ef3b7cac982a9bf2ed00a0322eee3b5d0bf55d5b5a9",
+          "translationHash": "b50022d9db6defcd97a3be4bb55e35a88e6a89047692c87452b40e9967797f86",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "be": {
           "path": "recipes/persistent-login-profile.be.md",
-          "sourceHash": "01c0ab696c1359bbc0c1faed41803e1194bb51ef2ae2569c5e12f375eef4af1a",
-          "translationHash": "f5ee87b462064b54d12b86f3361c34f57c649f55364f5468072a9b68aacbcc4c",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "sourceHash": "b1dce8c40e4bfcbdf9821ef3b7cac982a9bf2ed00a0322eee3b5d0bf55d5b5a9",
+          "translationHash": "79719bcf608ebf3c05477d5dc2aa9c0dcd6343b611bd8a0b80911ea88157f64c",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "uk": {
           "path": "recipes/persistent-login-profile.uk.md",
-          "sourceHash": "01c0ab696c1359bbc0c1faed41803e1194bb51ef2ae2569c5e12f375eef4af1a",
-          "translationHash": "058a8e1c23cf34f9737d3a55aac3c09a986c2272b2082e216b579822f3889f38",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "sourceHash": "b1dce8c40e4bfcbdf9821ef3b7cac982a9bf2ed00a0322eee3b5d0bf55d5b5a9",
+          "translationHash": "ab3656b3b700ac5feab2184d91ca866cb38c6d390ebe1c1c518149ac6cb6953a",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "es": {
           "path": "recipes/persistent-login-profile.es.md",
-          "sourceHash": "01c0ab696c1359bbc0c1faed41803e1194bb51ef2ae2569c5e12f375eef4af1a",
-          "translationHash": "feff79de875d911d08d88402f138f969b1fdb4615250e93f44bcb77880f2f22e",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "sourceHash": "b1dce8c40e4bfcbdf9821ef3b7cac982a9bf2ed00a0322eee3b5d0bf55d5b5a9",
+          "translationHash": "c08d0a567a0486ea9eea89c39c58bb3e4d6710fec133815a56ed761c4bca2cd6",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "pt-BR": {
           "path": "recipes/persistent-login-profile.pt-BR.md",
-          "sourceHash": "01c0ab696c1359bbc0c1faed41803e1194bb51ef2ae2569c5e12f375eef4af1a",
-          "translationHash": "13c067319d41d9a8300c38fcabcf399367b4af8f1af104821a79520ac1f1c165",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "sourceHash": "b1dce8c40e4bfcbdf9821ef3b7cac982a9bf2ed00a0322eee3b5d0bf55d5b5a9",
+          "translationHash": "adb10302c101f76bd8a49f7d658e564300c7e9bca5f7b38cc7a3e483f5e0e084",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "zh": {
           "path": "recipes/persistent-login-profile.zh.md",
-          "sourceHash": "01c0ab696c1359bbc0c1faed41803e1194bb51ef2ae2569c5e12f375eef4af1a",
-          "translationHash": "f398a86bcabbd1687b14426e8e205c060811fdd613a8c66677c7983cdb0fb7a9",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "sourceHash": "b1dce8c40e4bfcbdf9821ef3b7cac982a9bf2ed00a0322eee3b5d0bf55d5b5a9",
+          "translationHash": "12898335f10a11a3c7e1b1bd37cba4bfc5b2149f7183cb28e95c5ce3e5d7a836",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "ja": {
           "path": "recipes/persistent-login-profile.ja.md",
-          "sourceHash": "01c0ab696c1359bbc0c1faed41803e1194bb51ef2ae2569c5e12f375eef4af1a",
-          "translationHash": "65a919697792c16ebba0ed7433f6c8a0eb6cf73fa26d9074f382d16f3a048f1c",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "sourceHash": "b1dce8c40e4bfcbdf9821ef3b7cac982a9bf2ed00a0322eee3b5d0bf55d5b5a9",
+          "translationHash": "4f521ac1b13dfbced80b5c87787035ff74f90a9bb70e62354b135ce08e3543f0",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "de": {
           "path": "recipes/persistent-login-profile.de.md",
-          "sourceHash": "01c0ab696c1359bbc0c1faed41803e1194bb51ef2ae2569c5e12f375eef4af1a",
-          "translationHash": "cea9decb4012bc5d22ba14c0b6b6ae9b013e6a23f25ddf32da4c58ef47c4d873",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "sourceHash": "b1dce8c40e4bfcbdf9821ef3b7cac982a9bf2ed00a0322eee3b5d0bf55d5b5a9",
+          "translationHash": "84b95e009053becc2c20536bb58ad223283b41b5029209d4b35a9260dcd4c88f",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "fr": {
           "path": "recipes/persistent-login-profile.fr.md",
-          "sourceHash": "01c0ab696c1359bbc0c1faed41803e1194bb51ef2ae2569c5e12f375eef4af1a",
-          "translationHash": "34c6d117d0063ebe2affcc64c5f56b7b72beae0bf8355a08fe10bb6b5dee3c53",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "sourceHash": "b1dce8c40e4bfcbdf9821ef3b7cac982a9bf2ed00a0322eee3b5d0bf55d5b5a9",
+          "translationHash": "7b0a8e573d94c792d3ceebcbb6a6fb88e348b9632b854190c21ed17ca5332ecd",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "hi": {
           "path": "recipes/persistent-login-profile.hi.md",
-          "sourceHash": "01c0ab696c1359bbc0c1faed41803e1194bb51ef2ae2569c5e12f375eef4af1a",
-          "translationHash": "797b90134951b85c6c4076e46a070c2e5148d692406b13b635816927e34d7cfc",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "sourceHash": "b1dce8c40e4bfcbdf9821ef3b7cac982a9bf2ed00a0322eee3b5d0bf55d5b5a9",
+          "translationHash": "757bc6fbc7ffa3653b34a53364363d4cd72a53cd1d97d14118d272ffcaf9ae64",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         }
       }
     },
@@ -1925,72 +1925,72 @@
         "ru": {
           "path": "recipes/regional-qa-through-proxy.ru.md",
           "sourceHash": "5600b68fd9b97be9dffd2eb3f3605cde7949c70f67e67477483f74ee8efed6cd",
-          "translationHash": "27de12e747c96ec1286553871bffce9c96222bd905158ddc6906916c64f2efd9",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "translationHash": "fa96ef524fcee7985c81913ab1f07391a578c18dbd3c5a5d8af19e99eec8e6cd",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "be": {
           "path": "recipes/regional-qa-through-proxy.be.md",
           "sourceHash": "5600b68fd9b97be9dffd2eb3f3605cde7949c70f67e67477483f74ee8efed6cd",
-          "translationHash": "d8b8ac08cd00b996a72bfdf0f310640922e9ef597bac25aac26f46f28ba56da9",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "translationHash": "057c4ecaef75ce3cfbd4e5e983acda36e9493cb962c275c2734bc782420cec02",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "uk": {
           "path": "recipes/regional-qa-through-proxy.uk.md",
           "sourceHash": "5600b68fd9b97be9dffd2eb3f3605cde7949c70f67e67477483f74ee8efed6cd",
-          "translationHash": "c347a98fee819b021383dcc58bf9e3e02b383fdb88a30c98f972f97e8089c8ab",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "translationHash": "3c823e27df7ab500cd918555eea961212709f10b887749c05065dda5ea950d9f",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "es": {
           "path": "recipes/regional-qa-through-proxy.es.md",
           "sourceHash": "5600b68fd9b97be9dffd2eb3f3605cde7949c70f67e67477483f74ee8efed6cd",
-          "translationHash": "64fe9fa484115613a6676a54498e51694fa19ebdd079e5a1c340b2c331243ab1",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "translationHash": "98096733d0bed6678a18d2a622397cf4a59a9ed88565d3b741c088355d23c242",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "pt-BR": {
           "path": "recipes/regional-qa-through-proxy.pt-BR.md",
           "sourceHash": "5600b68fd9b97be9dffd2eb3f3605cde7949c70f67e67477483f74ee8efed6cd",
-          "translationHash": "f36b8234cac88d499f0b139afa77c34f468b9bdbf88ad25bea85e1eed8683453",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "translationHash": "311ee6f457a2a799f11a3f00bd771c0bc8a62913ab3b0eaa10f59a6708d8c323",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "zh": {
           "path": "recipes/regional-qa-through-proxy.zh.md",
           "sourceHash": "5600b68fd9b97be9dffd2eb3f3605cde7949c70f67e67477483f74ee8efed6cd",
-          "translationHash": "7f04b621aced83764f50a080b56c5df16e82c6544492dc5044314849359f2c28",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "translationHash": "06c2cf2e8e6719e2acf3493f187296ad15cef6af87a31fe0664b6f3086298fe1",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "ja": {
           "path": "recipes/regional-qa-through-proxy.ja.md",
           "sourceHash": "5600b68fd9b97be9dffd2eb3f3605cde7949c70f67e67477483f74ee8efed6cd",
-          "translationHash": "62f2a975161a8289d078c65e879ea5dc1e979c5738abb49020d654dfd79230c1",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "translationHash": "de532ee355da2ba1ba20bbb726c402c590fc8574a69f411d1a7643ab723d51fe",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "de": {
           "path": "recipes/regional-qa-through-proxy.de.md",
           "sourceHash": "5600b68fd9b97be9dffd2eb3f3605cde7949c70f67e67477483f74ee8efed6cd",
-          "translationHash": "2e4bd9226cf2a0d1095d740f52e790395a2da2f8a14147a63af54e453f856066",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "translationHash": "d2e8c48877d0566db44a6708f5b4fd913c3c0b17bcc75a7eeaf9410cc284730a",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "fr": {
           "path": "recipes/regional-qa-through-proxy.fr.md",
           "sourceHash": "5600b68fd9b97be9dffd2eb3f3605cde7949c70f67e67477483f74ee8efed6cd",
-          "translationHash": "ea3a6b9461e15b3aea24097e9f892acced65dc56ac3ebc4b2e5fd8895cf2310b",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "translationHash": "c8d183a12abdf4babb6c5bdcf9ab84f5ceae412266d0addbfd3318f06d313471",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         },
         "hi": {
           "path": "recipes/regional-qa-through-proxy.hi.md",
           "sourceHash": "5600b68fd9b97be9dffd2eb3f3605cde7949c70f67e67477483f74ee8efed6cd",
-          "translationHash": "02a796cbf5164539b473679ca830eada789411910a46624a73fd3d3388708d92",
-          "translator": "deepl-mcp translate-text",
-          "updatedAt": "2026-07-06T18:50:42.388Z"
+          "translationHash": "266b17eec2bc5891da5868ff89121cda8237a9b0729efb15ba4dc53f2c6d541a",
+          "translator": "manual translation audit",
+          "updatedAt": "2026-10-12T21:36:53.660Z"
         }
       }
     }

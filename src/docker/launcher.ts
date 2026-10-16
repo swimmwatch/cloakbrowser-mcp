@@ -15,45 +15,62 @@ import {
   isDockerDisplayEnsureRequest,
   isDockerHealthProbeResult,
 } from '#src/docker/protocol';
-
-const cliShutdownTimeoutMs = 8_000;
-const cliKillTimeoutMs = 2_000;
+const cliShutdownTimeoutMs = 8000;
+const cliKillTimeoutMs = 2000;
 const cliHealthProbeTimeoutMs = 750;
 const displayProbeIntervalMs = 50;
-const displayStartupTimeoutMs = 10_000;
-
+const displayStartupTimeoutMs = 10000;
 type ShutdownReason =
-  | { readonly kind: 'cli_exit' }
-  | { readonly error: Error; readonly kind: 'infrastructure_failure' }
-  | { readonly kind: 'signal'; readonly signal: NodeJS.Signals };
-
+  | {
+      readonly kind: 'cli_exit';
+    }
+  | {
+      readonly error: Error;
+      readonly kind: 'infrastructure_failure';
+    }
+  | {
+      readonly kind: 'signal';
+      readonly signal: NodeJS.Signals;
+    };
 interface PendingHealthProbe {
   readonly nonce: string;
   readonly reject: (error: Error) => void;
   readonly resolve: () => void;
   readonly timer: NodeJS.Timeout;
 }
-
 class DockerLifecycleLauncher {
   #cli: ChildProcess | undefined;
   #cliExitCode: number | undefined;
   #completion: ((exitCode: number) => void) | undefined;
-  #display = new DockerDisplayManager({
-    onFailure: (error) => void this.#beginShutdown({ kind: 'infrastructure_failure', error }),
-    probe: () => probeX11Display(),
-    probeIntervalMs: displayProbeIntervalMs,
-    spawnXvfb: () =>
-      spawn('/usr/bin/Xvfb', [dockerDisplay, '-screen', '0', '1280x720x24', '-nolisten', 'tcp'], {
-        detached: true,
-        stdio: ['ignore', 'ignore', 'inherit'],
-      }),
-    startupTimeoutMs: displayStartupTimeoutMs,
-  });
+  #display = (() => {
+    const dockerDisplayManagerOptions: import('#src/docker/display').DockerDisplayManagerOptions = {
+      onFailure: (error) =>
+        void (() => {
+          const beginShutdownOptions = { kind: 'infrastructure_failure', error } as const;
+          return this.#beginShutdown(beginShutdownOptions);
+        })(),
+      probe: () => probeX11Display(),
+      probeIntervalMs: displayProbeIntervalMs,
+      spawnXvfb: () => {
+        const values: readonly string[] = [dockerDisplay, '-screen', '0', '1280x720x24', '-nolisten', 'tcp'];
+        const spawnOptions: import('node:child_process').SpawnOptionsWithStdioTuple<
+          import('node:child_process').StdioNull,
+          import('node:child_process').StdioNull,
+          import('node:child_process').StdioNull
+        > = {
+          detached: true,
+          stdio: ['ignore', 'ignore', 'inherit'],
+        };
+        return spawn('/usr/bin/Xvfb', values, spawnOptions);
+      },
+      startupTimeoutMs: displayStartupTimeoutMs,
+    };
+    return new DockerDisplayManager(dockerDisplayManagerOptions);
+  })();
   #infrastructureFailure: Error | undefined;
   #healthServer: Server | undefined;
   readonly #pendingHealthProbes = new Map<string, PendingHealthProbe>();
   #shutdown: Promise<void> | undefined;
-
   async run(args: string[]): Promise<number> {
     this.#installSignalHandlers();
     const completion = new Promise<number>((resolve) => {
@@ -63,42 +80,56 @@ class DockerLifecycleLauncher {
       await this.#startHealthServer();
       this.#startCli(args);
     } catch (error) {
-      await this.#beginShutdown({
+      const beginShutdownOptions2 = {
         kind: 'infrastructure_failure',
         error: asError(error, 'Docker health channel startup failed'),
-      });
+      } as const;
+      await this.#beginShutdown(beginShutdownOptions2);
     }
     return completion;
   }
-
   #installSignalHandlers(): void {
     for (const signal of ['SIGINT', 'SIGTERM'] as const) {
       process.once(signal, () => {
-        void this.#beginShutdown({ kind: 'signal', signal });
+        void (() => {
+          const beginShutdownOptions3 = { kind: 'signal', signal } as const;
+          return this.#beginShutdown(beginShutdownOptions3);
+        })();
       });
     }
   }
-
   #startCli(args: string[]): void {
-    const cli = spawn(process.execPath, [resolveCliPath(), ...args], {
+    const argumentValue = process.execPath;
+    const values2: readonly string[] = [resolveCliPath(), ...args];
+    const spawnOptions2: import('node:child_process').SpawnOptions = {
       detached: true,
       stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
-    });
+    };
+    const cli = spawn(argumentValue, values2, spawnOptions2);
     this.#cli = cli;
     cli.on('message', (message: unknown) => this.#handleCliMessage(message));
     cli.once('error', (error) => {
-      void this.#beginShutdown({
-        kind: 'infrastructure_failure',
-        error: new Error(`Could not start the MCP CLI: ${error.message}`),
-      });
+      void (() => {
+        const propertyValue = 'infrastructure_failure';
+        const message2 = `Could not start the MCP CLI: ${error.message}`;
+        const error2 = new Error(message2);
+        const beginShutdownOptions4 = {
+          kind: propertyValue,
+          error: error2,
+        } as const;
+        return this.#beginShutdown(beginShutdownOptions4);
+      })();
     });
     cli.once('exit', (code, signal) => {
-      this.#rejectHealthProbes(new Error('MCP CLI exited before Docker health probe completed'));
+      const error3 = new Error('MCP CLI exited before Docker health probe completed');
+      this.#rejectHealthProbes(error3);
       this.#cliExitCode = signal === null ? (code ?? 1) : 128 + signalNumber(signal);
-      void this.#beginShutdown({ kind: 'cli_exit' });
+      void (() => {
+        const beginShutdownOptions5 = { kind: 'cli_exit' } as const;
+        return this.#beginShutdown(beginShutdownOptions5);
+      })();
     });
   }
-
   #handleCliMessage(message: unknown): void {
     if (isDockerDisplayEnsureRequest(message)) {
       void this.#handleDisplayRequest(message.requestId);
@@ -106,42 +137,50 @@ class DockerLifecycleLauncher {
     }
     if (isDockerHealthProbeResult(message)) this.#handleHealthProbeResult(message);
   }
-
   async #handleDisplayRequest(requestId: string): Promise<void> {
     try {
       await this.#display.ensureReady();
-      this.#replyToCli({
+      const replyToCliOptions = {
         display: dockerDisplay,
         ok: true,
         requestId,
         type: dockerDisplayEnsureResultType,
-      });
+      } as const;
+      this.#replyToCli(replyToCliOptions);
     } catch (error) {
       const failure = asError(error, 'Xvfb startup failed');
-      this.#replyToCli({
+      const replyToCliOptions2 = {
         error: failure.message,
         ok: false,
         requestId,
         type: dockerDisplayEnsureResultType,
-      });
-      await this.#beginShutdown({ kind: 'infrastructure_failure', error: failure });
+      } as const;
+      this.#replyToCli(replyToCliOptions2);
+      const beginShutdownOptions6 = { kind: 'infrastructure_failure', error: failure } as const;
+      await this.#beginShutdown(beginShutdownOptions6);
     }
   }
-
   #replyToCli(message: DockerDisplayEnsureResult): void {
     if (this.#cli?.connected !== true) return;
     this.#cli.send(message, (error) => {
       if (error === null) return;
-      void this.#beginShutdown({
-        kind: 'infrastructure_failure',
-        error: new Error(`Could not reply on the Docker display control channel: ${error.message}`),
-      });
+      void (() => {
+        const propertyValue2 = 'infrastructure_failure';
+        const message3 = `Could not reply on the Docker display control channel: ${error.message}`;
+        const error4 = new Error(message3);
+        const beginShutdownOptions7 = {
+          kind: propertyValue2,
+          error: error4,
+        } as const;
+        return this.#beginShutdown(beginShutdownOptions7);
+      })();
     });
   }
-
   async #startHealthServer(): Promise<void> {
-    rmSync(dockerHealthSocketPath, { force: true });
-    const server = createServer({ allowHalfOpen: true }, (socket) => this.#handleHealthSocket(socket));
+    const rmSyncOptions = { force: true } as const;
+    rmSync(dockerHealthSocketPath, rmSyncOptions);
+    const createServerOptions = { allowHalfOpen: true } as const;
+    const server = createServer(createServerOptions, (socket) => this.#handleHealthSocket(socket));
     this.#healthServer = server;
     await new Promise<void>((resolve, reject) => {
       server.once('error', reject);
@@ -152,7 +191,6 @@ class DockerLifecycleLauncher {
       });
     });
   }
-
   #handleHealthSocket(socket: Socket): void {
     let request = '';
     socket.setEncoding('utf8');
@@ -162,12 +200,14 @@ class DockerLifecycleLauncher {
     });
     socket.once('end', () => {
       void this.#checkHealth(request).then((ok) => {
-        socket.end(`${JSON.stringify({ ok })}\n`);
+        const stringifyOptions = { ok } as const;
+        const templateValue = JSON.stringify(stringifyOptions);
+        const message4 = `${templateValue}\n`;
+        socket.end(message4);
       });
     });
     socket.once('error', () => undefined);
   }
-
   async #checkHealth(request: string): Promise<boolean> {
     if (request !== '{"type":"health"}\n' || this.#shutdown !== undefined) return false;
     if (this.#infrastructureFailure !== undefined) return false;
@@ -187,43 +227,47 @@ class DockerLifecycleLauncher {
       return false;
     }
   }
-
   #probeCliEventLoop(): Promise<void> {
     const cli = this.#cli;
     if (cli?.connected !== true || cli.pid === undefined) {
-      return Promise.reject(new Error('MCP CLI health channel unavailable'));
+      const error5 = new Error('MCP CLI health channel unavailable');
+      return Promise.reject(error5);
     }
     const requestId = randomUUID();
     const nonce = randomUUID();
     return new Promise<void>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.#pendingHealthProbes.delete(requestId);
-        reject(new Error('Timed out waiting MCP CLI health response'));
+        const error6 = new Error('Timed out waiting MCP CLI health response');
+        reject(error6);
       }, cliHealthProbeTimeoutMs);
-      this.#pendingHealthProbes.set(requestId, { nonce, reject, resolve, timer });
-      cli.send({ nonce, requestId, type: dockerHealthProbeRequestType }, (error) => {
+      const setOptions = { nonce, reject, resolve, timer } as const;
+      this.#pendingHealthProbes.set(requestId, setOptions);
+      const sendOptions = { nonce, requestId, type: dockerHealthProbeRequestType } as const;
+      cli.send(sendOptions, (error) => {
         if (error === null) return;
         const pending = this.#pendingHealthProbes.get(requestId);
         if (pending === undefined) return;
         clearTimeout(pending.timer);
         this.#pendingHealthProbes.delete(requestId);
-        reject(new Error(`Could not send MCP CLI health probe: ${error.message}`));
+        const message5 = `Could not send MCP CLI health probe: ${error.message}`;
+        const error7 = new Error(message5);
+        reject(error7);
       });
     });
   }
-
   #handleHealthProbeResult(result: DockerHealthProbeResult): void {
     const pending = this.#pendingHealthProbes.get(result.requestId);
     if (pending === undefined) return;
     clearTimeout(pending.timer);
     this.#pendingHealthProbes.delete(result.requestId);
     if (pending.nonce !== result.nonce || result.processId !== this.#cli?.pid) {
-      pending.reject(new Error('MCP CLI health response identity mismatch'));
+      const error8 = new Error('MCP CLI health response identity mismatch');
+      pending.reject(error8);
       return;
     }
     pending.resolve();
   }
-
   #rejectHealthProbes(error: Error): void {
     for (const [requestId, pending] of this.#pendingHealthProbes) {
       clearTimeout(pending.timer);
@@ -231,35 +275,37 @@ class DockerLifecycleLauncher {
       pending.reject(error);
     }
   }
-
   async #stopHealthServer(): Promise<void> {
     const server = this.#healthServer;
     this.#healthServer = undefined;
     if (server !== undefined) await new Promise<void>((resolve) => server.close(() => resolve()));
-    rmSync(dockerHealthSocketPath, { force: true });
+    const rmSyncOptions2 = { force: true } as const;
+    rmSync(dockerHealthSocketPath, rmSyncOptions2);
   }
-
   #beginShutdown(reason: ShutdownReason): Promise<void> {
     if (reason.kind === 'infrastructure_failure' && this.#infrastructureFailure === undefined) {
       this.#infrastructureFailure = reason.error;
-      process.stderr.write(`cloakbrowser-mcp: ${reason.error.message}\n`);
+      const message6 = `cloakbrowser-mcp: ${reason.error.message}\n`;
+      process.stderr.write(message6);
     }
     if (this.#shutdown !== undefined) return this.#shutdown;
     this.#shutdown = this.#shutdownChildren(reason).finally(() => {
       const completion = this.#completion;
       if (completion === undefined) return;
       this.#completion = undefined;
-      completion(this.#finalExitCode());
+      const finalExitCodeResult = this.#finalExitCode();
+      completion(finalExitCodeResult);
     });
     return this.#shutdown;
   }
-
   async #shutdownChildren(reason: ShutdownReason): Promise<void> {
-    this.#rejectHealthProbes(new Error('Docker launcher is shutting down'));
+    const error9 = new Error('Docker launcher is shutting down');
+    this.#rejectHealthProbes(error9);
     await this.#stopHealthServer();
     const cli = this.#cli;
     if (cli !== undefined && !hasExited(cli)) {
-      signalProcessGroup(cli, reason.kind === 'signal' ? reason.signal : 'SIGTERM');
+      const argumentValue2 = reason.kind === 'signal' ? reason.signal : 'SIGTERM';
+      signalProcessGroup(cli, argumentValue2);
       if (!(await waitForExit(cli, cliShutdownTimeoutMs))) {
         signalProcessGroup(cli, 'SIGKILL');
         await waitForExit(cli, cliKillTimeoutMs);
@@ -267,16 +313,13 @@ class DockerLifecycleLauncher {
     }
     await this.#display.stop();
   }
-
   #finalExitCode(): number {
     return resolveDockerLauncherExitCode(this.#cliExitCode, this.#infrastructureFailure);
   }
 }
-
 export async function runDockerLifecycleLauncher(args = process.argv.slice(2)): Promise<number> {
   return new DockerLifecycleLauncher().run(args);
 }
-
 export function resolveDockerLauncherExitCode(
   cliExitCode: number | undefined,
   infrastructureFailure: Error | undefined,
@@ -284,28 +327,25 @@ export function resolveDockerLauncherExitCode(
   if (infrastructureFailure !== undefined) return 1;
   return cliExitCode ?? 1;
 }
-
 function resolveCliPath(): string {
-  return fileURLToPath(new URL('../cli.js', import.meta.url));
+  const uRL = new URL('../cli.js', import.meta.url);
+  return fileURLToPath(uRL);
 }
-
 function hasExited(child: ChildProcess): boolean {
   return child.exitCode !== null || child.signalCode !== null;
 }
-
 function signalProcessGroup(child: ChildProcess, signal: NodeJS.Signals): void {
   if (child.pid === undefined) return;
   try {
-    process.kill(-child.pid, signal);
+    const argumentValue3 = -child.pid;
+    process.kill(argumentValue3, signal);
   } catch {
     child.kill(signal);
   }
 }
-
 function signalNumber(signal: NodeJS.Signals): number {
   return osConstants.signals[signal] ?? 1;
 }
-
 function waitForExit(child: ChildProcess, timeoutMs: number): Promise<boolean> {
   if (hasExited(child)) return Promise.resolve(true);
   return new Promise((resolve) => {
@@ -319,11 +359,9 @@ function waitForExit(child: ChildProcess, timeoutMs: number): Promise<boolean> {
     child.once('exit', onExit);
   });
 }
-
 function asError(error: unknown, fallback: string): Error {
   return error instanceof Error ? error : new Error(fallback);
 }
-
 const invokedPath = process.argv[1];
 if (invokedPath !== undefined && fileURLToPath(import.meta.url) === invokedPath) {
   void runDockerLifecycleLauncher().then(
@@ -331,7 +369,8 @@ if (invokedPath !== undefined && fileURLToPath(import.meta.url) === invokedPath)
       process.exitCode = exitCode;
     },
     (error: unknown) => {
-      process.stderr.write(`cloakbrowser-mcp: ${asError(error, 'Docker launcher failed').message}\n`);
+      const message7 = `cloakbrowser-mcp: ${asError(error, 'Docker launcher failed').message}\n`;
+      process.stderr.write(message7);
       process.exitCode = 1;
     },
   );
