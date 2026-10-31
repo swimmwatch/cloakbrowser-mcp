@@ -1,0 +1,642 @@
+schema_version: 1
+spec_slug: win32-arm64-support
+decisions:
+  - id: outcome.target-platform
+    revision: 1
+    category: outcome
+    state: answered
+    provenance: user
+    evidence:
+      - 'User request: add win32-arm64 support.'
+      - 'https://github.com/swimmwatch/cloakbrowser-mcp/issues/89'
+    question: null
+    answer:
+      selected_ids:
+        - native-win32-arm64
+      text: 'Support the npm/npx runtime on Windows ARM64 where Node.js reports process.platform=win32 and process.arch=arm64.'
+    rationale: 'The request and issue identify the unsupported Node.js platform/architecture pair directly.'
+    last_tool_status: committed
+    supersedes_revision: null
+    requirement_ids:
+      - R1
+
+  - id: stakeholders.primary-users
+    revision: 1
+    category: outcome
+    state: observed
+    provenance: repository
+    evidence:
+      - 'Issue #89 reports failure on Windows 11 ARM64 hardware using npx and Node.js 24.'
+    question: null
+    answer:
+      selected_ids: []
+      text: 'Primary users are operators running the recommended local npm/npx installation on ARM-based Windows 11 devices.'
+    rationale: 'Docker works as a heavier workaround, while the default local path fails before bridge startup.'
+    last_tool_status: not_asked
+    supersedes_revision: null
+    requirement_ids:
+      - R1
+
+  - id: scope.native-node-runtime
+    revision: 1
+    category: scope
+    state: answered
+    provenance: user
+    evidence:
+      - 'The requested target is named win32-arm64.'
+      - "Issue #89 records the error 'Unsupported platform: win32 arm64'."
+    question: null
+    answer:
+      selected_ids:
+        - node-win32-arm64
+      text: 'The target is native ARM64 Node.js on Windows, not x64 Node.js running under Windows-on-ARM emulation.'
+    rationale: 'Node.js platform and architecture are the observable inputs used by the upstream binary resolver.'
+    last_tool_status: committed
+    supersedes_revision: null
+    requirement_ids:
+      - R1
+
+  - id: scope.license-tiers
+    revision: 1
+    category: scope
+    state: answered
+    provenance: user
+    evidence:
+      - 'Issue #89 demonstrates the default free npm/npx path.'
+      - 'CloakBrowser supports free and Pro binary resolution.'
+      - 'The upstream resolver deliberately does not fall back from a valid Pro license to the free binary.'
+    question:
+      text: 'Must the Windows ARM64 support claim cover both CloakBrowser Free and Pro binary paths?'
+      kind: single
+      options:
+        - id: free-and-pro
+          label: Require Free and Pro (Recommended)
+          description: 'Do not advertise Windows ARM64 until both existing license paths can resolve and launch native ARM64 binaries.'
+        - id: free-only
+          label: Ship Free first
+          description: "Fix the issue's default free path first and document Pro as unsupported on Windows ARM64 until its native artifact is available."
+    answer:
+      selected_ids:
+        - free-and-pro
+      text: ''
+    rationale: 'The public platform claim must cover both existing CloakBrowser license paths and must not strand Pro users on a platform advertised as supported.'
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids:
+      - R1
+      - R3
+      - R4
+
+  - id: current.upstream-support
+    revision: 1
+    category: scope
+    state: observed
+    provenance: authoritative-doc
+    evidence:
+      - 'Installed cloakbrowser@0.5.1 maps win32-x64 to windows-x64 and rejects win32-arm64 in dist/config.js.'
+      - 'npm latest is cloakbrowser@0.5.2 as of 2026-07-25.'
+      - 'CloakBrowser npm source at gitHead a5f2c33ff9aa27cabd93871d714ee1469fb8fcc5 still maps only win32-x64.'
+      - 'The signed free Chromium release chromium-v146.0.7680.177.5 publishes windows-x64 but no windows-arm64 archive.'
+      - 'Context7 /cloakhq/cloakbrowser documentation lists Windows x86_64 only.'
+    question: null
+    answer:
+      selected_ids: []
+      text: 'No currently published stable CloakBrowser JavaScript package and free signed binary release provides native Windows ARM64 support.'
+    rationale: 'A cloakbrowser-mcp dependency-only change cannot produce native support until the upstream package and binary exist.'
+    last_tool_status: not_asked
+    supersedes_revision: null
+    requirement_ids:
+      - R2
+
+  - id: architecture.binary-ownership
+    revision: 1
+    category: architecture
+    state: observed
+    provenance: repository
+    evidence:
+      - 'src/bridge/config.ts imports ensureBinary, binaryInfo, buildLaunchOptions, and getDefaultStealthArgs from cloakbrowser.'
+      - 'configureCloakRuntime delegates binary resolution to ensureBinary and forwards the returned executable path to Playwright MCP.'
+      - 'cloakbrowser_binary_info and doctor delegate platform metadata to binaryInfo.'
+      - 'AGENTS.md requires a thin bridge and prohibits replacing upstream browser contracts.'
+    question: null
+    answer:
+      selected_ids: []
+      text: 'CloakBrowser owns platform detection, archive naming, download URLs, integrity verification, cache layout, and executable resolution; cloakbrowser-mcp consumes those APIs.'
+    rationale: 'Keeping ownership upstream preserves the bridge boundary and prevents duplicate platform logic.'
+    last_tool_status: not_asked
+    supersedes_revision: null
+    requirement_ids:
+      - R2
+      - R8
+
+  - id: architecture.delivery-strategy
+    revision: 1
+    category: architecture
+    state: answered
+    provenance: user
+    evidence:
+      - 'The required upstream JavaScript mapping and native signed archive do not exist in stable releases as of 2026-07-25.'
+      - 'This repository currently depends on cloakbrowser ^0.5.1 and deliberately delegates binary management.'
+    question:
+      text: 'How should this workstream handle the missing upstream Windows ARM64 package and binary support?'
+      kind: single
+      options:
+        - id: consume-stable-upstream
+          label: Consume stable upstream support (Recommended)
+          description: 'Keep this bridge thin and make implementation depend on the first stable cloakbrowser release with native win32-arm64 mapping and a signed free windows-arm64 archive.'
+        - id: include-upstream-work
+          label: Include upstream work
+          description: 'Expand the workstream to define the required CloakBrowser build, JavaScript wrapper, artifact, and publication changes before consuming them here.'
+        - id: x64-emulation-fallback
+          label: Use x64 emulation
+          description: 'Treat the existing windows-x64 build under Windows emulation as the fallback instead of requiring a native ARM64 archive.'
+    answer:
+      selected_ids:
+        - consume-stable-upstream
+      text: ''
+    rationale: 'Keep cloakbrowser-mcp within its existing thin-bridge boundary and consume the first stable upstream release that provides native, signed Windows ARM64 support.'
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids:
+      - R2
+
+  - id: interfaces.public-surface
+    revision: 1
+    category: interfaces
+    state: assumed
+    provenance: agent-default
+    evidence:
+      - 'The requested capability is a new supported platform for the existing npm path.'
+      - 'The project exposes only the upstream Playwright MCP tools and two fixed local introspection tools.'
+    question: null
+    answer:
+      selected_ids:
+        - additive-no-new-interface
+      text: 'Do not add or change CLI flags, environment variables, MCP tools, tool schemas, transports, or server metadata solely for Windows ARM64 support.'
+    rationale: 'The existing APIs already delegate platform detection and binary resolution; an additive platform should not create a parallel contract.'
+    last_tool_status: not_asked
+    supersedes_revision: null
+    requirement_ids:
+      - R8
+
+  - id: flows.default-install
+    revision: 1
+    category: flows
+    state: assumed
+    provenance: agent-default
+    evidence:
+      - 'README.md recommends npx -y cloakbrowser-mcp@latest.'
+      - 'prepareBridgeRuntime calls cloakbrowser ensureBinary before launching the upstream MCP bridge.'
+    question: null
+    answer:
+      selected_ids:
+        - existing-default-flow
+      text: 'On native Windows ARM64, the existing default npm/npx flow must resolve, download, verify, cache, and launch a native CloakBrowser binary without special flags; subsequent starts may reuse the verified cache.'
+    rationale: 'Support should make the documented default path work rather than introduce a platform-specific setup path.'
+    last_tool_status: not_asked
+    supersedes_revision: null
+    requirement_ids:
+      - R3
+      - R4
+
+  - id: operations.cache-transition
+    revision: 1
+    category: operations
+    state: answered
+    provenance: user
+    evidence:
+      - 'CloakBrowser 0.5.2 uses a version-based cache directory and chrome.exe path without an architecture component.'
+      - 'A Windows ARM device may have an existing windows-x64 cache from running x64 Node.js before switching to native ARM64 Node.js.'
+    question:
+      text: 'What compatibility guarantee should apply when a Windows ARM user already has an x64 CloakBrowser binary cached for the same Chromium version?'
+      kind: single
+      options:
+        - id: transparent-native-replacement
+          label: Replace transparently (Recommended)
+          description: 'Require the upstream dependency to distinguish or validate architectures and obtain the ARM64 binary without asking the user to purge the cache.'
+        - id: documented-cache-reset
+          label: Allow one-time cache reset
+          description: 'Permit support to require a documented one-time cache removal when an incompatible x64 binary is already cached.'
+    answer:
+      selected_ids:
+        - transparent-native-replacement
+      text: ''
+    rationale: 'Existing users must not have to diagnose and manually purge an x64 cache when switching to native ARM64 Node.js.'
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids:
+      - R5
+
+  - id: failures.binary-acquisition
+    revision: 1
+    category: failures
+    state: assumed
+    provenance: agent-default
+    evidence:
+      - 'CloakBrowser owns archive availability, detached signature verification, checksums, and download errors.'
+      - 'The bridge currently propagates configureCloakRuntime failures after cleaning its temporary runtime directory.'
+    question: null
+    answer:
+      selected_ids:
+        - fail-closed
+      text: 'A missing, unverified, corrupt, or non-executable Windows ARM64 binary must fail closed with a clear diagnostic and must not silently run an unverified download or switch to an unrelated browser.'
+    rationale: 'This preserves current supply-chain and launch-failure behavior.'
+    last_tool_status: not_asked
+    supersedes_revision: null
+    requirement_ids:
+      - R7
+
+  - id: security.binary-integrity
+    revision: 1
+    category: security
+    state: assumed
+    provenance: agent-default
+    evidence:
+      - 'CloakBrowser releases publish SHA256SUMS and SHA256SUMS.sig.'
+      - 'The upstream JavaScript package embeds Ed25519 verification keys and verifies downloaded binaries.'
+    question: null
+    answer:
+      selected_ids:
+        - preserve-signed-downloads
+      text: 'Windows ARM64 artifacts must use the same signed-manifest and checksum verification path as existing supported platforms; the bridge must not vendor an unsigned binary or bypass verification.'
+    rationale: 'Adding a platform must not weaken the existing binary trust boundary.'
+    last_tool_status: not_asked
+    supersedes_revision: null
+    requirement_ids:
+      - R7
+
+  - id: quality.native-ci
+    revision: 1
+    category: quality
+    state: assumed
+    provenance: agent-default
+    evidence:
+      - 'Current CI tests npm on Linux x64/arm64, macOS arm64/x64, and Windows x64 across the supported Node.js versions.'
+      - 'GitHub documents the standard public-repository ARM64 Windows runner label windows-11-arm.'
+      - 'Existing packaged CLI E2E tests use a fake upstream and do not prove native CloakBrowser download or launch.'
+    question: null
+    answer:
+      selected_ids:
+        - native-runner-and-browser-smoke
+      text: 'Windows ARM64 support must be gated on the existing quality/package suites on a native windows-11-arm runner for the supported Node.js matrix plus an automated default-engine smoke that proves the signed ARM64 binary is resolved and launched.'
+    rationale: 'A platform claim requires native execution evidence, not only mocked bridge or CLI help tests.'
+    last_tool_status: not_asked
+    supersedes_revision: null
+    requirement_ids:
+      - R10
+
+  - id: quality.pro-validation
+    revision: 1
+    category: quality
+    state: answered
+    provenance: user
+    evidence:
+      - 'The selected platform scope includes both Free and Pro paths.'
+      - 'The free archive can be downloaded and launched in public CI without credentials.'
+      - 'The Pro download path requires a valid license and must not fall back to Free.'
+      - 'The specification workflow must not request or persist credentials.'
+    question:
+      text: 'How should native Windows ARM64 Pro support be verified before the platform is advertised?'
+      kind: single
+      options:
+        - id: protected-ci-smoke
+          label: Protected CI smoke (Recommended)
+          description: 'Run a non-fork protected workflow on windows-11-arm using an existing repository secret, redact it, and require a native Pro download and browser launch; never expose or persist the credential.'
+        - id: maintainer-manual-smoke
+          label: Maintainer release gate
+          description: 'Require a maintainer to run and record a native Pro download and launch on Windows ARM64 before release, with the credential supplied only to that local process.'
+        - id: upstream-evidence-only
+          label: Trust upstream evidence
+          description: 'Accept the upstream stable package, signed Pro manifest, and upstream test evidence without executing a Pro launch in this repository.'
+    answer:
+      selected_ids:
+        - protected-ci-smoke
+      text: ''
+    rationale: 'A protected native CI gate gives repeatable proof for the non-fallback Pro path while keeping the credential unavailable to forked pull requests and logs.'
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids:
+      - R11
+
+  - id: operations.diagnostics
+    revision: 1
+    category: operations
+    state: assumed
+    provenance: agent-default
+    evidence:
+      - 'doctor and cloakbrowser_binary_info already delegate to cloakbrowser binaryInfo.'
+      - 'binaryInfo returns platform, tier, binaryPath, installed, cacheDir, version, and downloadUrl.'
+    question: null
+    answer:
+      selected_ids:
+        - existing-diagnostics
+      text: 'On Windows ARM64, doctor and cloakbrowser_binary_info must identify the resolved windows-arm64 platform and the selected Free or Pro binary through their existing output shapes; failures must remain actionable and contain no credential.'
+    rationale: 'Operators need to verify which native artifact is selected without a new diagnostic interface.'
+    last_tool_status: not_asked
+    supersedes_revision: null
+    requirement_ids:
+      - R6
+      - R8
+
+  - id: flows.concurrent-cache-safety
+    revision: 1
+    category: flows
+    state: assumed
+    provenance: agent-default
+    evidence:
+      - 'CloakBrowser owns download, extraction, verification, and cache cleanup.'
+      - 'The bridge removes its temporary runtime directory when configuration fails.'
+    question: null
+    answer:
+      selected_ids:
+        - preserve-cache-safety
+      text: 'Concurrent or interrupted first starts must not leave a partial, unverified, or wrong-architecture executable treated as installed; bridge temporary runtime state must still be cleaned after failure.'
+    rationale: 'The new platform must be no weaker than existing platforms under interruption or concurrent startup.'
+    last_tool_status: not_asked
+    supersedes_revision: null
+    requirement_ids:
+      - R7
+
+  - id: security.pro-ci-credential
+    revision: 1
+    category: security
+    state: answered
+    provenance: user
+    evidence:
+      - 'quality.pro-validation selected protected-ci-smoke.'
+      - 'AGENTS.md requires least-privilege workflow permissions and prohibits exposing secrets.'
+    question: null
+    answer:
+      selected_ids:
+        - protected-non-fork-secret
+      text: 'The Pro credential may be used only by a protected non-fork Windows ARM64 CI job, must be masked and excluded from command output and artifacts, and must not be made available to untrusted pull-request code.'
+    rationale: 'This is the security consequence of the selected repeatable Pro validation gate.'
+    last_tool_status: committed
+    supersedes_revision: null
+    requirement_ids:
+      - R11
+
+  - id: operations.rollback
+    revision: 1
+    category: operations
+    state: assumed
+    provenance: agent-default
+    evidence:
+      - 'The selected delivery strategy consumes a stable upstream dependency and does not add local binary ownership.'
+      - 'Platform claims are maintained in generated compatibility data and human-authored testing documentation.'
+    question: null
+    answer:
+      selected_ids:
+        - reversible-consumer-change
+      text: 'If the upstream stable release is withdrawn or fails the native gates, the consumer dependency floor, Windows ARM64 CI inclusion, and public support claim must be reverted together; existing platforms and user cache data must not be destructively removed.'
+    rationale: 'The additive consumer change has a bounded rollback that does not require a data migration.'
+    last_tool_status: not_asked
+    supersedes_revision: null
+    requirement_ids:
+      - R13
+
+  - id: compatibility.existing-platforms
+    revision: 1
+    category: compatibility
+    state: assumed
+    provenance: agent-default
+    evidence:
+      - 'README.md and docs/data/version-compatibility.json list five existing npm platform combinations.'
+      - 'The request is additive.'
+    question: null
+    answer:
+      selected_ids:
+        - preserve-existing
+      text: 'Linux x64/arm64, macOS x64/arm64, Windows x64, both transports, local tools, and forwarded upstream Playwright MCP contracts must remain unchanged.'
+    rationale: 'The new platform must not regress established public behavior.'
+    last_tool_status: not_asked
+    supersedes_revision: null
+    requirement_ids:
+      - R9
+
+  - id: compatibility.dependency-floor
+    revision: 1
+    category: compatibility
+    state: assumed
+    provenance: agent-default
+    evidence:
+      - 'package.json currently declares cloakbrowser ^0.5.1.'
+      - 'A future compatible release could otherwise resolve opportunistically without documenting the actual minimum supported version.'
+    question: null
+    answer:
+      selected_ids:
+        - explicit-minimum
+      text: 'The cloakbrowser dependency lower bound and lockfile must identify the first accepted stable upstream version that satisfies the Windows ARM64 contract.'
+    rationale: 'An explicit floor makes installations and the compatibility table reproducible.'
+    last_tool_status: not_asked
+    supersedes_revision: null
+    requirement_ids:
+      - R2
+
+  - id: documentation.platform-claim
+    revision: 1
+    category: operations
+    state: assumed
+    provenance: agent-default
+    evidence:
+      - 'README.md, docs/testing.md, docs/version-compatibility.md, and docs/data/version-compatibility.json currently claim Windows x64 only.'
+      - 'AGENTS.md requires localized documentation updates for changed human-authored Markdown.'
+    question: null
+    answer:
+      selected_ids:
+        - update-generated-and-localized-contracts
+      text: 'After native acceptance passes, public compatibility and testing documentation must add Windows ARM64, generated compatibility data must remain the source of truth, and every affected localized page and translation-manifest entry must be updated consistently.'
+    rationale: 'Documentation must not advertise support before it is verified or leave localized contracts stale.'
+    last_tool_status: not_asked
+    supersedes_revision: null
+    requirement_ids:
+      - R12
+
+  - id: documentation.spec-localization
+    revision: 1
+    category: operations
+    state: blocked
+    provenance: authoritative-doc
+    evidence:
+      - 'Project policy requires localized counterparts for new human-authored Markdown under docs/.'
+      - "DeepL MCP translate_text returned 'Quota for this billing period has been exceeded' for every attempted locale on 2026-07-25."
+    question: null
+    answer:
+      selected_ids: []
+      text: 'The new specification page remains English-only until DeepL MCP quota is restored; ru, be, uk, es, pt-BR, zh, ja, de, fr, and hi are explicitly deferred, and the translation manifest is intentionally not refreshed.'
+    rationale: 'Creating untranslated placeholder files or updating hashes without real translations would violate the documentation policy.'
+    last_tool_status: failed
+    supersedes_revision: null
+    requirement_ids: []
+
+  - id: documentation.plan-localization
+    revision: 1
+    category: operations
+    state: blocked
+    provenance: authoritative-doc
+    evidence:
+      - 'Project policy requires localized counterparts for new human-authored Markdown under docs/.'
+      - "DeepL MCP translate_text returned 'Quota for this billing period has been exceeded' on 2026-07-25."
+      - 'npm run docs:translations:check reports 110 missing localized counterparts for the English specification and planning bundle.'
+    question: null
+    answer:
+      selected_ids: []
+      text: 'The implementation-plan bundle remains English-only until DeepL MCP quota is restored; ru, be, uk, es, pt-BR, zh, ja, de, fr, and hi are explicitly deferred, and the translation manifest is intentionally not refreshed.'
+    rationale: 'Creating untranslated placeholder files or updating hashes without real translations would violate the documentation policy.'
+    last_tool_status: failed
+    supersedes_revision: null
+    requirement_ids: []
+
+  - id: approval.spec
+    revision: 1
+    category: approval
+    state: answered
+    provenance: user
+    evidence:
+      - 'docs/specs/win32-arm64-support/spec.md is complete with Status: Draft.'
+      - 'All material requirement decisions are resolved and mapped to R1-R13.'
+      - 'Formatting, docs build, SEO, compatibility generation, build, unit/integration tests, and packaged E2E tests pass.'
+      - 'The full check is blocked only by the explicitly deferred specification localizations after DeepL MCP quota exhaustion.'
+    question:
+      text: 'How should the completed Windows ARM64 specification draft proceed?'
+      kind: single
+      options:
+        - id: approve
+          label: Approve specification (Recommended)
+          description: 'Set Status to Approved and treat this draft as the implementation contract, while retaining the upstream-release and localization blockers.'
+        - id: request-changes
+          label: Request changes
+          description: 'Keep Status as Draft, reopen affected decisions, and revise the specification.'
+        - id: leave-draft
+          label: Leave as draft
+          description: 'Stop the specification workflow without approval or further changes.'
+    answer:
+      selected_ids:
+        - approve
+      text: ''
+    rationale: 'The complete draft is approved as the implementation contract; the stable upstream-release prerequisite and the non-material specification-localization deferral remain visible blockers.'
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids: []
+
+  - id: planning.pro-workflow-gate
+    revision: 1
+    category: planning
+    state: answered
+    provenance: user
+    evidence:
+      - 'The approved specification requires a protected, non-fork Windows ARM64 Pro CI gate.'
+      - 'The existing CI workflow supports pull_request and workflow_dispatch and has top-level contents: read.'
+      - 'Existing production workflows use GitHub environments for protected external actions.'
+      - 'No current workflow references a CloakBrowser license secret.'
+    question:
+      text: 'Which workflow protection model should the implementation plan use for the Windows ARM64 Pro smoke?'
+      kind: single
+      options:
+        - id: protected-environment-ci
+          label: Protected CI environment (Recommended)
+          description: 'Add a same-repository PR/manual CI job guarded by a preconfigured windows-arm64-pro GitHub Environment with required reviewers; skip forks and require a separate maintainer settings gate.'
+        - id: post-merge-manual
+          label: Post-merge manual validation
+          description: 'Land unadvertised test infrastructure first, run the secret-bearing smoke manually from the default branch, then add the public support claim in a follow-up change.'
+    answer:
+      selected_ids:
+        - protected-environment-ci
+      text: ''
+    rationale: 'Use a protected GitHub Environment to keep the Pro gate repeatable while preventing the credential from reaching fork pull requests or unreviewed workflow execution.'
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids:
+      - R11
+
+  - id: planning.pro-secret-identifier
+    revision: 1
+    category: planning
+    state: answered
+    provenance: user
+    evidence:
+      - 'The approved specification requires use of an existing repository secret but does not name its workflow identifier.'
+      - 'CLOAKBROWSER_LICENSE_KEY is the existing runtime environment-variable contract consumed by CloakBrowser.'
+    question:
+      text: 'Which non-sensitive GitHub Actions secret identifier should the plan bind to the existing CloakBrowser Pro credential?'
+      kind: single
+      options:
+        - id: cloakbrowser-license-key
+          label: CLOAKBROWSER_LICENSE_KEY (Recommended)
+          description: 'Use secrets.CLOAKBROWSER_LICENSE_KEY and pass it only through the step environment variable of the protected Pro smoke.'
+        - id: defer-binding
+          label: Defer identifier binding
+          description: 'Keep the workflow packet blocked at a manual gate until a maintainer supplies a different non-sensitive secret identifier; never request the credential value.'
+    answer:
+      selected_ids:
+        - defer-binding
+      text: ''
+    rationale: 'Do not guess the repository secret identifier. The workflow packet remains blocked at a manual maintainer gate until a non-sensitive identifier is supplied; the credential value must never be requested or persisted.'
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids:
+      - R11
+
+  - id: approval.plan
+    revision: 1
+    category: approval
+    state: answered
+    provenance: user
+    evidence:
+      - 'The approved R1-R13 contract is decomposed into seven self-contained packets with explicit dependencies, file ownership, verification, rollback, and manual gates.'
+      - 'All packet links and required sections validate, Prettier passes, docs build and SEO validation pass, and the only documentation failure is the explicitly deferred DeepL localization blocker.'
+      - 'The protected Pro workflow model is selected, while its non-sensitive secret identifier remains an explicit packet 05 manual gate.'
+    question:
+      text: 'How should the completed Windows ARM64 implementation plan proceed?'
+      kind: single
+      options:
+        - id: approve
+          label: Approve plan (Recommended)
+          description: 'Set the plan to Approved and make packet 01 eligible for separate explicit implementation authorization; approval does not start execution.'
+        - id: request-changes
+          label: Request changes
+          description: 'Keep the plan in Draft and revise the affected packets before implementation.'
+        - id: leave-draft
+          label: Leave as draft
+          description: 'Stop the planning workflow without approval or implementation.'
+    answer:
+      selected_ids:
+        - approve
+      text: ''
+    rationale: 'The packet set is approved as the implementation plan. This approval does not authorize execution, external mutations, credentials, or the first packet.'
+    last_tool_status: answered
+    supersedes_revision: null
+    requirement_ids: []
+
+  - id: scope.docker
+    revision: 1
+    category: scope
+    state: not_applicable
+    provenance: repository
+    evidence:
+      - 'Issue #89 identifies Docker linux/arm64 as an existing workaround.'
+      - 'Docker releases already target linux/amd64 and linux/arm64.'
+    question: null
+    answer:
+      selected_ids: []
+      text: 'No new Windows container image or Docker platform is required.'
+    rationale: 'The gap is the local Windows npm/npx runtime, not the Linux container distribution.'
+    last_tool_status: not_asked
+    supersedes_revision: null
+    requirement_ids: []
+
+  - id: privacy.data-handling
+    revision: 1
+    category: security
+    state: not_applicable
+    provenance: repository
+    evidence:
+      - 'The change concerns platform selection, binary distribution, CI, and compatibility documentation.'
+    question: null
+    answer:
+      selected_ids: []
+      text: 'No new user data, credentials, telemetry, retention, or deletion behavior is introduced.'
+    rationale: 'The requested support does not add a data-processing surface.'
+    last_tool_status: not_asked
+    supersedes_revision: null
+    requirement_ids: []
