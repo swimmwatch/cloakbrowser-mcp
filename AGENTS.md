@@ -129,6 +129,23 @@ Use `documentation-and-adrs` for a focused technical document or ADR. Use
 consistent. Durable workflow artifacts belong under `docs/specs/<slug>/`; the selected
 skill owns its questions, manifests, reviews, checklists, and handoffs.
 
+## Agent skills
+
+### Issue tracker
+
+Use GitHub Issues for `swimmwatch/cloakbrowser-mcp`.
+Before issue operations, read [issue-tracker.md](docs/agents/issue-tracker.md).
+
+### Triage labels
+
+Use the configured five-role vocabulary.
+Before triage, read [triage-labels.md](docs/agents/triage-labels.md).
+
+### Domain docs
+
+Use a single-context layout.
+Before codebase exploration, read [domain.md](docs/agents/domain.md).
+
 ## Supply Chain
 
 - Use top-level `contents: read` in GitHub workflows; add write permissions only to the

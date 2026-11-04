@@ -499,7 +499,7 @@ function discoverEnglishDocs() {
       const rel = normalizeDocPath(relativeResult);
       const parts = rel.split('/');
       if (stats.isDirectory()) {
-        if (!excludedDirectories.has(entry)) {
+        if (rel !== 'agents' && !excludedDirectories.has(entry)) {
           visit(path);
         }
         continue;
