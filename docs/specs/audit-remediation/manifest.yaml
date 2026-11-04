@@ -1,0 +1,58 @@
+schema_version: 1
+depth: deep
+confirmed: true
+rationale:
+  - "Preserve the complete previously confirmed single-specification scope: all 11 independently confirmed audit findings SEC-001..003, CODE-001..007, DOC-001, plus issue #179, regressions and affected canonical/localized guidance. Add only the humanize compatibility problem in the user's exact issue #178 comment 6408302928, not every suggested action of the parent update issue. No sibling spec, implementation, planning, installation, commit, release or publication is authorized in this specification stage."
+  - 'The user explicitly selected exact CloakBrowser 0.6.4 as the future implementation target. This is a narrow exception to the earlier no-dependency-updates boundary: update this existing dependency and only necessary lockfile/resolution effects when implementation is separately authorized. Keep unrelated dependencies, upstream MCP/Playwright versions, Node support and the bridge release version outside that exception. Current source/install still use ^0.5.10/resolved 0.5.10 and remain unchanged during specification authoring.'
+  - Require the declared dependency, lockfile, clean installed/packaged CLI and container to select the verified 0.6.4 target consistently. Do not let a broad caret silently choose an unverified future patch, admit all versions to bypass a compatibility guard, or claim that a version string or byte-identical human module proves behavior. Verify humanize-enabled browser navigation and representative humanized operations with the actual target and applicable presets/browser-context shapes; preserve disabled mode and thin upstream tool contracts. Unsupported overridden versions must fail actionably without silent loss of requested humanization or protected-data disclosure.
+  - 'Preserve #179 exactly as agreed: ordinary stdio/HTTP startup, initialize, actual dynamic/paginated tool discovery and existing inspections remain available while a configured profile is busy; exclusive ownership begins only when browser use requires it, with normal isError:true contention results and safe release/retry/stale-owner handling. Preserve eager managed-CDP startup/readiness; making managed CDP lazy and adding a third local tool/optional diagnostic API remain deferred.'
+  - 'Keep Deep and core/backend/operations/security active: transport authority/admission, optional bearer policy with mandatory Host/present-Origin validation, proxy-secret protection, cancellation, concurrent lifecycle/profile ownership, process-wide channel/pin/verified-license behavior, zero-page liveness, doctor accuracy and logging guidance all remain obligations. Revalidate affected behavior against target 0.6.4 rather than reuse 0.5.10-specific runtime evidence as proof of target success.'
+  - Preserve npm support on Linux x64/arm64, macOS arm64/x64, Windows x64; Node ^22.13.0 || >=24.0.0; Docker Linux amd64/arm64. Prior audit and current source identity remain historical baselines, not certification of the new target or all platforms. Required unavailable target/browser/container/platform checks are reported unverified; no paid download or unsafe external exploit is authorized.
+  - Optional metadata retention, new persistent-user-data schemas/migrations, UI/events, generic redesign, unrelated dependency/runtime changes, release/version/publishing and real-world exploitation remain excluded. Preserve pre-existing source edits and user artifacts; changing/removing/moving/broadly excluding four pre-existing result JSON files remains unauthorized, with the failed dirty-workspace check and unknown owner visible.
+  - The same future planning artifacts remain core/contracts.yaml, contracts/mcp.md and quality/scenarios.yaml, extended to cover the exact supported humanize dependency/installation contract, functional compatibility and target-version regression evidence. Existing documentation/data owners must reflect future verified compatibility without rewriting historical releases or manually editing generated content. Only their declared coverage is authored here; no planning artifact or handoff is created.
+profiles:
+  - id: core
+    reason: CLI/configuration, exact supported dependency/installation identity, humanize modes/presets, doctor/logging and profile-use compatibility need observable public contracts.
+    state: active
+  - id: backend
+    reason: MCP tool discovery/results, humanize-enabled browser operations, HTTP admission/cancellation and eager CDP contracts must remain correct on the selected target.
+    state: active
+  - id: operations
+    reason: Reproducible clean/package/container selection of the target, lifecycle/profile ownership, failure/recovery and platform acceptance require explicit evidence.
+    state: active
+  - id: security
+    reason: Unverified-version guards, secret-safe diagnostics, transport authority/authentication and conservative profile ownership must not be weakened to obtain compatibility.
+    state: active
+  - id: ui
+    reason: No visual interface or design change is requested.
+    state: not_applicable
+  - id: events
+    reason: Existing MCP notifications and cancellation remain transport contracts; no independent event architecture is added.
+    state: not_applicable
+  - id: data
+    reason: Dependency/lockfile and compatibility metadata use existing owners; no new persisted user-data model, migration or retention policy is requested.
+    state: not_applicable
+  - id: cross-surface
+    reason: Active profiles cover CLI/MCP/browser/runtime boundaries without a separate UI journey or architecture-model artifact.
+    state: not_applicable
+planning_artifacts:
+  - core/contracts.yaml
+  - contracts/mcp.md
+  - quality/scenarios.yaml
+extensions:
+  workflow_mcp_receipts:
+    - id: d000d5f2ccf8dc7f482ab05096c1a63b7e4fceadb4fabe47e49cdf2cacfe8e87
+      result:
+        confirmed: true
+        depth: deep
+        next: Load only the confirmed active profile references.
+    - id: ab525991801bac44e9f15ef70025478bf3f92b0c13ceaba407a6a36404401ab6
+      result:
+        confirmed: true
+        depth: deep
+        next: Load only the confirmed active profile references.
+    - id: 06383196a0ca72cc3513d50c2bb34bf5e3b80edbf5866552f8ca28f12da261ae
+      result:
+        confirmed: true
+        depth: deep
+        next: Load only the confirmed active profile references.

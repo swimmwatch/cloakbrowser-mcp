@@ -1,0 +1,2278 @@
+schema_version: 1
+spec_slug: audit-remediation
+decisions:
+  - category: request
+    state: instructed
+    provenance: user
+    instruction:
+      text: |-
+        /spec-driven-development 
+         Давай составим спецификацию, где мы будем исправлять найденные ошибки, найденные замечания.
+      source: Direct user message invoking spec-driven-development after the completed CloakBrowser MCP audit, 2026-10-26 12:29:46 Europe/Moscow.
+      kind: initial_request
+    related_decisions: []
+    requirement_ids: []
+    question: null
+    answer: null
+    id: 7dd2d706-02a5-4a62-8056-89d4102e9517
+    revision: 1
+    supersedes_revision: null
+  - category: audit-intake-evidence
+    state: observed
+    provenance: repository
+    fact: 'Verified at specification intake: the existing audit report records 11 independently confirmed candidate findings (SEC-001..003, CODE-001..007, DOC-001): 2 High, 7 Medium, 2 Low. It separately records optional/scoped evidence limitations, not additional confirmed defects. The report also records a failed npm run check caused by four pre-existing untracked result artifacts. Runtime reproductions belong to the prior audit; current code behavior has not yet been reverified for this specification. HEAD and branch still match the audit, but pre-existing uncommitted changes remain and must be preserved. Boundary selection must distinguish confirmed remediation from optional new retention behavior and ownership of pre-existing result artifacts.'
+    evidence:
+      - standard-workflow-audit.md:65-81 — named confirmed findings and severity/confidence table, read during current specification intake.
+      - standard-workflow-audit.md:215-234 — optional follow-up notes, formal dispositions, documented trust boundaries and consolidated concerns.
+      - standard-workflow-audit.md:236-275 — previously executed checks, pre-existing formatting blocker and concrete proposed regressions.
+      - standard-workflow-audit.md:289-301 — prioritized remediation and explicitly unknown owner of result artifacts.
+    question: null
+    answer: null
+    id: 5b35a7da-b5c7-46dd-ab3e-2f84dfe441ab
+    revision: 1
+    supersedes_revision: null
+  - category: scope-boundary
+    state: needs_user
+    provenance: user
+    question:
+      text: 'Какой объём описываем в одной спецификации? Рекомендую все 11 подтверждённых находок аудита вместе с регрессионными проверками и исправлением документации. Их можно разделить на независимо принимаемые результаты: безопасность (3 находки), жизненный цикл и протокольная корректность (6), диагностика и документация (2). Например, защиту HTTP можно принять отдельно от исправления doctor. Неподтверждённые улучшения и изменение четырёх пользовательских JSON-результатов не включаем автоматически: это отдельные решения.'
+      kind: single_choice
+      options:
+        - id: all-confirmed
+          label: Все 11 находок (Recommended)
+        - id: security-only
+          label: Только безопасность
+        - id: custom-boundary
+          label: Другой состав
+    answer: null
+    status: prepared
+    context_reason: null
+    requirement_ids: []
+    id: 1db8ca42-ea91-4f1d-947d-427b79091bfb
+    revision: 1
+    supersedes_revision: null
+    question_origin:
+      id: 1db8ca42-ea91-4f1d-947d-427b79091bfb
+      revision: 1
+  - category: scope-boundary
+    state: answered
+    provenance: user
+    question:
+      text: 'Какой объём описываем в одной спецификации? Рекомендую все 11 подтверждённых находок аудита вместе с регрессионными проверками и исправлением документации. Их можно разделить на независимо принимаемые результаты: безопасность (3 находки), жизненный цикл и протокольная корректность (6), диагностика и документация (2). Например, защиту HTTP можно принять отдельно от исправления doctor. Неподтверждённые улучшения и изменение четырёх пользовательских JSON-результатов не включаем автоматически: это отдельные решения.'
+      kind: single_choice
+      options:
+        - id: all-confirmed
+          label: Все 11 находок (Recommended)
+        - id: security-only
+          label: Только безопасность
+        - id: custom-boundary
+          label: Другой состав
+    answer:
+      text: Все 11 находок (Recommended)
+      selected_ids:
+        - all-confirmed
+    status: answered
+    context_reason: null
+    requirement_ids: []
+    id: 1db8ca42-ea91-4f1d-947d-427b79091bfb
+    revision: 2
+    supersedes_revision: 1
+    question_origin:
+      id: 1db8ca42-ea91-4f1d-947d-427b79091bfb
+      revision: 1
+    answer_source: Explicit selection returned by native ask_user_question, question id audit-remediation-boundary, current session.
+    answered_question:
+      id: 1db8ca42-ea91-4f1d-947d-427b79091bfb
+      revision: 1
+  - category: platform-support
+    state: observed
+    provenance: repository
+    fact: 'Verified declared support, not a new runtime-certification claim: npm bridge support covers Linux x64/arm64, macOS arm64/x64 and Windows x64. Node support is ^22.13.0 || >=24.0.0; Node 23 and 22.12 are excluded. Published Docker support is Linux amd64/arm64. Preserve these existing component-specific support boundaries during remediation rather than inferring support from this Linux development host or silently extending the matrix. The current CI declarations cover Node 22 and 24–26; future Node versions admitted by the declared engine range are not thereby dynamically certified by the prior audit.'
+    evidence:
+      - README.md:55 — declared npm OS/architecture checks and Docker architectures, matched during current specification intake.
+      - README.md:65 — Node.js 22.13+ in the 22.x line or 24+, matched during current specification intake.
+      - docs/getting-started.md:33 — Node runtime requirements and first-use binary acquisition.
+      - docs/getting-started.md:49 — published Docker linux/amd64 and linux/arm64 support.
+      - package.json:11-12 — engine range, previously read at unchanged HEAD; current Git status has no manifest edits.
+      - .github/workflows/ci.yml:18-33 — Node versions and OS/architecture matrix, previously read at unchanged HEAD.
+    question: null
+    answer: null
+    id: e5c4824a-0a1c-4bfa-a913-ae676ec745c8
+    revision: 1
+    supersedes_revision: null
+  - id: scope.manifest
+    category: scope
+    state: needs_user
+    provenance: user
+    question:
+      text: Confirm this exact scope proposal, or request a correction.
+      kind: single_choice
+      options:
+        - id: confirm
+          label: Confirm this proposal
+        - id: change
+          label: Change the proposal
+    answer: null
+    status: prepared
+    scope:
+      schema_version: 1
+      depth: deep
+      confirmed: false
+      rationale:
+        - 'User explicitly selected one specification covering all 11 confirmed audit findings: SEC-001..003, CODE-001..007 and DOC-001, including necessary regression verification and documentation correction. No sibling specifications or implementation are authorized.'
+        - Deep is warranted by high-impact HTTP authority/admission controls, proxy-secret exposure, cancellation propagation and concurrent resource ownership across CLI, MCP transports, upstream child processes and managed browser generations. Detail must preserve thin upstream-tool forwarding and session isolation.
+        - 'Preserve existing component support: npm on Linux x64/arm64, macOS arm64/x64 and Windows x64; Node ^22.13.0 || >=24.0.0; Docker Linux amd64/arm64. Existing declared support is a contract, not a claim that the prior Linux audit dynamically validated every platform.'
+        - Behavioral scope includes failures/recovery, profile/config/child cleanup, requested browser-channel selection, zero-page browser liveness, doctor accuracy and canonical/localized logging guidance. No new upstream browser tools or schema fork, dependency/runtime changes, release/publication, migration or speculative redesign.
+        - Optional closed-session metadata retention and other unconfirmed/future risks are excluded as remediation targets. Source-only variants relevant to confirmed secret/channel/security defects remain explicit verification boundaries rather than invented reproductions. Changing/removing the four pre-existing user result JSON files is not authorized; their failed-check prerequisite remains visible pending a separate ownership decision.
+        - Planning should produce a core CLI/configuration contract, an MCP transport/lifecycle contract that references rather than copies upstream tool schemas, and measurable security/lifecycle quality scenarios. This specification stage declares these artifacts only; it does not create plans, contracts, handoffs, code or commits.
+      profiles:
+        - id: core
+          reason: CLI/configuration channel and precedence, doctor diagnostics, stdio behavior and public documentation compatibility are directly affected.
+          state: active
+        - id: backend
+          reason: Streamable HTTP admission/session behavior and MCP request/cancellation forwarding to the upstream process require observable protocol/state contracts.
+          state: active
+        - id: operations
+          reason: Startup/shutdown/EOF, provisional sessions, child/browser/config/profile ownership, capacity recovery and npm/Docker/platform acceptance are material.
+          state: active
+        - id: security
+          reason: Host/Origin admission, synthetic-secret non-disclosure, authenticated/unauthenticated trust boundaries and fail-closed behavior are central confirmed defects.
+          state: active
+        - id: ui
+          reason: No visual user interface or design change is requested.
+          state: not_applicable
+        - id: events
+          reason: Existing MCP protocol notifications/cancellation are covered by the transport contract; no independent asynchronous event architecture or event schema is introduced.
+          state: not_applicable
+        - id: data
+          reason: No new persisted-data schema, migration or retention policy is requested; existing profile/file ownership and preservation belong to core/operations/security.
+          state: not_applicable
+        - id: cross-surface
+          reason: No UI-to-service or multi-product user journey is introduced; affected CLI/MCP/runtime boundaries are covered by core/backend/operations without a separate architecture-model artifact.
+          state: not_applicable
+      planning_artifacts:
+        - core/contracts.yaml
+        - contracts/mcp.md
+        - quality/scenarios.yaml
+    revision: 1
+    supersedes_revision: null
+    question_origin:
+      id: scope.manifest
+      revision: 1
+  - id: scope.manifest
+    category: scope
+    state: answered
+    provenance: user
+    question:
+      text: Confirm this exact scope proposal, or request a correction.
+      kind: single_choice
+      options:
+        - id: confirm
+          label: Confirm this proposal
+        - id: change
+          label: Change the proposal
+    answer:
+      text: Confirm this proposal
+      selected_ids:
+        - confirm
+    status: answered
+    scope:
+      schema_version: 1
+      depth: deep
+      confirmed: false
+      rationale:
+        - 'User explicitly selected one specification covering all 11 confirmed audit findings: SEC-001..003, CODE-001..007 and DOC-001, including necessary regression verification and documentation correction. No sibling specifications or implementation are authorized.'
+        - Deep is warranted by high-impact HTTP authority/admission controls, proxy-secret exposure, cancellation propagation and concurrent resource ownership across CLI, MCP transports, upstream child processes and managed browser generations. Detail must preserve thin upstream-tool forwarding and session isolation.
+        - 'Preserve existing component support: npm on Linux x64/arm64, macOS arm64/x64 and Windows x64; Node ^22.13.0 || >=24.0.0; Docker Linux amd64/arm64. Existing declared support is a contract, not a claim that the prior Linux audit dynamically validated every platform.'
+        - Behavioral scope includes failures/recovery, profile/config/child cleanup, requested browser-channel selection, zero-page browser liveness, doctor accuracy and canonical/localized logging guidance. No new upstream browser tools or schema fork, dependency/runtime changes, release/publication, migration or speculative redesign.
+        - Optional closed-session metadata retention and other unconfirmed/future risks are excluded as remediation targets. Source-only variants relevant to confirmed secret/channel/security defects remain explicit verification boundaries rather than invented reproductions. Changing/removing the four pre-existing user result JSON files is not authorized; their failed-check prerequisite remains visible pending a separate ownership decision.
+        - Planning should produce a core CLI/configuration contract, an MCP transport/lifecycle contract that references rather than copies upstream tool schemas, and measurable security/lifecycle quality scenarios. This specification stage declares these artifacts only; it does not create plans, contracts, handoffs, code or commits.
+      profiles:
+        - id: core
+          reason: CLI/configuration channel and precedence, doctor diagnostics, stdio behavior and public documentation compatibility are directly affected.
+          state: active
+        - id: backend
+          reason: Streamable HTTP admission/session behavior and MCP request/cancellation forwarding to the upstream process require observable protocol/state contracts.
+          state: active
+        - id: operations
+          reason: Startup/shutdown/EOF, provisional sessions, child/browser/config/profile ownership, capacity recovery and npm/Docker/platform acceptance are material.
+          state: active
+        - id: security
+          reason: Host/Origin admission, synthetic-secret non-disclosure, authenticated/unauthenticated trust boundaries and fail-closed behavior are central confirmed defects.
+          state: active
+        - id: ui
+          reason: No visual user interface or design change is requested.
+          state: not_applicable
+        - id: events
+          reason: Existing MCP protocol notifications/cancellation are covered by the transport contract; no independent asynchronous event architecture or event schema is introduced.
+          state: not_applicable
+        - id: data
+          reason: No new persisted-data schema, migration or retention policy is requested; existing profile/file ownership and preservation belong to core/operations/security.
+          state: not_applicable
+        - id: cross-surface
+          reason: No UI-to-service or multi-product user journey is introduced; affected CLI/MCP/runtime boundaries are covered by core/backend/operations without a separate architecture-model artifact.
+          state: not_applicable
+      planning_artifacts:
+        - core/contracts.yaml
+        - contracts/mcp.md
+        - quality/scenarios.yaml
+    revision: 2
+    supersedes_revision: 1
+    question_origin:
+      id: scope.manifest
+      revision: 1
+    answer_source: Explicit selection returned by native ask_user_question for audit-remediation-scope, confirming the exact saved Deep/core/backend/operations/security proposal.
+    answered_question:
+      id: scope.manifest
+      revision: 1
+  - category: verified-compatibility-baseline
+    state: observed
+    provenance: repository
+    fact: 'Verified for this specification: all 569 tracked on-disk files still match audited aggregate SHA-256 487ab8cbae84bd63ebb1494303c389daefec26fed2b4c6a32d59a56d034c1895 at unchanged HEAD 477923fc22968b904af3ea1da39c396429262960. Current HTTP defaults are loopback 127.0.0.1, port 3000, /mcp, memory sessions, idle TTL 3600000 ms, maximum 32 sessions and 1048576-byte body limit; authToken is optional. The public CLI exposes an optional bearer token. Current docs allow a trusted TLS/authentication reverse proxy and apply a configured token equally to MCP and health/readiness probes. Adding authority validation must distinguish this outer transport policy from upstream browser-origin guardrails and explicitly address compatibility of tokenless local clients and existing reverse proxies.'
+    evidence:
+      - src/http/options.ts:36-46,70-79 — current options and defaults, read through CodeGraph in this specification turn.
+      - src/cli/options.ts:153-158 — optional bearer CLI flag/environment contract, read through CodeGraph in this specification turn.
+      - docs/configuration.md:408,424 — external TLS/authentication recommendation and probe-token semantics, matched in current turn.
+      - docs/recipes/docker-streamable-http-reverse-proxy.md:12,30-36 — trusted TLS/access-control termination and preserved headers.
+      - standard-workflow-audit.md:95-105 — SEC-002 authority admission defect and conditional exploit boundaries.
+    question: null
+    answer: null
+    id: 5e6c8c70-b2af-4a8f-a905-da1db8efcdb7
+    revision: 1
+    supersedes_revision: null
+  - category: http-security-compatibility
+    state: needs_user
+    provenance: user
+    question:
+      text: Какую политику HTTP-доступа закрепляем? Рекомендую сохранить локальный запуск без токена и существующую возможность аутентификации на доверенном reverse proxy, но всегда проверять Host и присутствующий Origin. Внешние адреса должны быть явно разрешены оператором; запросы без Origin от обычных MCP-клиентов допустимы при корректном Host. Например, localhost работает без новых настроек, а mcp.example.com требует явного разрешения. Альтернатива — дополнительно сделать bearer-токен самого моста обязательным при привязке не к loopback, что изменит совместимость текущих развёртываний.
+      kind: single_choice
+      options:
+        - id: compatible-authority-validation
+          label: Совместимость и строгая проверка (Recommended)
+        - id: mandatory-remote-bearer
+          label: Обязательный токен вне loopback
+        - id: custom-http-policy
+          label: Другая политика
+    answer: null
+    status: prepared
+    context_reason: null
+    requirement_ids: []
+    id: 6e08fb87-f4d0-49af-9875-94af6f88e677
+    revision: 1
+    supersedes_revision: null
+    question_origin:
+      id: 6e08fb87-f4d0-49af-9875-94af6f88e677
+      revision: 1
+  - category: http-security-compatibility
+    state: answered
+    provenance: user
+    question:
+      text: Какую политику HTTP-доступа закрепляем? Рекомендую сохранить локальный запуск без токена и существующую возможность аутентификации на доверенном reverse proxy, но всегда проверять Host и присутствующий Origin. Внешние адреса должны быть явно разрешены оператором; запросы без Origin от обычных MCP-клиентов допустимы при корректном Host. Например, localhost работает без новых настроек, а mcp.example.com требует явного разрешения. Альтернатива — дополнительно сделать bearer-токен самого моста обязательным при привязке не к loopback, что изменит совместимость текущих развёртываний.
+      kind: single_choice
+      options:
+        - id: compatible-authority-validation
+          label: Совместимость и строгая проверка (Recommended)
+        - id: mandatory-remote-bearer
+          label: Обязательный токен вне loopback
+        - id: custom-http-policy
+          label: Другая политика
+    answer:
+      text: Совместимость и строгая проверка (Recommended)
+      selected_ids:
+        - compatible-authority-validation
+    status: answered
+    context_reason: null
+    requirement_ids: []
+    id: 6e08fb87-f4d0-49af-9875-94af6f88e677
+    revision: 2
+    supersedes_revision: 1
+    question_origin:
+      id: 6e08fb87-f4d0-49af-9875-94af6f88e677
+      revision: 1
+    answer_source: Explicit native ask_user_question selection for audit-remediation-http-policy, confirming optional bridge bearer authentication with mandatory Host/present-Origin validation and explicit operator-approved external authorities.
+    answered_question:
+      id: 6e08fb87-f4d0-49af-9875-94af6f88e677
+      revision: 1
+  - category: verified-runtime-and-channel-contracts
+    state: observed
+    provenance: repository
+    fact: 'Verified current source and canonical contracts: ordinary startup acquires a prepared runtime before fallible setup/connect/start without complete rollback; ordinary and managed tool forwarding omit per-request cancellation. Doctor writes its human or JSON result to stdout and exits 1 on error; Streamable HTTP operational logs go to stderr. The bridge release channel is stable by default, explicit bridge option overrides CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL, and channel is process-wide, not HTTP initialize metadata. Preserve explicit local binary override and CLOAKBROWSER_VERSION pin precedence. Canonical docs and installed SDK explicitly allow Pro Preview-to-Stable fallback when no Preview build exists for a platform, with a warning; this is NOT the dropped-channel defect. Preserve fail-closed invalid/unverifiable license and binary verification behavior. No paid download or new runtime proof was executed during specification authoring; all audited tracked contents were independently fingerprinted unchanged.'
+    evidence:
+      - src/server.ts:85-105,151-181,457-508 — startup handoffs and ordinary/managed forwarding, read through CodeGraph in this specification turn.
+      - src/cli.ts:21-29,65-69,106-120 — doctor stdout/error exit, signal cleanup, HTTP stderr sink and fatal startup exit, read through CodeGraph.
+      - src/bridge/config.ts:466-487,1028-1029 — dropped acquisition channel and existing bridge option/environment precedence, read through CodeGraph.
+      - docs/configuration.md:174-188 — license failure behavior, Stable/Preview, version pin precedence, documented platform fallback and process-wide channel, read in this specification turn.
+      - node_modules/cloakbrowser/dist/download.js:47-97,647-688 — binary override, license failure, exact pin acquisition, channel routing and warned platform fallback, read in this specification turn.
+      - standard-workflow-audit.md:119-213 — prior independently verified lifecycle, cancellation, liveness, diagnostic and documentation findings with concrete scenarios.
+    question: null
+    answer: null
+    id: 6f52f40d-8181-4472-88b6-69117fddf701
+    revision: 1
+    supersedes_revision: null
+  - category: request
+    state: instructed
+    provenance: user
+    instruction:
+      text: |-
+        /spec-driven-development 
+         Давай составим спецификацию, где мы будем исправлять найденные ошибки, найденные замечания.
+      source: Direct user message invoking spec-driven-development after the completed CloakBrowser MCP audit, 2026-10-26 12:29:46 Europe/Moscow.
+      kind: initial_request
+    related_decisions: []
+    requirement_ids:
+      - AR-001
+      - AR-002
+      - AR-003
+      - AR-004
+      - AR-005
+      - AR-006
+      - AR-007
+      - AR-008
+      - AR-009
+      - AR-010
+      - AR-011
+      - AR-012
+      - AR-013
+      - AR-014
+      - AR-015
+      - AR-016
+      - AR-017
+      - AR-018
+    question: null
+    answer: null
+    id: 7dd2d706-02a5-4a62-8056-89d4102e9517
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+  - category: scope-boundary
+    state: answered
+    provenance: user
+    question:
+      text: 'Какой объём описываем в одной спецификации? Рекомендую все 11 подтверждённых находок аудита вместе с регрессионными проверками и исправлением документации. Их можно разделить на независимо принимаемые результаты: безопасность (3 находки), жизненный цикл и протокольная корректность (6), диагностика и документация (2). Например, защиту HTTP можно принять отдельно от исправления doctor. Неподтверждённые улучшения и изменение четырёх пользовательских JSON-результатов не включаем автоматически: это отдельные решения.'
+      kind: single_choice
+      options:
+        - id: all-confirmed
+          label: Все 11 находок (Recommended)
+        - id: security-only
+          label: Только безопасность
+        - id: custom-boundary
+          label: Другой состав
+    answer:
+      text: Все 11 находок (Recommended)
+      selected_ids:
+        - all-confirmed
+    status: answered
+    context_reason: null
+    requirement_ids:
+      - AR-001
+      - AR-003
+      - AR-004
+      - AR-005
+      - AR-006
+      - AR-007
+      - AR-008
+      - AR-009
+      - AR-010
+      - AR-011
+      - AR-012
+      - AR-013
+      - AR-014
+      - AR-015
+      - AR-016
+      - AR-017
+      - AR-018
+    id: 1db8ca42-ea91-4f1d-947d-427b79091bfb
+    revision: 3
+    supersedes_revision: 2
+    question_origin:
+      id: 1db8ca42-ea91-4f1d-947d-427b79091bfb
+      revision: 1
+    answer_source: Explicit selection returned by native ask_user_question, question id audit-remediation-boundary, current session.
+    answered_question:
+      id: 1db8ca42-ea91-4f1d-947d-427b79091bfb
+      revision: 1
+  - category: audit-intake-evidence
+    state: observed
+    provenance: repository
+    fact: 'Verified at specification intake: the existing audit report records 11 independently confirmed candidate findings (SEC-001..003, CODE-001..007, DOC-001): 2 High, 7 Medium, 2 Low. It separately records optional/scoped evidence limitations, not additional confirmed defects. The report also records a failed npm run check caused by four pre-existing untracked result artifacts. Runtime reproductions belong to the prior audit; current code behavior has not yet been reverified for this specification. HEAD and branch still match the audit, but pre-existing uncommitted changes remain and must be preserved. Boundary selection must distinguish confirmed remediation from optional new retention behavior and ownership of pre-existing result artifacts.'
+    evidence:
+      - standard-workflow-audit.md:65-81 — named confirmed findings and severity/confidence table, read during current specification intake.
+      - standard-workflow-audit.md:215-234 — optional follow-up notes, formal dispositions, documented trust boundaries and consolidated concerns.
+      - standard-workflow-audit.md:236-275 — previously executed checks, pre-existing formatting blocker and concrete proposed regressions.
+      - standard-workflow-audit.md:289-301 — prioritized remediation and explicitly unknown owner of result artifacts.
+    question: null
+    answer: null
+    id: 5b35a7da-b5c7-46dd-ab3e-2f84dfe441ab
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - AR-001
+      - AR-003
+      - AR-004
+      - AR-006
+      - AR-007
+      - AR-008
+      - AR-009
+      - AR-010
+      - AR-011
+      - AR-012
+      - AR-013
+      - AR-014
+      - AR-015
+      - AR-016
+      - AR-017
+      - AR-018
+  - category: platform-support
+    state: observed
+    provenance: repository
+    fact: 'Verified declared support, not a new runtime-certification claim: npm bridge support covers Linux x64/arm64, macOS arm64/x64 and Windows x64. Node support is ^22.13.0 || >=24.0.0; Node 23 and 22.12 are excluded. Published Docker support is Linux amd64/arm64. Preserve these existing component-specific support boundaries during remediation rather than inferring support from this Linux development host or silently extending the matrix. The current CI declarations cover Node 22 and 24–26; future Node versions admitted by the declared engine range are not thereby dynamically certified by the prior audit.'
+    evidence:
+      - README.md:55 — declared npm OS/architecture checks and Docker architectures, matched during current specification intake.
+      - README.md:65 — Node.js 22.13+ in the 22.x line or 24+, matched during current specification intake.
+      - docs/getting-started.md:33 — Node runtime requirements and first-use binary acquisition.
+      - docs/getting-started.md:49 — published Docker linux/amd64 and linux/arm64 support.
+      - package.json:11-12 — engine range, previously read at unchanged HEAD; current Git status has no manifest edits.
+      - .github/workflows/ci.yml:18-33 — Node versions and OS/architecture matrix, previously read at unchanged HEAD.
+    question: null
+    answer: null
+    id: e5c4824a-0a1c-4bfa-a913-ae676ec745c8
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - AR-002
+      - AR-013
+      - AR-016
+  - category: verified-compatibility-baseline
+    state: observed
+    provenance: repository
+    fact: 'Verified for this specification: all 569 tracked on-disk files still match audited aggregate SHA-256 487ab8cbae84bd63ebb1494303c389daefec26fed2b4c6a32d59a56d034c1895 at unchanged HEAD 477923fc22968b904af3ea1da39c396429262960. Current HTTP defaults are loopback 127.0.0.1, port 3000, /mcp, memory sessions, idle TTL 3600000 ms, maximum 32 sessions and 1048576-byte body limit; authToken is optional. The public CLI exposes an optional bearer token. Current docs allow a trusted TLS/authentication reverse proxy and apply a configured token equally to MCP and health/readiness probes. Adding authority validation must distinguish this outer transport policy from upstream browser-origin guardrails and explicitly address compatibility of tokenless local clients and existing reverse proxies.'
+    evidence:
+      - src/http/options.ts:36-46,70-79 — current options and defaults, read through CodeGraph in this specification turn.
+      - src/cli/options.ts:153-158 — optional bearer CLI flag/environment contract, read through CodeGraph in this specification turn.
+      - docs/configuration.md:408,424 — external TLS/authentication recommendation and probe-token semantics, matched in current turn.
+      - docs/recipes/docker-streamable-http-reverse-proxy.md:12,30-36 — trusted TLS/access-control termination and preserved headers.
+      - standard-workflow-audit.md:95-105 — SEC-002 authority admission defect and conditional exploit boundaries.
+    question: null
+    answer: null
+    id: 5e6c8c70-b2af-4a8f-a905-da1db8efcdb7
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - AR-001
+      - AR-003
+      - AR-004
+      - AR-005
+      - AR-008
+      - AR-017
+      - AR-018
+  - category: http-security-compatibility
+    state: answered
+    provenance: user
+    question:
+      text: Какую политику HTTP-доступа закрепляем? Рекомендую сохранить локальный запуск без токена и существующую возможность аутентификации на доверенном reverse proxy, но всегда проверять Host и присутствующий Origin. Внешние адреса должны быть явно разрешены оператором; запросы без Origin от обычных MCP-клиентов допустимы при корректном Host. Например, localhost работает без новых настроек, а mcp.example.com требует явного разрешения. Альтернатива — дополнительно сделать bearer-токен самого моста обязательным при привязке не к loopback, что изменит совместимость текущих развёртываний.
+      kind: single_choice
+      options:
+        - id: compatible-authority-validation
+          label: Совместимость и строгая проверка (Recommended)
+        - id: mandatory-remote-bearer
+          label: Обязательный токен вне loopback
+        - id: custom-http-policy
+          label: Другая политика
+    answer:
+      text: Совместимость и строгая проверка (Recommended)
+      selected_ids:
+        - compatible-authority-validation
+    status: answered
+    context_reason: null
+    requirement_ids:
+      - AR-004
+      - AR-005
+      - AR-018
+    id: 6e08fb87-f4d0-49af-9875-94af6f88e677
+    revision: 3
+    supersedes_revision: 2
+    question_origin:
+      id: 6e08fb87-f4d0-49af-9875-94af6f88e677
+      revision: 1
+    answer_source: Explicit native ask_user_question selection for audit-remediation-http-policy, confirming optional bridge bearer authentication with mandatory Host/present-Origin validation and explicit operator-approved external authorities.
+    answered_question:
+      id: 6e08fb87-f4d0-49af-9875-94af6f88e677
+      revision: 1
+  - category: verified-runtime-and-channel-contracts
+    state: observed
+    provenance: repository
+    fact: 'Verified current source and canonical contracts: ordinary startup acquires a prepared runtime before fallible setup/connect/start without complete rollback; ordinary and managed tool forwarding omit per-request cancellation. Doctor writes its human or JSON result to stdout and exits 1 on error; Streamable HTTP operational logs go to stderr. The bridge release channel is stable by default, explicit bridge option overrides CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL, and channel is process-wide, not HTTP initialize metadata. Preserve explicit local binary override and CLOAKBROWSER_VERSION pin precedence. Canonical docs and installed SDK explicitly allow Pro Preview-to-Stable fallback when no Preview build exists for a platform, with a warning; this is NOT the dropped-channel defect. Preserve fail-closed invalid/unverifiable license and binary verification behavior. No paid download or new runtime proof was executed during specification authoring; all audited tracked contents were independently fingerprinted unchanged.'
+    evidence:
+      - src/server.ts:85-105,151-181,457-508 — startup handoffs and ordinary/managed forwarding, read through CodeGraph in this specification turn.
+      - src/cli.ts:21-29,65-69,106-120 — doctor stdout/error exit, signal cleanup, HTTP stderr sink and fatal startup exit, read through CodeGraph.
+      - src/bridge/config.ts:466-487,1028-1029 — dropped acquisition channel and existing bridge option/environment precedence, read through CodeGraph.
+      - docs/configuration.md:174-188 — license failure behavior, Stable/Preview, version pin precedence, documented platform fallback and process-wide channel, read in this specification turn.
+      - node_modules/cloakbrowser/dist/download.js:47-97,647-688 — binary override, license failure, exact pin acquisition, channel routing and warned platform fallback, read in this specification turn.
+      - standard-workflow-audit.md:119-213 — prior independently verified lifecycle, cancellation, liveness, diagnostic and documentation findings with concrete scenarios.
+    question: null
+    answer: null
+    id: 6f52f40d-8181-4472-88b6-69117fddf701
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - AR-001
+      - AR-006
+      - AR-007
+      - AR-008
+      - AR-009
+      - AR-010
+      - AR-011
+      - AR-012
+      - AR-013
+      - AR-014
+      - AR-015
+      - AR-016
+  - category: scope-boundary
+    state: instructed
+    provenance: user
+    instruction:
+      text: |-
+        https://github.com/swimmwatch/cloakbrowser-mcp/issues/179
+         Давай также добавим исправление замечания данного.
+      source: Direct follow-up user message in this DSH session after the audit-remediation Draft was created and its first independent review was started.
+      kind: follow_up
+    related_decisions:
+      - id: 7dd2d706-02a5-4a62-8056-89d4102e9517
+        revision: 2
+    requirement_ids: []
+    question: null
+    answer: null
+    id: 4bf8c202-ace0-4213-9da2-0c783dd8e076
+    revision: 1
+    supersedes_revision: null
+  - category: issue-179-evidence
+    state: observed
+    provenance: repository
+    fact: "Verified external issue #179 is open with zero comments and requests moving a configured persistent-profile conflict from MCP-server startup to the point where browser use actually requires exclusive ownership: a second server should remain available for initialize/tools/list/inspection, return an ordinary isError:true tool result naming the profile and available owner PID/timestamp on conflict, and retain one-browser-per-profile and safe stale-lock behavior. The reporter's 1.15.1 version and 72-tool count are reports about another environment, not verified facts for this 1.13.0 working tree. Current local source independently confirms lock acquisition in preparation before ordinary upstream/server startup. The bridge must forward the actual installed upstream tool list (including pagination/dynamic updates), not hardcode 72 or add a third local diagnostic tool. Managed CDP is a material boundary: it intentionally creates and ownership-verifies a browser before startup/initialization returns; preserving that behavior differs from making all CDP startup lazy. The issue's optional new diagnostic surface is not necessary to fix discovery availability and is not automatically included. Existing custom profile-lock code creates an exclusive owner file and reports metadata; no claim that its stale reclamation is already implemented has been established."
+    evidence:
+      - https://api.github.com/repos/swimmwatch/cloakbrowser-mcp/issues/179 — full GitHub issue body and metadata fetched HTTP 200 in this turn; title Lazy profile lock acquisition so a second session keeps the tool list; updated_at 2026-10-25T00:41:53Z.
+      - src/bridge/config.ts:228-251,314-324 — persistent-profile lock is acquired during runtime preparation, read through CodeGraph in this turn.
+      - src/bridge/config.ts:793-859 — exclusive owner-file acquisition, conflict and available PID/createdAt diagnostics, read through CodeGraph in this turn.
+      - src/server.ts:101-147 — upstream connection and actual paginated/dynamic tool forwarding, read through CodeGraph.
+      - src/cdp/session.ts:37-55,109-114 — managed CDP eagerly initializes and bootstraps browser ownership before returning, read through CodeGraph.
+      - src/server.ts:228-317 — managed startup precedes outer bridge construction and rolls back startup failures, read through CodeGraph.
+    question: null
+    answer: null
+    id: 0a85e16b-8fb7-4dae-9aa6-2ba974a9e91f
+    revision: 1
+    supersedes_revision: null
+  - category: scope-boundary
+    state: needs_user
+    provenance: user
+    question:
+      text: 'Как применяем #179 к режиму managed CDP? Для обычных stdio/HTTP закрепим: занятый профиль не мешает запуску и получению списка инструментов; конфликт возвращается как ошибка первого вызова, которому нужен браузер. Но managed CDP сейчас запускает и проверяет браузер уже при инициализации, чтобы сразу предоставить готовый CDP-доступ. Рекомендую сохранить этот отдельный контракт, а не откладывать его незаметно. Например, второй обычный клиент сможет увидеть инструменты занятого профиля, но запрос на немедленно готовый managed CDP по-прежнему потребует свободный профиль.'
+      kind: single_choice
+      options:
+        - id: preserve-eager-managed-cdp
+          label: Сохранить ранний CDP (Recommended)
+        - id: lazy-managed-cdp-too
+          label: Сделать CDP тоже ленивым
+        - id: custom-profile-boundary
+          label: Другая граница
+    answer: null
+    status: prepared
+    context_reason: null
+    requirement_ids: []
+    id: e6486aaf-f243-49b5-9639-a8b55e29c83b
+    revision: 1
+    supersedes_revision: null
+    question_origin:
+      id: e6486aaf-f243-49b5-9639-a8b55e29c83b
+      revision: 1
+  - category: scope-boundary
+    state: answered
+    provenance: user
+    question:
+      text: 'Как применяем #179 к режиму managed CDP? Для обычных stdio/HTTP закрепим: занятый профиль не мешает запуску и получению списка инструментов; конфликт возвращается как ошибка первого вызова, которому нужен браузер. Но managed CDP сейчас запускает и проверяет браузер уже при инициализации, чтобы сразу предоставить готовый CDP-доступ. Рекомендую сохранить этот отдельный контракт, а не откладывать его незаметно. Например, второй обычный клиент сможет увидеть инструменты занятого профиля, но запрос на немедленно готовый managed CDP по-прежнему потребует свободный профиль.'
+      kind: single_choice
+      options:
+        - id: preserve-eager-managed-cdp
+          label: Сохранить ранний CDP (Recommended)
+        - id: lazy-managed-cdp-too
+          label: Сделать CDP тоже ленивым
+        - id: custom-profile-boundary
+          label: Другая граница
+    answer:
+      text: Сохранить ранний CDP (Recommended)
+      selected_ids:
+        - preserve-eager-managed-cdp
+    status: answered
+    context_reason: null
+    requirement_ids: []
+    id: e6486aaf-f243-49b5-9639-a8b55e29c83b
+    revision: 2
+    supersedes_revision: 1
+    question_origin:
+      id: e6486aaf-f243-49b5-9639-a8b55e29c83b
+      revision: 1
+    answer_source: 'Explicit native ask_user_question selection for issue-179-managed-cdp-boundary: lazy persistent-profile use in ordinary stdio/HTTP, preserving existing eager managed-CDP startup/readiness.'
+    answered_question:
+      id: e6486aaf-f243-49b5-9639-a8b55e29c83b
+      revision: 1
+  - id: scope.manifest
+    category: scope
+    state: needs_user
+    provenance: user
+    question:
+      text: Confirm this exact scope proposal, or request a correction.
+      kind: single_choice
+      options:
+        - id: confirm
+          label: Confirm this proposal
+        - id: change
+          label: Change the proposal
+    answer: null
+    status: prepared
+    scope:
+      schema_version: 1
+      depth: deep
+      confirmed: false
+      rationale:
+        - 'Preserve all original scope: one specification addresses all 11 independently confirmed audit findings SEC-001..003, CODE-001..007 and DOC-001, required regressions and canonical/affected localized documentation. The user explicitly adds GitHub issue #179 to the same specification; no sibling specification, implementation, planning, commit or publication is authorized.'
+        - 'Add issue #179 as a separate remediation topic: in ordinary stdio and Streamable HTTP, a configured profile already owned elsewhere must not prevent MCP startup/initialize, actual upstream tool discovery or existing local inspection. Acquire exclusive use only when browser use needs that profile; conflict is a normal isError:true tool result with profile path and available owner PID/timestamp, not process exit. Preserve one browser owner per profile, conservative stale-owner handling, safe release and explicit retry after the owner releases it.'
+        - "User explicitly chose to preserve eager managed-CDP startup/readiness: when that mode needs a browser during initialization, it still requires exclusive profile ownership then and must cleanly report failure without a falsely ready endpoint. Making managed CDP itself lazy is deferred, not silently included. Do not hardcode the reporter's 72-tool count or claim its 1.15.1 environment is the current 1.13.0 tree. Do not add a third local diagnostic tool or an optional lock-state API."
+        - Deep remains warranted by HTTP authority/admission and proxy-secret controls, cancellation, deferred/exclusive profile ownership and concurrent cleanup across CLI, transports, upstream children and browser generations. Preserve unchanged upstream tool schemas, dynamic/paginated forwarding, session isolation, valid current CDP/Docker defenses and the agreed optional bearer plus mandatory Host/present-Origin validation policy.
+        - 'Preserve existing component support: npm Linux x64/arm64, macOS arm64/x64, Windows x64; Node ^22.13.0 || >=24.0.0; Docker Linux amd64/arm64. Preserve process-wide browser channel selection, explicit pins, documented warned Preview fallback, fail-closed license/binary verification, diagnostics and logging. Prior source/OS execution evidence remains attributed and is not inflated.'
+        - Optional closed-session metadata retention, unconfirmed future risks, generic redesign, new storage/schema migration, dependencies/runtime changes, release/version/publishing work and unsafe external exploitation remain excluded. Preserve pre-existing source edits and user artifacts; modifying/removing/moving/broadly excluding four pre-existing result JSON files remains unauthorized, with their failed-check prerequisite visible and owner unknown.
+        - Planning artifacts remain core/contracts.yaml, contracts/mcp.md and quality/scenarios.yaml, now also covering profile-use timing, discovery availability, conflict/error and exclusive-owner recovery cases. Specification declares their requirement coverage only; no plan, contract artifact or handoff is created in this stage.
+      profiles:
+        - id: core
+          reason: CLI/configuration, process-wide channel/doctor/logging contracts and persistent-profile use timing/inspection behavior require explicit compatibility.
+          state: active
+        - id: backend
+          reason: HTTP initialization, MCP discovery/cancellation and normal profile-conflict tool results require observable protocol/state contracts without copying upstream schemas.
+          state: active
+        - id: operations
+          reason: Deferred profile ownership, cross-process/session contention, stale/failed/terminal cleanup, eager CDP readiness and npm/Docker/platform acceptance are material.
+          state: active
+        - id: security
+          reason: Host/Origin admission, proxy-secret non-disclosure, least-privilege profile ownership and conservative lock recovery must preserve authenticated and isolated trust boundaries.
+          state: active
+        - id: ui
+          reason: No visual interface or design change is requested.
+          state: not_applicable
+        - id: events
+          reason: MCP notifications/cancellation remain part of the established transport contract; no independent event architecture is introduced.
+          state: not_applicable
+        - id: data
+          reason: Existing profile ownership metadata/lifetime is covered by core/operations/security; no new persisted-data schema, migration or retention policy is authorized.
+          state: not_applicable
+        - id: cross-surface
+          reason: Affected CLI/MCP/runtime boundaries are covered by the active profiles without a separate UI journey or architecture-model artifact.
+          state: not_applicable
+      planning_artifacts:
+        - core/contracts.yaml
+        - contracts/mcp.md
+        - quality/scenarios.yaml
+    revision: 3
+    supersedes_revision: 2
+    question_origin:
+      id: scope.manifest
+      revision: 3
+  - id: scope.manifest
+    category: scope
+    state: answered
+    provenance: user
+    question:
+      text: Confirm this exact scope proposal, or request a correction.
+      kind: single_choice
+      options:
+        - id: confirm
+          label: Confirm this proposal
+        - id: change
+          label: Change the proposal
+    answer:
+      text: Confirm this proposal
+      selected_ids:
+        - confirm
+    status: answered
+    scope:
+      schema_version: 1
+      depth: deep
+      confirmed: false
+      rationale:
+        - 'Preserve all original scope: one specification addresses all 11 independently confirmed audit findings SEC-001..003, CODE-001..007 and DOC-001, required regressions and canonical/affected localized documentation. The user explicitly adds GitHub issue #179 to the same specification; no sibling specification, implementation, planning, commit or publication is authorized.'
+        - 'Add issue #179 as a separate remediation topic: in ordinary stdio and Streamable HTTP, a configured profile already owned elsewhere must not prevent MCP startup/initialize, actual upstream tool discovery or existing local inspection. Acquire exclusive use only when browser use needs that profile; conflict is a normal isError:true tool result with profile path and available owner PID/timestamp, not process exit. Preserve one browser owner per profile, conservative stale-owner handling, safe release and explicit retry after the owner releases it.'
+        - "User explicitly chose to preserve eager managed-CDP startup/readiness: when that mode needs a browser during initialization, it still requires exclusive profile ownership then and must cleanly report failure without a falsely ready endpoint. Making managed CDP itself lazy is deferred, not silently included. Do not hardcode the reporter's 72-tool count or claim its 1.15.1 environment is the current 1.13.0 tree. Do not add a third local diagnostic tool or an optional lock-state API."
+        - Deep remains warranted by HTTP authority/admission and proxy-secret controls, cancellation, deferred/exclusive profile ownership and concurrent cleanup across CLI, transports, upstream children and browser generations. Preserve unchanged upstream tool schemas, dynamic/paginated forwarding, session isolation, valid current CDP/Docker defenses and the agreed optional bearer plus mandatory Host/present-Origin validation policy.
+        - 'Preserve existing component support: npm Linux x64/arm64, macOS arm64/x64, Windows x64; Node ^22.13.0 || >=24.0.0; Docker Linux amd64/arm64. Preserve process-wide browser channel selection, explicit pins, documented warned Preview fallback, fail-closed license/binary verification, diagnostics and logging. Prior source/OS execution evidence remains attributed and is not inflated.'
+        - Optional closed-session metadata retention, unconfirmed future risks, generic redesign, new storage/schema migration, dependencies/runtime changes, release/version/publishing work and unsafe external exploitation remain excluded. Preserve pre-existing source edits and user artifacts; modifying/removing/moving/broadly excluding four pre-existing result JSON files remains unauthorized, with their failed-check prerequisite visible and owner unknown.
+        - Planning artifacts remain core/contracts.yaml, contracts/mcp.md and quality/scenarios.yaml, now also covering profile-use timing, discovery availability, conflict/error and exclusive-owner recovery cases. Specification declares their requirement coverage only; no plan, contract artifact or handoff is created in this stage.
+      profiles:
+        - id: core
+          reason: CLI/configuration, process-wide channel/doctor/logging contracts and persistent-profile use timing/inspection behavior require explicit compatibility.
+          state: active
+        - id: backend
+          reason: HTTP initialization, MCP discovery/cancellation and normal profile-conflict tool results require observable protocol/state contracts without copying upstream schemas.
+          state: active
+        - id: operations
+          reason: Deferred profile ownership, cross-process/session contention, stale/failed/terminal cleanup, eager CDP readiness and npm/Docker/platform acceptance are material.
+          state: active
+        - id: security
+          reason: Host/Origin admission, proxy-secret non-disclosure, least-privilege profile ownership and conservative lock recovery must preserve authenticated and isolated trust boundaries.
+          state: active
+        - id: ui
+          reason: No visual interface or design change is requested.
+          state: not_applicable
+        - id: events
+          reason: MCP notifications/cancellation remain part of the established transport contract; no independent event architecture is introduced.
+          state: not_applicable
+        - id: data
+          reason: Existing profile ownership metadata/lifetime is covered by core/operations/security; no new persisted-data schema, migration or retention policy is authorized.
+          state: not_applicable
+        - id: cross-surface
+          reason: Affected CLI/MCP/runtime boundaries are covered by the active profiles without a separate UI journey or architecture-model artifact.
+          state: not_applicable
+      planning_artifacts:
+        - core/contracts.yaml
+        - contracts/mcp.md
+        - quality/scenarios.yaml
+    revision: 4
+    supersedes_revision: 3
+    question_origin:
+      id: scope.manifest
+      revision: 3
+    answer_source: 'Explicit native ask_user_question selection for audit-remediation-scope-issue-179, confirming the exact revised proposal adding #179, preserving eager managed CDP and all previously settled scope/platform/security constraints.'
+    answered_question:
+      id: scope.manifest
+      revision: 3
+  - category: issue-179-lock-safety
+    state: observed
+    provenance: repository
+    fact: "Verified current stale-lock boundary: the existing stdio startup helper reclaims Chromium SingletonLock/Cookie/Socket entries only for recognizable positive safe-integer PIDs whose process status is provably dead (ESRCH); live, malformed, unreadable or indeterminate owners including EPERM/EACCES are retained. Its scope is the existing Playwright cache profile directories, not the custom configured-profile ownership file. Current custom bridge ownership uses exclusive file creation with PID/createdAt/userDataDir diagnostics and has no established dead-owner reclamation in the inspected acquisition path. Therefore issue #179's recovery acceptance must preserve existing conservative Chromium behavior and independently verify any added configured-profile recovery, never assume the report's version already supplies it or treat an unknown PID/namespace as proof of staleness."
+    evidence:
+      - src/cli/singleton-lock-cleanup.ts:31-34,66-99,121-157 — current Chromium lock names, PID parsing, conservative liveness and cache scope, read through CodeGraph in this turn.
+      - src/bridge/config.ts:793-859 — configured-profile exclusive owner file and metadata/error behavior, read through CodeGraph in this turn.
+      - https://github.com/swimmwatch/cloakbrowser-mcp/issues/179 — requested preservation of one-browser-per-profile and stale-lock behavior; external proposal, not proof of local implementation.
+    question: null
+    answer: null
+    id: 46e0bf79-a84a-4383-94b0-661197f01689
+    revision: 1
+    supersedes_revision: null
+  - category: scope-boundary
+    state: instructed
+    provenance: user
+    instruction:
+      text: |-
+        https://github.com/swimmwatch/cloakbrowser-mcp/issues/179
+         Давай также добавим исправление замечания данного.
+      source: Direct follow-up user message in this DSH session after the audit-remediation Draft was created and its first independent review was started.
+      kind: follow_up
+    related_decisions:
+      - id: 7dd2d706-02a5-4a62-8056-89d4102e9517
+        revision: 2
+    requirement_ids:
+      - AR-001
+      - AR-009
+      - AR-015
+      - AR-016
+      - AR-018
+      - AR-019
+      - AR-020
+    question: null
+    answer: null
+    id: 4bf8c202-ace0-4213-9da2-0c783dd8e076
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+  - category: issue-179-evidence
+    state: observed
+    provenance: repository
+    fact: "Verified external issue #179 is open with zero comments and requests moving a configured persistent-profile conflict from MCP-server startup to the point where browser use actually requires exclusive ownership: a second server should remain available for initialize/tools/list/inspection, return an ordinary isError:true tool result naming the profile and available owner PID/timestamp on conflict, and retain one-browser-per-profile and safe stale-lock behavior. The reporter's 1.15.1 version and 72-tool count are reports about another environment, not verified facts for this 1.13.0 working tree. Current local source independently confirms lock acquisition in preparation before ordinary upstream/server startup. The bridge must forward the actual installed upstream tool list (including pagination/dynamic updates), not hardcode 72 or add a third local diagnostic tool. Managed CDP is a material boundary: it intentionally creates and ownership-verifies a browser before startup/initialization returns; preserving that behavior differs from making all CDP startup lazy. The issue's optional new diagnostic surface is not necessary to fix discovery availability and is not automatically included. Existing custom profile-lock code creates an exclusive owner file and reports metadata; no claim that its stale reclamation is already implemented has been established."
+    evidence:
+      - https://api.github.com/repos/swimmwatch/cloakbrowser-mcp/issues/179 — full GitHub issue body and metadata fetched HTTP 200 in this turn; title Lazy profile lock acquisition so a second session keeps the tool list; updated_at 2026-10-25T00:41:53Z.
+      - src/bridge/config.ts:228-251,314-324 — persistent-profile lock is acquired during runtime preparation, read through CodeGraph in this turn.
+      - src/bridge/config.ts:793-859 — exclusive owner-file acquisition, conflict and available PID/createdAt diagnostics, read through CodeGraph in this turn.
+      - src/server.ts:101-147 — upstream connection and actual paginated/dynamic tool forwarding, read through CodeGraph.
+      - src/cdp/session.ts:37-55,109-114 — managed CDP eagerly initializes and bootstraps browser ownership before returning, read through CodeGraph.
+      - src/server.ts:228-317 — managed startup precedes outer bridge construction and rolls back startup failures, read through CodeGraph.
+    question: null
+    answer: null
+    id: 0a85e16b-8fb7-4dae-9aa6-2ba974a9e91f
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - AR-001
+      - AR-009
+      - AR-015
+      - AR-016
+      - AR-018
+      - AR-019
+      - AR-020
+  - category: scope-boundary
+    state: answered
+    provenance: user
+    question:
+      text: 'Как применяем #179 к режиму managed CDP? Для обычных stdio/HTTP закрепим: занятый профиль не мешает запуску и получению списка инструментов; конфликт возвращается как ошибка первого вызова, которому нужен браузер. Но managed CDP сейчас запускает и проверяет браузер уже при инициализации, чтобы сразу предоставить готовый CDP-доступ. Рекомендую сохранить этот отдельный контракт, а не откладывать его незаметно. Например, второй обычный клиент сможет увидеть инструменты занятого профиля, но запрос на немедленно готовый managed CDP по-прежнему потребует свободный профиль.'
+      kind: single_choice
+      options:
+        - id: preserve-eager-managed-cdp
+          label: Сохранить ранний CDP (Recommended)
+        - id: lazy-managed-cdp-too
+          label: Сделать CDP тоже ленивым
+        - id: custom-profile-boundary
+          label: Другая граница
+    answer:
+      text: Сохранить ранний CDP (Recommended)
+      selected_ids:
+        - preserve-eager-managed-cdp
+    status: answered
+    context_reason: null
+    requirement_ids:
+      - AR-001
+      - AR-009
+      - AR-018
+      - AR-019
+      - AR-020
+    id: e6486aaf-f243-49b5-9639-a8b55e29c83b
+    revision: 3
+    supersedes_revision: 2
+    question_origin:
+      id: e6486aaf-f243-49b5-9639-a8b55e29c83b
+      revision: 1
+    answer_source: 'Explicit native ask_user_question selection for issue-179-managed-cdp-boundary: lazy persistent-profile use in ordinary stdio/HTTP, preserving existing eager managed-CDP startup/readiness.'
+    answered_question:
+      id: e6486aaf-f243-49b5-9639-a8b55e29c83b
+      revision: 1
+  - category: issue-179-lock-safety
+    state: observed
+    provenance: repository
+    fact: "Verified current stale-lock boundary: the existing stdio startup helper reclaims Chromium SingletonLock/Cookie/Socket entries only for recognizable positive safe-integer PIDs whose process status is provably dead (ESRCH); live, malformed, unreadable or indeterminate owners including EPERM/EACCES are retained. Its scope is the existing Playwright cache profile directories, not the custom configured-profile ownership file. Current custom bridge ownership uses exclusive file creation with PID/createdAt/userDataDir diagnostics and has no established dead-owner reclamation in the inspected acquisition path. Therefore issue #179's recovery acceptance must preserve existing conservative Chromium behavior and independently verify any added configured-profile recovery, never assume the report's version already supplies it or treat an unknown PID/namespace as proof of staleness."
+    evidence:
+      - src/cli/singleton-lock-cleanup.ts:31-34,66-99,121-157 — current Chromium lock names, PID parsing, conservative liveness and cache scope, read through CodeGraph in this turn.
+      - src/bridge/config.ts:793-859 — configured-profile exclusive owner file and metadata/error behavior, read through CodeGraph in this turn.
+      - https://github.com/swimmwatch/cloakbrowser-mcp/issues/179 — requested preservation of one-browser-per-profile and stale-lock behavior; external proposal, not proof of local implementation.
+    question: null
+    answer: null
+    id: 46e0bf79-a84a-4383-94b0-661197f01689
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - AR-002
+      - AR-015
+      - AR-016
+      - AR-020
+  - category: platform-support
+    state: observed
+    provenance: repository
+    fact: 'Verified declared support, not a new runtime-certification claim: npm bridge support covers Linux x64/arm64, macOS arm64/x64 and Windows x64. Node support is ^22.13.0 || >=24.0.0; Node 23 and 22.12 are excluded. Published Docker support is Linux amd64/arm64. Preserve these existing component-specific support boundaries during remediation rather than inferring support from this Linux development host or silently extending the matrix. The current CI declarations cover Node 22 and 24–26; future Node versions admitted by the declared engine range are not thereby dynamically certified by the prior audit.'
+    evidence:
+      - README.md:55 — declared npm OS/architecture checks and Docker architectures, matched during current specification intake.
+      - README.md:65 — Node.js 22.13+ in the 22.x line or 24+, matched during current specification intake.
+      - docs/getting-started.md:33 — Node runtime requirements and first-use binary acquisition.
+      - docs/getting-started.md:49 — published Docker linux/amd64 and linux/arm64 support.
+      - package.json:11-12 — engine range, previously read at unchanged HEAD; current Git status has no manifest edits.
+      - .github/workflows/ci.yml:18-33 — Node versions and OS/architecture matrix, previously read at unchanged HEAD.
+    question: null
+    answer: null
+    id: e5c4824a-0a1c-4bfa-a913-ae676ec745c8
+    revision: 3
+    supersedes_revision: 2
+    context_reason: null
+    requirement_ids:
+      - AR-002
+      - AR-013
+      - AR-016
+      - AR-019
+      - AR-020
+  - category: scope-boundary
+    state: instructed
+    provenance: user
+    instruction:
+      text: |-
+        https://github.com/swimmwatch/cloakbrowser-mcp/issues/178#issuecomment-6408302928
+
+         Давай также учтем в нашей спецификации следующее замечание.
+      source: 'Direct follow-up user message adding the exact GitHub issue #178 comment 6408302928 to the existing audit-remediation specification; received after #179 was added and a replacement independent review was started.'
+      kind: follow_up
+    related_decisions:
+      - id: 7dd2d706-02a5-4a62-8056-89d4102e9517
+        revision: 2
+      - id: 4bf8c202-ace0-4213-9da2-0c783dd8e076
+        revision: 2
+    requirement_ids: []
+    question: null
+    answer: null
+    id: ee85edbb-8497-4086-97b0-59ad173540b7
+    revision: 1
+    supersedes_revision: null
+  - category: issue-178-comment-evidence
+    state: observed
+    provenance: repository
+    fact: "Verified exact comment 6408302928 reports a fresh-install regression in cloakbrowser-mcp 1.15.1: its ^0.6.3 dependency can resolve to CloakBrowser 0.6.4 while a Humanize compatibility allowlist admits only 0.6.0–0.6.3, causing browser_navigate failures with humanize enabled. Its claims that dist/human is byte-identical across 0.6.3/0.6.4 and that one allowlist/engineUrl branch edit is sufficient are external hypotheses, not locally reproduced proof. The parent issue is an upstream-update request, but the user's selected source is this exact compatibility comment, not automatic authorization for every parent-issue action. Current local manifest/installation instead are cloakbrowser-mcp 1.13.0 and cloakbrowser ^0.5.10 / resolved 0.5.10; the named humanizeCompatibility module was not found, and the inspected humanize hook uses existing public humanizeBrowser/patchContext APIs without that version list. Official npm metadata confirms 0.6.4 is published and exports the human API, but no package/tarball comparison, installation or behavior test was performed. Addressing 0.6.4 as the implementation target therefore changes the previously confirmed no-dependency-update boundary and requires an explicit version/scope decision."
+    evidence:
+      - https://api.github.com/repos/swimmwatch/cloakbrowser-mcp/issues/comments/6408302928 — exact full comment retrieved HTTP 200; created/updated 2026-10-26T04:33:42Z.
+      - https://api.github.com/repos/swimmwatch/cloakbrowser-mcp/issues/178 — parent title Update CloakBrowser to v0.6.4; context only, not blanket action authority.
+      - https://registry.npmjs.org/cloakbrowser/0.6.4 — official published-version metadata, exports and integrity, retrieved HTTP 200 without downloading/installing the package.
+      - package.json:1-12,93-101 — current bridge version and ^0.5.10 declaration, read in this turn; npm ls cloakbrowser --depth=0 resolved 0.5.10 with exit code 0.
+      - src/runtime/humanize-init-page.cjs:1-54 — current humanize integration, read through CodeGraph; filename discovery found no humanizeCompatibility module.
+    question: null
+    answer: null
+    id: eb2101b7-8df9-4c93-ba45-db703e82cf9e
+    revision: 1
+    supersedes_revision: null
+  - category: scope-boundary
+    state: needs_user
+    provenance: user
+    question:
+      text: 'Как фиксируем замечание о humanize и CloakBrowser 0.6.4? Сейчас проект использует 0.5.10, а согласованный объём исключал обновление зависимостей. Рекомендую включить в будущую реализацию переход существующей зависимости на точную проверенную версию 0.6.4 и подтверждение работоспособности humanize реальными проверками, без безусловного разрешения всех будущих patch-версий. Например, свежая установка должна выбирать уже проверенную 0.6.4, а не неожиданно получить неподдерживаемую 0.6.5. Сейчас мы только меняем спецификацию: пакеты, исходники и lockfile не изменяем.'
+      kind: single_choice
+      options:
+        - id: target-exact-0-6-4
+          label: Целевая 0.6.4 (Recommended)
+        - id: defer-dependency-upgrade
+          label: Без обновления зависимости
+        - id: custom-version-policy
+          label: Другой диапазон версий
+    answer: null
+    status: prepared
+    context_reason: null
+    requirement_ids: []
+    id: 4102926b-d529-4451-b161-9928e785cdcd
+    revision: 1
+    supersedes_revision: null
+    question_origin:
+      id: 4102926b-d529-4451-b161-9928e785cdcd
+      revision: 1
+  - category: scope-boundary
+    state: answered
+    provenance: user
+    question:
+      text: 'Как фиксируем замечание о humanize и CloakBrowser 0.6.4? Сейчас проект использует 0.5.10, а согласованный объём исключал обновление зависимостей. Рекомендую включить в будущую реализацию переход существующей зависимости на точную проверенную версию 0.6.4 и подтверждение работоспособности humanize реальными проверками, без безусловного разрешения всех будущих patch-версий. Например, свежая установка должна выбирать уже проверенную 0.6.4, а не неожиданно получить неподдерживаемую 0.6.5. Сейчас мы только меняем спецификацию: пакеты, исходники и lockfile не изменяем.'
+      kind: single_choice
+      options:
+        - id: target-exact-0-6-4
+          label: Целевая 0.6.4 (Recommended)
+        - id: defer-dependency-upgrade
+          label: Без обновления зависимости
+        - id: custom-version-policy
+          label: Другой диапазон версий
+    answer:
+      text: Целевая 0.6.4 (Recommended)
+      selected_ids:
+        - target-exact-0-6-4
+    status: answered
+    context_reason: null
+    requirement_ids: []
+    id: 4102926b-d529-4451-b161-9928e785cdcd
+    revision: 2
+    supersedes_revision: 1
+    question_origin:
+      id: 4102926b-d529-4451-b161-9928e785cdcd
+      revision: 1
+    answer_source: Explicit native ask_user_question selection for issue-178-humanize-version-boundary, authorizing specification scope for a future exact CloakBrowser 0.6.4 target with verified humanize behavior; no dependency installation, code or lockfile change now.
+    answered_question:
+      id: 4102926b-d529-4451-b161-9928e785cdcd
+      revision: 1
+  - id: scope.manifest
+    category: scope
+    state: needs_user
+    provenance: user
+    question:
+      text: Confirm this exact scope proposal, or request a correction.
+      kind: single_choice
+      options:
+        - id: confirm
+          label: Confirm this proposal
+        - id: change
+          label: Change the proposal
+    answer: null
+    status: prepared
+    scope:
+      schema_version: 1
+      depth: deep
+      confirmed: false
+      rationale:
+        - "Preserve the complete previously confirmed single-specification scope: all 11 independently confirmed audit findings SEC-001..003, CODE-001..007, DOC-001, plus issue #179, regressions and affected canonical/localized guidance. Add only the humanize compatibility problem in the user's exact issue #178 comment 6408302928, not every suggested action of the parent update issue. No sibling spec, implementation, planning, installation, commit, release or publication is authorized in this specification stage."
+        - 'The user explicitly selected exact CloakBrowser 0.6.4 as the future implementation target. This is a narrow exception to the earlier no-dependency-updates boundary: update this existing dependency and only necessary lockfile/resolution effects when implementation is separately authorized. Keep unrelated dependencies, upstream MCP/Playwright versions, Node support and the bridge release version outside that exception. Current source/install still use ^0.5.10/resolved 0.5.10 and remain unchanged during specification authoring.'
+        - Require the declared dependency, lockfile, clean installed/packaged CLI and container to select the verified 0.6.4 target consistently. Do not let a broad caret silently choose an unverified future patch, admit all versions to bypass a compatibility guard, or claim that a version string or byte-identical human module proves behavior. Verify humanize-enabled browser navigation and representative humanized operations with the actual target and applicable presets/browser-context shapes; preserve disabled mode and thin upstream tool contracts. Unsupported overridden versions must fail actionably without silent loss of requested humanization or protected-data disclosure.
+        - 'Preserve #179 exactly as agreed: ordinary stdio/HTTP startup, initialize, actual dynamic/paginated tool discovery and existing inspections remain available while a configured profile is busy; exclusive ownership begins only when browser use requires it, with normal isError:true contention results and safe release/retry/stale-owner handling. Preserve eager managed-CDP startup/readiness; making managed CDP lazy and adding a third local tool/optional diagnostic API remain deferred.'
+        - 'Keep Deep and core/backend/operations/security active: transport authority/admission, optional bearer policy with mandatory Host/present-Origin validation, proxy-secret protection, cancellation, concurrent lifecycle/profile ownership, process-wide channel/pin/verified-license behavior, zero-page liveness, doctor accuracy and logging guidance all remain obligations. Revalidate affected behavior against target 0.6.4 rather than reuse 0.5.10-specific runtime evidence as proof of target success.'
+        - Preserve npm support on Linux x64/arm64, macOS arm64/x64, Windows x64; Node ^22.13.0 || >=24.0.0; Docker Linux amd64/arm64. Prior audit and current source identity remain historical baselines, not certification of the new target or all platforms. Required unavailable target/browser/container/platform checks are reported unverified; no paid download or unsafe external exploit is authorized.
+        - Optional metadata retention, new persistent-user-data schemas/migrations, UI/events, generic redesign, unrelated dependency/runtime changes, release/version/publishing and real-world exploitation remain excluded. Preserve pre-existing source edits and user artifacts; changing/removing/moving/broadly excluding four pre-existing result JSON files remains unauthorized, with the failed dirty-workspace check and unknown owner visible.
+        - The same future planning artifacts remain core/contracts.yaml, contracts/mcp.md and quality/scenarios.yaml, extended to cover the exact supported humanize dependency/installation contract, functional compatibility and target-version regression evidence. Existing documentation/data owners must reflect future verified compatibility without rewriting historical releases or manually editing generated content. Only their declared coverage is authored here; no planning artifact or handoff is created.
+      profiles:
+        - id: core
+          reason: CLI/configuration, exact supported dependency/installation identity, humanize modes/presets, doctor/logging and profile-use compatibility need observable public contracts.
+          state: active
+        - id: backend
+          reason: MCP tool discovery/results, humanize-enabled browser operations, HTTP admission/cancellation and eager CDP contracts must remain correct on the selected target.
+          state: active
+        - id: operations
+          reason: Reproducible clean/package/container selection of the target, lifecycle/profile ownership, failure/recovery and platform acceptance require explicit evidence.
+          state: active
+        - id: security
+          reason: Unverified-version guards, secret-safe diagnostics, transport authority/authentication and conservative profile ownership must not be weakened to obtain compatibility.
+          state: active
+        - id: ui
+          reason: No visual interface or design change is requested.
+          state: not_applicable
+        - id: events
+          reason: Existing MCP notifications and cancellation remain transport contracts; no independent event architecture is added.
+          state: not_applicable
+        - id: data
+          reason: Dependency/lockfile and compatibility metadata use existing owners; no new persisted user-data model, migration or retention policy is requested.
+          state: not_applicable
+        - id: cross-surface
+          reason: Active profiles cover CLI/MCP/browser/runtime boundaries without a separate UI journey or architecture-model artifact.
+          state: not_applicable
+      planning_artifacts:
+        - core/contracts.yaml
+        - contracts/mcp.md
+        - quality/scenarios.yaml
+    revision: 5
+    supersedes_revision: 4
+    question_origin:
+      id: scope.manifest
+      revision: 5
+  - id: scope.manifest
+    category: scope
+    state: answered
+    provenance: user
+    question:
+      text: Confirm this exact scope proposal, or request a correction.
+      kind: single_choice
+      options:
+        - id: confirm
+          label: Confirm this proposal
+        - id: change
+          label: Change the proposal
+    answer:
+      text: Confirm this proposal
+      selected_ids:
+        - confirm
+    status: answered
+    scope:
+      schema_version: 1
+      depth: deep
+      confirmed: false
+      rationale:
+        - "Preserve the complete previously confirmed single-specification scope: all 11 independently confirmed audit findings SEC-001..003, CODE-001..007, DOC-001, plus issue #179, regressions and affected canonical/localized guidance. Add only the humanize compatibility problem in the user's exact issue #178 comment 6408302928, not every suggested action of the parent update issue. No sibling spec, implementation, planning, installation, commit, release or publication is authorized in this specification stage."
+        - 'The user explicitly selected exact CloakBrowser 0.6.4 as the future implementation target. This is a narrow exception to the earlier no-dependency-updates boundary: update this existing dependency and only necessary lockfile/resolution effects when implementation is separately authorized. Keep unrelated dependencies, upstream MCP/Playwright versions, Node support and the bridge release version outside that exception. Current source/install still use ^0.5.10/resolved 0.5.10 and remain unchanged during specification authoring.'
+        - Require the declared dependency, lockfile, clean installed/packaged CLI and container to select the verified 0.6.4 target consistently. Do not let a broad caret silently choose an unverified future patch, admit all versions to bypass a compatibility guard, or claim that a version string or byte-identical human module proves behavior. Verify humanize-enabled browser navigation and representative humanized operations with the actual target and applicable presets/browser-context shapes; preserve disabled mode and thin upstream tool contracts. Unsupported overridden versions must fail actionably without silent loss of requested humanization or protected-data disclosure.
+        - 'Preserve #179 exactly as agreed: ordinary stdio/HTTP startup, initialize, actual dynamic/paginated tool discovery and existing inspections remain available while a configured profile is busy; exclusive ownership begins only when browser use requires it, with normal isError:true contention results and safe release/retry/stale-owner handling. Preserve eager managed-CDP startup/readiness; making managed CDP lazy and adding a third local tool/optional diagnostic API remain deferred.'
+        - 'Keep Deep and core/backend/operations/security active: transport authority/admission, optional bearer policy with mandatory Host/present-Origin validation, proxy-secret protection, cancellation, concurrent lifecycle/profile ownership, process-wide channel/pin/verified-license behavior, zero-page liveness, doctor accuracy and logging guidance all remain obligations. Revalidate affected behavior against target 0.6.4 rather than reuse 0.5.10-specific runtime evidence as proof of target success.'
+        - Preserve npm support on Linux x64/arm64, macOS arm64/x64, Windows x64; Node ^22.13.0 || >=24.0.0; Docker Linux amd64/arm64. Prior audit and current source identity remain historical baselines, not certification of the new target or all platforms. Required unavailable target/browser/container/platform checks are reported unverified; no paid download or unsafe external exploit is authorized.
+        - Optional metadata retention, new persistent-user-data schemas/migrations, UI/events, generic redesign, unrelated dependency/runtime changes, release/version/publishing and real-world exploitation remain excluded. Preserve pre-existing source edits and user artifacts; changing/removing/moving/broadly excluding four pre-existing result JSON files remains unauthorized, with the failed dirty-workspace check and unknown owner visible.
+        - The same future planning artifacts remain core/contracts.yaml, contracts/mcp.md and quality/scenarios.yaml, extended to cover the exact supported humanize dependency/installation contract, functional compatibility and target-version regression evidence. Existing documentation/data owners must reflect future verified compatibility without rewriting historical releases or manually editing generated content. Only their declared coverage is authored here; no planning artifact or handoff is created.
+      profiles:
+        - id: core
+          reason: CLI/configuration, exact supported dependency/installation identity, humanize modes/presets, doctor/logging and profile-use compatibility need observable public contracts.
+          state: active
+        - id: backend
+          reason: MCP tool discovery/results, humanize-enabled browser operations, HTTP admission/cancellation and eager CDP contracts must remain correct on the selected target.
+          state: active
+        - id: operations
+          reason: Reproducible clean/package/container selection of the target, lifecycle/profile ownership, failure/recovery and platform acceptance require explicit evidence.
+          state: active
+        - id: security
+          reason: Unverified-version guards, secret-safe diagnostics, transport authority/authentication and conservative profile ownership must not be weakened to obtain compatibility.
+          state: active
+        - id: ui
+          reason: No visual interface or design change is requested.
+          state: not_applicable
+        - id: events
+          reason: Existing MCP notifications and cancellation remain transport contracts; no independent event architecture is added.
+          state: not_applicable
+        - id: data
+          reason: Dependency/lockfile and compatibility metadata use existing owners; no new persisted user-data model, migration or retention policy is requested.
+          state: not_applicable
+        - id: cross-surface
+          reason: Active profiles cover CLI/MCP/browser/runtime boundaries without a separate UI journey or architecture-model artifact.
+          state: not_applicable
+      planning_artifacts:
+        - core/contracts.yaml
+        - contracts/mcp.md
+        - quality/scenarios.yaml
+    revision: 6
+    supersedes_revision: 5
+    question_origin:
+      id: scope.manifest
+      revision: 5
+    answer_source: Explicit native ask_user_question selection for audit-remediation-scope-humanize-0-6-4, confirming the exact revised scope with the future exact 0.6.4 humanize target while preserving all earlier confirmed obligations and specification-only execution.
+    answered_question:
+      id: scope.manifest
+      revision: 5
+  - category: scope-boundary
+    state: instructed
+    provenance: user
+    instruction:
+      text: |-
+        https://github.com/swimmwatch/cloakbrowser-mcp/issues/178#issuecomment-6408302928
+
+         Давай также учтем в нашей спецификации следующее замечание.
+      source: 'Direct follow-up user message adding the exact GitHub issue #178 comment 6408302928 to the existing audit-remediation specification; received after #179 was added and a replacement independent review was started.'
+      kind: follow_up
+    related_decisions:
+      - id: 7dd2d706-02a5-4a62-8056-89d4102e9517
+        revision: 2
+      - id: 4bf8c202-ace0-4213-9da2-0c783dd8e076
+        revision: 2
+    requirement_ids:
+      - AR-001
+      - AR-002
+      - AR-016
+      - AR-018
+      - AR-021
+      - AR-022
+      - AR-023
+    question: null
+    answer: null
+    id: ee85edbb-8497-4086-97b0-59ad173540b7
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+  - category: issue-178-comment-evidence
+    state: observed
+    provenance: repository
+    fact: "Verified exact comment 6408302928 reports a fresh-install regression in cloakbrowser-mcp 1.15.1: its ^0.6.3 dependency can resolve to CloakBrowser 0.6.4 while a Humanize compatibility allowlist admits only 0.6.0–0.6.3, causing browser_navigate failures with humanize enabled. Its claims that dist/human is byte-identical across 0.6.3/0.6.4 and that one allowlist/engineUrl branch edit is sufficient are external hypotheses, not locally reproduced proof. The parent issue is an upstream-update request, but the user's selected source is this exact compatibility comment, not automatic authorization for every parent-issue action. Current local manifest/installation instead are cloakbrowser-mcp 1.13.0 and cloakbrowser ^0.5.10 / resolved 0.5.10; the named humanizeCompatibility module was not found, and the inspected humanize hook uses existing public humanizeBrowser/patchContext APIs without that version list. Official npm metadata confirms 0.6.4 is published and exports the human API, but no package/tarball comparison, installation or behavior test was performed. Addressing 0.6.4 as the implementation target therefore changes the previously confirmed no-dependency-update boundary and requires an explicit version/scope decision."
+    evidence:
+      - https://api.github.com/repos/swimmwatch/cloakbrowser-mcp/issues/comments/6408302928 — exact full comment retrieved HTTP 200; created/updated 2026-10-26T04:33:42Z.
+      - https://api.github.com/repos/swimmwatch/cloakbrowser-mcp/issues/178 — parent title Update CloakBrowser to v0.6.4; context only, not blanket action authority.
+      - https://registry.npmjs.org/cloakbrowser/0.6.4 — official published-version metadata, exports and integrity, retrieved HTTP 200 without downloading/installing the package.
+      - package.json:1-12,93-101 — current bridge version and ^0.5.10 declaration, read in this turn; npm ls cloakbrowser --depth=0 resolved 0.5.10 with exit code 0.
+      - src/runtime/humanize-init-page.cjs:1-54 — current humanize integration, read through CodeGraph; filename discovery found no humanizeCompatibility module.
+    question: null
+    answer: null
+    id: eb2101b7-8df9-4c93-ba45-db703e82cf9e
+    revision: 2
+    supersedes_revision: 1
+    context_reason: null
+    requirement_ids:
+      - AR-001
+      - AR-002
+      - AR-016
+      - AR-018
+      - AR-021
+      - AR-022
+      - AR-023
+  - category: scope-boundary
+    state: answered
+    provenance: user
+    question:
+      text: 'Как фиксируем замечание о humanize и CloakBrowser 0.6.4? Сейчас проект использует 0.5.10, а согласованный объём исключал обновление зависимостей. Рекомендую включить в будущую реализацию переход существующей зависимости на точную проверенную версию 0.6.4 и подтверждение работоспособности humanize реальными проверками, без безусловного разрешения всех будущих patch-версий. Например, свежая установка должна выбирать уже проверенную 0.6.4, а не неожиданно получить неподдерживаемую 0.6.5. Сейчас мы только меняем спецификацию: пакеты, исходники и lockfile не изменяем.'
+      kind: single_choice
+      options:
+        - id: target-exact-0-6-4
+          label: Целевая 0.6.4 (Recommended)
+        - id: defer-dependency-upgrade
+          label: Без обновления зависимости
+        - id: custom-version-policy
+          label: Другой диапазон версий
+    answer:
+      text: Целевая 0.6.4 (Recommended)
+      selected_ids:
+        - target-exact-0-6-4
+    status: answered
+    context_reason: null
+    requirement_ids:
+      - AR-002
+      - AR-018
+      - AR-021
+      - AR-022
+      - AR-023
+    id: 4102926b-d529-4451-b161-9928e785cdcd
+    revision: 3
+    supersedes_revision: 2
+    question_origin:
+      id: 4102926b-d529-4451-b161-9928e785cdcd
+      revision: 1
+    answer_source: Explicit native ask_user_question selection for issue-178-humanize-version-boundary, authorizing specification scope for a future exact CloakBrowser 0.6.4 target with verified humanize behavior; no dependency installation, code or lockfile change now.
+    answered_question:
+      id: 4102926b-d529-4451-b161-9928e785cdcd
+      revision: 1
+  - category: platform-support
+    state: observed
+    provenance: repository
+    fact: 'Verified declared support, not a new runtime-certification claim: npm bridge support covers Linux x64/arm64, macOS arm64/x64 and Windows x64. Node support is ^22.13.0 || >=24.0.0; Node 23 and 22.12 are excluded. Published Docker support is Linux amd64/arm64. Preserve these existing component-specific support boundaries during remediation rather than inferring support from this Linux development host or silently extending the matrix. The current CI declarations cover Node 22 and 24–26; future Node versions admitted by the declared engine range are not thereby dynamically certified by the prior audit.'
+    evidence:
+      - README.md:55 — declared npm OS/architecture checks and Docker architectures, matched during current specification intake.
+      - README.md:65 — Node.js 22.13+ in the 22.x line or 24+, matched during current specification intake.
+      - docs/getting-started.md:33 — Node runtime requirements and first-use binary acquisition.
+      - docs/getting-started.md:49 — published Docker linux/amd64 and linux/arm64 support.
+      - package.json:11-12 — engine range, previously read at unchanged HEAD; current Git status has no manifest edits.
+      - .github/workflows/ci.yml:18-33 — Node versions and OS/architecture matrix, previously read at unchanged HEAD.
+    question: null
+    answer: null
+    id: e5c4824a-0a1c-4bfa-a913-ae676ec745c8
+    revision: 4
+    supersedes_revision: 3
+    context_reason: null
+    requirement_ids:
+      - AR-002
+      - AR-013
+      - AR-016
+      - AR-019
+      - AR-020
+      - AR-021
+      - AR-022
+      - AR-023
+  - category: verified-runtime-and-channel-contracts
+    state: observed
+    provenance: repository
+    fact: 'Verified current source and canonical contracts: ordinary startup acquires a prepared runtime before fallible setup/connect/start without complete rollback; ordinary and managed tool forwarding omit per-request cancellation. Doctor writes its human or JSON result to stdout and exits 1 on error; Streamable HTTP operational logs go to stderr. The bridge release channel is stable by default, explicit bridge option overrides CLOAK_PLAYWRIGHT_MCP_RELEASE_CHANNEL, and channel is process-wide, not HTTP initialize metadata. Preserve explicit local binary override and CLOAKBROWSER_VERSION pin precedence. Canonical docs and installed SDK explicitly allow Pro Preview-to-Stable fallback when no Preview build exists for a platform, with a warning; this is NOT the dropped-channel defect. Preserve fail-closed invalid/unverifiable license and binary verification behavior. No paid download or new runtime proof was executed during specification authoring; all audited tracked contents were independently fingerprinted unchanged.'
+    evidence:
+      - src/server.ts:85-105,151-181,457-508 — startup handoffs and ordinary/managed forwarding, read through CodeGraph in this specification turn.
+      - src/cli.ts:21-29,65-69,106-120 — doctor stdout/error exit, signal cleanup, HTTP stderr sink and fatal startup exit, read through CodeGraph.
+      - src/bridge/config.ts:466-487,1028-1029 — dropped acquisition channel and existing bridge option/environment precedence, read through CodeGraph.
+      - docs/configuration.md:174-188 — license failure behavior, Stable/Preview, version pin precedence, documented platform fallback and process-wide channel, read in this specification turn.
+      - node_modules/cloakbrowser/dist/download.js:47-97,647-688 — binary override, license failure, exact pin acquisition, channel routing and warned platform fallback, read in this specification turn.
+      - standard-workflow-audit.md:119-213 — prior independently verified lifecycle, cancellation, liveness, diagnostic and documentation findings with concrete scenarios.
+    question: null
+    answer: null
+    id: 6f52f40d-8181-4472-88b6-69117fddf701
+    revision: 3
+    supersedes_revision: 2
+    context_reason: null
+    requirement_ids:
+      - AR-001
+      - AR-006
+      - AR-007
+      - AR-008
+      - AR-009
+      - AR-010
+      - AR-011
+      - AR-012
+      - AR-013
+      - AR-014
+      - AR-015
+      - AR-016
+      - AR-021
+      - AR-022
+      - AR-023
+extensions:
+  workflow_mcp_receipts:
+    - id: 183fa5f7f9780a289e7a1290320e282fdb4214687f2b7675adc317143c859b7b
+      result:
+        decision_ref:
+          id: 7dd2d706-02a5-4a62-8056-89d4102e9517
+          revision: 1
+        state: instructed
+    - id: 95965c5c9001fa68f3f9fbb5931e39185a60257802215046fadc3ca1baf77f1f
+      result:
+        decision_ref:
+          id: 5b35a7da-b5c7-46dd-ab3e-2f84dfe441ab
+          revision: 1
+        state: observed
+    - id: 10f31eb42ec9897fedd11aec8e14bbdfc967725c2efbe53a6a9b97549e8c2c02
+      result:
+        question_ref:
+          id: 1db8ca42-ea91-4f1d-947d-427b79091bfb
+          revision: 1
+        question:
+          text: 'Какой объём описываем в одной спецификации? Рекомендую все 11 подтверждённых находок аудита вместе с регрессионными проверками и исправлением документации. Их можно разделить на независимо принимаемые результаты: безопасность (3 находки), жизненный цикл и протокольная корректность (6), диагностика и документация (2). Например, защиту HTTP можно принять отдельно от исправления doctor. Неподтверждённые улучшения и изменение четырёх пользовательских JSON-результатов не включаем автоматически: это отдельные решения.'
+          kind: single_choice
+          options:
+            - id: all-confirmed
+              label: Все 11 находок (Recommended)
+            - id: security-only
+              label: Только безопасность
+            - id: custom-boundary
+              label: Другой состав
+        next: Ask the saved question with the callable host-native question tool.
+    - id: 28e84b638cf3119e4a5cb00e5cfb9f3e490a68e8f775f3acbd4d5ba12212dd36
+      result:
+        decision_ref:
+          id: 1db8ca42-ea91-4f1d-947d-427b79091bfb
+          revision: 2
+        state: answered
+    - id: b155f8626529d39448215de25be6b5d11a34c2edd8a30b527a2f58cdf4c8c512
+      result:
+        decision_ref:
+          id: e5c4824a-0a1c-4bfa-a913-ae676ec745c8
+          revision: 1
+        state: observed
+    - id: 4a06f11481836be4a59e3ff86a38c0e11f79a5b66ae58d361414c1a5283022d2
+      result:
+        question_ref:
+          id: scope.manifest
+          revision: 1
+        question:
+          text: Confirm this exact scope proposal, or request a correction.
+          kind: single_choice
+          options:
+            - id: confirm
+              label: Confirm this proposal
+            - id: change
+              label: Change the proposal
+        proposal:
+          schema_version: 1
+          depth: deep
+          confirmed: false
+          rationale:
+            - 'User explicitly selected one specification covering all 11 confirmed audit findings: SEC-001..003, CODE-001..007 and DOC-001, including necessary regression verification and documentation correction. No sibling specifications or implementation are authorized.'
+            - Deep is warranted by high-impact HTTP authority/admission controls, proxy-secret exposure, cancellation propagation and concurrent resource ownership across CLI, MCP transports, upstream child processes and managed browser generations. Detail must preserve thin upstream-tool forwarding and session isolation.
+            - 'Preserve existing component support: npm on Linux x64/arm64, macOS arm64/x64 and Windows x64; Node ^22.13.0 || >=24.0.0; Docker Linux amd64/arm64. Existing declared support is a contract, not a claim that the prior Linux audit dynamically validated every platform.'
+            - Behavioral scope includes failures/recovery, profile/config/child cleanup, requested browser-channel selection, zero-page browser liveness, doctor accuracy and canonical/localized logging guidance. No new upstream browser tools or schema fork, dependency/runtime changes, release/publication, migration or speculative redesign.
+            - Optional closed-session metadata retention and other unconfirmed/future risks are excluded as remediation targets. Source-only variants relevant to confirmed secret/channel/security defects remain explicit verification boundaries rather than invented reproductions. Changing/removing the four pre-existing user result JSON files is not authorized; their failed-check prerequisite remains visible pending a separate ownership decision.
+            - Planning should produce a core CLI/configuration contract, an MCP transport/lifecycle contract that references rather than copies upstream tool schemas, and measurable security/lifecycle quality scenarios. This specification stage declares these artifacts only; it does not create plans, contracts, handoffs, code or commits.
+          profiles:
+            - id: core
+              reason: CLI/configuration channel and precedence, doctor diagnostics, stdio behavior and public documentation compatibility are directly affected.
+              state: active
+            - id: backend
+              reason: Streamable HTTP admission/session behavior and MCP request/cancellation forwarding to the upstream process require observable protocol/state contracts.
+              state: active
+            - id: operations
+              reason: Startup/shutdown/EOF, provisional sessions, child/browser/config/profile ownership, capacity recovery and npm/Docker/platform acceptance are material.
+              state: active
+            - id: security
+              reason: Host/Origin admission, synthetic-secret non-disclosure, authenticated/unauthenticated trust boundaries and fail-closed behavior are central confirmed defects.
+              state: active
+            - id: ui
+              reason: No visual user interface or design change is requested.
+              state: not_applicable
+            - id: events
+              reason: Existing MCP protocol notifications/cancellation are covered by the transport contract; no independent asynchronous event architecture or event schema is introduced.
+              state: not_applicable
+            - id: data
+              reason: No new persisted-data schema, migration or retention policy is requested; existing profile/file ownership and preservation belong to core/operations/security.
+              state: not_applicable
+            - id: cross-surface
+              reason: No UI-to-service or multi-product user journey is introduced; affected CLI/MCP/runtime boundaries are covered by core/backend/operations without a separate architecture-model artifact.
+              state: not_applicable
+          planning_artifacts:
+            - core/contracts.yaml
+            - contracts/mcp.md
+            - quality/scenarios.yaml
+        next: Ask this saved question with the host-native question tool; then record the actual answer.
+    - id: 3ff065771b2cb1cabaff2f97fb5e2846de749c6eefb658d5a41a3cc7e9df548c
+      result:
+        decision_ref:
+          id: scope.manifest
+          revision: 2
+        state: answered
+    - id: a9eacfc645f05f02d73f01f6eb26676667dc1084ea12429bb2191c89e9783c24
+      result:
+        decision_ref:
+          id: 5e6c8c70-b2af-4a8f-a905-da1db8efcdb7
+          revision: 1
+        state: observed
+    - id: b992dc7bc401e268a1a468598d0d5c9c3906ec02746d1cc09656ba098c38922c
+      result:
+        question_ref:
+          id: 6e08fb87-f4d0-49af-9875-94af6f88e677
+          revision: 1
+        question:
+          text: Какую политику HTTP-доступа закрепляем? Рекомендую сохранить локальный запуск без токена и существующую возможность аутентификации на доверенном reverse proxy, но всегда проверять Host и присутствующий Origin. Внешние адреса должны быть явно разрешены оператором; запросы без Origin от обычных MCP-клиентов допустимы при корректном Host. Например, localhost работает без новых настроек, а mcp.example.com требует явного разрешения. Альтернатива — дополнительно сделать bearer-токен самого моста обязательным при привязке не к loopback, что изменит совместимость текущих развёртываний.
+          kind: single_choice
+          options:
+            - id: compatible-authority-validation
+              label: Совместимость и строгая проверка (Recommended)
+            - id: mandatory-remote-bearer
+              label: Обязательный токен вне loopback
+            - id: custom-http-policy
+              label: Другая политика
+        next: Ask the saved question with the callable host-native question tool.
+    - id: fd417c14f64d70f36c102efec81b4ce6ec4a6ecaed1c6fda9f5c595b0deb74f7
+      result:
+        decision_ref:
+          id: 6e08fb87-f4d0-49af-9875-94af6f88e677
+          revision: 2
+        state: answered
+    - id: 3ae66b98b231e581cbe18c475712676f7b6937cbb0ae2ce89957a31ee703b5ff
+      result:
+        decision_ref:
+          id: 6f52f40d-8181-4472-88b6-69117fddf701
+          revision: 1
+        state: observed
+    - id: 7e902a8d2b981fc65848bd04f23a8ea56386ed2d5d7a27436e26ef461eacaf83
+      result:
+        items:
+          - decision_ref:
+              id: 7dd2d706-02a5-4a62-8056-89d4102e9517
+              revision: 2
+            previous_requirement_ids: []
+            added:
+              - AR-001
+              - AR-002
+              - AR-003
+              - AR-004
+              - AR-005
+              - AR-006
+              - AR-007
+              - AR-008
+              - AR-009
+              - AR-010
+              - AR-011
+              - AR-012
+              - AR-013
+              - AR-014
+              - AR-015
+              - AR-016
+              - AR-017
+              - AR-018
+            removed: []
+            requirement_ids:
+              - AR-001
+              - AR-002
+              - AR-003
+              - AR-004
+              - AR-005
+              - AR-006
+              - AR-007
+              - AR-008
+              - AR-009
+              - AR-010
+              - AR-011
+              - AR-012
+              - AR-013
+              - AR-014
+              - AR-015
+              - AR-016
+              - AR-017
+              - AR-018
+            operation_applied: true
+          - decision_ref:
+              id: 1db8ca42-ea91-4f1d-947d-427b79091bfb
+              revision: 3
+            previous_requirement_ids: []
+            added:
+              - AR-001
+              - AR-003
+              - AR-004
+              - AR-005
+              - AR-006
+              - AR-007
+              - AR-008
+              - AR-009
+              - AR-010
+              - AR-011
+              - AR-012
+              - AR-013
+              - AR-014
+              - AR-015
+              - AR-016
+              - AR-017
+              - AR-018
+            removed: []
+            requirement_ids:
+              - AR-001
+              - AR-003
+              - AR-004
+              - AR-005
+              - AR-006
+              - AR-007
+              - AR-008
+              - AR-009
+              - AR-010
+              - AR-011
+              - AR-012
+              - AR-013
+              - AR-014
+              - AR-015
+              - AR-016
+              - AR-017
+              - AR-018
+            operation_applied: true
+          - decision_ref:
+              id: 5b35a7da-b5c7-46dd-ab3e-2f84dfe441ab
+              revision: 2
+            previous_requirement_ids: []
+            added:
+              - AR-001
+              - AR-003
+              - AR-004
+              - AR-006
+              - AR-007
+              - AR-008
+              - AR-009
+              - AR-010
+              - AR-011
+              - AR-012
+              - AR-013
+              - AR-014
+              - AR-015
+              - AR-016
+              - AR-017
+              - AR-018
+            removed: []
+            requirement_ids:
+              - AR-001
+              - AR-003
+              - AR-004
+              - AR-006
+              - AR-007
+              - AR-008
+              - AR-009
+              - AR-010
+              - AR-011
+              - AR-012
+              - AR-013
+              - AR-014
+              - AR-015
+              - AR-016
+              - AR-017
+              - AR-018
+            operation_applied: true
+          - decision_ref:
+              id: e5c4824a-0a1c-4bfa-a913-ae676ec745c8
+              revision: 2
+            previous_requirement_ids: []
+            added:
+              - AR-002
+              - AR-013
+              - AR-016
+            removed: []
+            requirement_ids:
+              - AR-002
+              - AR-013
+              - AR-016
+            operation_applied: true
+          - decision_ref:
+              id: 5e6c8c70-b2af-4a8f-a905-da1db8efcdb7
+              revision: 2
+            previous_requirement_ids: []
+            added:
+              - AR-001
+              - AR-003
+              - AR-004
+              - AR-005
+              - AR-008
+              - AR-017
+              - AR-018
+            removed: []
+            requirement_ids:
+              - AR-001
+              - AR-003
+              - AR-004
+              - AR-005
+              - AR-008
+              - AR-017
+              - AR-018
+            operation_applied: true
+          - decision_ref:
+              id: 6e08fb87-f4d0-49af-9875-94af6f88e677
+              revision: 3
+            previous_requirement_ids: []
+            added:
+              - AR-004
+              - AR-005
+              - AR-018
+            removed: []
+            requirement_ids:
+              - AR-004
+              - AR-005
+              - AR-018
+            operation_applied: true
+          - decision_ref:
+              id: 6f52f40d-8181-4472-88b6-69117fddf701
+              revision: 2
+            previous_requirement_ids: []
+            added:
+              - AR-001
+              - AR-006
+              - AR-007
+              - AR-008
+              - AR-009
+              - AR-010
+              - AR-011
+              - AR-012
+              - AR-013
+              - AR-014
+              - AR-015
+              - AR-016
+            removed: []
+            requirement_ids:
+              - AR-001
+              - AR-006
+              - AR-007
+              - AR-008
+              - AR-009
+              - AR-010
+              - AR-011
+              - AR-012
+              - AR-013
+              - AR-014
+              - AR-015
+              - AR-016
+            operation_applied: true
+        operation_applied: true
+    - id: ab6c8498d8965183b65ab4aca254baa093dd42a19f902879844c9fd3cf21e691
+      result:
+        review_ref: bd8604e4-6e23-49a3-a8c3-74d79323b4bd
+        source_version: fbbd6e405136fa5aa364eac0f632c5b0cefc288107ffa507d49ba4b57ae6a7e2
+        total_items: 31
+        recorded_items: 0
+        consistency_required: true
+        mechanical_status: pass
+        mechanical_issues: []
+        total_mechanical_issues: 0
+        next: Use a separate context to read every item completely and record an evidence-based verdict.
+    - id: 75920676b761d6ee9cbf8ece1cc891dfc8c9891fff22ebe97e5fc3e7ffd76fc1
+      result:
+        decision_ref:
+          id: 4bf8c202-ace0-4213-9da2-0c783dd8e076
+          revision: 1
+        state: instructed
+    - id: 05905e818e10f44476b83fc07b3d9de448d44ebe6c2076516388fedb9b8f8a79
+      result:
+        decision_ref:
+          id: 0a85e16b-8fb7-4dae-9aa6-2ba974a9e91f
+          revision: 1
+        state: observed
+    - id: c9866752c816dd30e5bf255e62160be8ee82f08268965cc0d14e01a4829cdd80
+      result:
+        question_ref:
+          id: e6486aaf-f243-49b5-9639-a8b55e29c83b
+          revision: 1
+        question:
+          text: 'Как применяем #179 к режиму managed CDP? Для обычных stdio/HTTP закрепим: занятый профиль не мешает запуску и получению списка инструментов; конфликт возвращается как ошибка первого вызова, которому нужен браузер. Но managed CDP сейчас запускает и проверяет браузер уже при инициализации, чтобы сразу предоставить готовый CDP-доступ. Рекомендую сохранить этот отдельный контракт, а не откладывать его незаметно. Например, второй обычный клиент сможет увидеть инструменты занятого профиля, но запрос на немедленно готовый managed CDP по-прежнему потребует свободный профиль.'
+          kind: single_choice
+          options:
+            - id: preserve-eager-managed-cdp
+              label: Сохранить ранний CDP (Recommended)
+            - id: lazy-managed-cdp-too
+              label: Сделать CDP тоже ленивым
+            - id: custom-profile-boundary
+              label: Другая граница
+        next: Ask the saved question with the callable host-native question tool.
+    - id: 32f54fec5cddbdffa6a220ef93beb35a86984f6eb7871f299ff6071a0929a057
+      result:
+        decision_ref:
+          id: e6486aaf-f243-49b5-9639-a8b55e29c83b
+          revision: 2
+        state: answered
+    - id: 7e7b8541da48ba3d48a16b70d844b8d32c77f9dbc901a234c2cc18bc729d1d68
+      result:
+        question_ref:
+          id: scope.manifest
+          revision: 3
+        question:
+          text: Confirm this exact scope proposal, or request a correction.
+          kind: single_choice
+          options:
+            - id: confirm
+              label: Confirm this proposal
+            - id: change
+              label: Change the proposal
+        proposal:
+          schema_version: 1
+          depth: deep
+          confirmed: false
+          rationale:
+            - 'Preserve all original scope: one specification addresses all 11 independently confirmed audit findings SEC-001..003, CODE-001..007 and DOC-001, required regressions and canonical/affected localized documentation. The user explicitly adds GitHub issue #179 to the same specification; no sibling specification, implementation, planning, commit or publication is authorized.'
+            - 'Add issue #179 as a separate remediation topic: in ordinary stdio and Streamable HTTP, a configured profile already owned elsewhere must not prevent MCP startup/initialize, actual upstream tool discovery or existing local inspection. Acquire exclusive use only when browser use needs that profile; conflict is a normal isError:true tool result with profile path and available owner PID/timestamp, not process exit. Preserve one browser owner per profile, conservative stale-owner handling, safe release and explicit retry after the owner releases it.'
+            - "User explicitly chose to preserve eager managed-CDP startup/readiness: when that mode needs a browser during initialization, it still requires exclusive profile ownership then and must cleanly report failure without a falsely ready endpoint. Making managed CDP itself lazy is deferred, not silently included. Do not hardcode the reporter's 72-tool count or claim its 1.15.1 environment is the current 1.13.0 tree. Do not add a third local diagnostic tool or an optional lock-state API."
+            - Deep remains warranted by HTTP authority/admission and proxy-secret controls, cancellation, deferred/exclusive profile ownership and concurrent cleanup across CLI, transports, upstream children and browser generations. Preserve unchanged upstream tool schemas, dynamic/paginated forwarding, session isolation, valid current CDP/Docker defenses and the agreed optional bearer plus mandatory Host/present-Origin validation policy.
+            - 'Preserve existing component support: npm Linux x64/arm64, macOS arm64/x64, Windows x64; Node ^22.13.0 || >=24.0.0; Docker Linux amd64/arm64. Preserve process-wide browser channel selection, explicit pins, documented warned Preview fallback, fail-closed license/binary verification, diagnostics and logging. Prior source/OS execution evidence remains attributed and is not inflated.'
+            - Optional closed-session metadata retention, unconfirmed future risks, generic redesign, new storage/schema migration, dependencies/runtime changes, release/version/publishing work and unsafe external exploitation remain excluded. Preserve pre-existing source edits and user artifacts; modifying/removing/moving/broadly excluding four pre-existing result JSON files remains unauthorized, with their failed-check prerequisite visible and owner unknown.
+            - Planning artifacts remain core/contracts.yaml, contracts/mcp.md and quality/scenarios.yaml, now also covering profile-use timing, discovery availability, conflict/error and exclusive-owner recovery cases. Specification declares their requirement coverage only; no plan, contract artifact or handoff is created in this stage.
+          profiles:
+            - id: core
+              reason: CLI/configuration, process-wide channel/doctor/logging contracts and persistent-profile use timing/inspection behavior require explicit compatibility.
+              state: active
+            - id: backend
+              reason: HTTP initialization, MCP discovery/cancellation and normal profile-conflict tool results require observable protocol/state contracts without copying upstream schemas.
+              state: active
+            - id: operations
+              reason: Deferred profile ownership, cross-process/session contention, stale/failed/terminal cleanup, eager CDP readiness and npm/Docker/platform acceptance are material.
+              state: active
+            - id: security
+              reason: Host/Origin admission, proxy-secret non-disclosure, least-privilege profile ownership and conservative lock recovery must preserve authenticated and isolated trust boundaries.
+              state: active
+            - id: ui
+              reason: No visual interface or design change is requested.
+              state: not_applicable
+            - id: events
+              reason: MCP notifications/cancellation remain part of the established transport contract; no independent event architecture is introduced.
+              state: not_applicable
+            - id: data
+              reason: Existing profile ownership metadata/lifetime is covered by core/operations/security; no new persisted-data schema, migration or retention policy is authorized.
+              state: not_applicable
+            - id: cross-surface
+              reason: Affected CLI/MCP/runtime boundaries are covered by the active profiles without a separate UI journey or architecture-model artifact.
+              state: not_applicable
+          planning_artifacts:
+            - core/contracts.yaml
+            - contracts/mcp.md
+            - quality/scenarios.yaml
+        next: Ask this saved question with the host-native question tool; then record the actual answer.
+    - id: 405743e07f4d67a93b071a16b59f91ba8c39974c509c7554266bd8b3eebf3207
+      result:
+        decision_ref:
+          id: scope.manifest
+          revision: 4
+        state: answered
+    - id: 2b27db524ab7b5e4adaa5abd384386657750166de67f51310b2d900623b462f4
+      result:
+        decision_ref:
+          id: 46e0bf79-a84a-4383-94b0-661197f01689
+          revision: 1
+        state: observed
+    - id: 97bea51f6d1bec037cb42e49e531ec20267da1b3bc13bddf84dfca4cb60a3cff
+      result:
+        items:
+          - decision_ref:
+              id: 4bf8c202-ace0-4213-9da2-0c783dd8e076
+              revision: 2
+            previous_requirement_ids: []
+            added:
+              - AR-001
+              - AR-009
+              - AR-015
+              - AR-016
+              - AR-018
+              - AR-019
+              - AR-020
+            removed: []
+            requirement_ids:
+              - AR-001
+              - AR-009
+              - AR-015
+              - AR-016
+              - AR-018
+              - AR-019
+              - AR-020
+            operation_applied: true
+          - decision_ref:
+              id: 0a85e16b-8fb7-4dae-9aa6-2ba974a9e91f
+              revision: 2
+            previous_requirement_ids: []
+            added:
+              - AR-001
+              - AR-009
+              - AR-015
+              - AR-016
+              - AR-018
+              - AR-019
+              - AR-020
+            removed: []
+            requirement_ids:
+              - AR-001
+              - AR-009
+              - AR-015
+              - AR-016
+              - AR-018
+              - AR-019
+              - AR-020
+            operation_applied: true
+          - decision_ref:
+              id: e6486aaf-f243-49b5-9639-a8b55e29c83b
+              revision: 3
+            previous_requirement_ids: []
+            added:
+              - AR-001
+              - AR-009
+              - AR-018
+              - AR-019
+              - AR-020
+            removed: []
+            requirement_ids:
+              - AR-001
+              - AR-009
+              - AR-018
+              - AR-019
+              - AR-020
+            operation_applied: true
+          - decision_ref:
+              id: 46e0bf79-a84a-4383-94b0-661197f01689
+              revision: 2
+            previous_requirement_ids: []
+            added:
+              - AR-002
+              - AR-015
+              - AR-016
+              - AR-020
+            removed: []
+            requirement_ids:
+              - AR-002
+              - AR-015
+              - AR-016
+              - AR-020
+            operation_applied: true
+          - decision_ref:
+              id: e5c4824a-0a1c-4bfa-a913-ae676ec745c8
+              revision: 3
+            previous_requirement_ids:
+              - AR-002
+              - AR-013
+              - AR-016
+            added:
+              - AR-019
+              - AR-020
+            removed: []
+            requirement_ids:
+              - AR-002
+              - AR-013
+              - AR-016
+              - AR-019
+              - AR-020
+            operation_applied: true
+        operation_applied: true
+    - id: 874d80f4a6bf06fcf731e37d9d78c7048245c88bea52db65b086a8099cd33a4b
+      result:
+        review_ref: 450c1949-7cde-448a-84f4-2799c4ca80e5
+        source_version: 2d7ed35d26d1dba08abad2af6e81bed5c1ca43dfcd1bb49025044e23c66bb950
+        total_items: 37
+        recorded_items: 0
+        consistency_required: true
+        mechanical_status: pass
+        mechanical_issues: []
+        total_mechanical_issues: 0
+        next: Use a separate context to read every item completely and record an evidence-based verdict.
+    - id: 6e6874a03e84ee959e70e277f488abecb0b578df018bf1fc52a0714b002494ca
+      result:
+        decision_ref:
+          id: ee85edbb-8497-4086-97b0-59ad173540b7
+          revision: 1
+        state: instructed
+    - id: 608ffcf2d85e2f9ea4b893483f652f97995ac969968e61ecdf447d6e9488c822
+      result:
+        decision_ref:
+          id: eb2101b7-8df9-4c93-ba45-db703e82cf9e
+          revision: 1
+        state: observed
+    - id: a6378cb0befd885824de73920d90447670c62c3798a481b1d73665e5fb9e4266
+      result:
+        question_ref:
+          id: 4102926b-d529-4451-b161-9928e785cdcd
+          revision: 1
+        question:
+          text: 'Как фиксируем замечание о humanize и CloakBrowser 0.6.4? Сейчас проект использует 0.5.10, а согласованный объём исключал обновление зависимостей. Рекомендую включить в будущую реализацию переход существующей зависимости на точную проверенную версию 0.6.4 и подтверждение работоспособности humanize реальными проверками, без безусловного разрешения всех будущих patch-версий. Например, свежая установка должна выбирать уже проверенную 0.6.4, а не неожиданно получить неподдерживаемую 0.6.5. Сейчас мы только меняем спецификацию: пакеты, исходники и lockfile не изменяем.'
+          kind: single_choice
+          options:
+            - id: target-exact-0-6-4
+              label: Целевая 0.6.4 (Recommended)
+            - id: defer-dependency-upgrade
+              label: Без обновления зависимости
+            - id: custom-version-policy
+              label: Другой диапазон версий
+        next: Ask the saved question with the callable host-native question tool.
+    - id: b67dd45079cd279b4d410657871a752ba3a526f0ab73067517ea5df619420f3c
+      result:
+        decision_ref:
+          id: 4102926b-d529-4451-b161-9928e785cdcd
+          revision: 2
+        state: answered
+    - id: 83f3f1432c2210539ff0c2d779016643549c5b066b5560193c2a138a62594ed6
+      result:
+        question_ref:
+          id: scope.manifest
+          revision: 5
+        question:
+          text: Confirm this exact scope proposal, or request a correction.
+          kind: single_choice
+          options:
+            - id: confirm
+              label: Confirm this proposal
+            - id: change
+              label: Change the proposal
+        proposal:
+          schema_version: 1
+          depth: deep
+          confirmed: false
+          rationale:
+            - "Preserve the complete previously confirmed single-specification scope: all 11 independently confirmed audit findings SEC-001..003, CODE-001..007, DOC-001, plus issue #179, regressions and affected canonical/localized guidance. Add only the humanize compatibility problem in the user's exact issue #178 comment 6408302928, not every suggested action of the parent update issue. No sibling spec, implementation, planning, installation, commit, release or publication is authorized in this specification stage."
+            - 'The user explicitly selected exact CloakBrowser 0.6.4 as the future implementation target. This is a narrow exception to the earlier no-dependency-updates boundary: update this existing dependency and only necessary lockfile/resolution effects when implementation is separately authorized. Keep unrelated dependencies, upstream MCP/Playwright versions, Node support and the bridge release version outside that exception. Current source/install still use ^0.5.10/resolved 0.5.10 and remain unchanged during specification authoring.'
+            - Require the declared dependency, lockfile, clean installed/packaged CLI and container to select the verified 0.6.4 target consistently. Do not let a broad caret silently choose an unverified future patch, admit all versions to bypass a compatibility guard, or claim that a version string or byte-identical human module proves behavior. Verify humanize-enabled browser navigation and representative humanized operations with the actual target and applicable presets/browser-context shapes; preserve disabled mode and thin upstream tool contracts. Unsupported overridden versions must fail actionably without silent loss of requested humanization or protected-data disclosure.
+            - 'Preserve #179 exactly as agreed: ordinary stdio/HTTP startup, initialize, actual dynamic/paginated tool discovery and existing inspections remain available while a configured profile is busy; exclusive ownership begins only when browser use requires it, with normal isError:true contention results and safe release/retry/stale-owner handling. Preserve eager managed-CDP startup/readiness; making managed CDP lazy and adding a third local tool/optional diagnostic API remain deferred.'
+            - 'Keep Deep and core/backend/operations/security active: transport authority/admission, optional bearer policy with mandatory Host/present-Origin validation, proxy-secret protection, cancellation, concurrent lifecycle/profile ownership, process-wide channel/pin/verified-license behavior, zero-page liveness, doctor accuracy and logging guidance all remain obligations. Revalidate affected behavior against target 0.6.4 rather than reuse 0.5.10-specific runtime evidence as proof of target success.'
+            - Preserve npm support on Linux x64/arm64, macOS arm64/x64, Windows x64; Node ^22.13.0 || >=24.0.0; Docker Linux amd64/arm64. Prior audit and current source identity remain historical baselines, not certification of the new target or all platforms. Required unavailable target/browser/container/platform checks are reported unverified; no paid download or unsafe external exploit is authorized.
+            - Optional metadata retention, new persistent-user-data schemas/migrations, UI/events, generic redesign, unrelated dependency/runtime changes, release/version/publishing and real-world exploitation remain excluded. Preserve pre-existing source edits and user artifacts; changing/removing/moving/broadly excluding four pre-existing result JSON files remains unauthorized, with the failed dirty-workspace check and unknown owner visible.
+            - The same future planning artifacts remain core/contracts.yaml, contracts/mcp.md and quality/scenarios.yaml, extended to cover the exact supported humanize dependency/installation contract, functional compatibility and target-version regression evidence. Existing documentation/data owners must reflect future verified compatibility without rewriting historical releases or manually editing generated content. Only their declared coverage is authored here; no planning artifact or handoff is created.
+          profiles:
+            - id: core
+              reason: CLI/configuration, exact supported dependency/installation identity, humanize modes/presets, doctor/logging and profile-use compatibility need observable public contracts.
+              state: active
+            - id: backend
+              reason: MCP tool discovery/results, humanize-enabled browser operations, HTTP admission/cancellation and eager CDP contracts must remain correct on the selected target.
+              state: active
+            - id: operations
+              reason: Reproducible clean/package/container selection of the target, lifecycle/profile ownership, failure/recovery and platform acceptance require explicit evidence.
+              state: active
+            - id: security
+              reason: Unverified-version guards, secret-safe diagnostics, transport authority/authentication and conservative profile ownership must not be weakened to obtain compatibility.
+              state: active
+            - id: ui
+              reason: No visual interface or design change is requested.
+              state: not_applicable
+            - id: events
+              reason: Existing MCP notifications and cancellation remain transport contracts; no independent event architecture is added.
+              state: not_applicable
+            - id: data
+              reason: Dependency/lockfile and compatibility metadata use existing owners; no new persisted user-data model, migration or retention policy is requested.
+              state: not_applicable
+            - id: cross-surface
+              reason: Active profiles cover CLI/MCP/browser/runtime boundaries without a separate UI journey or architecture-model artifact.
+              state: not_applicable
+          planning_artifacts:
+            - core/contracts.yaml
+            - contracts/mcp.md
+            - quality/scenarios.yaml
+        next: Ask this saved question with the host-native question tool; then record the actual answer.
+    - id: 48171bf4495ad38dfdfb2af71e12c246bcbe6de9f863a08c687aa05ca0fec1d1
+      result:
+        decision_ref:
+          id: scope.manifest
+          revision: 6
+        state: answered
+    - id: 0fb9073062402956ef9898d1388bb1939ad81bb945fba19c0f9228704b1973c3
+      result:
+        items:
+          - decision_ref:
+              id: ee85edbb-8497-4086-97b0-59ad173540b7
+              revision: 2
+            previous_requirement_ids: []
+            added:
+              - AR-001
+              - AR-002
+              - AR-016
+              - AR-018
+              - AR-021
+              - AR-022
+              - AR-023
+            removed: []
+            requirement_ids:
+              - AR-001
+              - AR-002
+              - AR-016
+              - AR-018
+              - AR-021
+              - AR-022
+              - AR-023
+            operation_applied: true
+          - decision_ref:
+              id: eb2101b7-8df9-4c93-ba45-db703e82cf9e
+              revision: 2
+            previous_requirement_ids: []
+            added:
+              - AR-001
+              - AR-002
+              - AR-016
+              - AR-018
+              - AR-021
+              - AR-022
+              - AR-023
+            removed: []
+            requirement_ids:
+              - AR-001
+              - AR-002
+              - AR-016
+              - AR-018
+              - AR-021
+              - AR-022
+              - AR-023
+            operation_applied: true
+          - decision_ref:
+              id: 4102926b-d529-4451-b161-9928e785cdcd
+              revision: 3
+            previous_requirement_ids: []
+            added:
+              - AR-002
+              - AR-018
+              - AR-021
+              - AR-022
+              - AR-023
+            removed: []
+            requirement_ids:
+              - AR-002
+              - AR-018
+              - AR-021
+              - AR-022
+              - AR-023
+            operation_applied: true
+          - decision_ref:
+              id: e5c4824a-0a1c-4bfa-a913-ae676ec745c8
+              revision: 4
+            previous_requirement_ids:
+              - AR-002
+              - AR-013
+              - AR-016
+              - AR-019
+              - AR-020
+            added:
+              - AR-021
+              - AR-022
+              - AR-023
+            removed: []
+            requirement_ids:
+              - AR-002
+              - AR-013
+              - AR-016
+              - AR-019
+              - AR-020
+              - AR-021
+              - AR-022
+              - AR-023
+            operation_applied: true
+          - decision_ref:
+              id: 6f52f40d-8181-4472-88b6-69117fddf701
+              revision: 3
+            previous_requirement_ids:
+              - AR-001
+              - AR-006
+              - AR-007
+              - AR-008
+              - AR-009
+              - AR-010
+              - AR-011
+              - AR-012
+              - AR-013
+              - AR-014
+              - AR-015
+              - AR-016
+            added:
+              - AR-021
+              - AR-022
+              - AR-023
+            removed: []
+            requirement_ids:
+              - AR-001
+              - AR-006
+              - AR-007
+              - AR-008
+              - AR-009
+              - AR-010
+              - AR-011
+              - AR-012
+              - AR-013
+              - AR-014
+              - AR-015
+              - AR-016
+              - AR-021
+              - AR-022
+              - AR-023
+            operation_applied: true
+        operation_applied: true
+    - id: d0f40391025bb4738363725300c2084a3c50519945f4f3b9ca9081aa19cf463b
+      result:
+        review_ref: fcf9644e-76dd-437f-b880-a8f673c2c7b0
+        source_version: 33d28b865beef94e8fa2064e7d1f56ee5469b90cba0beb8be68c12c8b9e9bd6e
+        total_items: 43
+        recorded_items: 0
+        consistency_required: true
+        mechanical_status: pass
+        mechanical_issues: []
+        total_mechanical_issues: 0
+        next: Use a separate context to read every item completely and record an evidence-based verdict.
+    - id: e45d4d132cf72f3417ef79d248fe42c0131cdc0051d4f7e15c0d9f14b077c508
+      result:
+        review_ref: fcf9644e-76dd-437f-b880-a8f673c2c7b0
+        items:
+          - item_index: 0
+            item_key: source:7dd2d706-02a5-4a62-8056-89d4102e9517
+            verdict: covered
+        batch_size: 1
+        recorded_items: 1
+    - id: 49f45d6ef9d44708d03ccfbbf8289e7de760d4dd8b0192ef573c7d6871eaced5
+      result:
+        review_ref: fcf9644e-76dd-437f-b880-a8f673c2c7b0
+        items:
+          - item_index: 1
+            item_key: source:5b35a7da-b5c7-46dd-ab3e-2f84dfe441ab
+            verdict: covered
+        batch_size: 1
+        recorded_items: 2
+    - id: 3b5ef39ddc4998ea750495ad592e0777825d8da6c4bca557da1d884ca7860b69
+      result:
+        review_ref: fcf9644e-76dd-437f-b880-a8f673c2c7b0
+        items:
+          - item_index: 2
+            item_key: source:1db8ca42-ea91-4f1d-947d-427b79091bfb
+            verdict: covered
+        batch_size: 1
+        recorded_items: 3
+    - id: b05e2654cf468206f8acffd283acd233443c1e9122eb1833b374155de7fcd229
+      result:
+        review_ref: fcf9644e-76dd-437f-b880-a8f673c2c7b0
+        items:
+          - item_index: 3
+            item_key: source:e5c4824a-0a1c-4bfa-a913-ae676ec745c8
+            verdict: covered
+        batch_size: 1
+        recorded_items: 4
+    - id: 15bfebed061e11f789ca2d2a51715e08e183159158041593ec53df0a1d22b1a6
+      result:
+        review_ref: fcf9644e-76dd-437f-b880-a8f673c2c7b0
+        items:
+          - item_index: 4
+            item_key: source:scope.manifest
+            verdict: covered
+        batch_size: 1
+        recorded_items: 5
+    - id: 83192049a72bf98074c5df6b08befa6d4fcfad1222fe2efa64df5f79623cd667
+      result:
+        review_ref: fcf9644e-76dd-437f-b880-a8f673c2c7b0
+        items:
+          - item_index: 5
+            item_key: source:5e6c8c70-b2af-4a8f-a905-da1db8efcdb7
+            verdict: covered
+        batch_size: 1
+        recorded_items: 6
+specification_reviews:
+  version: 1
+  runs:
+    - id: bd8604e4-6e23-49a3-a8c3-74d79323b4bd
+      source_version: fbbd6e405136fa5aa364eac0f632c5b0cefc288107ffa507d49ba4b57ae6a7e2
+      specification_version: ae2d784fe9063b7548004386722b107a0bfe0f8b338caf334361ffde0ada5ef7
+      status_at_start: Draft
+      created_at: 2026-10-26T09:58:15.096Z
+      completed: false
+      outcome: pending
+      results: []
+      consistency_required: true
+      input_snapshot: c07982503bd4b1f3ae9cdeffa1407035358e161332c5dd1dad070e99a7e4ea4a
+    - id: 450c1949-7cde-448a-84f4-2799c4ca80e5
+      source_version: 2d7ed35d26d1dba08abad2af6e81bed5c1ca43dfcd1bb49025044e23c66bb950
+      specification_version: d4af00d0ec66fe11e1e88d3537c614ab9dccc54ddc2b79584fd8a51345e62444
+      status_at_start: Draft
+      created_at: 2026-10-26T10:19:09.851Z
+      completed: false
+      outcome: pending
+      results: []
+      consistency_required: true
+      input_snapshot: c3a62b3eded319c1b67dc0c9d2a995aa89190b0171a22eb0b4996be3bed498f2
+    - id: fcf9644e-76dd-437f-b880-a8f673c2c7b0
+      source_version: 33d28b865beef94e8fa2064e7d1f56ee5469b90cba0beb8be68c12c8b9e9bd6e
+      specification_version: f57a911e21d6f18d8ea3e51417b2f8ee30950aac5fd626d1acc152afc0b02639
+      status_at_start: Draft
+      created_at: 2026-10-26T10:40:00.672Z
+      completed: false
+      outcome: pending
+      results:
+        [
+          {
+            item_index: 0,
+            item_key: source:7dd2d706-02a5-4a62-8056-89d4102e9517,
+            verdict: covered,
+            explanation: 'The actual initial request and predecessor ask to specify correction of audited findings, not implementation. AR-003–014 explicitly identify the eleven audited correction boundaries, AR-001–002 preserve existing contracts/platforms, and AR-015–018 bind cleanup, discriminating future evidence, protected artifacts and specification-only delivery. The specific audit evidence and later amendments are judged in their own source items; this generic request imposes no additional independently testable correction.',
+            requirement_ids:
+              [
+                AR-001,
+                AR-002,
+                AR-003,
+                AR-004,
+                AR-005,
+                AR-006,
+                AR-007,
+                AR-008,
+                AR-009,
+                AR-010,
+                AR-011,
+                AR-012,
+                AR-013,
+                AR-014,
+                AR-015,
+                AR-016,
+                AR-017,
+                AR-018,
+              ],
+            source_refs: [],
+          },
+          {
+            item_index: 1,
+            item_key: source:5b35a7da-b5c7-46dd-ab3e-2f84dfe441ab,
+            verdict: covered,
+            explanation: "Read the complete observed source and predecessor plus the original report's material sections (standard-workflow-audit.md:65–301). AR-003/004/006 map SEC-001..003; AR-007–013 map CODE-001..007; AR-014 maps DOC-001, preserving the corrected shutdown chronology, synthetic-secret/native-HTTP evidence distinction, channel hook versus licensed-download distinction, and cancellation without committed-effect rollback. AR-001/015/016 retain existing guarded behavior, actual resource cleanup and discriminating future checks. AR-017 preserves the four artifact blocker and unknown ownership rather than authorizing artifact changes or claiming the full check passed. AR-018 explicitly defers optional retention and unrelated redesign. These requirements treat the report as historical 0.5.10 evidence, not proof of current/0.6.4 runtime success.",
+            requirement_ids:
+              [
+                AR-001,
+                AR-003,
+                AR-004,
+                AR-006,
+                AR-007,
+                AR-008,
+                AR-009,
+                AR-010,
+                AR-011,
+                AR-012,
+                AR-013,
+                AR-014,
+                AR-015,
+                AR-016,
+                AR-017,
+                AR-018,
+              ],
+            source_refs: [],
+          },
+          {
+            item_index: 2,
+            item_key: source:1db8ca42-ea91-4f1d-947d-427b79091bfb,
+            verdict: covered,
+            explanation: "The exact question, explicit all-confirmed answer and both predecessor revisions retain all eleven findings, regressions and affected documentation in one specification; the source does not authorize automatically adding unconfirmed improvements or changing the four user JSON artifacts. AR-003–014 retain the individual correction outcomes and acceptance; AR-001/015/016 preserve existing behavior and cross-cutting lifecycle/regression safeguards; AR-017 explicitly protects the artifacts and reports the failed gate/unknown owner. AR-018 excludes optional retention and unrelated changes without removing existing behavior. Separate requirements permit independent acceptance of each finding; the question's example partition is not a demand for sibling specs or implementation work.",
+            requirement_ids:
+              [
+                AR-001,
+                AR-003,
+                AR-004,
+                AR-005,
+                AR-006,
+                AR-007,
+                AR-008,
+                AR-009,
+                AR-010,
+                AR-011,
+                AR-012,
+                AR-013,
+                AR-014,
+                AR-015,
+                AR-016,
+                AR-017,
+                AR-018,
+              ],
+            source_refs: [],
+          },
+          {
+            item_index: 3,
+            item_key: source:e5c4824a-0a1c-4bfa-a913-ae676ec745c8,
+            verdict: covered,
+            explanation: 'The complete source and all predecessor revisions distinguish declared npm Linux x64/arm64, macOS arm64/x64, Windows x64 support, Docker Linux amd64/arm64, engine ^22.13.0 || >=24.0.0, and the narrower Node 22/24–26 CI evidence. Independently inspected README:55/65, getting-started:33/49, package engines:11–12 and CI matrix:18–33 agree. AR-002 preserves each component boundary and native OS-specific cleanup/path/signal outcomes; AR-013 covers excluded Node versions and diagnostic uncertainty; AR-016 requires actual affected-platform evidence, not inference from Linux. AR-019–020 retain process/session exclusivity and conservative cross-namespace recovery on supported environments. AR-021–023 constrain the selected SDK update without broadening Node/platform support and require fresh target/runtime evidence with unavailable cases unverified. No material source condition is lost; this verdict does not certify any unexecuted platform runtime.',
+            requirement_ids: [AR-002, AR-013, AR-016, AR-019, AR-020, AR-021, AR-022, AR-023],
+            source_refs: [],
+          },
+          {
+            item_index: 4,
+            item_key: source:scope.manifest,
+            verdict: covered,
+            explanation: 'Read the exact confirmed scope proposal/answer and all six revisions. The latest narrowly adds exact SDK 0.6.4/humanize to the existing eleven findings and #179, rather than replacing earlier safeguards. AR-001–018 retain thin contracts, component platforms, eleven corrections, honest cleanup/evidence/artifact treatment and stated exclusions. AR-019–020 implement ordinary discovery without ownership, normal recoverable isError:true contention with available owner details, safe exclusivity/stale recovery/explicit retry, and the explicit eager-managed-CDP exception. AR-021–023 require exact fresh/package/container resolution, genuine supported humanization/presets/disabled controls, unsupported-version safety and fresh affected-target evidence with no unrelated update or certification inflation. The dependency exception does not erase earlier pin/license/channel or proxy-secret obligations. AR-018/023 preserve specification-only delivery and future contract/quality-artifact ownership, historical documentation and generated-content boundaries; optional retention, third local tool and lazy managed CDP remain excluded, not cancellation of existing behavior. Profile relevance itself is assessed in the dedicated active-profile items.',
+            requirement_ids:
+              [
+                AR-001,
+                AR-002,
+                AR-003,
+                AR-004,
+                AR-005,
+                AR-006,
+                AR-007,
+                AR-008,
+                AR-009,
+                AR-010,
+                AR-011,
+                AR-012,
+                AR-013,
+                AR-014,
+                AR-015,
+                AR-016,
+                AR-017,
+                AR-018,
+                AR-019,
+                AR-020,
+                AR-021,
+                AR-022,
+                AR-023,
+              ],
+            source_refs: [],
+          },
+          {
+            item_index: 5,
+            item_key: source:5e6c8c70-b2af-4a8f-a905-da1db8efcdb7,
+            verdict: covered,
+            explanation: 'The complete baseline source/predecessor requires preserving HTTP defaults/session limits, optional bearer policy and trusted reverse-proxy/header/probe behavior while adding independent outer authority validation. Independently inspected defaultStreamableHttpOptions and optional token CLI definition plus configuration:408/424 and reverse-proxy recipe:12/30–36 agree with those preserved contracts. AR-001/003 retain unrelated configuration, session isolation, capacity/body/expiry semantics; AR-004/005 preserve allowed Origin-less/tokenless clients, configured bearer on MCP and probes, separate explicit authorities/origins and no implicit forwarded trust. AR-008 retains shutdown ownership. AR-018 defines intentional denial compatibility and operator migration/restart guidance while preserving TLS/endpoints/proxy headers; AR-017 preserves source/user artifacts and honest baseline-versus-future evidence. Historical aggregate source identity is not treated as runtime proof or recomputed certification by this review.',
+            requirement_ids: [AR-001, AR-003, AR-004, AR-005, AR-008, AR-017, AR-018],
+            source_refs: [],
+          },
+        ]
+      consistency_required: true
+      input_snapshot: cec196018c1e8bf2e221b1b0794921c50ec1bc3a57c8debde21d59172a5bbb8f
